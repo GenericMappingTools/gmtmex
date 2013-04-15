@@ -8,7 +8,7 @@ int main (int argc, char *argv[])
 {	/* Test driver for GMTMEX_parser: Use it like this:
 	 * mexparser k_program 'typical mex args' */
 
-	int id = 0;				/* Status code from GMT API */
+	enum GMT_prog_enum id = k_dummy;
 	void *API = NULL;			/* GMT API control structure */
 	struct GMT_OPTION *options = NULL;	/* Linked list of options */
 	char *cmd = NULL;

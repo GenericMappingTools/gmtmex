@@ -150,19 +150,21 @@ char ** make_char_array (char *string, unsigned int *n_items)
 {
 	unsigned int len, k, n;
 	char **s = NULL;
-	char *next;
+	char *next, *tmp;
 	
-	len = sizeof (string);
-	for (k = n, 0; k < len; k++) if (string[k] == ',') n++;
-	if (n == 0) return NULL;
+	if (!string) return NULL;
+	len = strlen (string);
+	if (len == 0) return NULL;
+	tmp = strdup (string);
+	for (k = n = 0; k < len; k++) if (tmp[k] == ',') n++;
+	n++;
 	s = (char **) calloc (n, sizeof (char *));
-	next = strtok (string, ",");
 	k = 0;
-	while (next) {
+	while ((next = strsep (&tmp, ",")) != NULL) {
 		s[k++] = strdup (next);
-		next = strtok (NULL, ",");
 	}
 	*n_items = n;
+	free ((void *)tmp);
 	return s;
 }
 

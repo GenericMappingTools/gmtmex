@@ -14,7 +14,7 @@ uninstall:
 	cd src; $(MAKE) uninstall
 
 clean:
-	cd src; $(MAKE) clean)
+	cd src; $(MAKE) clean
 
 spotless:
 	cd src; $(MAKE) spotless
