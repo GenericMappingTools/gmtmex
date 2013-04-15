@@ -31,21 +31,21 @@ void GMTMEX_grdheader2info (mxArray *plhs[], struct GMT_GRID *G, int item)
 	hdr[7] = G->header->inc[GMT_X];	hdr[8] = G->header->inc[GMT_Y];
 }
 
-double *GMTMEX_info2grdheader (struct GMTAPI_CTRL *API, const mxArray *prhs[], int nrhs, struct GMT_GRID *G)
+double *GMTMEX_info2grdheader (struct GMTAPI_CTRL *API, const mxArray *prhs[], int nrhs, struct GMT_GRID_HEADER *header)
 {	/* Return the grid's header info via the info array (nrhs == 3) or x/y arrays (nrhs == 4|5) */
 	double *z = NULL;
 	if (nrhs == 3) {	/* Gave Z, info */
 		double *hdr = NULL;
 		z = mxGetData (prhs[0]);
-		G->header->nx = mxGetN (prhs[0]);
-		G->header->ny = mxGetM (prhs[0]);
+		header->nx = mxGetN (prhs[0]);
+		header->ny = mxGetM (prhs[0]);
 		hdr = mxGetData (prhs[1]);
-		GMT_memcpy (G->header->wesn, hdr, 4, double);
-		G->header->z_min = hdr[4];
-		G->header->z_max = hdr[5];
-		G->header->registration = irint (hdr[6]);
-		G->header->inc[GMT_X] = hdr[7];
-		G->header->inc[GMT_Y] = hdr[8];
+		GMT_memcpy (header->wesn, hdr, 4, double);
+		header->z_min = hdr[4];
+		header->z_max = hdr[5];
+		header->registration = irint (hdr[6]);
+		header->inc[GMT_X] = hdr[7];
+		header->inc[GMT_Y] = hdr[8];
 	}
 	else {	/* Gave x, y, Z [reg] */
 		double *r = NULL, *x = NULL, *y = NULL;
@@ -53,30 +53,30 @@ double *GMTMEX_info2grdheader (struct GMTAPI_CTRL *API, const mxArray *prhs[], i
 		x = mxGetData (prhs[0]);
 		y = mxGetData (prhs[1]);
 		z = mxGetData (prhs[2]);
-		G->header->nx = mxGetN (prhs[2]);
-		G->header->ny = mxGetM (prhs[2]);
-		G->header->inc[GMT_X] = x[1] - x[0];
-		G->header->inc[GMT_Y] = y[1] - y[0];
-		for (col = 2; !error && col < G->header->nx; col++) 
-			if ((x[col] - x[col-1]) != G->header->inc[GMT_X]) error = 1;
-		for (row = 2; !error && row < G->header->ny; row++) 
-			if ((y[row] - y[row-1]) != G->header->inc[GMT_Y]) error = 1;
+		header->nx = mxGetN (prhs[2]);
+		header->ny = mxGetM (prhs[2]);
+		header->inc[GMT_X] = x[1] - x[0];
+		header->inc[GMT_Y] = y[1] - y[0];
+		for (col = 2; !error && col < header->nx; col++) 
+			if ((x[col] - x[col-1]) != header->inc[GMT_X]) error = 1;
+		for (row = 2; !error && row < header->ny; row++) 
+			if ((y[row] - y[row-1]) != header->inc[GMT_Y]) error = 1;
 		if (error) {
 			mexErrMsgTxt ("grdwrite: x and/or y not equidistant");
 		}
 		if (nrhs == 5) {
 			r = mxGetData (prhs[3]);
-			G->header->registration = lrint (r[0]);
+			header->registration = lrint (r[0]);
 		}
 		else
-			G->header->registration = GMT_GRID_NODE_REG;
-		G->header->wesn[XLO] = (G->header->registration == GMT_GRID_PIXEL_REG) ? x[0] - 0.5 * G->header->inc[GMT_X] : x[0];
-		G->header->wesn[XHI] = (G->header->registration == GMT_GRID_PIXEL_REG) ? x[G->header->nx-1] + 0.5 * G->header->inc[GMT_X] : x[G->header->nx-1];
-		G->header->wesn[YLO] = (G->header->registration == GMT_GRID_PIXEL_REG) ? y[0] - 0.5 * G->header->inc[GMT_Y] : y[0];
-		G->header->wesn[YHI] = (G->header->registration == GMT_GRID_PIXEL_REG) ? y[G->header->ny-1] + 0.5 * G->header->inc[GMT_Y] : y[G->header->ny-1];
+			header->registration = GMT_GRID_NODE_REG;
+		header->wesn[XLO] = (header->registration == GMT_GRID_PIXEL_REG) ? x[0] - 0.5 * header->inc[GMT_X] : x[0];
+		header->wesn[XHI] = (header->registration == GMT_GRID_PIXEL_REG) ? x[header->nx-1] + 0.5 * header->inc[GMT_X] : x[header->nx-1];
+		header->wesn[YLO] = (header->registration == GMT_GRID_PIXEL_REG) ? y[0] - 0.5 * header->inc[GMT_Y] : y[0];
+		header->wesn[YHI] = (header->registration == GMT_GRID_PIXEL_REG) ? y[header->ny-1] + 0.5 * header->inc[GMT_Y] : y[header->ny-1];
 	}
-	GMT_grd_setpad (API->GMT, G->header, API->GMT->current.io.pad);	/* Assign default pad */
-	GMT_set_grddim (API->GMT, G->header);
+	GMT_grd_setpad (API->GMT, header, API->GMT->current.io.pad);	/* Assign default pad */
+	GMT_set_grddim (API->GMT, header);
 	return (z);
 }
 
@@ -100,7 +100,6 @@ char *GMTMEX_src_vector_init (struct GMTAPI_CTRL *API, const mxArray *prhs[], in
  	else {				/* Input via two or more column vectors */
 		int col, in_ID;
 		uint64_t dim[1] = {n_cols};
-		//char buffer[GMT_BUFSIZ];
 		i_string = mxMalloc (GMT_BUFSIZ);
 		if ((*V = GMT_Create_Data (API, GMT_IS_VECTOR, GMT_IS_NONE, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL) mexErrMsgTxt ("Failure to alloc GMT source vectors\n");
 		for (col = n_start; col < n_cols+n_start; col++) {	/* Hook up one vector per column and determine data type */
@@ -136,7 +135,6 @@ char *GMTMEX_src_vector_init (struct GMTAPI_CTRL *API, const mxArray *prhs[], in
 		if (GMT_Encode_ID (API, i_string, in_ID) != GMT_OK) {		/* Make filename with embedded object ID */
 			mexErrMsgTxt ("GMTMEX_parser: Failure to encode string\n");
 		}
-		//i_string = strdup (buffer);
 	}
 	return (i_string);
 }
@@ -148,28 +146,28 @@ char *GMTMEX_src_grid_init (struct GMTAPI_CTRL *API, const mxArray *prhs[], int 
 	if (nrhs == 2)		/* Gave a file name */
 		i_string = mxArrayToString (prhs[0]);	/* Load the file name into a char string */
  	else {			/* Input via matrix and either info array or x,y arrays */
-		int row, col, in_ID;
+		unsigned int row, col;
+		int in_ID;
 		uint64_t gmt_ij;
 		double *z = NULL;
-		//char buffer[GMT_BUFSIZ];
-		i_string = mxMalloc(GMT_BUFSIZ);
+		struct GMT_GRID_HEADER h_tmp;
+		i_string = mxMalloc (GMT_BUFSIZ);
 
-		if ((G = GMT_create_grid (API->GMT)) == NULL) mexErrMsgTxt ("Failure to create grid\n");
-		GMT_grd_init (API->GMT, G->header, NULL, false);
-		
 		/*  Get the Z array and fill in the header info */
-		z = GMTMEX_info2grdheader (API, prhs, nrhs, G);
-		/*  Allocate memory for the grid */
-		G->data = GMT_memory_aligned (API->GMT, NULL, G->header->size, float);
+		z = GMTMEX_info2grdheader (API, prhs, nrhs, &h_tmp);
+
+		if ((G = GMT_Create_Data (API, GMT_IS_GRID, GMT_IS_SURFACE, GMT_GRID_ALL, NULL, h_tmp.wesn, h_tmp.inc, \
+			h_tmp.registration, GMTAPI_NOTSET, NULL)) == NULL) mexErrMsgTxt ("Failure to alloc GMT grid\n");
+		
 		/* Transpose from Matlab orientation to grd orientation */
-		GMT_grd_loop (API->GMT, G, row, col, gmt_ij) G->data[gmt_ij] = (float)z[MEX_IJ(G,row,col)];
+		for (gmt_ij = row = 0; row < h_tmp.ny; row++) for (col = 0; col < h_tmp.nx; col++, gmt_ij++)
+			G->data[gmt_ij] = (float)z[MEX_IJ(G,row,col)];
 		if ((in_ID = GMT_Register_IO (API, GMT_IS_GRID, GMT_IS_REFERENCE, GMT_IS_SURFACE, GMT_IN, NULL, G)) == GMTAPI_NOTSET) {
 			mexErrMsgTxt ("Failure to register GMT source grid\n");
 		}
 		if (GMT_Encode_ID (API, i_string, in_ID) != GMT_OK) {	/* Make filename with embedded object ID */
 			mexErrMsgTxt ("GMTMEX_parser: Failure to encode string\n");
 		}
-		//i_string = strdup (buffer);
 	}
 	return (i_string);
 }
@@ -190,16 +188,15 @@ char *GMTMEX_dest_grid_init (struct GMTAPI_CTRL *API, int *out_ID, int nlhs, cha
 	if (GMT_Encode_ID (API, o_string, *out_ID) != GMT_OK) {	/* Make filename with embedded object ID */
 		mexErrMsgTxt ("GMTMEX_parser: Failure to encode string\n");
 	}
-	//o_string = strdup (buffer);
 	return (o_string);
 }
 
-char *GMTMEX_dest_vector_init (struct GMTAPI_CTRL *API, int n_cols, struct GMT_VECTOR **V, int nlhs, char *options)
+char *GMTMEX_dest_vector_init (struct GMTAPI_CTRL *API, unsigned int n_cols, struct GMT_VECTOR **V, int nlhs, char *options)
 {	/* Associate output data with Matlab/Octave vectors */
 	char *o_string = NULL;
-	int out_ID, col;
+	unsigned int col;
+	int out_ID;
 	uint64_t dim[1] = n_cols;
-	//char buffer[GMTAPI_STRLEN];
 
 	o_string = mxMalloc(GMTAPI_STRLEN);
 	if (nlhs == 0) {
@@ -219,13 +216,13 @@ char *GMTMEX_dest_vector_init (struct GMTAPI_CTRL *API, int n_cols, struct GMT_V
 	if (GMT_Encode_ID (API, o_string, out_ID) != GMT_OK) {	/* Make filename with embedded object ID */
 		mexErrMsgTxt ("GMTMEX_parser: Failure to encode string\n");
 	}
-	//o_string = strdup (buffer);
 	return (o_string);
 }
 
 void GMTMEX_prep_mexgrd (struct GMTAPI_CTRL *API, mxArray *plhs[], int nlhs, struct GMT_GRID *G)
 {	/* Turn a GMT grid into a 2-D Z matrix (and possibly x,y arrays) for passing back to Matlab/Octave */
-	int px = -1, py = -1, pz = -1, pi = -1, row, col;
+	int px = -1, py = -1, pz = -1, pi = -1;
+	unsigned int row, col;
 	uint64_t gmt_ij;
 	float *z = NULL;
 	
@@ -240,7 +237,8 @@ void GMTMEX_prep_mexgrd (struct GMTAPI_CTRL *API, mxArray *plhs[], int nlhs, str
 	/* B. Load the real grd array into a double matlab array by
               transposing from padded GMT grd format to unpadded matlab format */
 
-	GMT_grd_loop (API->GMT, G, row, col, gmt_ij) z[MEX_IJ(G,row,col)] = G->data[gmt_ij];
+	for (gmt_ij = row = 0; row < h_tmp.ny; row++) for (col = 0; col < h_tmp.nx; col++, gmt_ij++)
+		z[MEX_IJ(G,row,col)] = G->data[gmt_ij];
     
 	/* C. Create header and x,y arrays, if requested  */
 
@@ -299,10 +297,10 @@ char *GMTMEX_options_init (struct GMTAPI_CTRL *API, const mxArray *prhs[], int n
 	return (options);
 }
 
+#if 0
 char *GMTMEX_build_cmd (struct GMTAPI_CTRL *API, char *src, char *options, char *dest, int mode)
 {	/* Create the command based on options, src, and dist, which depends slightly on output type */
-	char *cmd;
-	cmd = mxMalloc (GMT_BUFSIZ);
+	char *cmd = mxMalloc (GMT_BUFSIZ);
 	if (mode == GMT_IS_GRID) {
 		if (dest)
 			sprintf (cmd, "%s %s -G%s", src, options, dest);
@@ -319,6 +317,7 @@ char *GMTMEX_build_cmd (struct GMTAPI_CTRL *API, char *src, char *options, char 
 	}
 	return (cmd);
 }
+#endif
 
 void GMTMEX_free (char *input, char *output, char *options, char *cmd) {
 	/* Free temporary local variables */
@@ -327,8 +326,6 @@ void GMTMEX_free (char *input, char *output, char *options, char *cmd) {
 	if (options) mxFree (options);	
 	mxFree (cmd);
 }
-
-#ifdef NOTYET
 
 /* New parser for all GMT mex modules based on design discussed by PW and JL on Mon, 2/21/11 */
 /* Wherever we say "Matlab" we mean "Matlab of Octave" */
@@ -516,4 +513,3 @@ int GMTMEX_parser (struct GMTAPI_CTRL *API, mxArray *plhs[], int nlhs, const mxA
 	/* Here, a command line '-F200k -G$ $ -L$ -P' has been changed to '-F200k -G@GMTAPI@-000001 @GMTAPI@-000002 -L@GMTAPI@-000003 -P'
 	 * where the @GMTAPI@-00000x are encodings to registered resources or destinations */
 }
-#endif
