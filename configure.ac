@@ -31,7 +31,7 @@ dnl -----------------------------------------------------------------
 dnl The remainder should need no editing
 dnl -----------------------------------------------------------------
 dnl
-AC_CONFIG_SRCDIR(src/gmtmex.h)
+AC_CONFIG_SRCDIR(src/gmt_mex.h)
 AC_CONFIG_AUX_DIR(`pwd`)
 AC_PREFIX_PROGRAM(gmtvector)	
 AC_CYGWIN
@@ -59,12 +59,22 @@ AC_SUBST(SL)
 AC_SUBST(SL_VERSION)
 AC_SUBST(prefix)
 AC_SUBST(rootdir)
+AC_SUBST(MEX_BLD)
+AC_SUBST(MEX_LIB)
+AC_SUBST(MEX_INC)
+AC_SUBST(MEX_EXT)
+AC_SUBST(MEX_XDIR)
+AC_SUBST(MEX_MDIR)
 dnl
 dnl -----------------------------------------------------------------
 dnl Special configure options for gmtmex installation
 dnl -----------------------------------------------------------------
 dnl
 AC_ARG_WITH(gmt_config, [  --with-gmt-config=      Full path to gmt-config [[auto]]])
+AC_ARG_ENABLE(matlab,   [  --enable-matlab=dir     Build GMT-matlab interface, give directory with Matlab distribution [[auto]]])
+AC_ARG_ENABLE(octave,   [  --enable-octave=dir     Build GMT-octave interface, give directory with Octave distribution [[auto]] (disables Matlab interface)])
+AC_ARG_ENABLE(mex_mdir, [  --enable-mex-mdir=dir   Directory in which to install GMT-octave/Matlab .m files [[auto]]])
+AC_ARG_ENABLE(mex_xdir, [  --enable-mex-xdir=dir   Directory in which to install GMT-octave/Matlab mex files [[auto]]])
 AC_ARG_ENABLE(debug,    [  --enable-debug          Compile for debugging instead of optimizing code])
 AC_ARG_ENABLE(rpath,	[  --disable-rpath         Do not hardcode runtime library paths])
 AC_ARG_ENABLE(shared,   [  --enable-shared         Build shared (dynamic) libraries instead of static])
@@ -296,6 +306,113 @@ else
 	AC_MSG_RESULT(yes)
 fi
 dnl
+dnl
+dnl -----------------------------------------------------------------
+dnl Determine Octave/Matlab mex extensions and dirs for this platform
+dnl -----------------------------------------------------------------
+dnl
+if test "X$MATLAB" = "XNONE" ; then
+	AC_MSG_RESULT([Octave/Matlab mex supplement will be skipped])
+elif test ! "X$enable_matlab" = "X"; then
+	AC_MSG_CHECKING(Compiler options for Matlab)
+	MEX_BLD="$MATLAB/bin/mex -DGMT_MATLAB"
+	if test "$os" = "Linux" ; then		# Linux systems
+		if test "$ac_cv_sizeof_long" = "8" ; then
+			MEX_EXT='mexa64'
+			MATLAB_MEX='glnxa64'
+		else
+			MEX_EXT='mexglx'
+			MATLAB_MEX='glnx86'
+		fi
+		MATLAB_LIB='mat'
+	elif test "$os" = "SunOS" ; then	# Sun Workshop
+		MEX_EXT='mexsol'
+		MATLAB_MEX='sol2'
+		MATLAB_LIB='mat'
+	elif test "$os" = "IRIX64" ; then	# SGI Irix 64
+		MEX_EXT='mexsg64'
+	elif test "$os" = "IRIX" ; then		# SGI Irix
+		MEX_EXT='mexsg'
+	elif test "$os" = "HP-UX" ; then	# HP
+		MEX_EXT='mexhpux'
+	elif test "$os" = "AIX" ; then		# IBM AIX
+		MEX_EXT='mexrs6'
+		MATLAB_MEX='ibm_rs'
+		MATLAB_LIB='mat'
+	elif test "$os" = "OSF1" ; then		# Dec Alpha
+		MEX_EXT='mexds'
+	elif test "$os" = "ULTRIX" ; then	# Dec Ultrix
+		MEX_EXT='mexvx'
+	elif test "$os" = "Darwin" ; then	# Mac OS X
+		dir=`ls -t /Applications | grep MATLAB | head -n 1`
+		if test "X$dir" = "X" ; then
+			MATLAB=NONE
+		else
+			MATLAB=/Applications/$dir
+		fi
+		MEX_BLD="$MATLAB/bin/mex -DGMT_MATLAB"
+		if test "$chip" = "i386" ; then		#Intel Mac
+			if test "$ac_cv_sizeof_long" = "8" ; then
+				MEX_EXT='mexmaci64'
+				MATLAB_MEX='maci64'
+			else
+				MEX_EXT='mexmaci'
+				MATLAB_MEX='maci'
+			fi
+		else	#Legacy PPC
+			MEX_EXT='mexmac'
+			MATLAB_MEX='mac'
+		fi
+		MATLAB_LIB='mat'
+	else					# Other
+		MEX_EXT='mex'
+	fi
+	if test "X$MATLAB_LIB" = "X" || test "X$MATLAB_MEX" = "X" ; then
+		# Users: pls supply your input
+		AC_MSG_RESULT([Matlab mex-file extension and Matlab library name not known - guessed to be mex])
+		AC_MSG_RESULT([If incorrect, please modify makefile manually and notify gmt@soest.hawaii.edu])
+		MATLAB_MEX='mex'
+		MATLAB_LIB='mex'
+	fi
+	MEX_LIB="-L$MATLAB/extern/lib/$MATLAB_MEX -l$MATLAB_LIB"
+	MEX_INC="-I$MATLAB/extern/include"
+	if test "X$enable_mex_mdir" = "X" || test "X$enable_mdir" = "Xyes" ; then
+		MEX_MDIR=$MATLAB/toolbox/local
+	else
+		MEX_MDIR=$enable_mex_mdir
+	fi
+	if test "X$enable_mex_xdir" = "X" || test "X$enable_xdir" = "Xyes" ; then
+		MEX_XDIR=$MATLAB/toolbox/local
+	else
+		MEX_XDIR=$enable_mex_xdir
+	fi
+	AC_MSG_RESULT([$MEX_BLD $MEX_LIB, extension .$MEX_EXT])
+	AC_MSG_CHECKING(Matlab install dir for .m files)
+	AC_MSG_RESULT([$MEX_MDIR])
+	AC_MSG_CHECKING(Matlab install dir for .mex files)
+	AC_MSG_RESULT([$MEX_XDIR])
+else
+	AC_MSG_CHECKING(Compiler options for Octave)
+	MEX_BLD='mkoctfile --mex -DGMT_OCTAVE'
+	MEX_EXT='mex'
+	MEX_LIB=
+	MEX_INC=
+	if test "X$enable_mex_mdir" = "X" || test "X$enable_mdir" = "Xyes" ; then
+		MEX_MDIR=`octave-config --m-site-dir`
+	else
+		MEX_MDIR=$enable_mex_mdir
+	fi
+	if test "X$enable_mex_xdir" = "X" || test "X$enable_xdir" = "Xyes" ; then
+		MEX_XDIR=`octave-config --oct-site-dir`
+	else
+		MEX_XDIR=$enable_mex_xdir
+	fi
+	AC_MSG_RESULT([$MEX_BLD, extension .$MEX_EXT])
+	AC_MSG_CHECKING(Octave install dir for .m files)
+	AC_MSG_RESULT([$MEX_MDIR])
+	AC_MSG_CHECKING(Octave install dir for .mex files)
+	AC_MSG_RESULT([$MEX_XDIR])
+fi
 dnl -----------------------------------------------------------------
 dnl Update the Make macros
 dnl -----------------------------------------------------------------

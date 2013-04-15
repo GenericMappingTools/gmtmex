@@ -33,7 +33,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	struct GMTAPI_CTRL *API = NULL;		/* GMT API control structure */
 	struct GMT_OPTION *options = NULL;	/* Linked list of options */
 	char *cmd = NULL;
-	char *key = KEY;
+	char *keys = KEY;
 
 	cmd = mxArrayToString (prhs[0]);	/* First argument is the command string, e.g., '$ -R0/5/0/5 -I1' */
 
@@ -45,7 +45,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	free (cmd);
 
 	/* 3. Parse the mex command, update GMT option lists, register in/out resources */
-	if (GMTMEX_parser (API, plhs, nlhs, prhs, nrhs, key, n_keys, options)) mexErrMsgTxt ("Failure to parse mex command options\n");
+	if (GMTMEX_parser (API, plhs, nlhs, prhs, nrhs, keys, options)) mexErrMsgTxt ("Failure to parse mex command options\n");
 	
 	/* 3. Run GMT cmd function, or give usage message if errors arise during parsing */
 	status = FUNC (API, -1, options);
