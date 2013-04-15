@@ -4,14 +4,16 @@
 
 include ../config.mk
 
-INCLUDES	= $(GMT_INC) -I.
+INCLUDES	= $(GMT_INC) $(MEX_INC) -I.
 
 PROGS_C		= mexparser.c
 PROGS_O         = $(PROGS_C:.c=.o)
 PROGS           = $(PROGS_C:.c=)
 
-LIB_C		= gmt_mex.c
-LIB_H		= gmt_mex.h
+#LIB_C		= gmt_mex.c
+#LIB_H		= gmt_mex.h
+LIB_C		= gmtmex_parser.c
+LIB_H		= 
 LIB_O		= $(LIB_C:.c=.o)
 LIB		= libgmtmex.$(LIBEXT)
 
@@ -47,6 +49,17 @@ clean:
 #-------------------------------------------------------------------------------
 
 $(PROGS):	$(PROGS_O) $(LIB)
-		$(CC) $(LDFLAGS) $@.o $(GMT_LIB) -L../lib -lgmtmex $(LIBS) -o $@
+		$(CC) $(LDFLAGS) $@.o $(GMT_LIB) -L. -lgmtmex $(LIBS) -o $@
 
 $(LIB_O):	$(LIB_C) $(LIB_H)
+
+gmtmex_id.h:	mexproginfo.txt
+		echo "enum GMT_prog_enum {" > gmtmex_id.h
+		grep -v '^#' mexproginfo.txt | awk '{printf "\tk_%s = %d,\n", $$1, NR-1}' >> gmtmex_id.h
+		echo "	k_dummy = -1};" >> gmtmex_id.h
+
+gmtmex_keys.h:	mexproginfo.txt
+		echo "static char *keys[] = {" > gmtmex_keys.h
+		grep -v '^#' mexproginfo.txt | awk '{printf "\t%s,\n", $$3}' >> gmtmex_keys.h
+		echo "	\"\"};" >> gmtmex_keys.h
+
