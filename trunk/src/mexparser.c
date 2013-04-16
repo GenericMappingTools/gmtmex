@@ -3,6 +3,7 @@ int GMTMEX_parser (void *API, void *plhs[], int nlhs, void *prhs[], int nrhs, ch
 
 #include "gmtmex_id.h"
 #include "gmtmex_keys.h"
+#include "gmtmex_progs.h"
 
 int main (int argc, char *argv[])
 {	/* Test driver for GMTMEX_parser: Use it like this:
@@ -26,7 +27,8 @@ int main (int argc, char *argv[])
 	
 	cmd = GMT_Create_Cmd (API, options);
 	
-	fprintf (stderr, "Call function with args: %s\n", cmd);
+	fprintf (stderr, "Call %s (API, -1, \"%s\")\n", func[id], cmd);
+	free ((void *)cmd);
 	
 	/* 4. Destroy local linked option list */
 	if (GMT_Destroy_Options (API, &options)) fprintf (stderr, "Failure to destroy GMT options\n");
