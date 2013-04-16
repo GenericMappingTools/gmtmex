@@ -21,7 +21,8 @@
 #include "gmt.h"
 #include <string.h>
 
-#define GMT_VIA_MEX 0
+#define GMT_VIA_MEX	0
+#define GMT_IS_PS	99
 
 #define TESTING
 #ifdef TESTING
@@ -52,6 +53,7 @@ unsigned int unique_ID = 0;
  * and vice versa.
  */
 
+#define GMT_MEX_NONE		-3
 #define GMT_MEX_EXPLICIT	-2
 #define GMT_MEX_IMPLICIT	-1
 
@@ -73,7 +75,7 @@ int gmtmex_get_arg_pos (char *arg)
 	return (pos);	/* Either -1 (not found) or in the 0-(strlen(arg)-1) range [position of $] */
 }
 
-void gmtmex_get_key_pos (char *key[], unsigned int n_keys, struct GMT_OPTION *head, int def[])
+unsigned int gmtmex_get_key_pos (char *key[], unsigned int n_keys, struct GMT_OPTION *head, int def[])
 {	/* Must determine if default input and output have been set via program options or if they should be added explicitly.
  	 * As an example, consider the GMT command grdfilter in.nc -Fg200k -Gfilt.nc.  In Matlab this might be
 	 * filt = GMT_grdfilter ('$ -Fg200k -G$', in);
@@ -82,7 +84,7 @@ void gmtmex_get_key_pos (char *key[], unsigned int n_keys, struct GMT_OPTION *he
 	 * In that case we need to know that -G is the default way to specify the output grid and if -G is not given we
 	 * must associate -G with the first left-hand-side item (here filt).
 	 */
-	int pos;
+	int pos, PS = 0;
 	struct GMT_OPTION *opt = NULL;
 	def[GMT_IN] = def[GMT_OUT] = GMT_MEX_IMPLICIT;	/* Initialize to setting the i/o implicitly */
 	
@@ -96,9 +98,13 @@ void gmtmex_get_key_pos (char *key[], unsigned int n_keys, struct GMT_OPTION *he
 	}
 	/* Here, if def[] == GMT_MEX_IMPLICIT (the default in/out option was NOT given), then we want to return the corresponding entry in key */
 	for (pos = 0; pos < n_keys; pos++) {	/* For all module options that might take a file */
-		if (key[pos][2] == 'I' && def[GMT_IN]  == GMT_MEX_IMPLICIT) def[GMT_IN]  = pos;	/* Must add implicit input; use def to determine option,type */
-		if (key[pos][2] == 'O' && def[GMT_OUT] == GMT_MEX_IMPLICIT) def[GMT_OUT] = pos;	/* Must add implicit output; use def to determine option,type */
+		if ((key[pos][2] == 'I' || key[pos][2] == 'i') && key[pos][0] == '-') def[GMT_IN]  = GMT_MEX_NONE;	/* This program takes no input (e.g., psbasemap) */
+		else if (key[pos][2] == 'I' && def[GMT_IN]  == GMT_MEX_IMPLICIT) def[GMT_IN]  = pos;	/* Must add implicit input; use def to determine option,type */
+		if ((key[pos][2] == 'O' || key[pos][2] == 'o') && key[pos][0] == '-') def[GMT_OUT] = GMT_MEX_NONE;	/* This program produces no output */
+		else if (key[pos][2] == 'O' && def[GMT_OUT] == GMT_MEX_IMPLICIT) def[GMT_OUT] = pos;	/* Must add implicit output; use def to determine option,type */
+		if ((key[pos][2] == 'O' || key[pos][2] == 'o') && key[pos][1] == 'X' && key[pos][0] == '-') PS = 1;	/* This program produces PostScript */
 	}
+	return (PS);
 }
 
 int gmtmex_get_arg_dir (char option, char *key[], int n_keys, int *data_type, int *geometry)
@@ -140,6 +146,10 @@ int gmtmex_get_arg_dir (char option, char *key[], int n_keys, int *data_type, in
 		case 'I':
 			*data_type = GMT_IS_IMAGE;
 			*geometry = GMT_IS_SURFACE;
+			break;
+		case 'X':
+			*data_type = GMT_IS_PS;
+			*geometry = GMT_IS_NONE;
 			break;
 		default:
 			fprintf (stderr, "GMTMEX_parser: Bad data_type character in 3-char module code!\n");
@@ -187,8 +197,8 @@ int GMTMEX_parser (void *API, void *plhs[], int nlhs, void *prhs[], int nrhs, ch
 	int data_type;		/* Either GMT_IS_DATASET, GMT_IS_TEXTSET, GMT_IS_GRID, GMT_IS_CPT, GMT_IS_IMAGE */
 	int geometry;		/* Either GMT_IS_NONE, GMT_IS_POINT, GMT_IS_LINE, GMT_IS_POLY, or GMT_IS_SURFACE */
 	int def[2];		/* Either GMT_MEX_EXPLICIT or the item number in the keys array */
-	int ID;
-	unsigned int k, n_keys = 0, pos;
+	int ID, error;
+	unsigned int k, n_keys = 0, pos, PS;
 	char name[GMTAPI_STRLEN];	/* Used to hold the GMT API embedded file name, e.g., @GMTAPI@-###### */
 	char buffer[BUFSIZ];	/* Temp buffer */
 	char **key = NULL;
@@ -199,8 +209,9 @@ int GMTMEX_parser (void *API, void *plhs[], int nlhs, void *prhs[], int nrhs, ch
 	
 	key = make_char_array (keys, &n_keys);
 	
-	gmtmex_get_key_pos (key, n_keys, head, def);	/* Determine if we must add the primary in and out arguments to the option list */
+	PS = gmtmex_get_key_pos (key, n_keys, head, def);	/* Determine if we must add the primary in and out arguments to the option list */
 	for (direction = GMT_IN; direction <= GMT_OUT; direction++) {
+		if (def[direction] == GMT_MEX_NONE) continue;	/* No source or destination required */
 		if (def[direction] == GMT_MEX_EXPLICIT) continue;	/* Source or destination was set explicitly; skip */
 		/* Must add the primary input or output from prhs[0] or plhs[0] */
 		(void)gmtmex_get_arg_dir (key[def[direction]][0], key, n_keys, &data_type, &geometry);		/* Get info about the data set */
@@ -222,6 +233,7 @@ int GMTMEX_parser (void *API, void *plhs[], int nlhs, void *prhs[], int nrhs, ch
 	}
 		
 	for (opt = head; opt; opt = opt->next) {	/* Loop over the module options given */
+		if (PS && opt->option == GMTAPI_OPT_OUTFILE) PS++;
 		/* Determine if this option as a $ in its argument and if so return its position in pos; return -1 otherwise */
 		if ((pos = gmtmex_get_arg_pos (opt->arg)) == -1) continue;	/* No $ argument found or it is part of a text string */
 		
@@ -249,10 +261,16 @@ int GMTMEX_parser (void *API, void *plhs[], int nlhs, void *prhs[], int nrhs, ch
 		opt->arg = strdup (buffer);	/* Allocate and set the new argument with the embedded filename */
 	}
 	
+	if (PS == 1)	/* No redirection of PS to a file */
+		error = 1;
+	else if (PS > 2)	/* Too many output files for PS */
+		error = 2;
+	else
+		error = GMT_NOERROR;
 	for (k = 0; k < n_keys; k++) free ((void *)key[k]);
 	free ((void *)key);
 	
 	/* Here, a command line '-F200k -G$ $ -L$ -P' has been changed to '-F200k -G@GMTAPI@-000001 @GMTAPI@-000002 -L@GMTAPI@-000003 -P'
 	 * where the @GMTAPI@-00000x are encodings to registered resources or destinations */
-		return (GMT_NOERROR);
+	return (error);
 }
