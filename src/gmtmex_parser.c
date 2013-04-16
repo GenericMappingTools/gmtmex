@@ -23,6 +23,11 @@
 
 #define GMT_VIA_MEX 0
 
+#define TESTING
+#ifdef TESTING
+unsigned int unique_ID = 0;
+#endif
+
 /* New parser for all GMT mex modules based on design discussed by PW and JL on Mon, 2/21/11 */
 /* Wherever we say "Matlab" we mean "Matlab of Octave" */
 
@@ -188,7 +193,9 @@ int GMTMEX_parser (void *API, void *plhs[], int nlhs, void *prhs[], int nrhs, ch
 	char buffer[BUFSIZ];	/* Temp buffer */
 	char **key = NULL;
 	struct GMT_OPTION *opt, *new_ptr;	/* Pointer to a GMT option structure */
+#ifndef TESTING
 	void *ptr = NULL;		/* Void pointer used to point to either L or R side pointer argument */
+#endif
 	
 	key = make_char_array (keys, &n_keys);
 	
@@ -197,11 +204,15 @@ int GMTMEX_parser (void *API, void *plhs[], int nlhs, void *prhs[], int nrhs, ch
 		if (def[direction] == GMT_MEX_EXPLICIT) continue;	/* Source or destination was set explicitly; skip */
 		/* Must add the primary input or output from prhs[0] or plhs[0] */
 		(void)gmtmex_get_arg_dir (key[def[direction]][0], key, n_keys, &data_type, &geometry);		/* Get info about the data set */
+#ifdef TESTING
+		ID = unique_ID++;
+#else
 		ptr = (direction == GMT_IN) ? (void *)prhs[lr_pos[direction]] : (void *)plhs[lr_pos[direction]];	/* Pick the next left or right side pointer */
 		/* Register a Matlab/Octave entity as a source or destination */
 		if ((ID = GMT_Register_IO (API, data_type, GMT_IS_REFERENCE + GMT_VIA_MEX, geometry, direction, NULL, ptr)) == GMTAPI_NOTSET) {
 			fprintf (stderr, "GMTMEX_parser: Failure to register GMT source or destination\n");
 		}
+#endif
 		lr_pos[direction]++;		/* Advance uint64_t for next time */
 		if (GMT_Encode_ID (API, name, ID) != GMT_NOERROR) {	/* Make filename with embedded object ID */
 			fprintf (stderr, "GMTMEX_parser: Failure to encode string\n");
@@ -216,11 +227,15 @@ int GMTMEX_parser (void *API, void *plhs[], int nlhs, void *prhs[], int nrhs, ch
 		
 		/* Determine several things about this option, such as direction, data type, method, and geometry */
 		direction = gmtmex_get_arg_dir (opt->option, key, n_keys, &data_type, &geometry);
+#ifdef TESTING
+		ID = unique_ID++;
+#else
 		ptr = (direction == GMT_IN) ? (void *)prhs[lr_pos[direction]] : (void *)plhs[lr_pos[direction]];	/* Pick the next left or right side pointer */
 		/* Register a Matlab/Octave entity as a source or destination */
 		if ((ID = GMT_Register_IO (API, data_type, GMT_IS_REFERENCE + GMT_VIA_MEX, geometry, direction, NULL, ptr)) == GMTAPI_NOTSET) {
 			fprintf (stderr, "GMTMEX_parser: Failure to register GMT source or destination\n");
 		}
+#endif
 		if (GMT_Encode_ID (API, name, ID) != GMT_NOERROR) {	/* Make filename with embedded object ID */
 			fprintf (stderr, "GMTMEX_parser: Failure to encode string\n");
 		}
