@@ -13,6 +13,7 @@ int main (int argc, char *argv[])
 	void *API = NULL;			/* GMT API control structure */
 	struct GMT_OPTION *options = NULL;	/* Linked list of options */
 	char *cmd = NULL;
+	int error;
 
 	id = atoi (argv[1]);	/* ID number of program to test */
 
@@ -23,7 +24,11 @@ int main (int argc, char *argv[])
 	if ((options = GMT_Create_Options (API, 0, argv[2])) == NULL) fprintf (stderr, "Failure to parse GMT command options\n");
 
 	/* 3. Parse the mex command, update GMT option lists, register in/out resources */
-	if (GMTMEX_parser (API, NULL, 0, NULL, 0, keys[id], options)) fprintf (stderr, "Failure to parse mex command options\n");
+	if ((error = GMTMEX_parser (API, NULL, 0, NULL, 0, keys[id], options))) {
+		if (error == 1) fprintf (stderr, "No output file specified for PS-producing command\n");
+		if (error == 2) fprintf (stderr, "Too many output files specified for PS-producing command\n");
+		if (error > 2) fprintf (stderr, "Failure to parse GMT mex command\n");
+	}
 	
 	cmd = GMT_Create_Cmd (API, options);
 	
