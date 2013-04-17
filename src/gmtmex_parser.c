@@ -200,7 +200,6 @@ int GMTMEX_parser (void *API, void *plhs[], int nlhs, void *prhs[], int nrhs, ch
 	int ID, error;
 	unsigned int k, n_keys = 0, pos, PS;
 	char name[GMTAPI_STRLEN];	/* Used to hold the GMT API embedded file name, e.g., @GMTAPI@-###### */
-	char buffer[BUFSIZ];	/* Temp buffer */
 	char **key = NULL;
 	struct GMT_OPTION *opt, *new_ptr;	/* Pointer to a GMT option structure */
 #ifndef TESTING
@@ -254,11 +253,9 @@ int GMTMEX_parser (void *API, void *plhs[], int nlhs, void *prhs[], int nrhs, ch
 		lr_pos[direction]++;		/* Advance uint64_t for next time */
 		
 		/* Replace the option argument with the embedded file */
-		opt->arg[pos] = '\0';	/* Chop off the stuff starting at the $ sign */
-		sprintf (buffer, "%s%s", opt->arg, name);	/* Make a new option argument that replaces the $ with name */
-		opt->arg[pos] = '$';	/* Restore the $ sign in the old argument */
-		free (opt->arg);	/* Free the old option argument */
-		opt->arg = strdup (buffer);	/* Allocate and set the new argument with the embedded filename */
+		if (GMT_Update_Option (API, opt->option, name, head)) {
+			fprintf (stderr, "GMTMEX_parser: Failure to update option argument\n");
+		}
 	}
 	
 	if (PS == 1)	/* No redirection of PS to a file */
