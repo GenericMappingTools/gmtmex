@@ -253,7 +253,7 @@ int GMTMEX_parser (void *API, void *plhs[], int nlhs, void *prhs[], int nrhs, ch
 		lr_pos[direction]++;		/* Advance uint64_t for next time */
 		
 		/* Replace the option argument with the embedded file */
-		if (GMT_Update_Option (API, opt->option, name, head)) {
+		if (GMT_Update_Option (API, opt, name)) {
 			fprintf (stderr, "GMTMEX_parser: Failure to update option argument\n");
 		}
 	}
