@@ -33,7 +33,7 @@ int main (int argc, char *argv[])
 	cmd = GMT_Create_Cmd (API, options);
 	
 	fprintf (stderr, "Call %s (API, -1, \"%s\")\n", func[id], cmd);
-	free ((void *)cmd);
+	if (GMT_Destroy_Cmd (API, &cmd)) fprintf (stderr, "Failure to destroy GMT command\n");
 	
 	/* 4. Destroy local linked option list */
 	if (GMT_Destroy_Options (API, &options)) fprintf (stderr, "Failure to destroy GMT options\n");
