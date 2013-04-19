@@ -1,0 +1,8 @@
+-----------------------------------------------------------------------------------------
+	$Id: ChangeLog 11350 2013-04-19 01:13:08Z pwessel $
+-----------------------------------------------------------------------------------------
+
+2013-04-18	pwessel
+	* *.*:			Moved things from GMT/mex and started fresh.  Testing
+				mexparser for now as it does not yet need Matlab/Octave
+
