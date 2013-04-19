@@ -40,6 +40,8 @@
 #define GMT5MEX_banner mexPrintf("The Generic Mapping Tools v. 5 %s interface\n", MEX_PROG)
 #define GMT_IS_PS	9	/* Use for PS output; use GMT_IS_GRID or GMT_IS_DATASET for data */
 
+int GMTMEX_print_func (FILE *fp, const char *message);
+
 void GMTMEX_grdheader2info (mxArray *plhs[], struct GMT_GRID *G, int item);
 void GMTMEX_grdxy (void *API, mxArray *plhs[], struct GMT_GRID *G, int px, int py);
 void GMTMEX_prep_mexgrd (void *API, mxArray *plhs[], int nlhs, struct GMT_GRID *G);
