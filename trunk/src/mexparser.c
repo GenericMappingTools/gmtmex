@@ -18,7 +18,7 @@ int main (int argc, char *argv[])
 	id = atoi (argv[1]);	/* ID number of program to test */
 
 	/* 1. Initializing new GMT session with no grid pad as default */
-	if ((API = GMT_Create_Session ("GMT/MEX-API", 0U, 0U)) == NULL) fprintf (stderr, "Failure to create GMT Session\n");
+	if ((API = GMT_Create_Session ("GMT/MEX-API", 0U, 0U, NULL)) == NULL) fprintf (stderr, "Failure to create GMT Session\n");
 
 	/* 2. Convert command line arguments to local linked option list */
 	if ((options = GMT_Create_Options (API, 0, argv[2])) == NULL) fprintf (stderr, "Failure to parse GMT command options\n");
