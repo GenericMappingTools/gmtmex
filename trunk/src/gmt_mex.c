@@ -29,7 +29,7 @@ int GMTMEX_print_func (FILE *fp, const char *message)
 	 * API->print_func.  Purpose of this is to allow Matlab (which cannot use
 	 * printf) to reset API->print_func this functions via GMT_Create_Session. */
 
-	mexErrMsgTxt (message);
+	mexPrintf (message);
 	return 0;
 }
 
