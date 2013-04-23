@@ -23,6 +23,10 @@
 #include <ctype.h>
 #include <math.h>
 
+#if defined(WIN32) && !defined(lrint)
+#	define lrint (int64_t)rint
+#endif
+
 int GMTMEX_print_func (FILE *fp, const char *message)
 {
 	/* Repalcement for GMT's gmt_print_func.  It is being used indirectly via
