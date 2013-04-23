@@ -24,7 +24,7 @@
 #define GMT_VIA_MEX	0
 #define GMT_IS_PS	99
 
-#define TESTING
+//#define TESTING
 #ifdef TESTING
 unsigned int unique_ID = 0;
 #endif
@@ -220,12 +220,12 @@ int GMTMEX_parser (void *API, void *plhs[], int nlhs, void *prhs[], int nrhs, ch
 		ptr = (direction == GMT_IN) ? (void *)prhs[lr_pos[direction]] : (void *)plhs[lr_pos[direction]];	/* Pick the next left or right side pointer */
 		/* Register a Matlab/Octave entity as a source or destination */
 		if ((ID = GMT_Register_IO (API, data_type, GMT_IS_REFERENCE + GMT_VIA_MEX, geometry, direction, NULL, ptr)) == GMTAPI_NOTSET) {
-			fprintf (stderr, "GMTMEX_parser: Failure to register GMT source or destination\n");
+			mexErrMsgTxt ("GMTMEX_parser: Failure to register GMT source or destination\n");
 		}
 #endif
 		lr_pos[direction]++;		/* Advance uint64_t for next time */
 		if (GMT_Encode_ID (API, name, ID) != GMT_NOERROR) {	/* Make filename with embedded object ID */
-			fprintf (stderr, "GMTMEX_parser: Failure to encode string\n");
+			mexErrMsgTxt ("GMTMEX_parser: Failure to encode string\n");
 		}
 		new_ptr = GMT_Make_Option (API, key[def[direction]][0], name);	/* Create the missing (implicit) GMT option */
 		GMT_Append_Option (API, new_ptr, head);				/* Append it to the option list */
@@ -244,17 +244,17 @@ int GMTMEX_parser (void *API, void *plhs[], int nlhs, void *prhs[], int nrhs, ch
 		ptr = (direction == GMT_IN) ? (void *)prhs[lr_pos[direction]] : (void *)plhs[lr_pos[direction]];	/* Pick the next left or right side pointer */
 		/* Register a Matlab/Octave entity as a source or destination */
 		if ((ID = GMT_Register_IO (API, data_type, GMT_IS_REFERENCE + GMT_VIA_MEX, geometry, direction, NULL, ptr)) == GMTAPI_NOTSET) {
-			fprintf (stderr, "GMTMEX_parser: Failure to register GMT source or destination\n");
+			mexErrMsgTxt ("GMTMEX_parser: Failure to register GMT source or destination\n");
 		}
 #endif
 		if (GMT_Encode_ID (API, name, ID) != GMT_NOERROR) {	/* Make filename with embedded object ID */
-			fprintf (stderr, "GMTMEX_parser: Failure to encode string\n");
+			mexErrMsgTxt ("GMTMEX_parser: Failure to encode string\n");
 		}
 		lr_pos[direction]++;		/* Advance uint64_t for next time */
 		
 		/* Replace the option argument with the embedded file */
 		if (GMT_Update_Option (API, opt, name)) {
-			fprintf (stderr, "GMTMEX_parser: Failure to update option argument\n");
+			mexErrMsgTxt ("GMTMEX_parser: Failure to update option argument\n");
 		}
 	}
 	
