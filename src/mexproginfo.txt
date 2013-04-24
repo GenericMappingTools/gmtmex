@@ -6,8 +6,11 @@
 # The second stand for data type (C = CPT, D = Dataset/Point, L = Dataset/Line,
 # P = Dataset/Polygon, G = Grid, I = Image, T = Textset, X = PostScript),
 # while the 3rd stand for input (I), primary output (O), or secondary output (o).
-# Note: PostScript is only allowed to be written to a given file and is never
+# Note (1): PostScript is only allowed to be written to a given file and is never
 # returned to the calling program via memory.
+# Note (2): A dash (-) in the I or O position means the program takes no input or
+# produces no output files, respectively
+#
 backtracker	spotter		"<DI,>DO,EDI,FDI"
 blockmean	core		"<DI,>DO"
 blockmedian	core		"<DI,>DO"
