@@ -39,7 +39,6 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	struct GMT_OPTION *options = NULL;	/* Linked list of options */
 	char *cmd = NULL;
 	char module[BUFSIZ];
-	int k_mod_nongmt = 120;
 
 	/* 1. Initializing new GMT session */
 	if ((API = GMT_Create_Session ("GMT5", 2U, 1U, GMTMEX_print_func)) == NULL) mexErrMsgTxt ("Failure to create GMT Session\n");
@@ -52,7 +51,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	strncpy (module, cmd, k);			/* Isolate the module name */
 
 	/* 3. Determine the GMT module ID, or list module usages and return if not found */
-	if ((module_id = GMT_Get_Module (API, module)) == k_mod_nongmt) {
+	if ((module_id = GMT_Get_Module (API, module)) == GMT_ID_NONE) {
 		GMT_List_Module (API, -1);
 		return;
 	}
