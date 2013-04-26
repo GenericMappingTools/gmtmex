@@ -23,6 +23,13 @@
 
 #include "gmt.h"
 #include <mex.h>
+#include <string.h>
+#include <ctype.h>
+#include <math.h>
+
+#if defined(WIN32) && !defined(lrint)
+#	define lrint (int64_t)rint
+#endif
 
 #define GMT_VIA_MEX	0	/* See what this is for later */
 #ifdef GMT_MATLAB
@@ -38,7 +45,7 @@
 #define MEX_IJ(G,row,col) ((col)*G->header->ny + G->header->ny - (row) - 1)
 
 #define GMT5MEX_banner mexPrintf("The Generic Mapping Tools v. 5 %s interface\n", MEX_PROG)
-#define GMT_IS_PS	9	/* Use for PS output; use GMT_IS_GRID or GMT_IS_DATASET for data */
+#define GMT_IS_PS	99	/* Use for PS output; use GMT_IS_GRID or GMT_IS_DATASET for data */
 
 int GMTMEX_print_func (FILE *fp, const char *message);
 

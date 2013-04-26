@@ -27,16 +27,6 @@
 #	define lrint (int64_t)rint
 #endif
 
-int GMTMEX_print_func (FILE *fp, const char *message)
-{
-	/* Replacement for GMT's gmt_print_func.  It is being used indirectly via
-	 * API->print_func.  Purpose of this is to allow Matlab (which cannot use
-	 * printf) to reset API->print_func this functions via GMT_Create_Session. */
-
-	mexPrintf (message);
-	return 0;
-}
-
 void GMTMEX_grdheader2info (mxArray *plhs[], struct GMT_GRID *G, int item)
 {	/* Return the grid's header info via the info array */
 	double *hdr = NULL;
