@@ -196,26 +196,28 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, const mxArray *ptr)
 	struct GMT_MATRIX *M = NULL;
 	dim[0] = mxGetN (ptr);
 	dim[1] = mxGetM (ptr);
-	if ((M = GMT_Create_Data (API, GMT_IS_MATRIX, GMT_IS_NONE, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL) mexErrMsgTxt ("Failure to alloc GMT source matrix\n");
+	if ((M = GMT_Create_Data (API, GMT_IS_MATRIX, GMT_IS_NONE, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
+		mexErrMsgTxt ("Failure to alloc GMT source matrix\n");
+
 	M->n_rows = dim[1];
 	M->n_columns = dim[0];
 	if (mxIsDouble(ptr)) {
 		M->type = GMT_DOUBLE;
 		M->data.f8 = mxGetData (ptr);
 	}
-	else if (mxIsSingle(prhs)) {
+	else if (mxIsSingle(ptr)) {
 		M->type = GMT_FLOAT;
 		M->data.f4 = (float *)mxGetData (ptr);
 	}
-	else if (mxIsInt32(prhs)) {
+	else if (mxIsInt32(ptr)) {
 		M->type = GMT_INT;
 		M->data.si4 = (int32_t *)mxGetData (ptr);
 	}
-	else if (mxIsInt16(prhs)) {
+	else if (mxIsInt16(ptr)) {
 		M->type = GMT_SHORT;
 		M->data.si2 = (int16_t *)mxGetData (ptr);
 	}
-	else if (mxIsInt8(prhs)) {
+	else if (mxIsInt8(ptr)) {
 		M->type = GMT_CHAR;
 		M->data.sc1 = (int8_t *)mxGetData (ptr);
 	}
