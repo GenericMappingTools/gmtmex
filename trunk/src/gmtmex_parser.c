@@ -34,7 +34,7 @@ unsigned int unique_ID = 0;
 
 /* For the Mex interface we will wish to pass either filenames or matrices via GMT command options.
  * We select a Matlab matrix by suppying $ as the file name.  The parser will then find these $
- * arguments and replace them with references to the arrays via the GMT API mechanisms.
+ * arguments and replace them with references to a matrix via the GMT API mechanisms.
  * This requires us to know which options in a module may accept a file name.  As an example,
  * consider surface whose -L option may take a grid.  To pass a Matlab/Octave grid already in memory
  * we would use -L$ and give the grid as an argument to the module, e.g.,
@@ -219,7 +219,7 @@ int GMTMEX_parser (void *API, void *plhs[], int nlhs, void *prhs[], int nrhs, ch
 #else
 		ptr = (direction == GMT_IN) ? (void *)prhs[lr_pos[direction]] : (void *)plhs[lr_pos[direction]];	/* Pick the next left or right side pointer */
 		/* Register a Matlab/Octave entity as a source or destination */
-		if ((ID = GMT_Register_IO (API, data_type, GMT_IS_REFERENCE + GMT_VIA_MEX, geometry, direction, NULL, ptr)) == GMTAPI_NOTSET) {
+		if ((ID = GMT_Register_IO (API, data_type, GMT_IS_REFERENCE + GMT_VIA_MATRIX, geometry, direction, NULL, ptr)) == GMTAPI_NOTSET) {
 			mexErrMsgTxt ("GMTMEX_parser: Failure to register GMT source or destination\n");
 		}
 #endif
@@ -243,7 +243,7 @@ int GMTMEX_parser (void *API, void *plhs[], int nlhs, void *prhs[], int nrhs, ch
 #else
 		ptr = (direction == GMT_IN) ? (void *)prhs[lr_pos[direction]] : (void *)plhs[lr_pos[direction]];	/* Pick the next left or right side pointer */
 		/* Register a Matlab/Octave entity as a source or destination */
-		if ((ID = GMT_Register_IO (API, data_type, GMT_IS_REFERENCE + GMT_VIA_MEX, geometry, direction, NULL, ptr)) == GMTAPI_NOTSET) {
+		if ((ID = GMT_Register_IO (API, data_type, GMT_IS_REFERENCE + GMT_VIA_MATRIX, geometry, direction, NULL, ptr)) == GMTAPI_NOTSET) {
 			mexErrMsgTxt ("GMTMEX_parser: Failure to register GMT source or destination\n");
 		}
 #endif

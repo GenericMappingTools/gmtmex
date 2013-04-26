@@ -396,7 +396,7 @@ else
 	MEX_BLD='mkoctfile --mex -DGMT_OCTAVE'
 	MEX_EXT='mex'
 	MEX_LIB=
-	MEX_INC=
+	MEX_INC=-I`octave-config --print INCLUDEDIR`
 	if test "X$enable_mex_mdir" = "X" || test "X$enable_mdir" = "Xyes" ; then
 		MEX_MDIR=`octave-config --m-site-dir`
 	else
