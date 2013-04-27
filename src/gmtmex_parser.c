@@ -120,7 +120,7 @@ int gmtmex_get_arg_dir (char option, char *key[], int n_keys, int *data_type, in
 	/* 1. First determine if this option is one of the choices in key */
 	
 	item = gmtmex_find_option (option, key, n_keys);
-	if (item == -1) fprintf (stderr, "GMTMEX_parser: This option does not allow $ arguments\n");	/* This means a coding error we must fix */
+	if (item == -1) fprintf (stderr, "GMTMEX_pre_process: This option does not allow $ arguments\n");	/* This means a coding error we must fix */
 	
 	/* 2. Assign direction, data_type, and geometry */
 	
@@ -158,7 +158,7 @@ int gmtmex_get_arg_dir (char option, char *key[], int n_keys, int *data_type, in
 			*geometry = GMT_IS_NONE;
 			break;
 		default:
-			fprintf (stderr, "GMTMEX_parser: Bad data_type character in 3-char module code!\n");
+			fprintf (stderr, "GMTMEX_pre_process: Bad data_type character in 3-char module code!\n");
 			break;
 	}
 	/* Third key character contains the in/out code */
@@ -189,44 +189,54 @@ char ** make_char_array (char *string, unsigned int *n_items)
 	return s;
 }
 
-struct GMT_MATRIX *GMTMEX_matrix_init (void *API, const mxArray *ptr)
-{	/* Used to Create an empty Matrix and associate it with an input Matlab matrix */
+struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const mxArray *ptr)
+{	/* Used to Create an empty Matrix container and associate it with a Matlab matrix.
+ 	 * If direction is GMT_IN then we are given a Matlab matrix and can determine size etc.
+	 * If output then we dont know size but we can specify type */
 	int col, in_ID;
-	uint64_t dim[2];
+	uint64_t dim[2] = {0, 0};
 	struct GMT_MATRIX *M = NULL;
-	dim[0] = mxGetN (ptr);
-	dim[1] = mxGetM (ptr);
+	if (direction == GMT_IN) {	/* Dimensions are known */
+		dim[0] = mxGetN (ptr);
+		dim[1] = mxGetM (ptr);
+	}
 	if ((M = GMT_Create_Data (API, GMT_IS_MATRIX, GMT_IS_NONE, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
 		mexErrMsgTxt ("Failure to alloc GMT source matrix\n");
 
 	M->n_rows = dim[1];
 	M->n_columns = dim[0];
-	if (mxIsDouble(ptr)) {
+	if (direction == GMT_IN) {	/* We can inquire about the input */
+		if (mxIsDouble(ptr)) {
+			M->type = GMT_DOUBLE;
+			M->data.f8 = mxGetData (ptr);
+		}
+		else if (mxIsSingle(prhs)) {
+			M->type = GMT_FLOAT;
+			M->data.f4 = (float *)mxGetData (ptr);
+		}
+		else if (mxIsInt32(prhs)) {
+			M->type = GMT_INT;
+			M->data.si4 = (int32_t *)mxGetData (ptr);
+		}
+		else if (mxIsInt16(prhs)) {
+			M->type = GMT_SHORT;
+			M->data.si2 = (int16_t *)mxGetData (ptr);
+		}
+		else if (mxIsInt8(prhs)) {
+			M->type = GMT_CHAR;
+			M->data.sc1 = (int8_t *)mxGetData (ptr);
+		}
+		else
+			mexErrMsgTxt ("Unsupported data type in GMT matrix input.");
+	}
+	else {	/* On output we produce doubles */
 		M->type = GMT_DOUBLE;
-		M->data.f8 = mxGetData (ptr);
+		M->alloc_mode = GMT_REFERENCE;
 	}
-	else if (mxIsSingle(ptr)) {
-		M->type = GMT_FLOAT;
-		M->data.f4 = (float *)mxGetData (ptr);
-	}
-	else if (mxIsInt32(ptr)) {
-		M->type = GMT_INT;
-		M->data.si4 = (int32_t *)mxGetData (ptr);
-	}
-	else if (mxIsInt16(ptr)) {
-		M->type = GMT_SHORT;
-		M->data.si2 = (int16_t *)mxGetData (ptr);
-	}
-	else if (mxIsInt8(ptr)) {
-		M->type = GMT_CHAR;
-		M->data.sc1 = (int8_t *)mxGetData (ptr);
-	}
-	else
-		mexErrMsgTxt ("Unsupported data type in GMT matrix input.");
 	return (M);
 }
 
-int GMTMEX_parser (void *API, void *plhs[], int nlhs, void *prhs[], int nrhs, char *keys, struct GMT_OPTION *head)
+int GMTMEX_pre_process (void *API, void *plhs[], int nlhs, void *prhs[], int nrhs, char *keys, struct GMT_OPTION *head, struct GMTMEX **X)
 {
 	/* API controls all things within GMT.
 	 * plhs (and nlhs) are the outputs specified on the left side of the equal sign in Matlab.
@@ -241,16 +251,18 @@ int GMTMEX_parser (void *API, void *plhs[], int nlhs, void *prhs[], int nrhs, ch
 	int geometry;		/* Either GMT_IS_NONE, GMT_IS_POINT, GMT_IS_LINE, GMT_IS_POLY, or GMT_IS_SURFACE */
 	int def[2];		/* Either GMT_MEX_EXPLICIT or the item number in the keys array */
 	int ID, error;
-	unsigned int k, n_keys = 0, pos, PS;
+	unsigned int k, n_keys = 0, pos, PS, n_alloc = 8U, n_items = 0;
 	char name[GMTAPI_STRLEN];	/* Used to hold the GMT API embedded file name, e.g., @GMTAPI@-###### */
 	char **key = NULL;
 	struct GMT_OPTION *opt, *new_ptr;	/* Pointer to a GMT option structure */
 	struct GMT_MATRIX *M = NULL;		/* Pointer to matrix container */
+	struct GMTMEX *info = NULL;
 #ifndef TESTING
 	void *ptr = NULL;		/* Void pointer used to point to either L or R side pointer argument */
 #endif
 	
 	key = make_char_array (keys, &n_keys);
+	info = malloc (n_alloc * sizeof (struct GMTMEX));
 	
 	PS = gmtmex_get_key_pos (key, n_keys, head, def);	/* Determine if we must add the primary in and out arguments to the option list */
 	for (direction = GMT_IN; direction <= GMT_OUT; direction++) {
@@ -262,16 +274,23 @@ int GMTMEX_parser (void *API, void *plhs[], int nlhs, void *prhs[], int nrhs, ch
 		ID = unique_ID++;
 #else
 		ptr = (direction == GMT_IN) ? (void *)prhs[lr_pos[direction]] : (void *)plhs[lr_pos[direction]];	/* Pick the next left or right side pointer */
-		M = GMTMEX_matrix_init (API, ptr);	/* Get a matrix container and associate it with the Matlab pointer */
+		M = GMTMEX_matrix_init (API, direction, ptr);	/* Get a matrix container and associate it with the Matlab pointer */
 		/* Register a Matlab/Octave entity as a source or destination */
 		if ((ID = GMT_Register_IO (API, data_type, GMT_IS_REFERENCE + GMT_VIA_MATRIX, geometry, direction, NULL, M)) == GMTAPI_NOTSET) {
-			mexErrMsgTxt ("GMTMEX_parser: Failure to register GMT source or destination\n");
+			mexErrMsgTxt ("GMTMEX_pre_process: Failure to register GMT source or destination\n");
 		}
 		M = NULL;	/* Just to be nice and clean */
+		if (direction == GMT_OUT) {
+			if (n_items == n_alloc) info = realloc ((void *)info, (n_alloc += 8) * sizeof (struct GMTMEX));
+			info[n_items]->type = data_type;
+			info[n_items]->ID = ID;
+			info[n_items]->lhs_index = lr_pos[direction];
+			n_items++;
+		}
 #endif
 		lr_pos[direction]++;		/* Advance position counter for next time */
 		if (GMT_Encode_ID (API, name, ID) != GMT_NOERROR) {	/* Make filename with embedded object ID */
-			mexErrMsgTxt ("GMTMEX_parser: Failure to encode string\n");
+			mexErrMsgTxt ("GMTMEX_pre_process: Failure to encode string\n");
 		}
 		new_ptr = GMT_Make_Option (API, key[def[direction]][0], name);	/* Create the missing (implicit) GMT option */
 		GMT_Append_Option (API, new_ptr, head);				/* Append it to the option list */
@@ -288,23 +307,32 @@ int GMTMEX_parser (void *API, void *plhs[], int nlhs, void *prhs[], int nrhs, ch
 		ID = unique_ID++;
 #else
 		ptr = (direction == GMT_IN) ? (void *)prhs[lr_pos[direction]] : (void *)plhs[lr_pos[direction]];	/* Pick the next left or right side pointer */
-		M = GMTMEX_matrix_init (API, ptr);	/* Get a matrix container and associate it with the Matlab pointer */
+		M = GMTMEX_matrix_init (API, direction, ptr);	/* Get a matrix container and associate it with the Matlab pointer */
 		/* Register a Matlab/Octave entity as a source or destination */
 		if ((ID = GMT_Register_IO (API, data_type, GMT_IS_REFERENCE + GMT_VIA_MATRIX, geometry, direction, NULL, M)) == GMTAPI_NOTSET) {
-			mexErrMsgTxt ("GMTMEX_parser: Failure to register GMT source or destination\n");
+			mexErrMsgTxt ("GMTMEX_pre_process: Failure to register GMT source or destination\n");
 		}
 		M = NULL;	/* Just to be nice and clean */
+		if (direction == GMT_OUT) {
+			if (n_items == n_alloc) info = realloc ((void *)info, (n_alloc += 8) * sizeof (struct GMTMEX));
+			info[n_items]->type = data_type;
+			info[n_items]->ID = ID;
+			info[n_items]->lhs_index = lr_pos[direction];
+			n_items++;
+		}
 #endif
 		if (GMT_Encode_ID (API, name, ID) != GMT_NOERROR) {	/* Make filename with embedded object ID */
-			mexErrMsgTxt ("GMTMEX_parser: Failure to encode string\n");
+			mexErrMsgTxt ("GMTMEX_pre_process: Failure to encode string\n");
 		}
 		lr_pos[direction]++;		/* Advance position counter for next time */
 		
 		/* Replace the option argument with the embedded file */
 		if (GMT_Update_Option (API, opt, name)) {
-			mexErrMsgTxt ("GMTMEX_parser: Failure to update option argument\n");
+			mexErrMsgTxt ("GMTMEX_pre_process: Failure to update option argument\n");
 		}
 	}
+	if (n_items && n_items < n_alloc) info = realloc ((void *)info, n_items * sizeof (struct GMTMEX));
+	else if (n_items == 0) free ((void *)info);
 	
 	if (PS == 1)	/* No redirection of PS to a file */
 		error = 1;
@@ -317,5 +345,38 @@ int GMTMEX_parser (void *API, void *plhs[], int nlhs, void *prhs[], int nrhs, ch
 	
 	/* Here, a command line '-F200k -G$ $ -L$ -P' has been changed to '-F200k -G@GMTAPI@-000001 @GMTAPI@-000002 -L@GMTAPI@-000003 -P'
 	 * where the @GMTAPI@-00000x are encodings to registered resources or destinations */
-	return (error);
+	*X = info;
+	return (error ? -error : n_items);
+}
+
+int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs[])
+{	/* Get the data from GMT output items into the Matlab arrays */
+	int item, k;
+	unsigned int row, col;
+	uint64_t gmt_ij;
+	float *f = NULL;
+	double *d = NULL;
+	struct GMT_MATRIX *M = NULL;
+	
+	for (item = 0; item < n_items; item++) {
+		if ((M = GMT_Retrieve_Data (API, X[item].ID)) == NULL) mexErrMsgTxt ("Error retrieving matrix from GMT\n");
+		k = X[item].lhs_index;	/* Short-hand for index into plhs[] */
+		switch (X[item].type) {
+			case GMT_IS_GRID:	/* Return grids via float (mxSINGLE_CLASS) matrix */
+				plhs[k] = mxCreateNumericMatrix (M->n_rows, M->n_columns, mxSINGLE_CLASS, mxREAL);
+				f = mxGetData (plhs[k]);
+				/* Load the real grd array into a double matlab array by transposing 
+			           from unpadded GMT grd format to unpadded matlab format */
+				for (gmt_ij = row = 0; row < M->n_rows; row++) for (col = 0; col < M->n_columns; col++, gmt_ij++)
+					f[MEX_IJ(M,row,col)] = M->data.f4[gmt_ij];
+				break;
+			case GMT_IS_DATASET:	/* Return tables with double (mxDOUBLE_CLASS) matrix */
+				plhs[k] = mxCreateNumericMatrix (M->n_rows, M->n_columns, mxDOUBLE_CLASS, mxREAL);
+				d = mxGetData (plhs[k]);
+				/* Load the real data matrix into a double matlab array copying columns */
+				for (col = 0; col < M->n_columns; col++)
+					memcpy (&d[M->n_rows*col], M->data.f8, M->n_rows * sizeof(double));
+				break;
+		}
+	}
 }
