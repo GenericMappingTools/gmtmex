@@ -42,10 +42,16 @@
 #endif
 
 /* Macro for getting the Matlab/Octave ij that correspond to (row,col) [no pad involved] */
-#define MEX_IJ(G,row,col) ((col)*G->header->ny + G->header->ny - (row) - 1)
+#define MEX_IJ(M,row,col) ((col)*M->n_rows + M->n_rows - (row) - 1)
 
 #define GMT5MEX_banner mexPrintf("The Generic Mapping Tools v. 5 %s interface\n", MEX_PROG)
 #define GMT_IS_PS	99	/* Use for PS output; use GMT_IS_GRID or GMT_IS_DATASET for data */
+
+struct GMTMEX {	/* Array to hold information relating to output from GMT */
+	unsigned int type;	/* type of GMT data, i.e., GMT_IS_DATASET, GMT_IS_GRID, etc. */
+	int ID;			/* Registration ID returned by GMT_Register_IO */
+	int lhs_index;		/* Corresponding index into plhs array */
+};
 
 int GMTMEX_print_func (FILE *fp, const char *message);
 
@@ -61,6 +67,7 @@ char *GMTMEX_dest_vector_init (void *API, unsigned int n_cols, struct GMT_VECTOR
 char *GMTMEX_options_init (void *API, const mxArray *prhs[], int nrhs);
 char *GMTMEX_build_cmd (void *API, char *src, char *options, char *dest, int mode);
 void GMTMEX_free (char *input, char *output, char *options, char *cmd);
-int GMTMEX_parser (void *API, void *plhs[], int nlhs, void *prhs[], int nrhs, char *keys, struct GMT_OPTION *head);
+int GMTMEX_pre_process (void *API, void *plhs[], int nlhs, void *prhs[], int nrhs, char *keys, struct GMT_OPTION *head, struct GMTMEX **X);
+int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs[]);
 
 #endif
