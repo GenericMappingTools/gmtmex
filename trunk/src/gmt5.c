@@ -59,16 +59,18 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	}
 
 	/* 4. Convert mex command line arguments to a linked option list */
-	if ((options = GMT_Create_Options (API, 0, &cmd[k+1])) == NULL) mexErrMsgTxt ("Failure to parse GMT command options\n");
+	if ((options = GMT_Create_Options (API, 0, &cmd[k+1])) == NULL)
+		mexErrMsgTxt ("Failure to parse GMT command options\n");
 
 	/* 5. Parse the mex command, update GMT option lists, register in/out resources */
-	if ((n_items = GMTMEX_pre_process (API, plhs, nlhs, prhs, nrhs, keys[module_id], options, &X)) < 0) mexErrMsgTxt ("Failure to parse mex command options\n");
+	if ((n_items = GMTMEX_pre_process (API, plhs, nlhs, prhs, nrhs, keys[module_id], options, &X)) < 0)
+		mexErrMsgTxt ("Failure to parse mex command options\n");
 	
 	/* 6. Run GMT cmd module, or give usage message if errors arise during parsing */
 	status = GMT_Call_Module (API, module_id, -1, options);
 
 	/* 7. Hook up module output to Matlab plhs */
-	if (GMTMEX_post_process (API, X, n_items)) mexErrMsgTxt ("Failure to extract GMT-produced data\n");
+	if (GMTMEX_post_process (API, X, n_items, plhs)) mexErrMsgTxt ("Failure to extract GMT-produced data\n");
 	
 	/* 8. Destroy linked option list */
 	if (GMT_Destroy_Options (API, &options)) mexErrMsgTxt ("Failure to destroy GMT options\n");

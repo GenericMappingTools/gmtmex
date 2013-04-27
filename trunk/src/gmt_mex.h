@@ -41,8 +41,12 @@
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #endif
 
-/* Macro for getting the Matlab/Octave ij that correspond to (row,col) [no pad involved] */
-#define MEX_IJ(M,row,col) ((col)*M->n_rows + M->n_rows - (row) - 1)
+/* Macros for getting the Matlab/Octave ij that correspond to (row,col) [no pad involved] */
+/* This one operates on GMT_MATRIX */
+#define MEXM_IJ(M,row,col) ((col)*M->n_rows + M->n_rows - (row) - 1)
+
+/* And this on GMT_GRID */
+#define MEXG_IJ(M,row,col) ((col)*M->header->ny + M->header->ny - (row) - 1)
 
 #define GMT5MEX_banner mexPrintf("The Generic Mapping Tools v. 5 %s interface\n", MEX_PROG)
 #define GMT_IS_PS	99	/* Use for PS output; use GMT_IS_GRID or GMT_IS_DATASET for data */
