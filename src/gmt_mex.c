@@ -170,7 +170,7 @@ char *GMTMEX_src_grid_init (void *API, const mxArray *prhs[], int nrhs)
 		
 		/* Transpose from Matlab orientation to grd orientation */
 		for (gmt_ij = row = 0; row < h_tmp.ny; row++) for (col = 0; col < h_tmp.nx; col++, gmt_ij++)
-			G->data[gmt_ij] = (float)z[MEX_IJ(G,row,col)];
+			G->data[gmt_ij] = (float)z[MEXG_IJ(G,row,col)];
 		if ((in_ID = GMT_Register_IO (API, GMT_IS_GRID, GMT_IS_REFERENCE, GMT_IS_SURFACE, GMT_IN, NULL, G)) == GMTAPI_NOTSET) {
 			mexErrMsgTxt ("Failure to register GMT source grid\n");
 		}
@@ -247,7 +247,7 @@ void GMTMEX_prep_mexgrd (void *API, mxArray *plhs[], int nlhs, struct GMT_GRID *
               transposing from padded GMT grd format to unpadded matlab format */
 
 	for (gmt_ij = row = 0; row < G->header->ny; row++) for (col = 0; col < G->header->nx; col++, gmt_ij++)
-		z[MEX_IJ(G,row,col)] = G->data[gmt_ij];
+		z[MEXG_IJ(G,row,col)] = G->data[gmt_ij];
     
 	/* C. Create header and x,y arrays, if requested  */
 

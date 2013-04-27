@@ -20,7 +20,7 @@
 
 #include "gmt_mex.h"
 
-#define TESTING
+//#define TESTING
 #ifdef TESTING
 unsigned int unique_ID = 0;
 #endif
@@ -210,19 +210,19 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
 			M->type = GMT_DOUBLE;
 			M->data.f8 = mxGetData (ptr);
 		}
-		else if (mxIsSingle(prhs)) {
+		else if (mxIsSingle(ptr)) {
 			M->type = GMT_FLOAT;
 			M->data.f4 = (float *)mxGetData (ptr);
 		}
-		else if (mxIsInt32(prhs)) {
+		else if (mxIsInt32(ptr)) {
 			M->type = GMT_INT;
 			M->data.si4 = (int32_t *)mxGetData (ptr);
 		}
-		else if (mxIsInt16(prhs)) {
+		else if (mxIsInt16(ptr)) {
 			M->type = GMT_SHORT;
 			M->data.si2 = (int16_t *)mxGetData (ptr);
 		}
-		else if (mxIsInt8(prhs)) {
+		else if (mxIsInt8(ptr)) {
 			M->type = GMT_CHAR;
 			M->data.sc1 = (int8_t *)mxGetData (ptr);
 		}
@@ -282,9 +282,9 @@ int GMTMEX_pre_process (void *API, void *plhs[], int nlhs, void *prhs[], int nrh
 		M = NULL;	/* Just to be nice and clean */
 		if (direction == GMT_OUT) {
 			if (n_items == n_alloc) info = realloc ((void *)info, (n_alloc += 8) * sizeof (struct GMTMEX));
-			info[n_items]->type = data_type;
-			info[n_items]->ID = ID;
-			info[n_items]->lhs_index = lr_pos[direction];
+			info[n_items].type = data_type;
+			info[n_items].ID = ID;
+			info[n_items].lhs_index = lr_pos[direction];
 			n_items++;
 		}
 #endif
@@ -315,9 +315,9 @@ int GMTMEX_pre_process (void *API, void *plhs[], int nlhs, void *prhs[], int nrh
 		M = NULL;	/* Just to be nice and clean */
 		if (direction == GMT_OUT) {
 			if (n_items == n_alloc) info = realloc ((void *)info, (n_alloc += 8) * sizeof (struct GMTMEX));
-			info[n_items]->type = data_type;
-			info[n_items]->ID = ID;
-			info[n_items]->lhs_index = lr_pos[direction];
+			info[n_items].type = data_type;
+			info[n_items].ID = ID;
+			info[n_items].lhs_index = lr_pos[direction];
 			n_items++;
 		}
 #endif
@@ -368,7 +368,7 @@ int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs
 				/* Load the real grd array into a double matlab array by transposing 
 			           from unpadded GMT grd format to unpadded matlab format */
 				for (gmt_ij = row = 0; row < M->n_rows; row++) for (col = 0; col < M->n_columns; col++, gmt_ij++)
-					f[MEX_IJ(M,row,col)] = M->data.f4[gmt_ij];
+					f[MEXM_IJ(M,row,col)] = M->data.f4[gmt_ij];
 				break;
 			case GMT_IS_DATASET:	/* Return tables with double (mxDOUBLE_CLASS) matrix */
 				plhs[k] = mxCreateNumericMatrix (M->n_rows, M->n_columns, mxDOUBLE_CLASS, mxREAL);
@@ -379,4 +379,5 @@ int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs
 				break;
 		}
 	}
+	return(0);	/* Maybe we should turn this function to void but the gmt5 wraper expects a return value */
 }
