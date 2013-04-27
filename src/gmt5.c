@@ -63,7 +63,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		mexErrMsgTxt ("Failure to parse GMT command options\n");
 
 	/* 5. Parse the mex command, update GMT option lists, register in/out resources */
-	if ((n_items = GMTMEX_pre_process (API, plhs, nlhs, prhs, nrhs, keys[module_id], options, &X)) < 0)
+	if ((n_items = GMTMEX_pre_process (API, plhs, nlhs, &prhs[1], nrhs-1, keys[module_id], options, &X)) < 0)
 		mexErrMsgTxt ("Failure to parse mex command options\n");
 	
 	/* 6. Run GMT cmd module, or give usage message if errors arise during parsing */

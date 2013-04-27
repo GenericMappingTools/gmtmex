@@ -200,7 +200,7 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
 		dim[0] = mxGetN (ptr);
 		dim[1] = mxGetM (ptr);
 	}
-	if ((M = GMT_Create_Data (API, GMT_IS_MATRIX, GMT_IS_NONE, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
+	if ((M = GMT_Create_Data (API, GMT_IS_MATRIX, GMT_IS_SURFACE, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
 		mexErrMsgTxt ("Failure to alloc GMT source matrix\n");
 
 	M->n_rows = dim[1];
@@ -236,7 +236,7 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
 	return (M);
 }
 
-int GMTMEX_pre_process (void *API, void *plhs[], int nlhs, void *prhs[], int nrhs, char *keys, struct GMT_OPTION *head, struct GMTMEX **X)
+int GMTMEX_pre_process (void *API, mxArray *plhs[], int nlhs, const mxArray *prhs[], int nrhs, char *keys, struct GMT_OPTION *head, struct GMTMEX **X)
 {
 	/* API controls all things within GMT.
 	 * plhs (and nlhs) are the outputs specified on the left side of the equal sign in Matlab.

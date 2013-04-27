@@ -71,7 +71,7 @@ char *GMTMEX_dest_vector_init (void *API, unsigned int n_cols, struct GMT_VECTOR
 char *GMTMEX_options_init (void *API, const mxArray *prhs[], int nrhs);
 char *GMTMEX_build_cmd (void *API, char *src, char *options, char *dest, int mode);
 void GMTMEX_free (char *input, char *output, char *options, char *cmd);
-int GMTMEX_pre_process (void *API, void *plhs[], int nlhs, void *prhs[], int nrhs, char *keys, struct GMT_OPTION *head, struct GMTMEX **X);
+int GMTMEX_pre_process (void *API, mxArray *plhs[], int nlhs, const mxArray *prhs[], int nrhs, char *keys, struct GMT_OPTION *head, struct GMTMEX **X);
 int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs[]);
 
 #endif
