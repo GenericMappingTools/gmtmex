@@ -205,6 +205,9 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
 
 	M->n_rows = dim[1];
 	M->n_columns = dim[0];
+	/* Set a silly range so that GMT_check_region in GMT_Register_IO will pass */
+	M->range[GMT_XLO] = M->range[GMT_YLO] = 1.0;
+	M->range[GMT_XHI] = (double)M->n_columns;	M->range[GMT_YLO] = (double)M->n_rows;
 	if (direction == GMT_IN) {	/* We can inquire about the input */
 		if (mxIsDouble(ptr)) {
 			M->type = GMT_DOUBLE;
