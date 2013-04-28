@@ -232,7 +232,8 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
 		else
 			mexErrMsgTxt ("Unsupported data type in GMT matrix input.");
 
-		//M->dim = M->n_rows;	// This is actualy wrong if input data is scanline as for Octave oct
+		M->shape = GMTAPI_ORDER_COL;
+		M->dim = M->n_rows;	// This is actualy wrong if input data is scanline as for Octave oct
 	}
 	else {	/* On output we produce doubles */
 		M->type = GMT_FLOAT;
