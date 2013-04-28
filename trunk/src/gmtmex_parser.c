@@ -207,7 +207,7 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
 	M->n_columns = dim[0];
 	/* Set a silly range so that GMT_check_region in GMT_Register_IO will pass */
 	M->range[GMT_XLO] = M->range[GMT_YLO] = 1.0;
-	M->range[GMT_XHI] = (double)M->n_columns;	M->range[GMT_YLO] = (double)M->n_rows;
+	M->range[GMT_XHI] = (double)M->n_columns;	M->range[GMT_YHI] = (double)M->n_rows;
 	if (direction == GMT_IN) {	/* We can inquire about the input */
 		if (mxIsDouble(ptr)) {
 			M->type = GMT_DOUBLE;
@@ -231,9 +231,11 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
 		}
 		else
 			mexErrMsgTxt ("Unsupported data type in GMT matrix input.");
+
+		//M->dim = M->n_rows;	// This is actualy wrong if input data is scanline as for Octave oct
 	}
 	else {	/* On output we produce doubles */
-		M->type = GMT_DOUBLE;
+		M->type = GMT_FLOAT;
 		M->alloc_mode = GMT_REFERENCE;
 	}
 	return (M);
