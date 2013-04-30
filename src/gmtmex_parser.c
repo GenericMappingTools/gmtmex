@@ -232,7 +232,7 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
 		else
 			mexErrMsgTxt ("Unsupported data type in GMT matrix input.");
 
-		M->shape = GMTAPI_ORDER_COL;
+		M->shape = GMT_IS_COL_FORMAT;
 		M->dim = M->n_rows;	// This is actualy wrong if input data is scanline as for Octave oct
 	}
 	else {	/* On output we produce doubles */
@@ -258,7 +258,7 @@ int GMTMEX_pre_process (void *API, mxArray *plhs[], int nlhs, const mxArray *prh
 	int def[2];		/* Either GMT_MEX_EXPLICIT or the item number in the keys array */
 	int ID, error;
 	unsigned int k, n_keys = 0, pos, PS, n_alloc = 8U, n_items = 0;
-	char name[GMTAPI_STRLEN];	/* Used to hold the GMT API embedded file name, e.g., @GMTAPI@-###### */
+	char name[GMT_STR16];	/* Used to hold the GMT API embedded file name, e.g., @GMTAPI@-###### */
 	char **key = NULL;
 	struct GMT_OPTION *opt, *new_ptr;	/* Pointer to a GMT option structure */
 	struct GMT_MATRIX *M = NULL;		/* Pointer to matrix container */
@@ -282,7 +282,7 @@ int GMTMEX_pre_process (void *API, mxArray *plhs[], int nlhs, const mxArray *prh
 		ptr = (direction == GMT_IN) ? (void *)prhs[lr_pos[direction]] : (void *)plhs[lr_pos[direction]];	/* Pick the next left or right side pointer */
 		M = GMTMEX_matrix_init (API, direction, ptr);	/* Get a matrix container and associate it with the Matlab pointer */
 		/* Register a Matlab/Octave entity as a source or destination */
-		if ((ID = GMT_Register_IO (API, data_type, GMT_IS_REFERENCE + GMT_VIA_MATRIX, geometry, direction, NULL, M)) == GMTAPI_NOTSET) {
+		if ((ID = GMT_Register_IO (API, data_type, GMT_IS_REFERENCE + GMT_VIA_MATRIX, geometry, direction, NULL, M)) == GMT_NOTSET) {
 			mexErrMsgTxt ("GMTMEX_pre_process: Failure to register GMT source or destination\n");
 		}
 		M = NULL;	/* Just to be nice and clean */
@@ -303,7 +303,7 @@ int GMTMEX_pre_process (void *API, mxArray *plhs[], int nlhs, const mxArray *prh
 	}
 		
 	for (opt = head; opt; opt = opt->next) {	/* Loop over the module options given */
-		if (PS && opt->option == GMTAPI_OPT_OUTFILE) PS++;
+		if (PS && opt->option == GMT_OPT_OUTFILE) PS++;
 		/* Determine if this option as a $ in its argument and if so return its position in pos; return -1 otherwise */
 		if ((pos = gmtmex_get_arg_pos (opt->arg)) == -1) continue;	/* No $ argument found or it is part of a text string */
 		
@@ -315,7 +315,7 @@ int GMTMEX_pre_process (void *API, mxArray *plhs[], int nlhs, const mxArray *prh
 		ptr = (direction == GMT_IN) ? (void *)prhs[lr_pos[direction]] : (void *)plhs[lr_pos[direction]];	/* Pick the next left or right side pointer */
 		M = GMTMEX_matrix_init (API, direction, ptr);	/* Get a matrix container and associate it with the Matlab pointer */
 		/* Register a Matlab/Octave entity as a source or destination */
-		if ((ID = GMT_Register_IO (API, data_type, GMT_IS_REFERENCE + GMT_VIA_MATRIX, geometry, direction, NULL, M)) == GMTAPI_NOTSET) {
+		if ((ID = GMT_Register_IO (API, data_type, GMT_IS_REFERENCE + GMT_VIA_MATRIX, geometry, direction, NULL, M)) == GMT_NOTSET) {
 			mexErrMsgTxt ("GMTMEX_pre_process: Failure to register GMT source or destination\n");
 		}
 		M = NULL;	/* Just to be nice and clean */
