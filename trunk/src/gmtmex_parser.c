@@ -360,21 +360,38 @@ int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs
 	int item, k;
 	unsigned int row, col;
 	uint64_t gmt_ij;
-	float *f = NULL;
-	double *d = NULL;
+	float  *f = NULL, *sptr;
+	double *d = NULL, *dptr;
 	struct GMT_MATRIX *M = NULL;
+	mxArray *mxGrd;
+	mxArray *mxProjectionRef;
+	mxArray *mxHeader;
+	mxArray *grid_struct;
+	char    *fieldnames[3];	/* this array contains the names of the fields of the output structure. */
 	
 	for (item = 0; item < n_items; item++) {
 		if ((M = GMT_Retrieve_Data (API, X[item].ID)) == NULL) mexErrMsgTxt ("Error retrieving matrix from GMT\n");
 		k = X[item].lhs_index;	/* Short-hand for index into plhs[] */
 		switch (X[item].type) {
 			case GMT_IS_GRID:	/* Return grids via float (mxSINGLE_CLASS) matrix */
-				plhs[k] = mxCreateNumericMatrix (M->n_rows, M->n_columns, mxSINGLE_CLASS, mxREAL);
-				f = mxGetData (plhs[k]);
+				fieldnames[0] = strdup ("ProjectionRef");
+				fieldnames[1] = strdup ("hdr");
+				fieldnames[2] = strdup ("grd");
+				grid_struct = mxCreateStructMatrix ( 1, 1, 3, (const char **)fieldnames );
+				mxHeader    = mxCreateNumericMatrix(1, 9, mxDOUBLE_CLASS, mxREAL);
+				dptr = mxGetPr(mxHeader);
+				dptr[0] = 0;	dptr[1] = 1;	dptr[2] = 0;	dptr[3] = 2;
+				mxSetField (grid_struct, 0, "hdr", mxHeader);
+				mxGrd = mxCreateNumericMatrix (M->n_rows, M->n_columns, mxSINGLE_CLASS, mxREAL);
+				//plhs[k] = mxCreateNumericMatrix (M->n_rows, M->n_columns, mxSINGLE_CLASS, mxREAL);
+				//f = mxGetData (plhs[k]);
+				f = mxGetData (mxGrd);
 				/* Load the real grd array into a double matlab array by transposing 
 			           from unpadded GMT grd format to unpadded matlab format */
 				for (gmt_ij = row = 0; row < M->n_rows; row++) for (col = 0; col < M->n_columns; col++, gmt_ij++)
 					f[MEXM_IJ(M,row,col)] = M->data.f4[gmt_ij];
+				mxSetField (grid_struct, 0, "grd", mxGrd);
+				plhs[k] = grid_struct;
 				break;
 			case GMT_IS_DATASET:	/* Return tables with double (mxDOUBLE_CLASS) matrix */
 				plhs[k] = mxCreateNumericMatrix (M->n_rows, M->n_columns, mxDOUBLE_CLASS, mxREAL);
