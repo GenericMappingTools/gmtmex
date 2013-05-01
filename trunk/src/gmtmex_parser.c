@@ -63,6 +63,15 @@ int GMTMEX_print_func (FILE *fp, const char *message)
 	return 0;
 }
 
+char *mxstrdup (const char *s) {
+	/* A strdup replacement to be used in Mexs to avoid memory leaks since the Matlab
+	   memory management will take care to free the memory allocated by this function */
+    char *d = mxMalloc (strlen (s) + 1);
+    if (d == NULL) return NULL;
+    strcpy (d,s);
+    return d;
+}
+
 int gmtmex_find_option (char option, char *key[], int n_keys) {
 	/* gmtmex_find_option determines if the given option is among the special options that might take $ as filename */
 	int pos = -1, k;
@@ -374,9 +383,9 @@ int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs
 		k = X[item].lhs_index;	/* Short-hand for index into plhs[] */
 		switch (X[item].type) {
 			case GMT_IS_GRID:	/* Return grids via float (mxSINGLE_CLASS) matrix */
-				fieldnames[0] = strdup ("ProjectionRef");
-				fieldnames[1] = strdup ("hdr");
-				fieldnames[2] = strdup ("grd");
+				fieldnames[0] = mxstrdup ("ProjectionRef");
+				fieldnames[1] = mxstrdup ("hdr");
+				fieldnames[2] = mxstrdup ("grd");
 				grid_struct = mxCreateStructMatrix ( 1, 1, 3, (const char **)fieldnames );
 				mxHeader    = mxCreateNumericMatrix(1, 9, mxDOUBLE_CLASS, mxREAL);
 				dptr = mxGetPr(mxHeader);
