@@ -212,7 +212,7 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 		mx_ptr = mxGetField (ptr, 0, "registration");
 		if (mx_ptr == NULL) mexErrMsgTxt ("Could not find registration array for Grid registration\n");
 		reg = mxGetData (mx_ptr);
-		registration = urint (reg[0]);
+		registration = (unsigned int)lrint (reg[0]);
 		if ((G = GMT_Create_Data (API, GMT_IS_GRID, GMT_IS_SURFACE, GMT_GRID_HEADER_ONLY, NULL, range, inc, registration, 0, NULL)) == NULL)
 			mexErrMsgTxt ("Failure to alloc GMT source matrix\n");
 		mx_ptr = mxGetField (ptr, 0, "data");
@@ -237,7 +237,7 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
 	uint64_t dim[2] = {0, 0};
 	struct GMT_MATRIX *M = NULL;
 	if (direction == GMT_IN) {	/* Dimensions are known */
-		if (!mxIsMatrix (ptr)) mexErrMsgTxt ("Expected a Matrix for input\n");
+		if (!mxIsNumeric (ptr)) mexErrMsgTxt ("Expected a Matrix for input\n");
 		dim[0] = mxGetN (ptr);
 		dim[1] = mxGetM (ptr);
 	}
@@ -290,15 +290,15 @@ int GMTMEX_Register_IO (void *API, unsigned int data_type, unsigned int geometry
 	struct GMT_MATRIX *M = NULL;		/* Pointer to matrix container */
 
 	switch (data_type) {
-		case GMT_GRID:
+		case GMT_IS_GRID:
 			G = GMTMEX_grid_init (API, direction, ptr);	/* Get a grid and associate it with the Matlab grid pointer (if input) */
-			if ((ID = GMT_Register_IO (API, GMT_GRID, GMT_IS_REFERENCE, geometry, direction, NULL, G)) == GMT_NOTSET) {
+			if ((ID = GMT_Register_IO (API, GMT_IS_GRID, GMT_IS_REFERENCE, geometry, direction, NULL, G)) == GMT_NOTSET) {
 				mexErrMsgTxt ("GMTMEX_pre_process: Failure to register GMT grid source or destination\n");
 			}
 			break;
-		case GMT_DATASET:
+		case GMT_IS_DATASET:
 			M = GMTMEX_matrix_init (API, direction, ptr);	/* Get a matrix container and associate it with the Matlab pointer (if input) */
-			if ((ID = GMT_Register_IO (API, GMT_DATASET, GMT_IS_REFERENCE + GMT_VIA_MATRIX, geometry, direction, NULL, M)) == GMT_NOTSET) {
+			if ((ID = GMT_Register_IO (API, GMT_IS_DATASET, GMT_IS_REFERENCE + GMT_VIA_MATRIX, geometry, direction, NULL, M)) == GMT_NOTSET) {
 				mexErrMsgTxt ("GMTMEX_pre_process: Failure to register GMT matrix source or destination\n");
 			}
 			break;
@@ -327,11 +327,12 @@ int GMTMEX_pre_process (void *API, mxArray *plhs[], int nlhs, const mxArray *prh
 	unsigned int k, n_keys = 0, pos, PS, n_alloc = 8U, n_items = 0;
 	char name[GMT_STR16];	/* Used to hold the GMT API embedded file name, e.g., @GMTAPI@-###### */
 	char **key = NULL;
+	void *ptr = NULL;	
 	struct GMT_OPTION *opt, *new_ptr;	/* Pointer to a GMT option structure */
 	struct GMT_GRID *G = NULL;		/* Pointer to grid container */
 	struct GMT_MATRIX *M = NULL;		/* Pointer to matrix container */
 	struct GMTMEX *info = NULL;
-	
+
 	key = make_char_array (keys, &n_keys);
 	info = malloc (n_alloc * sizeof (struct GMTMEX));
 	
