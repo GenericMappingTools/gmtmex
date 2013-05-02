@@ -20,11 +20,6 @@
 
 #include "gmt_mex.h"
 
-//#define TESTING
-#ifdef TESTING
-unsigned int unique_ID = 0;
-#endif
-
 /* New parser for all GMT mex modules based on design discussed by PW and JL on Mon, 2/21/11 */
 /* Wherever we say "Matlab" we mean "Matlab of Octave" */
 
@@ -198,21 +193,58 @@ char ** make_char_array (char *string, unsigned int *n_items)
 	return s;
 }
 
+struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxArray *ptr)
+{	/* Used to Create an empty Grid container and associate it with a Matlab grid.
+ 	 * If direction is GMT_IN then we are given a Matlab grid and can determine size etc. */
+	struct GMT_GRID *G = NULL;
+	if (direction == GMT_IN) {	/* Dimensions are known from the input pointer */
+		mxArray *mx_ptr = NULL;
+		double *inc = NULL, *range = NULL, *reg = NULL;
+		unsigned int registration;
+		
+		if (!mxIsStruct (ptr)) mexErrMsgTxt ("Expected a Grid for input\n");
+		mx_ptr = mxGetField (ptr, 0, "inc");
+		if (mx_ptr == NULL) mexErrMsgTxt ("Could not find inc array with Grid increments\n");
+		inc = mxGetData (mx_ptr);
+		mx_ptr = mxGetField (ptr, 0, "range");
+		if (mx_ptr == NULL) mexErrMsgTxt ("Could not find range array for Grid range\n");
+		range = mxGetData (mx_ptr);
+		mx_ptr = mxGetField (ptr, 0, "registration");
+		if (mx_ptr == NULL) mexErrMsgTxt ("Could not find registration array for Grid registration\n");
+		reg = mxGetData (mx_ptr);
+		registration = urint (reg[0]);
+		if ((G = GMT_Create_Data (API, GMT_IS_GRID, GMT_IS_SURFACE, GMT_GRID_HEADER_ONLY, NULL, range, inc, registration, 0, NULL)) == NULL)
+			mexErrMsgTxt ("Failure to alloc GMT source matrix\n");
+		mx_ptr = mxGetField (ptr, 0, "data");
+		if (mx_ptr == NULL) mexErrMsgTxt ("Could not find data array for Grid\n");
+		G->data = mxGetData (mx_ptr);
+	}
+	else {	/* Set dummy range and inc so that GMT_check_region in GMT_Register_IO will pass */
+		double range[4] = {0.0, 0.0, 0.0, 0.0}, inc[2] = {1.0, 1.0};
+		unsigned int registration = GMT_GRID_NODE_REG;
+		if ((G = GMT_Create_Data (API, GMT_IS_GRID, GMT_IS_SURFACE, GMT_GRID_HEADER_ONLY, NULL, range, inc, registration, 0, NULL)) == NULL)
+			mexErrMsgTxt ("Failure to alloc GMT source matrix\n");
+	}
+
+	G->alloc_mode = GMT_REFERENCE;	/* Since no grid was allocated here */
+	return (G);
+}
+
 struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const mxArray *ptr)
 {	/* Used to Create an empty Matrix container and associate it with a Matlab matrix.
  	 * If direction is GMT_IN then we are given a Matlab matrix and can determine size etc.
 	 * If output then we dont know size but we can specify type */
-	int col, in_ID;
 	uint64_t dim[2] = {0, 0};
 	struct GMT_MATRIX *M = NULL;
 	if (direction == GMT_IN) {	/* Dimensions are known */
+		if (!mxIsMatrix (ptr)) mexErrMsgTxt ("Expected a Matrix for input\n");
 		dim[0] = mxGetN (ptr);
 		dim[1] = mxGetM (ptr);
 	}
 	if ((M = GMT_Create_Data (API, GMT_IS_MATRIX, GMT_IS_SURFACE, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
 		mexErrMsgTxt ("Failure to alloc GMT source matrix\n");
 
-	M->n_rows = dim[1];
+	M->n_rows    = dim[1];
 	M->n_columns = dim[0];
 	/* Set a silly range so that GMT_check_region in GMT_Register_IO will pass */
 	M->range[GMT_XLO] = M->range[GMT_YLO] = 1.0;
@@ -251,6 +283,32 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
 	return (M);
 }
 
+int GMTMEX_Register_IO (void *API, unsigned int data_type, unsigned int geometry, unsigned int direction, const mxArray *ptr)
+{	/* Create the grid or matrix contains, register them, and return the ID */
+	int ID = GMT_NOTSET;
+	struct GMT_GRID *G = NULL;		/* Pointer to grid container */
+	struct GMT_MATRIX *M = NULL;		/* Pointer to matrix container */
+
+	switch (data_type) {
+		case GMT_GRID:
+			G = GMTMEX_grid_init (API, direction, ptr);	/* Get a grid and associate it with the Matlab grid pointer (if input) */
+			if ((ID = GMT_Register_IO (API, GMT_GRID, GMT_IS_REFERENCE, geometry, direction, NULL, G)) == GMT_NOTSET) {
+				mexErrMsgTxt ("GMTMEX_pre_process: Failure to register GMT grid source or destination\n");
+			}
+			break;
+		case GMT_DATASET:
+			M = GMTMEX_matrix_init (API, direction, ptr);	/* Get a matrix container and associate it with the Matlab pointer (if input) */
+			if ((ID = GMT_Register_IO (API, GMT_DATASET, GMT_IS_REFERENCE + GMT_VIA_MATRIX, geometry, direction, NULL, M)) == GMT_NOTSET) {
+				mexErrMsgTxt ("GMTMEX_pre_process: Failure to register GMT matrix source or destination\n");
+			}
+			break;
+		default:
+			mexErrMsgTxt ("GMTMEX_pre_process: Bad data type\n");
+			break;
+	}
+	return (ID);
+}
+
 int GMTMEX_pre_process (void *API, mxArray *plhs[], int nlhs, const mxArray *prhs[], int nrhs, char *keys, struct GMT_OPTION *head, struct GMTMEX **X)
 {
 	/* API controls all things within GMT.
@@ -270,11 +328,9 @@ int GMTMEX_pre_process (void *API, mxArray *plhs[], int nlhs, const mxArray *prh
 	char name[GMT_STR16];	/* Used to hold the GMT API embedded file name, e.g., @GMTAPI@-###### */
 	char **key = NULL;
 	struct GMT_OPTION *opt, *new_ptr;	/* Pointer to a GMT option structure */
+	struct GMT_GRID *G = NULL;		/* Pointer to grid container */
 	struct GMT_MATRIX *M = NULL;		/* Pointer to matrix container */
 	struct GMTMEX *info = NULL;
-#ifndef TESTING
-	void *ptr = NULL;		/* Void pointer used to point to either L or R side pointer argument */
-#endif
 	
 	key = make_char_array (keys, &n_keys);
 	info = malloc (n_alloc * sizeof (struct GMTMEX));
@@ -285,24 +341,16 @@ int GMTMEX_pre_process (void *API, mxArray *plhs[], int nlhs, const mxArray *prh
 		if (def[direction] == GMT_MEX_EXPLICIT) continue;	/* Source or destination was set explicitly; skip */
 		/* Must add the primary input or output from prhs[0] or plhs[0] */
 		(void)gmtmex_get_arg_dir (key[def[direction]][0], key, n_keys, &data_type, &geometry);		/* Get info about the data set */
-#ifdef TESTING
-		ID = unique_ID++;
-#else
 		ptr = (direction == GMT_IN) ? (void *)prhs[lr_pos[direction]] : (void *)plhs[lr_pos[direction]];	/* Pick the next left or right side pointer */
-		M = GMTMEX_matrix_init (API, direction, ptr);	/* Get a matrix container and associate it with the Matlab pointer */
+		ID = GMTMEX_Register_IO (API, data_type, geometry, direction, ptr);
 		/* Register a Matlab/Octave entity as a source or destination */
-		if ((ID = GMT_Register_IO (API, data_type, GMT_IS_REFERENCE + GMT_VIA_MATRIX, geometry, direction, NULL, M)) == GMT_NOTSET) {
-			mexErrMsgTxt ("GMTMEX_pre_process: Failure to register GMT source or destination\n");
-		}
-		M = NULL;	/* Just to be nice and clean */
 		if (direction == GMT_OUT) {
 			if (n_items == n_alloc) info = realloc ((void *)info, (n_alloc += 8) * sizeof (struct GMTMEX));
 			info[n_items].type = data_type;
 			info[n_items].ID = ID;
-			info[n_items].lhs_index = lr_pos[direction];
+			info[n_items].lhs_index = lr_pos[GMT_OUT];
 			n_items++;
 		}
-#endif
 		lr_pos[direction]++;		/* Advance position counter for next time */
 		if (GMT_Encode_ID (API, name, ID) != GMT_NOERROR) {	/* Make filename with embedded object ID */
 			mexErrMsgTxt ("GMTMEX_pre_process: Failure to encode string\n");
@@ -313,29 +361,20 @@ int GMTMEX_pre_process (void *API, mxArray *plhs[], int nlhs, const mxArray *prh
 		
 	for (opt = head; opt; opt = opt->next) {	/* Loop over the module options given */
 		if (PS && opt->option == GMT_OPT_OUTFILE) PS++;
-		/* Determine if this option as a $ in its argument and if so return its position in pos; return -1 otherwise */
+		/* Determine if this option has a $ in its argument and if so return its position in pos; return -1 otherwise */
 		if ((pos = gmtmex_get_arg_pos (opt->arg)) == -1) continue;	/* No $ argument found or it is part of a text string */
 		
-		/* Determine several things about this option, such as direction, data type, method, and geometry */
+		/* Determine several things about this option, such as direction, data type, and geometry */
 		direction = gmtmex_get_arg_dir (opt->option, key, n_keys, &data_type, &geometry);
-#ifdef TESTING
-		ID = unique_ID++;
-#else
 		ptr = (direction == GMT_IN) ? (void *)prhs[lr_pos[direction]] : (void *)plhs[lr_pos[direction]];	/* Pick the next left or right side pointer */
-		M = GMTMEX_matrix_init (API, direction, ptr);	/* Get a matrix container and associate it with the Matlab pointer */
-		/* Register a Matlab/Octave entity as a source or destination */
-		if ((ID = GMT_Register_IO (API, data_type, GMT_IS_REFERENCE + GMT_VIA_MATRIX, geometry, direction, NULL, M)) == GMT_NOTSET) {
-			mexErrMsgTxt ("GMTMEX_pre_process: Failure to register GMT source or destination\n");
-		}
-		M = NULL;	/* Just to be nice and clean */
+		ID = GMTMEX_Register_IO (API, data_type, geometry, direction, ptr);
 		if (direction == GMT_OUT) {
 			if (n_items == n_alloc) info = realloc ((void *)info, (n_alloc += 8) * sizeof (struct GMTMEX));
 			info[n_items].type = data_type;
 			info[n_items].ID = ID;
-			info[n_items].lhs_index = lr_pos[direction];
+			info[n_items].lhs_index = lr_pos[GMT_OUT];
 			n_items++;
 		}
-#endif
 		if (GMT_Encode_ID (API, name, ID) != GMT_NOERROR) {	/* Make filename with embedded object ID */
 			mexErrMsgTxt ("GMTMEX_pre_process: Failure to encode string\n");
 		}
@@ -365,24 +404,26 @@ int GMTMEX_pre_process (void *API, mxArray *plhs[], int nlhs, const mxArray *prh
 }
 
 int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs[])
-{	/* Get the data from GMT output items into the Matlab arrays */
+{	/* Get the data from GMT output items into the corresponding Matlab struct or matrix */
 	int item, k, n;
 	unsigned int row, col;
 	uint64_t gmt_ij;
-	float  *f = NULL, *sptr = NULL;
+	float  *f = NULL;
 	double *d = NULL, *dptr = NULL;
+	struct GMT_GRID *G = NULL;
 	struct GMT_MATRIX *M = NULL;
-	mxArray *mxGrd;
-	mxArray *mxProjectionRef;
-	mxArray *mxHeader, *mxtmp;
-	mxArray *grid_struct;
-	char    *fieldnames[15];	/* this array contains the names of the fields of the output structure. */
+	mxArray *mxGrd = NULL;
+	mxArray *mxProjectionRef = NULL;
+	mxArray *mxHeader = NULL, *mxtmp = NULL;
+	mxArray *grid_struct = NULL;
+	char    *fieldnames[18];	/* this array contains the names of the fields of the output structure. */
 	
 	for (item = 0; item < n_items; item++) {
-		if ((M = GMT_Retrieve_Data (API, X[item].ID)) == NULL) mexErrMsgTxt ("Error retrieving matrix from GMT\n");
 		k = X[item].lhs_index;	/* Short-hand for index into plhs[] */
 		switch (X[item].type) {
-			case GMT_IS_GRID:	/* Return grids via float (mxSINGLE_CLASS) matrix */
+			case GMT_IS_GRID:	/* Return grids via a float (mxSINGLE_CLASS) matrix in a struct */
+				if ((G = GMT_Retrieve_Data (API, X[item].ID)) == NULL) mexErrMsgTxt ("Error retrieving grid from GMT\n");
+				/* Create a Matlab struct for this grid */
 				fieldnames[0]  = mxstrdup ("ProjectionRef");
 				fieldnames[1]  = mxstrdup ("hdr");
 				fieldnames[2]  = mxstrdup ("range");
@@ -398,47 +439,66 @@ int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs
 				fieldnames[12] = mxstrdup ("ColorMap");
 				fieldnames[13] = mxstrdup ("NoDataValue");
 				fieldnames[14] = mxstrdup ("data");
-				grid_struct = mxCreateStructMatrix ( 1, 1, 15, (const char **)fieldnames );
-				mxHeader    = mxCreateNumericMatrix(1, 9, mxDOUBLE_CLASS, mxREAL);
-				dptr = mxGetPr(mxHeader);
+				fieldnames[15] = mxstrdup ("x_units");
+				fieldnames[16] = mxstrdup ("y_units");
+				fieldnames[17] = mxstrdup ("z_units");
+				grid_struct = mxCreateStructMatrix (1, 1, 18, (const char **)fieldnames );
+				mxHeader    = mxCreateNumericMatrix (1, 9, mxDOUBLE_CLASS, mxREAL);
+				dptr = mxGetPr (mxHeader);
 				dptr[0] = 0;	dptr[1] = 1;	dptr[2] = 0;	dptr[3] = 2;
 				mxSetField (grid_struct, 0, "hdr", mxHeader);
 
-				dptr = mxGetPr(mxtmp = mxCreateNumericMatrix(1, 4, mxDOUBLE_CLASS, mxREAL));
-				for (n = 0; n < 4; n++) dptr[n] = M->range[n];
+				dptr = mxGetPr(mxtmp = mxCreateNumericMatrix (1, 4, mxDOUBLE_CLASS, mxREAL));
+				for (n = 0; n < 4; n++) dptr[n] = G->header->wesn[n];
 				mxSetField (grid_struct, 0, "range", mxtmp);
 
-				dptr = mxGetPr(mxtmp = mxCreateNumericMatrix(1, 2, mxDOUBLE_CLASS, mxREAL));
-				dptr[0] = 0;	dptr[1] = 1;
+				dptr = mxGetPr(mxtmp = mxCreateNumericMatrix (1, 2, mxDOUBLE_CLASS, mxREAL));
+				for (n = 0; n < 2; n++) dptr[n] = G->header->inc[n];
 				mxSetField (grid_struct, 0, "inc", mxtmp);
 
-				dptr = mxGetPr(mxtmp = mxCreateNumericMatrix(1, 2, mxDOUBLE_CLASS, mxREAL));
-				dptr[0] = 0;	dptr[1] = 1;
+				dptr = mxGetPr(mxtmp = mxCreateNumericMatrix (1, 2, mxDOUBLE_CLASS, mxREAL));
+				dptr[0] = G->header->z_min;	dptr[1] = G->header->z_max;
 				mxSetField (grid_struct, 0, "MinMax", mxtmp);
 
-				dptr = mxGetPr(mxtmp = mxCreateNumericMatrix(1, 2, mxDOUBLE_CLASS, mxREAL));
-				dptr[0] = M->n_rows;	dptr[1] = M->n_columns;
+				dptr = mxGetPr(mxtmp = mxCreateNumericMatrix (1, 2, mxDOUBLE_CLASS, mxREAL));
+				dptr[0] = G->header->ny;	dptr[1] = G->header->nx;
 				mxSetField (grid_struct, 0, "dim", mxtmp);
 
-				mxtmp = mxCreateString ("Poor me, I have no name");
-				mxSetField (grid_struct, 0, (const char *) "title", mxtmp);
+				dptr = mxGetPr(mxtmp = mxCreateNumericMatrix (1, 1, mxDOUBLE_CLASS, mxREAL));
+				dptr[0] = G->header->registration;
+				mxSetField (grid_struct, 0, "registration", mxtmp);
 
-				mxtmp = mxCreateString (M->command);
-				mxSetField (grid_struct, 0, (const char *) "command", mxtmp);
+				mxtmp = mxCreateString (G->header->title);
+				mxSetField (grid_struct, 0, G->header->title, mxtmp);
 
-				mxtmp = mxCreateString (M->remark);
-				mxSetField (grid_struct, 0, (const char *) "remark", mxtmp);
+				mxtmp = mxCreateString (G->header->command);
+				mxSetField (grid_struct, 0, G->header->command, mxtmp);
 
-				mxGrd = mxCreateNumericMatrix (M->n_rows, M->n_columns, mxSINGLE_CLASS, mxREAL);
+				mxtmp = mxCreateString (G->header->remark);
+				mxSetField (grid_struct, 0, G->header->remark, mxtmp);
+
+				mxtmp = mxCreateString (G->header->x_units);
+				mxSetField (grid_struct, 0, G->header->x_units, mxtmp);
+
+				mxtmp = mxCreateString (G->header->y_units);
+				mxSetField (grid_struct, 0, G->header->y_units, mxtmp);
+
+				mxtmp = mxCreateString (G->header->z_units);
+				mxSetField (grid_struct, 0, G->header->z_units, mxtmp);
+
+				mxGrd = mxCreateNumericMatrix (G->header->ny, G->header->nx, mxSINGLE_CLASS, mxREAL);
 				f = mxGetData (mxGrd);
 				/* Load the real grd array into a double matlab array by transposing 
 			           from unpadded GMT grd format to unpadded matlab format */
-				for (gmt_ij = row = 0; row < M->n_rows; row++) for (col = 0; col < M->n_columns; col++, gmt_ij++)
-					f[MEXM_IJ(M,row,col)] = M->data.f4[gmt_ij];
+				for (gmt_ij = row = 0; row < G->header->ny; row++) for (col = 0; col < G->header->nx; col++, gmt_ij++)
+					f[MEXG_IJ(G,row,col)] = G->data[gmt_ij];
 				mxSetField (grid_struct, 0, "data", mxGrd);
 				plhs[k] = grid_struct;
 				break;
+				
 			case GMT_IS_DATASET:	/* Return tables with double (mxDOUBLE_CLASS) matrix */
+				if ((M = GMT_Retrieve_Data (API, X[item].ID)) == NULL) mexErrMsgTxt ("Error retrieving matrix from GMT\n");
+				/* Create a Matlab matrix to hold this GMT matrix */
 				plhs[k] = mxCreateNumericMatrix (M->n_rows, M->n_columns, mxDOUBLE_CLASS, mxREAL);
 				d = mxGetData (plhs[k]);
 				/* Load the real data matrix into a double matlab array copying columns */
@@ -447,5 +507,5 @@ int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs
 				break;
 		}
 	}
-	return(0);	/* Maybe we should turn this function to void but the gmt5 wraper expects a return value */
+	return (0);	/* Maybe we should turn this function to void but the gmt5 wrapper expects a return value */
 }
