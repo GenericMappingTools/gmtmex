@@ -18,7 +18,15 @@
 /* GMT convenience functions used by MATLAB/OCTAVE mex functions
  */
 
-#include "gmt_mex.h"
+#include "gmtmex.h"
+#include "gmtmex_id.h"
+#include "gmtmex_keys.h"
+#include "gmtmex_progs.h"
+#include <math.h>
+
+#if defined(WIN32) && !defined(lrint)
+#	define lrint (int64_t)rint
+#endif
 
 /* New parser for all GMT mex modules based on design discussed by PW and JL on Mon, 2/21/11 */
 /* Wherever we say "Matlab" we mean "Matlab of Octave" */
@@ -47,6 +55,16 @@
 #define GMT_MEX_NONE		-3
 #define GMT_MEX_EXPLICIT	-2
 #define GMT_MEX_IMPLICIT	-1
+
+#define GMT_IS_PS	99	/* Use for PS output; use GMT_IS_GRID or GMT_IS_DATASET for data */
+
+
+/* Macros for getting the Matlab/Octave ij that correspond to (row,col) [no pad involved] */
+/* This one operates on GMT_MATRIX */
+#define MEXM_IJ(M,row,col) ((col)*M->n_rows + M->n_rows - (row) - 1)
+
+/* And this on GMT_GRID */
+#define MEXG_IJ(M,row,col) ((col)*M->header->ny + M->header->ny - (row) - 1)
 
 int GMTMEX_print_func (FILE *fp, const char *message)
 {
@@ -78,7 +96,7 @@ int gmtmex_get_arg_pos (char *arg)
 {	/* Look for a $ in the arg; if found return position, else return -1. Skips $ inside quoted texts */
 	int pos, k;
 	unsigned int mute = 0;
-	for (k = 0, pos = -1; pos == -1 && k < strlen (arg); k++) {
+	for (k = 0, pos = -1; pos == -1 && k < (int)strlen (arg); k++) {
 		if (arg[k] == '\"' || arg[k] == '\'') mute = !mute;	/* Do not consider $ inside quotes */
 		if (!mute && arg[k] == '$') pos = k;	/* Found a $ sign */
 	}
@@ -173,7 +191,7 @@ int gmtmex_get_arg_dir (char option, char *key[], int n_keys, int *data_type, in
 
 char ** make_char_array (char *string, unsigned int *n_items)
 {
-	unsigned int len, k, n;
+	size_t len, k, n;
 	char **s = NULL;
 	char *next, *tmp;
 	

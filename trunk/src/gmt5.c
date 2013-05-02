@@ -26,10 +26,7 @@
  *
  */
 
-#include "gmt_mex.h"
-#include "gmtmex_id.h"
-#include "gmtmex_keys.h"
-#include "gmtmex_progs.h"
+#include "gmtmex.h"
 
 void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	int status = 0;				/* Status code from GMT API */

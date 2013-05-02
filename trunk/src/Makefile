@@ -6,14 +6,12 @@ include ../config.mk
 
 INCLUDES	= $(GMT_INC) $(MEX_INC) -I.
 
-PROGS_C		= mexparser.c
+PROGS_C		= gmt5.c
 PROGS_O         = $(PROGS_C:.c=.o)
 PROGS           = $(PROGS_C:.c=)
-PROGS_H		= gmtmex_id.h gmtmex_keys.h gmtmex_progs.h
-#LIB_C		= gmt_mex.c
-#LIB_H		= gmt_mex.h
+PROGS_H		= gmtmex.h
+LIB_H		= gmtmex_id.h gmtmex_keys.h gmtmex_progs.h
 LIB_C		= gmtmex_parser.c
-LIB_H		= 
 LIB_O		= $(LIB_C:.c=.o)
 LIB		= libgmtmex.$(LIBEXT)
 
@@ -40,7 +38,7 @@ uninstall:
 		cd $(bindir); rm -f $(PROGS)
 
 spotless::	clean
-		rm -f $(PROGS_H)
+		rm -f $(LIB_H) $(PROGS_H)
 clean:	
 		rm -f *.o *% *.a core tags $(PROGS)
 
