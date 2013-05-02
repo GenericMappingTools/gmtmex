@@ -480,27 +480,26 @@ int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs
 				dptr[0] = G->header->ny;	dptr[1] = G->header->nx;
 				mxSetField (grid_struct, 0, "dim", mxtmp);
 
-				dptr = mxGetPr(mxtmp = mxCreateNumericMatrix (1, 1, mxDOUBLE_CLASS, mxREAL));
-				dptr[0] = G->header->registration;
-				mxSetField (grid_struct, 0, "registration", mxtmp);
+				mxtmp = mxCreateDoubleScalar ((double)G->header->registration); 
+				mxSetField (grid_struct, 0, (const char *) "registration", mxtmp);
 
 				mxtmp = mxCreateString (G->header->title);
-				mxSetField (grid_struct, 0, G->header->title, mxtmp);
+				mxSetField (grid_struct, 0, (const char *) "title", mxtmp);
 
 				mxtmp = mxCreateString (G->header->command);
-				mxSetField (grid_struct, 0, G->header->command, mxtmp);
+				mxSetField (grid_struct, 0, (const char *) "command", mxtmp);
 
 				mxtmp = mxCreateString (G->header->remark);
-				mxSetField (grid_struct, 0, G->header->remark, mxtmp);
+				mxSetField (grid_struct, 0, (const char *) "remark", mxtmp);
 
 				mxtmp = mxCreateString (G->header->x_units);
-				mxSetField (grid_struct, 0, G->header->x_units, mxtmp);
+				mxSetField (grid_struct, 0, (const char *) "x_units", mxtmp);
 
 				mxtmp = mxCreateString (G->header->y_units);
-				mxSetField (grid_struct, 0, G->header->y_units, mxtmp);
+				mxSetField (grid_struct, 0, (const char *) "y_units", mxtmp);
 
 				mxtmp = mxCreateString (G->header->z_units);
-				mxSetField (grid_struct, 0, G->header->z_units, mxtmp);
+				mxSetField (grid_struct, 0, (const char *) "z_units", mxtmp);
 
 				mxGrd = mxCreateNumericMatrix (G->header->ny, G->header->nx, mxSINGLE_CLASS, mxREAL);
 				f = mxGetData (mxGrd);
