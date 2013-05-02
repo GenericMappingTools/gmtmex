@@ -324,7 +324,7 @@ int GMTMEX_Register_IO (void *API, unsigned int data_type, unsigned int geometry
 	return (ID);
 }
 
-int GMTMEX_pre_process (void *API, mxArray *plhs[], int nlhs, const mxArray *prhs[], int nrhs, char *keys, struct GMT_OPTION *head, struct GMTMEX **X)
+int GMTMEX_pre_process (void *API, int module_id, mxArray *plhs[], int nlhs, const mxArray *prhs[], int nrhs, char *keys, struct GMT_OPTION *head, struct GMTMEX **X)
 {
 	/* API controls all things within GMT.
 	 * plhs (and nlhs) are the outputs specified on the left side of the equal sign in Matlab.
@@ -348,6 +348,14 @@ int GMTMEX_pre_process (void *API, mxArray *plhs[], int nlhs, const mxArray *prh
 	struct GMT_MATRIX *M = NULL;		/* Pointer to matrix container */
 	struct GMTMEX *info = NULL;
 
+	if (module_id == GMT_ID_GMTREAD || module_id == GMT_ID_GMTWRITE) {	/* Special case: Must determine which data type we are dealing with */
+		struct GMT_OPTION *t_ptr;
+		if ((t_ptr = GMT_Find_Option (API, 'T', head)) {	/* Found the -T<type> option */
+			char type = t_ptr->arg[0];	/* Find type and replace ? in keys with this type */
+			for (k = 0; k < strlen (keys); k++) if (keys[k] == '?') keys[k] = type;
+		}
+	}
+	
 	key = make_char_array (keys, &n_keys);
 	info = malloc (n_alloc * sizeof (struct GMTMEX));
 	
