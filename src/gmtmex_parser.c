@@ -19,9 +19,6 @@
  */
 
 #include "gmtmex.h"
-#include "gmtmex_id.h"
-#include "gmtmex_keys.h"
-#include "gmtmex_progs.h"
 #include <math.h>
 
 #if defined(WIN32) && !defined(lrint)
