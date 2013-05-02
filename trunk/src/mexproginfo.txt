@@ -4,7 +4,7 @@
 # Each program has a list of zero or more 3-character codes.  The first stands for
 # the specific program option (e.g., L for -L) or <,> for standard input,output.
 # The second stand for data type (C = CPT, D = Dataset/Point, L = Dataset/Line,
-# P = Dataset/Polygon, G = Grid, I = Image, T = Textset, X = PostScript),
+# P = Dataset/Polygon, G = Grid, I = Image, T = Textset, X = PostScript, ? = via option),
 # while the 3rd stand for input (I), primary output (O), or secondary output (o).
 # Note (1): PostScript is only allowed to be written to a given file and is never
 # returned to the calling program via memory.
@@ -26,12 +26,14 @@ gmtdp		core		"<DI,>DO"
 gmtget		core		">TO"
 gmtgravmag3d	potential	"<DI,FDI,GGO"
 gmtmath		core		"<DI,ADI,>DO"
+gmtread		core		"<?I,>?O"
 gmtselect	core		"<DI,CDI,FDI,LDI,>DO"
 gmtset		core		"<TI"
 gmtspatial	core		"<DI,DDI,NDI,TDI,>DO"
 gmtstitch	core		"<DI,>DO,CDo,LTo,QTo"
 gmtvector	core		"<DI,ADI,>DO"
 gmtwhich	core		"<TI,>TO"
+gmtwrite	core		"<?I,>?O"
 gravfft		potential	"<GI,GGO"
 grd2cpt		core		"<GI,>CO"
 grd2rgb		core		"<GI"
