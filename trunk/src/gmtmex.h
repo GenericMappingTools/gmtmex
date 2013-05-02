@@ -25,6 +25,9 @@
 #include <mex.h>
 #include <string.h>
 #include <ctype.h>
+#include "gmtmex_id.h"
+#include "gmtmex_keys.h"
+#include "gmtmex_progs.h"
 
 #ifdef GMT_MATLAB
 #define MEX_PROG "Matlab"
