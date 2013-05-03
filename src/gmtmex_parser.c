@@ -493,10 +493,10 @@ int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs
 				for (n = 0; n < 2; n++) dptr[n] = G->header->inc[n];
 				mxSetField (grid_struct, 0, "inc", mxtmp);
 
-				mxtmp = mxCreateDoubleScalar ((double)G->header->inc[1]); 
+				mxtmp = mxCreateDoubleScalar ((double)G->header->ny); 
 				mxSetField (grid_struct, 0, (const char *) "n_rows", mxtmp);
 
-				mxtmp = mxCreateDoubleScalar ((double)G->header->inc[0]); 
+				mxtmp = mxCreateDoubleScalar ((double)G->header->nx); 
 				mxSetField (grid_struct, 0, (const char *) "n_columns", mxtmp);
 
 				dptr = mxGetPr(mxtmp = mxCreateNumericMatrix (1, 2, mxDOUBLE_CLASS, mxREAL));
