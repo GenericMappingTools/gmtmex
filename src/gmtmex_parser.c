@@ -450,7 +450,7 @@ int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs
 	mxArray *mxProjectionRef = NULL;
 	mxArray *mxHeader = NULL, *mxtmp = NULL;
 	mxArray *grid_struct = NULL;
-	char    *fieldnames[18];	/* this array contains the names of the fields of the output structure. */
+	char    *fieldnames[21];	/* this array contains the names of the fields of the output structure. */
 	
 	for (item = 0; item < n_items; item++) {
 		k = X[item].lhs_index;	/* Short-hand for index into plhs[] */
@@ -458,25 +458,28 @@ int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs
 			case GMT_IS_GRID:	/* Return grids via a float (mxSINGLE_CLASS) matrix in a struct */
 				if ((G = GMT_Retrieve_Data (API, X[item].ID)) == NULL) mexErrMsgTxt ("Error retrieving grid from GMT\n");
 				/* Create a Matlab struct for this grid */
-				fieldnames[0]  = mxstrdup ("ProjectionRef");
-				fieldnames[1]  = mxstrdup ("hdr");
-				fieldnames[2]  = mxstrdup ("range");
-				fieldnames[3]  = mxstrdup ("inc");
-				fieldnames[4]  = mxstrdup ("MinMax");
+				fieldnames[0]  = mxstrdup ("ProjectionRefPROJ4");
+				fieldnames[1]  = mxstrdup ("ProjectionRefWKT");
+				fieldnames[2]  = mxstrdup ("hdr");
+				fieldnames[3]  = mxstrdup ("range");
+				fieldnames[4]  = mxstrdup ("inc");
 				fieldnames[5]  = mxstrdup ("dim");
-				fieldnames[6]  = mxstrdup ("registration");
-				fieldnames[7]  = mxstrdup ("title");
-				fieldnames[8]  = mxstrdup ("remark");
-				fieldnames[9]  = mxstrdup ("command");
-				fieldnames[10] = mxstrdup ("DataType");
-				fieldnames[11] = mxstrdup ("LayerCount");
-				fieldnames[12] = mxstrdup ("ColorMap");
-				fieldnames[13] = mxstrdup ("NoDataValue");
-				fieldnames[14] = mxstrdup ("data");
-				fieldnames[15] = mxstrdup ("x_units");
-				fieldnames[16] = mxstrdup ("y_units");
-				fieldnames[17] = mxstrdup ("z_units");
-				grid_struct = mxCreateStructMatrix (1, 1, 18, (const char **)fieldnames );
+				fieldnames[6]  = mxstrdup ("n_rows");
+				fieldnames[7]  = mxstrdup ("n_columns");
+				fieldnames[8]  = mxstrdup ("MinMax");
+				fieldnames[9]  = mxstrdup ("NoDataValue");
+				fieldnames[10] = mxstrdup ("registration");
+				fieldnames[11] = mxstrdup ("title");
+				fieldnames[12] = mxstrdup ("remark");
+				fieldnames[13] = mxstrdup ("command");
+				fieldnames[14] = mxstrdup ("DataType");
+				fieldnames[15] = mxstrdup ("LayerCount");
+				fieldnames[16] = mxstrdup ("ColorMap");
+				fieldnames[17] = mxstrdup ("data");
+				fieldnames[18] = mxstrdup ("x_units");
+				fieldnames[19] = mxstrdup ("y_units");
+				fieldnames[20] = mxstrdup ("z_units");
+				grid_struct = mxCreateStructMatrix (1, 1, 21, (const char **)fieldnames );
 				mxHeader    = mxCreateNumericMatrix (1, 9, mxDOUBLE_CLASS, mxREAL);
 				dptr = mxGetPr (mxHeader);
 				dptr[0] = 0;	dptr[1] = 1;	dptr[2] = 0;	dptr[3] = 2;
@@ -490,9 +493,18 @@ int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs
 				for (n = 0; n < 2; n++) dptr[n] = G->header->inc[n];
 				mxSetField (grid_struct, 0, "inc", mxtmp);
 
+				mxtmp = mxCreateDoubleScalar ((double)G->header->inc[1]); 
+				mxSetField (grid_struct, 0, (const char *) "n_rows", mxtmp);
+
+				mxtmp = mxCreateDoubleScalar ((double)G->header->inc[0]); 
+				mxSetField (grid_struct, 0, (const char *) "n_columns", mxtmp);
+
 				dptr = mxGetPr(mxtmp = mxCreateNumericMatrix (1, 2, mxDOUBLE_CLASS, mxREAL));
 				dptr[0] = G->header->z_min;	dptr[1] = G->header->z_max;
 				mxSetField (grid_struct, 0, "MinMax", mxtmp);
+
+				mxtmp = mxCreateDoubleScalar ((double)G->header->nan_value); 
+				mxSetField (grid_struct, 0, (const char *) "NoDataValue", mxtmp);
 
 				dptr = mxGetPr(mxtmp = mxCreateNumericMatrix (1, 2, mxDOUBLE_CLASS, mxREAL));
 				dptr[0] = G->header->ny;	dptr[1] = G->header->nx;
@@ -518,6 +530,9 @@ int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs
 
 				mxtmp = mxCreateString (G->header->z_units);
 				mxSetField (grid_struct, 0, (const char *) "z_units", mxtmp);
+
+				if (!G->data)
+					mexErrMsgTxt ("GMTMEX_post_process: programming error, output matrix G is empty\n");
 
 				mxGrd = mxCreateNumericMatrix (G->header->ny, G->header->nx, mxSINGLE_CLASS, mxREAL);
 				f = mxGetData (mxGrd);
