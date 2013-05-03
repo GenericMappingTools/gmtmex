@@ -349,7 +349,8 @@ int GMTMEX_pre_process (void *API, int module_id, mxArray *plhs[], int nlhs, con
 	int geometry;		/* Either GMT_IS_NONE, GMT_IS_POINT, GMT_IS_LINE, GMT_IS_POLY, or GMT_IS_SURFACE */
 	int def[2];		/* Either GMT_MEX_EXPLICIT or the item number in the keys array */
 	int ID, error;
-	unsigned int k, n_keys = 0, pos, PS, n_alloc = 8U, n_items = 0;
+	int pos;
+	unsigned int k, n_keys = 0, PS, n_alloc = 8U, n_items = 0;
 	char name[GMT_STR16];	/* Used to hold the GMT API embedded file name, e.g., @GMTAPI@-###### */
 	char **key = NULL;
 	void *ptr = NULL;	
