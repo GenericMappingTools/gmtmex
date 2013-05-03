@@ -4,35 +4,26 @@
 
 include ../config.mk
 
-INCLUDES	= $(GMT_INC) $(MEX_INC) -I.
+.SUFFIXES:	.m .$(MEX_EXT)
+
+FLAGS		= $(GMT_INC) $(MEX_INC) -I.
+ALLLIB     	= $(GMT_LIB) $(MEX_LIB)
 
 PROGS_C		= gmt5.c
-PROGS_O         = $(PROGS_C:.c=.o)
-PROGS           = $(PROGS_C:.c=)
+PROGS           = $(PROGS_C:.c=.$(MEX_EXT))
 PROGS_H		= gmtmex.h
 LIB_H		= gmtmex_id.h gmtmex_keys.h gmtmex_progs.h
 LIB_C		= gmtmex_parser.c
-LIB_O		= $(LIB_C:.c=.o)
-LIB		= libgmtmex.$(LIBEXT)
 
 #-------------------------------------------------------------------------------
 #	software targets
 #-------------------------------------------------------------------------------
 
-lib:		$(LIB)
-
-all:		$(PROGS) lib
-
-libgmtmex.$(LIBEXT):	$(LIB_O)
-		$(AR) cvur $@ $?
-		$(RANLIB) $@
+all:		$(PROGS)
 
 install:	all
 		$(INSTALL) -d $(bindir)
 		$(INSTALL) $(PROGS) $(bindir)
-		$(INSTALL) -d ../lib
-		$(INSTALL) -m 644 $(LIB:.$(LIBEXT)=.a) ../lib
-		if [ ! $(LIBEXT) = a ]; then $(INSTALL) -m 755 $(LIB) ../lib; fi
 
 uninstall:
 		cd $(bindir); rm -f $(PROGS)
@@ -40,18 +31,18 @@ uninstall:
 spotless::	clean
 		rm -f $(LIB_H) $(PROGS_H)
 clean:	
-		rm -f *.o *% *.a core tags $(PROGS)
+		rm -f *.o *% core tags $(PROGS)
 
 #-------------------------------------------------------------------------------
 #	program rules
 #-------------------------------------------------------------------------------
 
-$(PROGS):	$(PROGS_O) $(LIB)
-		$(CC) $(LDFLAGS) $@.o $(GMT_LIB) -L. -lgmtmex $(LIBS) -o $@
+gmt5.$(MEX_EXT):	$(PROGS_C) $(LIB_C) $(LIB_H)
+		$(MEX_BLD) $(FLAGS) gmt5.c $(LIB_C) $(ALLLIB)
 
-$(LIB_O):	$(LIB_C) $(LIB_H)
-
-$(PROGS_O):	$(PROGS_H)
+#-------------------------------------------------------------------------------
+#	Build include files
+#-------------------------------------------------------------------------------
 
 gmtmex_id.h:	mexproginfo.txt
 		echo "enum GMT_prog_enum {" > gmtmex_id.h
