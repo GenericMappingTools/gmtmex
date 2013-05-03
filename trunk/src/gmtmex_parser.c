@@ -113,20 +113,27 @@ unsigned int gmtmex_get_key_pos (char *key[], unsigned int n_keys, struct GMT_OP
 	struct GMT_OPTION *opt = NULL;
 	def[GMT_IN] = def[GMT_OUT] = GMT_MEX_IMPLICIT;	/* Initialize to setting the i/o implicitly */
 	
-	for (opt = head; opt; opt = opt->next) {	/* Loop over the module options to see if inputs and outputs are set explicitly or implicitly */
+	/* Loop over the module options to see if inputs and outputs are set explicitly or implicitly */
+	for (opt = head; opt; opt = opt->next) {
 		pos = gmtmex_find_option (opt->option, key, n_keys);	/* First see if this option is one that might take $ */
 		if (pos == -1) continue;		/* No, it was some other harmless option, e.g., -J, -O ,etc. */
 		/* Here, the current option is one that might take an input or output file. See if it matches
 		 * the UPPERCASE I or O [default source/dest] rather than the standard i|o (optional input/output) */
-		if (key[pos][2] == 'I') def[GMT_IN]  = GMT_MEX_EXPLICIT;	/* Default input  is actually set explicitly via option setting now indicated by key[pos] */
-		if (key[pos][2] == 'O') def[GMT_OUT] = GMT_MEX_EXPLICIT;	/* Default output is actually set explicitly via option setting now indicated by key[pos] */
+		if (key[pos][2] == 'I')  /* Default input  is actually set explicitly via option setting now indicated by key[pos] */
+			def[GMT_IN] = GMT_MEX_EXPLICIT;
+		if (key[pos][2] == 'O')  /* Default output is actually set explicitly via option setting now indicated by key[pos] */
+			def[GMT_OUT] = GMT_MEX_EXPLICIT;
 	}
 	/* Here, if def[] == GMT_MEX_IMPLICIT (the default in/out option was NOT given), then we want to return the corresponding entry in key */
 	for (pos = 0; pos < n_keys; pos++) {	/* For all module options that might take a file */
-		if ((key[pos][2] == 'I' || key[pos][2] == 'i') && key[pos][0] == '-') def[GMT_IN]  = GMT_MEX_NONE;	/* This program takes no input (e.g., psbasemap) */
-		else if (key[pos][2] == 'I' && def[GMT_IN]  == GMT_MEX_IMPLICIT) def[GMT_IN]  = pos;	/* Must add implicit input; use def to determine option,type */
-		if ((key[pos][2] == 'O' || key[pos][2] == 'o') && key[pos][0] == '-') def[GMT_OUT] = GMT_MEX_NONE;	/* This program produces no output */
-		else if (key[pos][2] == 'O' && def[GMT_OUT] == GMT_MEX_IMPLICIT) def[GMT_OUT] = pos;	/* Must add implicit output; use def to determine option,type */
+		if ((key[pos][2] == 'I' || key[pos][2] == 'i') && key[pos][0] == '-') /* This program takes no input (e.g., psbasemap) */
+			def[GMT_IN]  = GMT_MEX_NONE;
+		else if (key[pos][2] == 'I' && def[GMT_IN]  == GMT_MEX_IMPLICIT) /* Must add implicit input; use def to determine option,type */
+			def[GMT_IN]  = pos;
+		if ((key[pos][2] == 'O' || key[pos][2] == 'o') && key[pos][0] == '-') /* This program produces no output */
+			def[GMT_OUT] = GMT_MEX_NONE;
+		else if (key[pos][2] == 'O' && def[GMT_OUT] == GMT_MEX_IMPLICIT) /* Must add implicit output; use def to determine option,type */
+			def[GMT_OUT] = pos;
 		if ((key[pos][2] == 'O' || key[pos][2] == 'o') && key[pos][1] == 'X' && key[pos][0] == '-') PS = 1;	/* This program produces PostScript */
 	}
 	return (PS);
@@ -139,12 +146,14 @@ int gmtmex_get_arg_dir (char option, char *key[], int n_keys, int *data_type, in
 	/* 1. First determine if this option is one of the choices in key */
 	
 	item = gmtmex_find_option (option, key, n_keys);
-	if (item == -1) fprintf (stderr, "GMTMEX_pre_process: This option does not allow $ arguments\n");	/* This means a coding error we must fix */
+	if (item == -1)		/* This means a coding error we must fix */
+		mexErrMsgTxt ("GMTMEX_pre_process: This option does not allow $ arguments\n");
 	
 	/* 2. Assign direction, data_type, and geometry */
 	
 	switch (key[item][1]) {	/* 2nd char contains the data type code */
 		case 'G':
+		case 'g':
 			*data_type = GMT_IS_GRID;
 			*geometry = GMT_IS_SURFACE;
 			break;
@@ -177,7 +186,7 @@ int gmtmex_get_arg_dir (char option, char *key[], int n_keys, int *data_type, in
 			*geometry = GMT_IS_NONE;
 			break;
 		default:
-			fprintf (stderr, "GMTMEX_pre_process: Bad data_type character in 3-char module code!\n");
+			mexErrMsgTxt ("GMTMEX_pre_process: Bad data_type character in 3-char module code!\n");
 			break;
 	}
 	/* Third key character contains the in/out code */
