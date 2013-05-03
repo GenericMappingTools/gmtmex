@@ -17,9 +17,19 @@
  *--------------------------------------------------------------------*/
 /* GMT convenience functions used by MATLAB/OCTAVE mex functions
  */
-
+#define STDC_FORMAT_MACROS
 #include "gmtmex.h"
 #include <math.h>
+#include <inttypes.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
+
+#include <float.h>
+#include <math.h>
+#include <limits.h>
 
 #if defined(WIN32) && !defined(lrint)
 #	define lrint (int64_t)rint
@@ -194,8 +204,9 @@ int gmtmex_get_arg_dir (char option, char *key[], int n_keys, int *data_type, in
 	return ((key[item][2] == 'i') ? GMT_IN : GMT_OUT);
 }
 
-char ** make_char_array (char *string, unsigned int *n_items)
-{
+char ** make_char_array (char *string, unsigned int *n_items, char type)
+{	/* Turn the comma-separated list of 3-char codes into an array of such codes.
+ 	 * In the process, replace any ?-types with type. */
 	size_t len, k, n;
 	char **s = NULL;
 	char *next, *tmp;
@@ -204,6 +215,7 @@ char ** make_char_array (char *string, unsigned int *n_items)
 	len = strlen (string);
 	if (len == 0) return NULL;
 	tmp = strdup (string);
+	if (type) for (k = 0; k < strlen (tmp); k++) if (tmp[k] == '?') tmp[k] = type;
 	for (k = n = 0; k < len; k++) if (tmp[k] == ',') n++;
 	n++;
 	s = (char **) calloc (n, sizeof (char *));
@@ -242,6 +254,8 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 		if (mx_ptr == NULL) mexErrMsgTxt ("Could not find data array for Grid\n");
 		G->data = mxGetData (mx_ptr);
 		G->alloc_mode = GMT_NO_CLOBBER;	/* Since array was allocated by Matlab */
+		GMT_Report (API, GMT_MSG_DEBUG, " Allocate GMT Grid %lx in gmtmex_parser\n", (long)G);
+		GMT_Report (API, GMT_MSG_DEBUG, " Registered GMT Grid array %lx via memory reference from Matlab\n", (long)G->data);
 	}
 	else {	/* Set dummy range and inc so that GMT_check_region in GMT_Register_IO will pass */
 		double range[4] = {0.0, 0.0, 0.0, 0.0}, inc[2] = {1.0, 1.0};
@@ -268,6 +282,7 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
 	if ((M = GMT_Create_Data (API, GMT_IS_MATRIX, GMT_IS_SURFACE, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
 		mexErrMsgTxt ("Failure to alloc GMT source matrix\n");
 
+	GMT_Report (API, GMT_MSG_DEBUG, " Allocate GMT Matrix %lx in gmtmex_parser\n", (long)M);
 	M->n_rows    = dim[1];
 	M->n_columns = dim[0];
 	/* Set a silly range so that GMT_check_region in GMT_Register_IO will pass */
@@ -353,6 +368,8 @@ int GMTMEX_pre_process (void *API, int module_id, mxArray *plhs[], int nlhs, con
 	unsigned int k, n_keys = 0, PS, n_alloc = 8U, n_items = 0;
 	char name[GMT_STR16];	/* Used to hold the GMT API embedded file name, e.g., @GMTAPI@-###### */
 	char **key = NULL;
+	char *text = NULL;
+	char type = 0;
 	void *ptr = NULL;	
 	struct GMT_OPTION *opt, *new_ptr;	/* Pointer to a GMT option structure */
 	struct GMT_GRID *G = NULL;		/* Pointer to grid container */
@@ -362,12 +379,14 @@ int GMTMEX_pre_process (void *API, int module_id, mxArray *plhs[], int nlhs, con
 	if (module_id == GMT_ID_GMTREAD || module_id == GMT_ID_GMTWRITE) {	/* Special case: Must determine which data type we are dealing with */
 		struct GMT_OPTION *t_ptr;
 		if ((t_ptr = GMT_Find_Option (API, 'T', head))) {	/* Found the -T<type> option */
-			char type = toupper (t_ptr->arg[0]);	/* Find type and replace ? in keys with this type in uppercase (DGCIT) */
-			for (k = 0; k < strlen (keys); k++) if (keys[k] == '?') keys[k] = type;
+			type = toupper (t_ptr->arg[0]);	/* Find type and replace ? in keys with this type in uppercase (DGCIT) in make_char_array below */
+		}
+		if (module_id == GMT_ID_GMTWRITE && (t_ptr = GMT_Find_Option (API, GMT_OPT_INFILE, head))) {	/* Found a -<<file> option; this is actually the output file */
+			t_ptr->option = GMT_OPT_OUTFILE;
 		}
 	}
 	
-	key = make_char_array (keys, &n_keys);
+	key = make_char_array (keys, &n_keys, type);
 	info = malloc (n_alloc * sizeof (struct GMTMEX));
 	
 	PS = gmtmex_get_key_pos (key, n_keys, head, def);	/* Determine if we must add the primary in and out arguments to the option list */
@@ -432,6 +451,10 @@ int GMTMEX_pre_process (void *API, int module_id, mxArray *plhs[], int nlhs, con
 	for (k = 0; k < n_keys; k++) free ((void *)key[k]);
 	free ((void *)key);
 	
+	text = GMT_Create_Cmd (API, head);
+	GMT_Report (API, GMT_MSG_VERBOSE, "Args are now [%s]\n", text);
+	GMT_Destroy_Cmd (API, &text);
+
 	/* Here, a command line '-F200k -G$ $ -L$ -P' has been changed to '-F200k -G@GMTAPI@-000001 @GMTAPI@-000002 -L@GMTAPI@-000003 -P'
 	 * where the @GMTAPI@-00000x are encodings to registered resources or destinations */
 	*X = info;
@@ -453,6 +476,7 @@ int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs
 	mxArray *grid_struct = NULL;
 	char    *fieldnames[21];	/* this array contains the names of the fields of the output structure. */
 	
+	GMT_Report (API, GMT_MSG_VERBOSE, "Enter GMTMEX_post_process\n");
 	for (item = 0; item < n_items; item++) {
 		k = X[item].lhs_index;	/* Short-hand for index into plhs[] */
 		switch (X[item].type) {
@@ -556,5 +580,6 @@ int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs
 				break;
 		}
 	}
+	GMT_Report (API, GMT_MSG_VERBOSE, "Exit GMTMEX_post_process\n");
 	return (0);	/* Maybe we should turn this function to void but the gmt5 wrapper expects a return value */
 }

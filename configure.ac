@@ -31,7 +31,7 @@ dnl -----------------------------------------------------------------
 dnl The remainder should need no editing
 dnl -----------------------------------------------------------------
 dnl
-AC_CONFIG_SRCDIR(src/gmt_mex.h)
+AC_CONFIG_SRCDIR(src/gmtmex.h)
 AC_CONFIG_AUX_DIR(`pwd`)
 AC_PREFIX_PROGRAM(gmtvector)	
 AC_CYGWIN
@@ -99,6 +99,7 @@ AC_PROG_LN_S
 AC_PROG_INSTALL
 AC_PROG_AWK
 AC_PROG_RANLIB
+AC_CHECK_SIZEOF(long)
 dnl
 dnl -----------------------------------------------------------------
 dnl Get current OS and chip type
