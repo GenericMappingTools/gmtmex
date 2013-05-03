@@ -153,7 +153,6 @@ int gmtmex_get_arg_dir (char option, char *key[], int n_keys, int *data_type, in
 	
 	switch (key[item][1]) {	/* 2nd char contains the data type code */
 		case 'G':
-		case 'g':
 			*data_type = GMT_IS_GRID;
 			*geometry = GMT_IS_SURFACE;
 			break;
@@ -362,7 +361,7 @@ int GMTMEX_pre_process (void *API, int module_id, mxArray *plhs[], int nlhs, con
 	if (module_id == GMT_ID_GMTREAD || module_id == GMT_ID_GMTWRITE) {	/* Special case: Must determine which data type we are dealing with */
 		struct GMT_OPTION *t_ptr;
 		if ((t_ptr = GMT_Find_Option (API, 'T', head))) {	/* Found the -T<type> option */
-			char type = t_ptr->arg[0];	/* Find type and replace ? in keys with this type */
+			char type = toupper (t_ptr->arg[0]);	/* Find type and replace ? in keys with this type in uppercase (DGCIT) */
 			for (k = 0; k < strlen (keys); k++) if (keys[k] == '?') keys[k] = type;
 		}
 	}
