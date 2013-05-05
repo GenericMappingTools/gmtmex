@@ -29,15 +29,26 @@
 #include "gmtmex.h"
 
 void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
-	int status = 0;				/* Status code from GMT API */
-	int module_id;    			/* Module ID */
-	int n_items = 0;			/* Number of Matlab arguments (left and right) */
-	size_t str_length, k;			/* Misc. counters */
-	struct GMTAPI_CTRL *API = NULL;		/* GMT API control structure */
-	struct GMT_OPTION *options = NULL;	/* Linked list of options */
-	struct GMTMEX *X = NULL;		/* Array of information about Matlab args */
-	char *cmd = NULL;			/* Pointer used to get Matlab command */
-	char module[BUFSIZ];			/* Name of GMT module to call */
+	int status = 0;             /* Status code from GMT API */
+	int module_id;              /* Module ID */
+	int n_items = 0;            /* Number of Matlab arguments (left and right) */
+	size_t str_length, k;       /* Misc. counters */
+	struct GMTAPI_CTRL *API = NULL;     /* GMT API control structure */
+	struct GMT_OPTION *options = NULL;  /* Linked list of options */
+	struct GMTMEX *X = NULL;    /* Array of information about Matlab args */
+	char *cmd = NULL;           /* Pointer used to get Matlab command */
+	char module[BUFSIZ];        /* Name of GMT module to call */
+
+	if (nrhs == 0) {
+		mexPrintf("\ngmt - The Generic Mapping Tools, Version %s\n", "5.0");
+		mexPrintf("Copyright 1991-2013 Paul Wessel, Walter H. F. Smith, R. Scharroo, J. Luis, and F. Wobbe\n\n");
+		mexPrintf("This program comes with NO WARRANTY, to the extent permitted by law.\n");
+		mexPrintf("You may redistribute copies of this program under the terms of the\n");
+		mexPrintf("GNU Lesser General Public License.\n");
+		mexPrintf("For more information about these matters, see the file named LICENSE.TXT.\n");
+		mexPrintf("For a brief description of GMT programs, type gmt5('--help')\n\n");
+		return;
+	}
 
 	/* 1. Initializing new GMT session with zero pad and replacement printf function */
 	if ((API = GMT_Create_Session ("GMT5", 0U, 1U, GMTMEX_print_func)) == NULL) mexErrMsgTxt ("Failure to create GMT5 Session\n");
@@ -52,6 +63,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	/* 3. Determine the GMT module ID, or list module usages and return if module is not found */
 	if ((module_id = GMT_Get_Module (API, module)) == GMT_ID_NONE) {
 		GMT_List_Module (API, GMT_ID_NONE);
+		if (GMT_Destroy_Session (API)) mexErrMsgTxt ("Failure to destroy GMT5 session\n");
 		return;
 	}
 
