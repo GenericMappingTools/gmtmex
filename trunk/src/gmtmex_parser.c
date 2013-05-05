@@ -204,7 +204,7 @@ int gmtmex_get_arg_dir (char option, char *key[], int n_keys, int *data_type, in
 	return ((key[item][2] == 'i') ? GMT_IN : GMT_OUT);
 }
 
-char ** make_char_array (char *string, unsigned int *n_items, char type)
+char **make_char_array (char *string, unsigned int *n_items, char type)
 {	/* Turn the comma-separated list of 3-char codes into an array of such codes.
  	 * In the process, replace any ?-types with type. */
 	size_t len, k, n;
@@ -237,6 +237,7 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 		double *inc = NULL, *range = NULL, *reg = NULL;
 		unsigned int registration;
 		
+		if (mxIsEmpty (ptr)) mexErrMsgTxt ("The input that was supposed to contain the Grid, is empty\n");
 		if (!mxIsStruct (ptr)) mexErrMsgTxt ("Expected a Grid for input\n");
 		mx_ptr = mxGetField (ptr, 0, "inc");
 		if (mx_ptr == NULL) mexErrMsgTxt ("Could not find inc array with Grid increments\n");
@@ -482,6 +483,7 @@ int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs
 		switch (X[item].type) {
 			case GMT_IS_GRID:	/* Return grids via a float (mxSINGLE_CLASS) matrix in a struct */
 				if ((G = GMT_Retrieve_Data (API, X[item].ID)) == NULL) mexErrMsgTxt ("Error retrieving grid from GMT\n");
+				if (G->alloc_mode < -100) mexErrMsgTxt ("Programming error. G grid matrix is screwed.\n");
 				/* Create a Matlab struct for this grid */
 				fieldnames[0]  = mxstrdup ("ProjectionRefPROJ4");
 				fieldnames[1]  = mxstrdup ("ProjectionRefWKT");
