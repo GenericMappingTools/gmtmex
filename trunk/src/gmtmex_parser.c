@@ -263,7 +263,8 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 		unsigned int registration = GMT_GRID_NODE_REG;
 		if ((G = GMT_Create_Data (API, GMT_IS_GRID, GMT_IS_SURFACE, GMT_GRID_HEADER_ONLY, NULL, range, inc, registration, 0, NULL)) == NULL)
 			mexErrMsgTxt ("Failure to alloc GMT source matrix\n");
-		G->alloc_mode = GMT_REFERENCE;	/* Since no grid was allocated here */
+		//G->alloc_mode = GMT_REFERENCE;	/* Since no grid was allocated here */
+		G->alloc_mode = GMT_NO_CLOBBER;	/* Since Matlab may need it after module ends */
 	}
 
 	return (G);
@@ -319,7 +320,8 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
 	}
 	else {	/* On output we produce doubles */
 		M->type = GMT_FLOAT;
-		M->alloc_mode = GMT_REFERENCE;
+		//M->alloc_mode = GMT_REFERENCE;
+		M->alloc_mode = GMT_NO_CLOBBER;	/* Since Matlab may need it after module ends */
 	}
 	return (M);
 }
