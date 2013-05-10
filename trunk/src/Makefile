@@ -6,7 +6,7 @@ include ../config.mk
 
 .SUFFIXES:	.m .$(MEX_EXT)
 
-FLAGS		= $(GMT_INC) $(MEX_INC) -I.
+FLAGS		= $(GMT_INC) $(MEX_INC) -I. -g
 ALLLIB     	= $(GMT_LIB) $(MEX_LIB)
 
 PROGS_C		= gmt5.c

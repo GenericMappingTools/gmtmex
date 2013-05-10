@@ -261,12 +261,11 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 	else {	/* Set dummy range and inc so that GMT_check_region in GMT_Register_IO will pass */
 		double range[4] = {0.0, 0.0, 0.0, 0.0}, inc[2] = {1.0, 1.0};
 		unsigned int registration = GMT_GRID_NODE_REG;
-		if ((G = GMT_Create_Data (API, GMT_IS_GRID, GMT_IS_SURFACE, GMT_GRID_HEADER_ONLY, NULL, range, inc, registration, 0, NULL)) == NULL)
+		if ((G = GMT_Create_Data (API, GMT_IS_GRID, GMT_IS_SURFACE, GMT_GRID_HEADER_ONLY | GMT_VIA_OUTPUT, NULL, range, inc, registration, 0, NULL)) == NULL)
 			mexErrMsgTxt ("Failure to alloc GMT source matrix\n");
 		//G->alloc_mode = GMT_REFERENCE;	/* Since no grid was allocated here */
 		G->alloc_mode = GMT_NO_CLOBBER;	/* Since Matlab may need it after module ends */
 	}
-
 	return (G);
 }
 
@@ -275,13 +274,16 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
  	 * If direction is GMT_IN then we are given a Matlab matrix and can determine size etc.
 	 * If output then we dont know size but we can specify type */
 	uint64_t dim[2] = {0, 0};
+	unsigned int mode = 0;
 	struct GMT_MATRIX *M = NULL;
 	if (direction == GMT_IN) {	/* Dimensions are known */
 		if (!mxIsNumeric (ptr)) mexErrMsgTxt ("Expected a Matrix for input\n");
 		dim[0] = mxGetN (ptr);
 		dim[1] = mxGetM (ptr);
 	}
-	if ((M = GMT_Create_Data (API, GMT_IS_MATRIX, GMT_IS_SURFACE, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
+	else
+		mode = GMT_VIA_OUTPUT;
+	if ((M = GMT_Create_Data (API, GMT_IS_MATRIX, GMT_IS_SURFACE, mode, dim, NULL, NULL, 0, 0, NULL)) == NULL)
 		mexErrMsgTxt ("Failure to alloc GMT source matrix\n");
 
 	GMT_Report (API, GMT_MSG_DEBUG, " Allocate GMT Matrix %lx in gmtmex_parser\n", (long)M);
@@ -335,9 +337,7 @@ int GMTMEX_Register_IO (void *API, unsigned int data_type, unsigned int geometry
 	switch (data_type) {
 		case GMT_IS_GRID:
 			G = GMTMEX_grid_init (API, direction, ptr);	/* Get a grid and associate it with the Matlab grid pointer (if input) */
-			if ((ID = GMT_Register_IO (API, GMT_IS_GRID, GMT_IS_REFERENCE, geometry, direction, NULL, G)) == GMT_NOTSET) {
-				mexErrMsgTxt ("GMTMEX_pre_process: Failure to register GMT grid source or destination\n");
-			}
+			ID = GMT_Get_ID (API, GMT_IS_GRID, direction, G);
 			break;
 		case GMT_IS_DATASET:
 			M = GMTMEX_matrix_init (API, direction, ptr);	/* Get a matrix container and associate it with the Matlab pointer (if input) */
