@@ -29,7 +29,7 @@ uninstall:
 		cd $(bindir); rm -f $(PROGS)
 
 spotless::	clean
-		rm -f $(LIB_H) $(PROGS_H)
+		rm -f $(LIB_H)
 clean:	
 		rm -f *.o *% core tags $(PROGS)
 
