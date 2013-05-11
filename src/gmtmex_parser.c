@@ -466,7 +466,7 @@ int GMTMEX_pre_process (void *API, int module_id, mxArray *plhs[], int nlhs, con
 
 int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs[])
 {	/* Get the data from GMT output items into the corresponding Matlab struct or matrix */
-	int item, k, n, code;
+	int item, k, n;
 	unsigned int row, col;
 	uint64_t gmt_ij;
 	float  *f = NULL;
@@ -485,9 +485,6 @@ int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs
 		switch (X[item].type) {
 			case GMT_IS_GRID:	/* Return grids via a float (mxSINGLE_CLASS) matrix in a struct */
 				if ((G = GMT_Retrieve_Data (API, X[item].ID)) == NULL) mexErrMsgTxt ("Error retrieving grid from GMT\n");
-				code = G->alloc_mode;
-				GMT_Report (API, GMT_MSG_DEBUG, "acode = %d\n", code);
-				if (G->alloc_mode < -100) mexErrMsgTxt ("Programming error. G grid matrix is screwed.\n");
 				/* Create a Matlab struct for this grid */
 				fieldnames[0]  = mxstrdup ("ProjectionRefPROJ4");
 				fieldnames[1]  = mxstrdup ("ProjectionRefWKT");
