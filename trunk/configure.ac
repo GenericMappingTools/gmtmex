@@ -155,6 +155,7 @@ CFLAGS=$ac_save_CFLAGS
 if test "X$enable_debug" = "Xyes" ; then
 	AC_MSG_RESULT(yes)
 	CFLAGS="$CFLAGS -g"
+	MFLAGS="-g"
 else
 	CFLAGS=`echo $CFLAGS | sed 's/-g//'`
 	if test "$os" = "Darwin" ; then
@@ -316,7 +317,7 @@ if test "X$MATLAB" = "XNONE" ; then
 	AC_MSG_RESULT([Octave/Matlab mex supplement will be skipped])
 elif test ! "X$enable_matlab" = "X"; then
 	AC_MSG_CHECKING(Compiler options for Matlab)
-	MEX_BLD="$MATLAB/bin/mex -DGMT_MATLAB"
+	MEX_BLD="$MATLAB/bin/mex -DGMT_MATLAB $MFLAGS"
 	if test "$os" = "Linux" ; then		# Linux systems
 		if test "$ac_cv_sizeof_long" = "8" ; then
 			MEX_EXT='mexa64'
@@ -394,7 +395,7 @@ elif test ! "X$enable_matlab" = "X"; then
 	AC_MSG_RESULT([$MEX_XDIR])
 else
 	AC_MSG_CHECKING(Compiler options for Octave)
-	MEX_BLD='mkoctfile --mex -DGMT_OCTAVE'
+	MEX_BLD='mkoctfile --mex -DGMT_OCTAVE $MFLAGS'
 	MEX_EXT='mex'
 	MEX_LIB=
 	MEX_INC=-I`octave-config --print INCLUDEDIR`
