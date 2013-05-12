@@ -33,17 +33,18 @@
 #include "gmtmex.h"
 
 void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
-	int status = 0;			/* Status code from GMT API */
-	int module_id;			/* Module ID */
-	unsigned int first;		/* Array ID of first command argument */
-	bool help;			/* True if we just gave --help */
-	int n_items = 0;		/* Number of Matlab arguments (left and right) */
-	size_t str_length, k;		/* Misc. counters */
+	int status = 0;                 /* Status code from GMT API */
+	int module_id;                  /* Module ID */
+	unsigned int first;             /* Array ID of first command argument */
+	bool help;                      /* True if we just gave --help */
+	int n_items = 0;                /* Number of Matlab arguments (left and right) */
+	size_t str_length, k;           /* Misc. counters */
+	uintptr_t *pti;                 /* To store API address back and forth to a Matlab session
 	struct GMTAPI_CTRL *API = NULL;	/* GMT API control structure */
-	struct GMT_OPTION *options = NULL;	/* Linked list of options */
-	struct GMTMEX *X = NULL;	/* Array of information about Matlab args */
-	char *cmd = NULL;		/* Pointer used to get Matlab command */
-	char module[BUFSIZ];		/* Name of GMT module to call */
+	struct GMT_OPTION *options = NULL; /* Linked list of options */
+	struct GMTMEX *X = NULL;        /* Array of information about Matlab args */
+	char *cmd = NULL;               /* Pointer used to get Matlab command */
+	char module[BUFSIZ];            /* Name of GMT module to call */
 
 	if (nrhs == 0) {	/* No arguments at all results in the GMT banner message */
 		mexPrintf("\nGMT - The Generic Mapping Tools, Version %s\n", "5.0");
@@ -68,15 +69,19 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 			/* Initializing new GMT session with zero pad and replacement printf function */
 			if ((API = GMT_Create_Session ("GMT5", 0U, 1U, GMTMEX_print_func)) == NULL) mexErrMsgTxt ("Failure to create GMT5 Session\n");
 			if (!help) {	/* This was create, so just return API pointer */
-				plhs[0] = mxCreateNumericMatrix (1, 1, mxDOUBLE_CLASS, mxREAL);
-				plhs[0] = (mxArray *)API;
+				plhs[0] = mxCreateNumericMatrix (1, 1, mxUINT64_CLASS, mxREAL);
+				pti = mxGetData(plhs[0]);
+				pti[0] = (uintptr_t)(API);
 				return;
 			}
 			first = 0;		/* Commandline args start at prhs[0] since there is no API argument */
 		}
 	}
 	else {	/* Here, nrhs > 1 */
-		API = (void *)prhs[0];	/* Get the GMT API pointer */
+		uintptr_t *pti;
+		pti = (uintptr_t *)mxGetData(prhs[0]);
+		API = pti[0];
+		//API = (void *)prhs[0];	/* Get the GMT API pointer */
 		first = 1;		/* Commandline args start at prhs[1] */
 	}
 
