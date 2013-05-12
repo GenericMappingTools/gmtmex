@@ -32,6 +32,7 @@
 
 #include "gmtmex.h"
 
+	uintptr_t *pti;                 /* To store API address back and forth to a Matlab session */
 void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	int status = 0;                 /* Status code from GMT API */
 	int module_id;                  /* Module ID */
@@ -39,7 +40,6 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	bool help;                      /* True if we just gave --help */
 	int n_items = 0;                /* Number of Matlab arguments (left and right) */
 	size_t str_length, k;           /* Misc. counters */
-	uintptr_t *pti;                 /* To store API address back and forth to a Matlab session
 	struct GMTAPI_CTRL *API = NULL;	/* GMT API control structure */
 	struct GMT_OPTION *options = NULL; /* Linked list of options */
 	struct GMTMEX *X = NULL;        /* Array of information about Matlab args */
@@ -81,6 +81,15 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		pti = (uintptr_t *)mxGetData(prhs[0]);
 		API = pti[0];			/* Get the GMT API pointer */
 		first = 1;		/* Commandline args start at prhs[1] */
+	}
+
+	/* WE CAN ALSO DESTROY THE SESSION BY SIMPLY CALLING "gmt('destroy')" */
+	if (nlhs == 0 && nrhs == 1 && !strncmp (cmd, "destroy", 7U)) {	/* Destroy GMT session */
+		API = pti[0];			/* Get the GMT API pointer */
+		if (API == 0) mexErrMsgTxt ("Grrr: this GMT5 session has already been destroyed.\n"); 
+		if (GMT_Destroy_Session (API)) mexErrMsgTxt ("Failure to destroy GMT5 session\n");
+		*pti = 0;
+		return;
 	}
 
 	cmd = mxArrayToString (prhs[first]);	/* First argument is the command string, e.g., 'blockmean -R0/5/0/5 -I1 or just destroy|free' */
