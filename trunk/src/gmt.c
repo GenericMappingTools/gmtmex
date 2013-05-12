@@ -78,10 +78,8 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		}
 	}
 	else {	/* Here, nrhs > 1 */
-		uintptr_t *pti;
 		pti = (uintptr_t *)mxGetData(prhs[0]);
-		API = pti[0];
-		//API = (void *)prhs[0];	/* Get the GMT API pointer */
+		API = pti[0];			/* Get the GMT API pointer */
 		first = 1;		/* Commandline args start at prhs[1] */
 	}
 
