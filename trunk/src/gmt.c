@@ -32,7 +32,9 @@
 
 #include "gmtmex.h"
 
-	uintptr_t *pti;                 /* To store API address back and forth to a Matlab session */
+/* Being declared external we can access it between MEX calls */
+uintptr_t *pti;                 /* To store API address back and forth to a Matlab session */
+
 void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	int status = 0;                 /* Status code from GMT API */
 	int module_id;                  /* Module ID */
