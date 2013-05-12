@@ -1,5 +1,5 @@
 /*--------------------------------------------------------------------
- *	$Id: gmt5.c 158 2013-05-05 20:51:12Z jluis $
+ *	$Id$
  *
  *	Copyright (c) 1991-$year by P. Wessel, W. H. F. Smith, R. Scharroo, J. Luis and F. Wobbe
  *	See LICENSE.TXT file for copying and redistribution conditions.
