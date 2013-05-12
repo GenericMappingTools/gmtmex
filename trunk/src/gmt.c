@@ -85,6 +85,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 
 	/* WE CAN ALSO DESTROY THE SESSION BY SIMPLY CALLING "gmt('destroy')" */
 	if (nlhs == 0 && nrhs == 1 && !strncmp (cmd, "destroy", 7U)) {	/* Destroy GMT session */
+		if (!pti) mexErrMsgTxt ("Booo: you shouldn't have cleared this mex. Now the GMT5 session is lost (mem leaked).\n"); 
 		API = pti[0];			/* Get the GMT API pointer */
 		if (API == 0) mexErrMsgTxt ("Grrr: this GMT5 session has already been destroyed.\n"); 
 		if (GMT_Destroy_Session (API)) mexErrMsgTxt ("Failure to destroy GMT5 session\n");
