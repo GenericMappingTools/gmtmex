@@ -9,7 +9,7 @@ include ../config.mk
 FLAGS		= $(GMT_INC) $(MEX_INC) -I.
 ALLLIB     	= $(GMT_LIB) $(MEX_LIB)
 
-PROGS_C		= gmt5.c
+PROGS_C		= gmt5.c gmt.c
 PROGS           = $(PROGS_C:.c=.$(MEX_EXT))
 PROGS_H		= gmtmex.h
 LIB_H		= gmtmex_id.h gmtmex_keys.h gmtmex_progs.h
@@ -39,6 +39,9 @@ clean:
 
 gmt5.$(MEX_EXT):	$(PROGS_C) $(LIB_C) $(LIB_H)
 		$(MEX_BLD) $(FLAGS) gmt5.c $(LIB_C) $(ALLLIB)
+
+gmt.$(MEX_EXT):	$(PROGS_C) $(LIB_C) $(LIB_H)
+		$(MEX_BLD) $(FLAGS) gmt.c $(LIB_C) $(ALLLIB)
 
 #-------------------------------------------------------------------------------
 #	Build include files
