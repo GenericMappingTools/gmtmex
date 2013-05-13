@@ -128,13 +128,13 @@ REM ----------------------------------------------------------------------------
 
 
 REM -------------------------------------------------------------------------------------------------------
-%CC% /c -DWIN32 %COMPFLAGS% -I%MATINC% -I%NETCDF_INC% -I%GMT_INC% %OPTIMFLAGS% %_MX_COMPAT% -DLIBRARY_EXPORTS -DGMT_MATLAB gmtmex_parser.c gmt5.c
+%CC% /c -DWIN32 %COMPFLAGS% -I%MATINC% -I%NETCDF_INC% -I%GMT_INC% %OPTIMFLAGS% %_MX_COMPAT% -DLIBRARY_EXPORTS -DGMT_MATLAB gmtmex_parser.c gmt5.c gmt.c
 
 
 rem link  /out:"mexparser.%MEX_EXT%" %LINKFLAGS% %NETCDF_LIB% %GMT_LIB% /implib:templib.x gmtmex_parser.obj gmt5.obj
 rem %CC% -DWIN32 %COMPFLAGS% -I%MATINC% -I%NETCDF_INC% -I%GMT_INC% %OPTIMFLAGS% %_MX_COMPAT% -DLIBRARY_EXPORTS -DGMT_MATLAB /DFUNC=GMT_grdproject /Fegrdproject mexprogram.c
 
-link  /out:"gmt5.%MEX_EXT%" %LINKFLAGS% %NETCDF_LIB% %GMT_LIB% /implib:templib.x gmtmex_parser.obj gmt5.obj
+link  /out:"gmt.%MEX_EXT%" %LINKFLAGS% %NETCDF_LIB% %GMT_LIB% /implib:templib.x gmtmex_parser.obj gmt.obj
 REM -------------------------------------------------------------------------------------------------------
 
 
