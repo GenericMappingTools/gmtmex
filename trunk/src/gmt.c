@@ -33,7 +33,18 @@
 #include "gmtmex.h"
 
 /* Being declared external we can access it between MEX calls */
-uintptr_t *pti;                 /* To store API address back and forth to a Matlab session */
+static uintptr_t *pti, *pPersistent;    /* To store API address back and forth to a Matlab session */
+
+/* Here is the exit function, which gets run when the MEX-file is
+   cleared and when the user exits MATLAB. The mexAtExit function
+   should always be declared as static. */
+static void force_Destroy_Session(void) {
+	void *API;
+	mexPrintf("Destroying session due to a brute user usage.\n");
+	API = (void *)pPersistent[0];			/* Get the GMT API pointer */
+	if (API == NULL) mexErrMsgTxt ("Grrr: this GMT5 session has already been destroyed.\n"); 
+	if (GMT_Destroy_Session (API)) mexErrMsgTxt ("Failure to destroy GMT5 session\n");
+}
 
 void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	int status = 0;                 /* Status code from GMT API */
@@ -74,6 +85,10 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 				plhs[0] = mxCreateNumericMatrix (1, 1, mxUINT64_CLASS, mxREAL);
 				pti = mxGetData(plhs[0]);
 				pti[0] = (uintptr_t)(API);
+				pPersistent = mxMalloc(sizeof(uintptr_t));
+				pPersistent = pti;
+				mexMakeMemoryPersistent(pPersistent);
+				mexAtExit(force_Destroy_Session);	/* Register an exit function. */
 				return;
 			}
 			first = 0;		/* Commandline args start at prhs[0] since there is no API argument */
@@ -135,3 +150,4 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	/* 8. Destroy linked option list */
 	if (GMT_Destroy_Options (API, &options)) mexErrMsgTxt ("Failure to destroy GMT5 options\n");
 }
+
