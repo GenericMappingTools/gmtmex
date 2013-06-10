@@ -254,7 +254,7 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 		mx_ptr = mxGetField (ptr, 0, "data");
 		if (mx_ptr == NULL) mexErrMsgTxt ("Could not find data array for Grid\n");
 		G->data = mxGetData (mx_ptr);
-		G->alloc_mode = GMT_NO_CLOBBER;	/* Since array was allocated by Matlab */
+		G->alloc_mode = GMT_ALLOCATED_EXTERNALLY;	/* Since array was allocated by Matlab */
 		GMT_Report (API, GMT_MSG_DEBUG, " Allocate GMT Grid %lx in gmtmex_parser\n", (long)G);
 		GMT_Report (API, GMT_MSG_DEBUG, " Registered GMT Grid array %lx via memory reference from Matlab\n", (long)G->data);
 	}
@@ -263,8 +263,6 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 		unsigned int registration = GMT_GRID_NODE_REG;
 		if ((G = GMT_Create_Data (API, GMT_IS_GRID, GMT_IS_SURFACE, GMT_GRID_HEADER_ONLY | GMT_VIA_OUTPUT, NULL, range, inc, registration, 0, NULL)) == NULL)
 			mexErrMsgTxt ("Failure to alloc GMT source matrix\n");
-		//G->alloc_mode = GMT_REFERENCE;	/* Since no grid was allocated here */
-		G->alloc_mode = GMT_NO_CLOBBER;	/* Since Matlab may need it after module ends */
 	}
 	return (G);
 }
@@ -318,12 +316,10 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
 
 		M->shape = GMT_IS_COL_FORMAT;
 		M->dim = M->n_rows;	// This is actualy wrong if input data is scanline as for Octave oct
-		M->alloc_mode = GMT_NO_CLOBBER;	/* Since matrix was allocated by Matlab */
+		M->alloc_mode = GMT_ALLOCATED_EXTERNALLY;	/* Since matrix was allocated by Matlab */
 	}
 	else {	/* On output we produce doubles */
 		M->type = GMT_FLOAT;
-		//M->alloc_mode = GMT_REFERENCE;
-		M->alloc_mode = GMT_NO_CLOBBER;	/* Since Matlab may need it after module ends */
 	}
 	return (M);
 }
