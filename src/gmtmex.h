@@ -25,9 +25,8 @@
 #include <mex.h>
 #include <string.h>
 #include <ctype.h>
-#include "gmtmex_id.h"
 #include "gmtmex_keys.h"
-#include "gmtmex_progs.h"
+#include "gmtmex_modules.h"
 
 #ifdef GMT_MATLAB
 #define MEX_PROG "Matlab"
@@ -42,7 +41,7 @@ struct GMTMEX {	/* Array to hold information relating to output from GMT */
 };
 
 extern int GMTMEX_print_func (FILE *fp, const char *message);
-extern int GMTMEX_pre_process (void *API, int module_id, mxArray *plhs[], int nlhs, const mxArray *prhs[], int nrhs, char *keys, struct GMT_OPTION *head, struct GMTMEX **X);
+extern int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs, const mxArray *prhs[], int nrhs, char *keys, struct GMT_OPTION *head, struct GMTMEX **X);
 extern int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs[]);
 
 #endif
