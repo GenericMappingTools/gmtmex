@@ -12,7 +12,7 @@ ALLLIB     	= $(GMT_LIB) $(MEX_LIB)
 PROGS_C		= gmt5.c gmt.c
 PROGS           = $(PROGS_C:.c=.$(MEX_EXT))
 PROGS_H		= gmtmex.h
-LIB_H		= gmtmex_id.h gmtmex_keys.h gmtmex_progs.h
+LIB_H		= gmtmex_keys.h gmtmex_modules.h
 LIB_C		= gmtmex_parser.c
 
 #-------------------------------------------------------------------------------
@@ -47,18 +47,14 @@ gmt.$(MEX_EXT):	$(PROGS_C) $(LIB_C) $(LIB_H)
 #	Build include files
 #-------------------------------------------------------------------------------
 
-gmtmex_id.h:	mexproginfo.txt
-		echo "enum GMT_prog_enum {" > gmtmex_id.h
-		grep -v '^#' mexproginfo.txt | awk '{printf "\tk_%s = %d,\n", $$1, NR-1}' >> gmtmex_id.h
-		echo "	k_dummy = -1};" >> gmtmex_id.h
-
 gmtmex_keys.h:	mexproginfo.txt
 		echo "static char *keys[] = {" > gmtmex_keys.h
-		grep -v '^#' mexproginfo.txt | awk '{printf "\t%s,\n", $$3}' >> gmtmex_keys.h
+		grep -v '^#' mexproginfo.txt | sort -k1 | awk '{printf "\t%s,\n", $$3}' >> gmtmex_keys.h
 		echo "	\"\"};" >> gmtmex_keys.h
 
-gmtmex_progs.h:	mexproginfo.txt
-		echo "static char *func[] = {" > gmtmex_progs.h
-		grep -v '^#' mexproginfo.txt | awk '{printf "\t\"GMT_%s\",\n", $$1}' >> gmtmex_progs.h
-		echo "	\"\"};" >> gmtmex_progs.h
+gmtmex_modules.h:	mexproginfo.txt
+		echo "static char *module_name[] = {" > gmtmex_modules.h
+		grep -v '^#' mexproginfo.txt | sort -k1 | awk '{printf "\t\"%s\",\n", $$1}' >> gmtmex_modules.h
+		echo "	\"\"};" >> gmtmex_modules.h
+		grep -v '^#' mexproginfo.txt | sort -k1 | wc -l | awk '{printf "\n#define N_GMT_MODULES %d\n", $$1}' >> gmtmex_modules.h
 

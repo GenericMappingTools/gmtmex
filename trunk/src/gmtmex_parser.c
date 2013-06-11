@@ -83,6 +83,13 @@ int GMTMEX_print_func (FILE *fp, const char *message)
 	return 0;
 }
 
+int gmtmex_find_module (char *module)
+{	/* Just search for module and return entry in keys array */
+	int k;
+	for (k = 0; k < N_GMT_MODULES; k++) if (!strcmp (module, module_name[k])) return (k);
+	return (-1);	/* Not found */
+}
+
 char *mxstrdup (const char *s) {
 	/* A strdup replacement to be used in Mexs to avoid memory leaks since the Matlab
 	   memory management will take care to free the memory allocated by this function */
@@ -348,7 +355,7 @@ int GMTMEX_Register_IO (void *API, unsigned int data_type, unsigned int geometry
 	return (ID);
 }
 
-int GMTMEX_pre_process (void *API, int module_id, mxArray *plhs[], int nlhs, const mxArray *prhs[], int nrhs, char *keys, struct GMT_OPTION *head, struct GMTMEX **X)
+int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs, const mxArray *prhs[], int nrhs, char *keys, struct GMT_OPTION *head, struct GMTMEX **X)
 {
 	/* API controls all things within GMT.
 	 * plhs (and nlhs) are the outputs specified on the left side of the equal sign in Matlab.
@@ -375,12 +382,12 @@ int GMTMEX_pre_process (void *API, int module_id, mxArray *plhs[], int nlhs, con
 	struct GMT_MATRIX *M = NULL;		/* Pointer to matrix container */
 	struct GMTMEX *info = NULL;
 
-	if (module_id == GMT_ID_GMTREAD || module_id == GMT_ID_GMTWRITE) {	/* Special case: Must determine which data type we are dealing with */
+	if (!strcmp (module, "gmtread") || !strcmp (module, "gmtwrite"))  {	/* Special case: Must determine which data type we are dealing with */
 		struct GMT_OPTION *t_ptr;
 		if ((t_ptr = GMT_Find_Option (API, 'T', head))) {	/* Found the -T<type> option */
 			type = toupper (t_ptr->arg[0]);	/* Find type and replace ? in keys with this type in uppercase (DGCIT) in make_char_array below */
 		}
-		if (module_id == GMT_ID_GMTWRITE && (t_ptr = GMT_Find_Option (API, GMT_OPT_INFILE, head))) {	/* Found a -<<file> option; this is actually the output file */
+		if (!strcmp (module, "gmtwrite") && (t_ptr = GMT_Find_Option (API, GMT_OPT_INFILE, head))) {	/* Found a -<<file> option; this is actually the output file */
 			t_ptr->option = GMT_OPT_OUTFILE;
 		}
 	}

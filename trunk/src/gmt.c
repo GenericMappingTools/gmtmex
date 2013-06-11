@@ -48,10 +48,10 @@ static void force_Destroy_Session(void) {
 
 void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	int status = 0;                 /* Status code from GMT API */
-	int module_id;                  /* Module ID */
 	unsigned int first;             /* Array ID of first command argument */
 	bool help;                      /* True if we just gave --help */
 	int n_items = 0;                /* Number of Matlab arguments (left and right) */
+	int module_id;
 	size_t str_length, k;           /* Misc. counters */
 	struct GMTAPI_CTRL *API = NULL;	/* GMT API control structure */
 	struct GMT_OPTION *options = NULL; /* Linked list of options */
@@ -128,8 +128,8 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	strncpy (module, cmd, k);				/* Isolate the module name in this string */
 
 	/* 3. Determine the GMT module ID, or list module usages and return if module is not found */
-	if ((module_id = GMT_Get_Module (API, module)) == GMT_ID_NONE) {
-		GMT_List_Module (API, GMT_ID_NONE);
+	if ((module_id = gmtmex_find_module (module)) == -1) {
+		GMT_List_Module (API, NULL);
 		return;
 	}
 
@@ -138,11 +138,11 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		mexErrMsgTxt ("Failure to parse GMT5 command options\n");
 
 	/* 5. Parse the mex command, update GMT option lists, and register in/out resources, and return X array */
-	if ((n_items = GMTMEX_pre_process (API, module_id, plhs, nlhs, &prhs[2], nrhs-2, keys[module_id], options, &X)) < 0)
+	if ((n_items = GMTMEX_pre_process (API, module, plhs, nlhs, &prhs[2], nrhs-2, keys[module_id], options, &X)) < 0)
 		mexErrMsgTxt ("Failure to parse mex command options\n");
 	
 	/* 6. Run GMT module; give usage message if errors arise during parsing */
-	status = GMT_Call_Module (API, module_id, -1, options);
+	status = GMT_Call_Module (API, module, -1, options);
 
 	/* 7. Hook up module output to Matlab plhs arguments */
 	if (GMTMEX_post_process (API, X, n_items, plhs)) mexErrMsgTxt ("Failure to extract GMT5-produced data\n");
