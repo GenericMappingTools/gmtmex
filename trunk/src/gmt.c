@@ -17,11 +17,11 @@
  *--------------------------------------------------------------------*/
 /*
  * This is the Matlab/Octave GMT application, which can do the following:
- * 1) Create a new session and return the API pointer.
- * 2) Destroy a GMT session given the API pointer
+ * 1) Create a new session and optionally return the API pointer. Store the pointer as a global variable.
+ * 2) Destroy a GMT session, either given the API pointer or by fetching it from a global var
  * 3) Call any of the GMT modules.
- * First argument to GMT is expected to be the API, followed by a command
- * string, with optional comma-separated Matlab array entities.
+ * First argument to GMT may be the API, followed by a command string, or simply the command string
+ * with optional comma-separated Matlab array entities.
  * Information about the options of each program is provided by the include
  * files generated from mexproginfo.txt.
  *
@@ -33,7 +33,7 @@
 #include "gmtmex.h"
 
 /* Being declared external we can access it between MEX calls */
-static uintptr_t *pti, *pPersistent;    /* To store API address back and forth to a Matlab session */
+static uintptr_t *pPersistent;    /* To store API address back and forth to a Matlab session */
 
 /* Here is the exit function, which gets run when the MEX-file is
    cleared and when the user exits MATLAB. The mexAtExit function
@@ -47,11 +47,24 @@ static void force_Destroy_Session(void) {
 	}
 }
 
-void usage(int nlhs) {
-	mexPrintf("Yes, we will help you one day, but not just yet!\n");
-	mexPrintf("Usage is API = GMT ('create');\n");
-	if (nlhs != 0)
-		mexErrMsgTxt ("But meanwhile you already made an error by asking help and an output.\n");
+void usage(int nlhs, int nrhs) {
+
+	if (nrhs == 0) {	/* No arguments at all results in the GMT banner message */
+		mexPrintf("\nGMT - The Generic Mapping Tools, Version %s\n", "5.0");
+		mexPrintf("Copyright 1991-2013 Paul Wessel, Walter H. F. Smith, R. Scharroo, J. Luis, and F. Wobbe\n\n");
+		mexPrintf("This program comes with NO WARRANTY, to the extent permitted by law.\n");
+		mexPrintf("You may redistribute copies of this program under the terms of the\n");
+		mexPrintf("GNU Lesser General Public License.\n");
+		mexPrintf("For more information about these matters, see the file named LICENSE.TXT.\n");
+		mexPrintf("For a brief description of GMT modules, type GMT('--help')\n\n");
+	}
+	else {
+		mexPrintf("Usage is:\n\tgmt ('create');\n");
+		mexPrintf("\tgmt ('module_name ... args');\n");
+		mexPrintf("\tgmt ('destroy');\n");
+		if (nlhs != 0)
+			mexErrMsgTxt ("But meanwhile you already made an error by asking help and an output.\n");
+	}
 }
 
 void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
@@ -66,15 +79,10 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	struct GMTMEX *X = NULL;        /* Array of information about Matlab args */
 	char *cmd = NULL;               /* Pointer used to get Matlab command */
 	char module[BUFSIZ];            /* Name of GMT module to call */
+	uintptr_t *pti;                 /* To locally store the API address */
 
 	if (nrhs == 0) {	/* No arguments at all results in the GMT banner message */
-		mexPrintf("\nGMT - The Generic Mapping Tools, Version %s\n", "5.0");
-		mexPrintf("Copyright 1991-2013 Paul Wessel, Walter H. F. Smith, R. Scharroo, J. Luis, and F. Wobbe\n\n");
-		mexPrintf("This program comes with NO WARRANTY, to the extent permitted by law.\n");
-		mexPrintf("You may redistribute copies of this program under the terms of the\n");
-		mexPrintf("GNU Lesser General Public License.\n");
-		mexPrintf("For more information about these matters, see the file named LICENSE.TXT.\n");
-		mexPrintf("For a brief description of GMT modules, type GMT('--help')\n\n");
+		usage(nlhs, nrhs);
 		return;
 	}
 
@@ -84,7 +92,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		cmd = mxArrayToString (prhs[0]);
 		help = !strncmp (cmd, "--help", 6U);
 		if (help) {
-			usage(nlhs);
+			usage(nlhs, 1);
 			return;
 		}
 
@@ -92,21 +100,26 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 			/* Initializing new GMT session with zero pad and replacement printf function */
 			if ((API = GMT_Create_Session ("GMT5", 0U, 1U, GMTMEX_print_func)) == NULL)
 				mexErrMsgTxt ("Failure to create GMT5 Session\n");
-			/* This is create, so just return API pointer */
-			plhs[0] = mxCreateNumericMatrix (1, 1, mxUINT64_CLASS, mxREAL);
-			pti = mxGetData(plhs[0]);
-			pti[0] = (uintptr_t)(API);
+
 			pPersistent = mxMalloc(sizeof(uintptr_t));
-			pPersistent = pti;
+			pPersistent[0] = (uintptr_t)(API);
 			mexMakeMemoryPersistent(pPersistent);
+
+			if (nlhs) {	/* Return the API adress as an integer */
+				plhs[0] = mxCreateNumericMatrix (1, 1, mxUINT64_CLASS, mxREAL);
+				pti = mxGetData(plhs[0]);
+				*pti = *pPersistent;
+			}
+
 			mexAtExit(force_Destroy_Session);	/* Register an exit function. */
 			return;
 		}
 
 		/* OK, no create and no --help, so it must be a single command with no arguments, nor the API. So get it */
-		if (!pti) mexErrMsgTxt ("Booo: you shouldn't have cleared this mex. Now the GMT5 session is lost (mem leaked).\n"); 
-		API = (void *)pPersistent[0];			/* Get the GMT API pointer */
-		if (API == NULL) mexErrMsgTxt ("Grrr: this GMT5 session has already been destroyed, or currupted.\n"); 
+		if (!pPersistent)
+			mexErrMsgTxt ("Booo: you shouldn't have cleared this mex. Now the GMT5 session is lost (mem leaked).\n"); 
+		API = (void *)pPersistent[0];	/* Get the GMT API pointer */
+		if (API == NULL) mexErrMsgTxt ("This GMT5 session has already been destroyed, or currupted.\n"); 
 		 
 	}
 	else if (mxIsScalar(prhs[0]) && mxIsUint64(prhs[0])) {
@@ -116,9 +129,10 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		first = 1;		/* Commandline args start at prhs[1]. prhs[0] has the API id argument */
 	}
 	else {		/* We still don't have the API */
-		if (!pti) mexErrMsgTxt ("Booo: you shouldn't have cleared this mex. Now the GMT5 session is lost (mem leaked).\n"); 
+		if (!pPersistent)
+			mexErrMsgTxt("Booo: you shouldn't have cleared this mex. Now the GMT5 session is lost (mem leaked).\n"); 
 		API = (void *)pPersistent[0];			/* Get the GMT API pointer */
-		if (API == NULL) mexErrMsgTxt ("Grrr: this GMT5 session has already been destroyed, or currupted.\n"); 
+		if (API == NULL) mexErrMsgTxt ("This GMT5 session has already been destroyed, or currupted.\n"); 
 	}
 
 	if (!cmd) 	/* First argument is the command string, e.g., 'blockmean -R0/5/0/5 -I1 or just destroy|free' */
@@ -130,7 +144,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 			mexErrMsgTxt ("Usage is gmt ('destroy');\n");
 
 		if (GMT_Destroy_Session (API)) mexErrMsgTxt ("Failure to destroy GMT5 session\n");
-		*pti = 0;
+		*pPersistent = 0;
 		return;
 	}
 
