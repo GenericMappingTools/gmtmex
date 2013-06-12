@@ -48,7 +48,7 @@ static void force_Destroy_Session(void) {
 
 void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	int status = 0;                 /* Status code from GMT API */
-	unsigned int first;             /* Array ID of first command argument */
+	unsigned int first = 0;         /* Array ID of first command argument (not 0 when API-ID is first) */
 	bool help;                      /* True if we just gave --help */
 	int n_items = 0;                /* Number of Matlab arguments (left and right) */
 	int module_id;
@@ -75,12 +75,13 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	if (nrhs == 1) {	/* This may be create or --help */
 		cmd = mxArrayToString (prhs[0]);
 		help = !strncmp (cmd, "--help", 6U);
-		if (!strncmp (cmd, "create", 6U) || help) {
+		if (help || !strncmp (cmd, "create", 6U)) {
 			if (!help && nlhs != 1) {
 				mexErrMsgTxt ("Usage is API = GMT ('create');\n");
 			}
 			/* Initializing new GMT session with zero pad and replacement printf function */
-			if ((API = GMT_Create_Session ("GMT5", 0U, 1U, GMTMEX_print_func)) == NULL) mexErrMsgTxt ("Failure to create GMT5 Session\n");
+			if ((API = GMT_Create_Session ("GMT5", 0U, 1U, GMTMEX_print_func)) == NULL)
+				mexErrMsgTxt ("Failure to create GMT5 Session\n");
 			if (!help) {	/* This was create, so just return API pointer */
 				plhs[0] = mxCreateNumericMatrix (1, 1, mxUINT64_CLASS, mxREAL);
 				pti = mxGetData(plhs[0]);
@@ -97,7 +98,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	else {	/* Here, nrhs > 1 */
 		pti = (uintptr_t *)mxGetData(prhs[0]);
 		API = (void *)pti[0];	/* Get the GMT API pointer */
-		first = 1;		/* Commandline args start at prhs[1] */
+		first = 1;		/* Commandline args start at prhs[1]. prhs[0] has the API id argument */
 	}
 
 	/* WE CAN ALSO DESTROY THE SESSION BY SIMPLY CALLING "gmt('destroy')" */
