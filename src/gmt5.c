@@ -61,8 +61,8 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	strncpy (module, cmd, k);				/* Isolate the module name in this string */
 
 	/* 3. Determine the GMT module ID, or list module usages and return if module is not found */
-	if ((module_id = gmtmex_find_module (module)) == -1) {
-		GMT_List_Module (API, NULL);
+	if ((module_id = GMTMEX_find_module (API, module)) == -1) {
+		GMT_Probe_Module (API, NULL, GMT_MODULE_PURPOSE);
 		if (GMT_Destroy_Session (API)) mexErrMsgTxt ("Failure to destroy GMT5 session\n");
 		return;
 	}
