@@ -109,7 +109,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		if (API == NULL) mexErrMsgTxt ("Grrr: this GMT5 session has already been destroyed, or currupted.\n"); 
 		 
 	}
-	else if (mxIsScalar(plhs[0]) && mxIsUint64(prhs[0])) {
+	else if (mxIsScalar(prhs[0]) && mxIsUint64(prhs[0])) {
 		/* Here, nrhs > 1 . If first arg is a scalar int, assume it is the API memory adress */
 		pti = (uintptr_t *)mxGetData(prhs[0]);
 		API = (void *)pti[0];	/* Get the GMT API pointer */
