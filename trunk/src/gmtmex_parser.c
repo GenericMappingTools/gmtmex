@@ -83,11 +83,13 @@ int GMTMEX_print_func (FILE *fp, const char *message)
 	return 0;
 }
 
-int gmtmex_find_module (char *module)
+int GMTMEX_find_module (void *API, char *module)
 {	/* Just search for module and return entry in keys array */
-	int k;
-	for (k = 0; k < N_GMT_MODULES; k++) if (!strcmp (module, module_name[k])) return (k);
-	return (-1);	/* Not found */
+	int k, id = -1;
+	for (k = 0; id == -1 && k < N_GMT_MODULES; k++) if (!strcmp (module, module_name[k])) id = k;
+	if (id == -1) return (-1);	/* Not found in the known list */
+	if (GMT_Probe_Module (API, module_name[id], GMT_MODULE_EXIST)) return (-1);	/* Not found in the shared library */
+	return (id);	/* Found and accessible */
 }
 
 char *mxstrdup (const char *s) {
@@ -230,7 +232,7 @@ char **make_char_array (char *string, unsigned int *n_items, char type)
 	while ((next = strsep (&tmp, ",")) != NULL) {
 		s[k++] = strdup (next);
 	}
-	*n_items = n;
+	*n_items = (unsigned int)n;
 	free ((void *)tmp);
 	return s;
 }
