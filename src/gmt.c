@@ -40,10 +40,18 @@ static uintptr_t *pti, *pPersistent;    /* To store API address back and forth t
    should always be declared as static. */
 static void force_Destroy_Session(void) {
 	void *API;
-	mexPrintf("Destroying session due to a brute user usage.\n");
-	API = (void *)pPersistent[0];			/* Get the GMT API pointer */
-	if (API == NULL) mexErrMsgTxt ("Grrr: this GMT5 session has already been destroyed.\n"); 
-	if (GMT_Destroy_Session (API)) mexErrMsgTxt ("Failure to destroy GMT5 session\n");
+	API = (void *)pPersistent[0];	/* Get the GMT API pointer */
+	if (API != NULL) {		/* Otherwise just silently ignore this call */
+		mexPrintf("Destroying session due to a brute user usage.\n");
+		if (GMT_Destroy_Session (API)) mexErrMsgTxt ("Failure to destroy GMT5 session\n");
+	}
+}
+
+void usage(int nlhs) {
+	mexPrintf("Yes, we will help you one day, but not just yet!\n");
+	mexPrintf("Usage is API = GMT ('create');\n");
+	if (nlhs != 0)
+		mexErrMsgTxt ("But meanwhile you already made an error by asking help and an output.\n");
 }
 
 void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
@@ -75,48 +83,54 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	if (nrhs == 1) {	/* This may be create or --help */
 		cmd = mxArrayToString (prhs[0]);
 		help = !strncmp (cmd, "--help", 6U);
-		if (help || !strncmp (cmd, "create", 6U)) {
-			if (!help && nlhs != 1) {
-				mexErrMsgTxt ("Usage is API = GMT ('create');\n");
-			}
+		if (help) {
+			usage(nlhs);
+			return;
+		}
+
+		if (!strncmp (cmd, "create", 6U)) {
 			/* Initializing new GMT session with zero pad and replacement printf function */
 			if ((API = GMT_Create_Session ("GMT5", 0U, 1U, GMTMEX_print_func)) == NULL)
 				mexErrMsgTxt ("Failure to create GMT5 Session\n");
-			if (!help) {	/* This was create, so just return API pointer */
-				plhs[0] = mxCreateNumericMatrix (1, 1, mxUINT64_CLASS, mxREAL);
-				pti = mxGetData(plhs[0]);
-				pti[0] = (uintptr_t)(API);
-				pPersistent = mxMalloc(sizeof(uintptr_t));
-				pPersistent = pti;
-				mexMakeMemoryPersistent(pPersistent);
-				mexAtExit(force_Destroy_Session);	/* Register an exit function. */
-				return;
-			}
-			first = 0;		/* Commandline args start at prhs[0] since there is no API argument */
+			/* This is create, so just return API pointer */
+			plhs[0] = mxCreateNumericMatrix (1, 1, mxUINT64_CLASS, mxREAL);
+			pti = mxGetData(plhs[0]);
+			pti[0] = (uintptr_t)(API);
+			pPersistent = mxMalloc(sizeof(uintptr_t));
+			pPersistent = pti;
+			mexMakeMemoryPersistent(pPersistent);
+			mexAtExit(force_Destroy_Session);	/* Register an exit function. */
+			return;
 		}
+
+		/* OK, no create and no --help, so it must be a single command with no arguments, nor the API. So get it */
+		if (!pti) mexErrMsgTxt ("Booo: you shouldn't have cleared this mex. Now the GMT5 session is lost (mem leaked).\n"); 
+		API = (void *)pPersistent[0];			/* Get the GMT API pointer */
+		if (API == NULL) mexErrMsgTxt ("Grrr: this GMT5 session has already been destroyed, or currupted.\n"); 
+		 
 	}
-	else {	/* Here, nrhs > 1 */
+	else if (mxIsScalar(plhs[0]) && mxIsUint64(prhs[0])) {
+		/* Here, nrhs > 1 . If first arg is a scalar int, assume it is the API memory adress */
 		pti = (uintptr_t *)mxGetData(prhs[0]);
 		API = (void *)pti[0];	/* Get the GMT API pointer */
 		first = 1;		/* Commandline args start at prhs[1]. prhs[0] has the API id argument */
 	}
-
-	/* WE CAN ALSO DESTROY THE SESSION BY SIMPLY CALLING "gmt('destroy')" */
-	if (nlhs == 0 && nrhs == 1 && !strncmp (cmd, "destroy", 7U)) {	/* Destroy GMT session */
+	else {		/* We still don't have the API */
 		if (!pti) mexErrMsgTxt ("Booo: you shouldn't have cleared this mex. Now the GMT5 session is lost (mem leaked).\n"); 
-		API = (void *)pti[0];			/* Get the GMT API pointer */
-		if (API == NULL) mexErrMsgTxt ("Grrr: this GMT5 session has already been destroyed.\n"); 
-		if (GMT_Destroy_Session (API)) mexErrMsgTxt ("Failure to destroy GMT5 session\n");
-		*pti = 0;
-		return;
+		API = (void *)pPersistent[0];			/* Get the GMT API pointer */
+		if (API == NULL) mexErrMsgTxt ("Grrr: this GMT5 session has already been destroyed, or currupted.\n"); 
 	}
 
-	cmd = mxArrayToString (prhs[first]);	/* First argument is the command string, e.g., 'blockmean -R0/5/0/5 -I1 or just destroy|free' */
-	if (!strncmp (cmd, "destroy", 7U)) {	/* Destroy GMT session */
-		if (!(nlhs == 0 && nrhs == 2)) {
-			mexErrMsgTxt ("Usage is GMT (API, 'destroy');\n");
-		}
+	if (!cmd) 	/* First argument is the command string, e.g., 'blockmean -R0/5/0/5 -I1 or just destroy|free' */
+		cmd = mxArrayToString (prhs[first]);
+
+	/* WE CAN ALSO DESTROY THE SESSION BY SIMPLY CALLING "gmt('destroy')" */
+	if (!strncmp (cmd, "destroy", 7U)) {
+		if (nlhs != 0)
+			mexErrMsgTxt ("Usage is gmt ('destroy');\n");
+
 		if (GMT_Destroy_Session (API)) mexErrMsgTxt ("Failure to destroy GMT5 session\n");
+		*pti = 0;
 		return;
 	}
 
