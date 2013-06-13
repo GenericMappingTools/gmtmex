@@ -71,6 +71,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	int status = 0;                 /* Status code from GMT API */
 	unsigned int first = 0;         /* Array ID of first command argument (not 0 when API-ID is first) */
 	bool help;                      /* True if we just gave --help */
+	bool got_API_in_input = false;  /* It will be set to true when gmt(API, 'module ...'); */
 	int n_items = 0;                /* Number of Matlab arguments (left and right) */
 	int module_id;
 	size_t str_length, k;           /* Misc. counters */
@@ -127,6 +128,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		pti = (uintptr_t *)mxGetData(prhs[0]);
 		API = (void *)pti[0];	/* Get the GMT API pointer */
 		first = 1;		/* Commandline args start at prhs[1]. prhs[0] has the API id argument */
+		got_API_in_input = true;
 	}
 	else {		/* We still don't have the API */
 		if (!pPersistent)
@@ -167,7 +169,8 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		mexErrMsgTxt ("Failure to parse GMT5 command options\n");
 
 	/* 5. Parse the mex command, update GMT option lists, and register in/out resources, and return X array */
-	if ((n_items = GMTMEX_pre_process (API, module, plhs, nlhs, &prhs[2], nrhs-2, keys[module_id], options, &X)) < 0)
+	k = (got_API_in_input) ? 2 : 1;
+	if ((n_items = GMTMEX_pre_process (API, module, plhs, nlhs, &prhs[k], nrhs-k, keys[module_id], options, &X)) < 0)
 		mexErrMsgTxt ("Failure to parse mex command options\n");
 	
 	/* 6. Run GMT module; give usage message if errors arise during parsing */
