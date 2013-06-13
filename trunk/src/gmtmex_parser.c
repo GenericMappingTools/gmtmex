@@ -140,7 +140,7 @@ unsigned int gmtmex_get_key_pos (char *key[], unsigned int n_keys, struct GMT_OP
 		 * the UPPERCASE I or O [default source/dest] rather than the standard i|o (optional input/output) */
 		if (key[pos][2] == 'I')  /* Default input  is actually set explicitly via option setting now indicated by key[pos] */
 			def[GMT_IN] = GMT_MEX_EXPLICIT;
-		if (key[pos][2] == 'O')  /* Default output is actually set explicitly via option setting now indicated by key[pos] */
+		else if (key[pos][2] == 'O')  /* Default output is actually set explicitly via option setting now indicated by key[pos] */
 			def[GMT_OUT] = GMT_MEX_EXPLICIT;
 	}
 	/* Here, if def[] == GMT_MEX_IMPLICIT (the default in/out option was NOT given), then we want to return the corresponding entry in key */
