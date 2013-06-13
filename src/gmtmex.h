@@ -34,6 +34,10 @@
 #define MEX_PROG "Octave"
 #endif
 
+#ifndef MIN
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
+#endif
+
 struct GMTMEX {	/* Array to hold information relating to output from GMT */
 	unsigned int type;	/* type of GMT data, i.e., GMT_IS_DATASET, GMT_IS_GRID, etc. */
 	int ID;			/* Registration ID returned by GMT_Register_IO */
