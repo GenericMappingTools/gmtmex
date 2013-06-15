@@ -98,6 +98,12 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		}
 
 		if (!strncmp (cmd, "create", 6U)) {
+			API = (void *)pPersistent[0];	/* See if have an GMT API pointer */
+			if (API != NULL) {		/* If another session still exists */
+				mexPrintf ("A previous session is still active. Either destroy it first by calling gmt('destroy')\n");
+				mexErrMsgTxt ("or just reuse it (i.e. do not call gmt('crete') at this time).\n");
+			}
+
 			/* Initializing new GMT session with zero pad and replacement printf function */
 			if ((API = GMT_Create_Session ("GMT5", 0U, 1U, GMTMEX_print_func)) == NULL)
 				mexErrMsgTxt ("Failure to create GMT5 Session\n");
