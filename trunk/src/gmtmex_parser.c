@@ -475,10 +475,10 @@ int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs
 	unsigned int row, col;
 	uint64_t gmt_ij;
 	float  *f = NULL;
-	double *d = NULL, *dptr = NULL;
+	double *d = NULL, *dptr = NULL, *G_x = NULL, *G_y = NULL, *x = NULL, *y = NULL;
 	struct GMT_GRID *G = NULL;
 	struct GMT_MATRIX *M = NULL;
-	mxArray *mxGrd = NULL;
+	mxArray *mxGrd = NULL, *mx_x = NULL, *mx_y= NULL;
 	mxArray *mxProjectionRef = NULL;
 	mxArray *mxHeader = NULL, *mxtmp = NULL;
 	mxArray *grid_struct = NULL;
@@ -573,7 +573,20 @@ int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs
 			           from unpadded GMT grd format to unpadded matlab format */
 				for (gmt_ij = row = 0; row < G->header->ny; row++) for (col = 0; col < G->header->nx; col++, gmt_ij++)
 					f[MEXG_IJ(G,row,col)] = G->data[gmt_ij];
-				mxSetField (grid_struct, 0, "data", mxGrd);
+				mxSetField (grid_struct, 0, "z", mxGrd);
+				/* Also return x and y arrays */
+				G_x = GMT_Get_Coord (API, GMT_IS_GRID, GMT_X, G);	/* Get array of x coordinates */
+				G_y = GMT_Get_Coord (API, GMT_IS_GRID, GMT_Y, G);	/* Get array of y coordinates */
+				mx_x = mxCreateNumericMatrix (1, G->header->nx, mxDOUBLE_CLASS, mxREAL);
+				mx_y = mxCreateNumericMatrix (1, G->header->ny, mxDOUBLE_CLASS, mxREAL);
+				x = mxGetData (mx_x);
+				y = mxGetData (mx_y);
+				memcpy (x, G_x, G->header->nx * sizeof (double));
+				memcpy (y, G_y, G->header->ny * sizeof (double));
+				GMT_Destroy_Data (API, G_x);
+				GMT_Destroy_Data (API, G_y);
+				mxSetField (grid_struct, 0, "x", mx_x);
+				mxSetField (grid_struct, 0, "y", mx_y);
 				plhs[k] = grid_struct;
 				break;
 				
