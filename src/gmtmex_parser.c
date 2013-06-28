@@ -88,8 +88,8 @@ int GMTMEX_find_module (void *API, char *module)
 	int k, id = -1;
 	for (k = 0; id == -1 && k < N_GMT_MODULES; k++) if (!strcmp (module, module_name[k])) id = k;
 	if (id == -1) return (-1);	/* Not found in the known list */
-	if (GMT_Probe_Module (API, module_name[id], GMT_MODULE_EXIST)) return (-1);	/* Not found in the shared library */
-	return (id);	/* Found and accessible */
+	if ((k = GMT_Call_Module (API, module_name[id], GMT_MODULE_EXIST, NULL)) == GMT_NOERROR) return (id);	/* Found and accessible */
+	return (id);	/* Not found in the shared library */
 }
 
 char *mxstrdup (const char *s) {

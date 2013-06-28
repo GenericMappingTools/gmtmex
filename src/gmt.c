@@ -70,8 +70,8 @@ void usage(int nlhs, int nrhs) {
 void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	int status = 0;                 /* Status code from GMT API */
 	unsigned int first = 0;         /* Array ID of first command argument (not 0 when API-ID is first) */
-	bool help;                      /* True if we just gave --help */
-	bool got_API_in_input = false;  /* It will be set to true when gmt(API, 'module ...'); */
+	unsigned int help;              /* 1 if we just gave --help */
+	unsigned int got_API_in_input = 0; /* It will be set to 1 when gmt(API, 'module ...'); */
 	int n_items = 0;                /* Number of Matlab arguments (left and right) */
 	int module_id;
 	size_t str_length, k;           /* Misc. counters */
@@ -138,7 +138,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		pti = (uintptr_t *)mxGetData(prhs[0]);
 		API = (void *)pti[0];	/* Get the GMT API pointer */
 		first = 1;		/* Commandline args start at prhs[1]. prhs[0] has the API id argument */
-		got_API_in_input = true;
+		got_API_in_input = 1;
 	}
 	else {		/* We still don't have the API */
 		if (!pPersistent)
@@ -170,7 +170,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 
 	/* 3. Determine the GMT module ID, or list module usages and return if module is not found */
 	if ((module_id = GMTMEX_find_module (API, module)) == -1) {
-		GMT_Probe_Module (API, NULL, GMT_MODULE_PURPOSE);
+		GMT_Call_Module (API, NULL, GMT_MODULE_PURPOSE, NULL);
 		return;
 	}
 
