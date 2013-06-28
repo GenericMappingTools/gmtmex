@@ -22,12 +22,16 @@
 #define GMTMEX_H
 
 #include "gmt.h"
+#ifdef NO_MEX
+#define mxArray void
+#else
 #include <mex.h>
+#endif
 #include <string.h>
 #include <ctype.h>
+#ifndef GMTMEX_LIB
 #include "gmtmex_keys.h"
-#include "gmtmex_modules.h"
-
+#endif
 #ifdef GMT_MATLAB
 #define MEX_PROG "Matlab"
 #else

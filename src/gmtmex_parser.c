@@ -18,7 +18,9 @@
 /* GMT convenience functions used by MATLAB/OCTAVE mex functions
  */
 #define STDC_FORMAT_MACROS
+#define GMTMEX_LIB
 #include "gmtmex.h"
+#include "gmtmex_modules.h"
 #include <math.h>
 #include <inttypes.h>
 #include <stdarg.h>
@@ -33,6 +35,13 @@
 
 #if defined(WIN32) && !defined(lrint)
 #	define lrint (int64_t)rint
+#endif
+
+#ifdef NO_MEX
+/* For testing, no data are actually touched and Matlab/Octave is not linked */
+int unique_ID = 0;
+#define mxArray void
+#define mexErrMsgTxt(txt) fprintf (stderr, txt)
 #endif
 
 /* New parser for all GMT mex modules based on design discussed by PW and JL on Mon, 2/21/11 */
@@ -73,16 +82,6 @@
 /* And this on GMT_GRID */
 #define MEXG_IJ(M,row,col) ((col)*M->header->ny + M->header->ny - (row) - 1)
 
-int GMTMEX_print_func (FILE *fp, const char *message)
-{
-	/* Replacement for GMT's gmt_print_func.  It is being used indirectly via
-	 * API->print_func.  Purpose of this is to allow Matlab (which cannot use
-	 * printf) to reset API->print_func this functions via GMT_Create_Session. */
-
-	mexPrintf (message);
-	return 0;
-}
-
 int GMTMEX_find_module (void *API, char *module)
 {	/* Just search for module and return entry in keys array */
 	int k, id = -1;
@@ -92,6 +91,9 @@ int GMTMEX_find_module (void *API, char *module)
 	return (id);	/* Not found in the shared library */
 }
 
+#ifdef NO_MEX
+#define mxstrdup(s) strdup(s)
+#else
 char *mxstrdup (const char *s) {
 	/* A strdup replacement to be used in Mexs to avoid memory leaks since the Matlab
 	   memory management will take care to free the memory allocated by this function */
@@ -100,6 +102,17 @@ char *mxstrdup (const char *s) {
     strcpy (d,s);
     return d;
 }
+
+int GMTMEX_print_func (FILE *fp, const char *message)
+{
+	/* Replacement for GMT's gmt_print_func.  It is being used indirectly via
+	 * API->print_func.  Purpose of this is to allow Matlab (which cannot use
+	 * printf) to reset API->print_func this functions via GMT_Create_Session. */
+
+	mexPrintf (message);
+	return 0;
+}
+#endif
 
 int gmtmex_find_option (char option, char *key[], int n_keys) {
 	/* gmtmex_find_option determines if the given option is among the special options that might take $ as filename */
@@ -237,6 +250,12 @@ char **make_char_array (char *string, unsigned int *n_items, char type)
 	return s;
 }
 
+#ifdef NO_MEX
+int GMTMEX_Register_IO (void *API, unsigned int data_type, unsigned int geometry, unsigned int direction, const mxArray *ptr)
+{
+	return (unique_ID++);	/* Fake IDs */
+}
+#else
 struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxArray *ptr)
 {	/* Used to Create an empty Grid container and associate it with a Matlab grid.
  	 * If direction is GMT_IN then we are given a Matlab grid and can determine size etc. */
@@ -356,6 +375,7 @@ int GMTMEX_Register_IO (void *API, unsigned int data_type, unsigned int geometry
 	}
 	return (ID);
 }
+#endif
 
 int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs, const mxArray *prhs[], int nrhs, char *keys, struct GMT_OPTION *head, struct GMTMEX **X)
 {
@@ -380,9 +400,11 @@ int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs
 	char type = 0;
 	void *ptr = NULL;	
 	struct GMT_OPTION *opt, *new_ptr;	/* Pointer to a GMT option structure */
+	struct GMTMEX *info = NULL;
+#ifndef NO_MEX
 	struct GMT_GRID *G = NULL;		/* Pointer to grid container */
 	struct GMT_MATRIX *M = NULL;		/* Pointer to matrix container */
-	struct GMTMEX *info = NULL;
+#endif
 
 	if (!strcmp (module, "gmtread") || !strcmp (module, "gmtwrite"))  {	/* Special case: Must determine which data type we are dealing with */
 		struct GMT_OPTION *t_ptr;
@@ -460,7 +482,11 @@ int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs
 	free ((void *)key);
 	
 	text = GMT_Create_Cmd (API, head);
+#ifdef NO_MEX
+	GMT_Report (API, GMT_MSG_NORMAL, "Revised mex string is \'%s\'\n", text);
+#else
 	GMT_Report (API, GMT_MSG_VERBOSE, "Args are now [%s]\n", text);
+#endif
 	GMT_Destroy_Cmd (API, &text);
 
 	/* Here, a command line '-F200k -G$ $ -L$ -P' has been changed to '-F200k -G@GMTAPI@-000001 @GMTAPI@-000002 -L@GMTAPI@-000003 -P'
@@ -469,6 +495,13 @@ int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs
 	return (error ? -error : n_items);
 }
 
+#ifdef NO_MEX
+int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs[])
+{
+	GMT_Report (API, GMT_MSG_VERBOSE, "Exit GMTMEX_post_process\n");
+	return (0);
+}
+#else
 int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs[])
 {	/* Get the data from GMT output items into the corresponding Matlab struct or matrix */
 	int item, k, n;
@@ -604,3 +637,4 @@ int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs
 	GMT_Report (API, GMT_MSG_VERBOSE, "Exit GMTMEX_post_process\n");
 	return (0);	/* Maybe we should turn this function to void but the gmt5 wrapper expects a return value */
 }
+#endif

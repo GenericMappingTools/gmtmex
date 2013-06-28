@@ -9,11 +9,12 @@ include ../config.mk
 FLAGS		= $(GMT_INC) $(MEX_INC) -I.
 ALLLIB     	= $(GMT_LIB) $(MEX_LIB)
 
-PROGS_C		= gmt5.c gmt.c
+PROGS_C		= gmt.c
 PROGS           = $(PROGS_C:.c=.$(MEX_EXT))
 PROGS_H		= gmtmex.h
 LIB_H		= gmtmex_keys.h gmtmex_modules.h
 LIB_C		= gmtmex_parser.c
+LIB_O		= $(LIB_C:.c=.o)
 
 #-------------------------------------------------------------------------------
 #	software targets
@@ -31,7 +32,7 @@ uninstall:
 spotless::	clean
 		rm -f $(LIB_H)
 clean:	
-		rm -f *.o *% core tags $(PROGS)
+		rm -f *.o *% core tags $(PROGS) gmt_mextest
 
 #-------------------------------------------------------------------------------
 #	program rules
@@ -43,6 +44,15 @@ gmt5.$(MEX_EXT):	$(PROGS_C) $(LIB_C) $(LIB_H)
 gmt.$(MEX_EXT):	$(PROGS_C) $(LIB_C) $(LIB_H)
 		$(MEX_BLD) $(FLAGS) gmt.c $(LIB_C) $(ALLLIB)
 
+gmt_mextest:	gmt_mextest.o $(LIB_O)
+		$(CC) $(LDFLAGS) -DNO_MEX gmt_mextest.o $(LIB_O) $(GMT_LIB) $(LIBS) -o $@
+
+$(LIB_O):	$(LIB_C) $(LIB_H)
+		$(CC) $(CFLAGS) -DNO_MEX $(LIB_C) -c -o $@
+
+gmt_mextest.o:	gmt_mextest.c
+		$(CC) $(CFLAGS) -DNO_MEX gmt_mextest.c -c -o $@
+	
 #-------------------------------------------------------------------------------
 #	Build include files
 #-------------------------------------------------------------------------------
