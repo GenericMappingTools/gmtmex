@@ -34,7 +34,7 @@ int main (int argc, char *argv[]) {
 	struct GMTAPI_CTRL *API = NULL;			/* GMT API control structure */
 	struct GMT_OPTION *options = NULL;		/* Linked list of options */
 	struct GMTMEX *X = NULL;			/* Array of information about Matlab args */
-	char *cmd = NULL;				/* Pointer used to get Matlab command */
+	char *cmd = NULL, *str = NULL;				/* Pointer used to get Matlab command */
 	char module[BUFSIZ];				/* Name of GMT module to call */
 	mxArray *plhs[5] = {NULL, NULL, NULL, NULL, NULL};	/* Simulated pointers to Matlab arrays */
 	const mxArray *prhs[5] = {NULL, NULL, NULL, NULL, NULL};
@@ -66,11 +66,12 @@ int main (int argc, char *argv[]) {
 	}
 
 	/* 4. Convert mex command line arguments to a linked option list */
-	if ((options = GMT_Create_Options (API, 0, &cmd[k+1])) == NULL)
+	str = (k < str_length) ? &cmd[k+1] : NULL;
+	if ((options = GMT_Create_Options (API, 0, str)) == NULL)
 		fprintf (stderr, "Failure to parse GMT5 command options\n");
 
 	/* 5. Parse the mex command, update GMT option lists, and register in/out resources, and return X array */
-	if ((n_items = GMTMEX_pre_process (API, module, plhs, nlhs, prhs, nrhs-1, keys[module_id], options, &X)) < 0)
+	if ((n_items = GMTMEX_pre_process (API, module, plhs, nlhs, prhs, nrhs-1, keys[module_id], &options, &X)) < 0)
 		fprintf (stderr, "Failure to parse mex command options\n");
 	
 	/* 6. Fake Run GMT module; g */

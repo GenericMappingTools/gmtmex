@@ -7,6 +7,9 @@ sinclude config.mk
 all:
 	cd src; $(MAKE) all
 
+test:
+	cd src; $(MAKE) gmt_mextest
+
 install:
 	cd src; $(MAKE) install
 

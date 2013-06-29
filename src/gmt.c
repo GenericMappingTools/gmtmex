@@ -180,7 +180,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 
 	/* 5. Parse the mex command, update GMT option lists, and register in/out resources, and return X array */
 	k = (got_API_in_input) ? 2 : 1;
-	if ((n_items = GMTMEX_pre_process (API, module, plhs, nlhs, &prhs[MIN(k,nrhs-1)], nrhs-k, keys[module_id], options, &X)) < 0)
+	if ((n_items = GMTMEX_pre_process (API, module, plhs, nlhs, &prhs[MIN(k,nrhs-1)], nrhs-k, keys[module_id], &options, &X)) < 0)
 		mexErrMsgTxt ("Failure to parse mex command options\n");
 	
 	/* 6. Run GMT module; give usage message if errors arise during parsing */
