@@ -154,7 +154,8 @@ unsigned int gmtmex_get_key_pos (char *key[], unsigned int n_keys, struct GMT_OP
 	for (opt = head; opt; opt = opt->next) {
 		pos = gmtmex_find_option (opt->option, key, n_keys);	/* First see if this option is one that might take $ */
 		if (pos == -1) continue;	/* No, it was some other harmless option, e.g., -J, -O ,etc. */
-		flavor = (opt->option == '<' || opt->option == '>') ? 0 : 1;	/* Filename or option with filename ? */
+		//flavor = (opt->option == '<' || opt->option == '>') ? 0 : 1;	/* Filename or option with filename ? */
+		flavor = (opt->option == '<') ? 0 : 1;	/* Filename or option with filename ? */
 		dir = (key[pos][2] == 'I') ? GMT_IN : GMT_OUT;	/* Input of output ? */
 		if (flavor == 0)	/* File name was given on command line */
 			def[dir][flavor] = GMT_MEX_EXPLICIT;
@@ -163,7 +164,8 @@ unsigned int gmtmex_get_key_pos (char *key[], unsigned int n_keys, struct GMT_OP
 	}
 	/* Here, if def[] == GMT_MEX_IMPLICIT (the default in/out option was NOT given), then we want to return the corresponding entry in key */
 	for (pos = 0; pos < n_keys; pos++) {	/* For all module options that might take a file */
-		flavor = (key[pos][0] == '<' || key[pos][0] == '>') ? 0 : 1;
+		//flavor = (key[pos][0] == '<' || key[pos][0] == '>') ? 0 : 1;
+		flavor = (key[pos][0] == '<') ? 0 : 1;
 		if ((key[pos][2] == 'I' || key[pos][2] == 'i') && key[pos][0] == '-') /* This program takes no input (e.g., psbasemap) */
 			def[GMT_IN][0] = def[GMT_IN][1]  = GMT_MEX_NONE;
 		else if (key[pos][2] == 'I' && def[GMT_IN][flavor] == GMT_MEX_IMPLICIT) /* Must add implicit input; use def to determine option,type */
