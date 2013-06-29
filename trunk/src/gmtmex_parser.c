@@ -39,7 +39,8 @@
 
 #ifdef NO_MEX
 /* For testing, no data are actually touched and Matlab/Octave is not linked */
-int unique_ID = 0;
+int ID_lhs = 100000;
+int ID_rhs = 0;
 #define mxArray void
 #define mexErrMsgTxt(txt) fprintf (stderr, txt)
 #endif
@@ -115,7 +116,7 @@ int GMTMEX_print_func (FILE *fp, const char *message)
 #endif
 
 int gmtmex_find_option (char option, char *key[], int n_keys) {
-	/* gmtmex_find_option determines if the given option is among the special options that might take $ as filename */
+	/* gmtmex_find_option determines if the given option is among the special options listed in the key array that might take $ as filename */
 	int pos = -1, k;
 	for (k = 0; pos == -1 && k < n_keys; k++) if (key[k][0] == option) pos = k;
 	return (pos);	/* -1 if not found, otherwise the position in the key array */
@@ -132,40 +133,47 @@ int gmtmex_get_arg_pos (char *arg)
 	return (pos);	/* Either -1 (not found) or in the 0-(strlen(arg)-1) range [position of $] */
 }
 
-unsigned int gmtmex_get_key_pos (char *key[], unsigned int n_keys, struct GMT_OPTION *head, int def[])
+unsigned int gmtmex_get_key_pos (char *key[], unsigned int n_keys, struct GMT_OPTION *head, int def[2][2])
 {	/* Must determine if default input and output have been set via program options or if they should be added explicitly.
  	 * As an example, consider the GMT command grdfilter in.nc -Fg200k -Gfilt.nc.  In Matlab this might be
-	 * filt = GMT_grdfilter ('$ -Fg200k -G$', in);
+	 * filt = gmt ('grdfilter $ -Fg200k -G$', in);
 	 * However, it is more natural not to specify the lame -G$, i.e.
-	 * filt = GMT_grdfilter ('$ -Fg200k', in);
+	 * filt = gmt ('grdfilter $ -Fg200k', in);
+	 * or even the other lame $, e.g.
+	 * filt = gmt ('grdfilter -Fg200k', in);
 	 * In that case we need to know that -G is the default way to specify the output grid and if -G is not given we
 	 * must associate -G with the first left-hand-side item (here filt).
 	 */
-	int pos, PS = 0;
+	int pos, dir, flavor, PS = 0;
 	struct GMT_OPTION *opt = NULL;
-	def[GMT_IN] = def[GMT_OUT] = GMT_MEX_IMPLICIT;	/* Initialize to setting the i/o implicitly */
+	def[GMT_IN][0] = GMT_MEX_IMPLICIT;	/* Initialize to setting the i/o implicitly for filenames */
+	def[GMT_OUT][0] = GMT_MEX_NONE;		/* Initialize to setting the i/o implicitly for filenames */
+	def[GMT_IN][1] = def[GMT_OUT][1] = GMT_MEX_NONE;	/* For options with mising filenames they are NONE unless set  */
 	
 	/* Loop over the module options to see if inputs and outputs are set explicitly or implicitly */
 	for (opt = head; opt; opt = opt->next) {
 		pos = gmtmex_find_option (opt->option, key, n_keys);	/* First see if this option is one that might take $ */
-		if (pos == -1) continue;		/* No, it was some other harmless option, e.g., -J, -O ,etc. */
-		/* Here, the current option is one that might take an input or output file. See if it matches
-		 * the UPPERCASE I or O [default source/dest] rather than the standard i|o (optional input/output) */
-		if (key[pos][2] == 'I')  /* Default input  is actually set explicitly via option setting now indicated by key[pos] */
-			def[GMT_IN] = GMT_MEX_EXPLICIT;
-		else if (key[pos][2] == 'O')  /* Default output is actually set explicitly via option setting now indicated by key[pos] */
-			def[GMT_OUT] = GMT_MEX_EXPLICIT;
+		if (pos == -1) continue;	/* No, it was some other harmless option, e.g., -J, -O ,etc. */
+		flavor = (opt->option == '<' || opt->option == '>') ? 0 : 1;	/* Filename or option with filename ? */
+		dir = (key[pos][2] == 'I') ? GMT_IN : GMT_OUT;	/* Input of output ? */
+		if (flavor == 0)	/* File name was given on command line */
+			def[dir][flavor] = GMT_MEX_EXPLICIT;
+		else			/* Command option; e.g., here we have -G<file>, -G$, or -G [the last two means implicit] */
+			def[dir][flavor] = (opt->arg[0] == '\0' || opt->arg[0] == '$') ? GMT_MEX_IMPLICIT : GMT_MEX_EXPLICIT;	/* The option provided no file name (or gave $) so it is implicit */
 	}
 	/* Here, if def[] == GMT_MEX_IMPLICIT (the default in/out option was NOT given), then we want to return the corresponding entry in key */
 	for (pos = 0; pos < n_keys; pos++) {	/* For all module options that might take a file */
+		flavor = (key[pos][0] == '<' || key[pos][0] == '>') ? 0 : 1;
 		if ((key[pos][2] == 'I' || key[pos][2] == 'i') && key[pos][0] == '-') /* This program takes no input (e.g., psbasemap) */
-			def[GMT_IN]  = GMT_MEX_NONE;
-		else if (key[pos][2] == 'I' && def[GMT_IN]  == GMT_MEX_IMPLICIT) /* Must add implicit input; use def to determine option,type */
-			def[GMT_IN]  = pos;
-		if ((key[pos][2] == 'O' || key[pos][2] == 'o') && key[pos][0] == '-') /* This program produces no output */
-			def[GMT_OUT] = GMT_MEX_NONE;
-		else if (key[pos][2] == 'O' && def[GMT_OUT] == GMT_MEX_IMPLICIT) /* Must add implicit output; use def to determine option,type */
-			def[GMT_OUT] = pos;
+			def[GMT_IN][0] = def[GMT_IN][1]  = GMT_MEX_NONE;
+		else if (key[pos][2] == 'I' && def[GMT_IN][flavor] == GMT_MEX_IMPLICIT) /* Must add implicit input; use def to determine option,type */
+			def[GMT_IN][flavor] = pos;
+		else if ((key[pos][2] == 'O' || key[pos][2] == 'o') && key[pos][0] == '-') /* This program produces no output */
+			def[GMT_OUT][0] = def[GMT_OUT][1] = GMT_MEX_NONE;
+		else if (key[pos][2] == 'O' && def[GMT_OUT][flavor] == GMT_MEX_IMPLICIT) /* Must add implicit output; use def to determine option,type */
+			def[GMT_OUT][flavor] = pos;
+		else if (key[pos][2] == 'O' && def[GMT_OUT][flavor] == GMT_MEX_NONE && flavor == 1) /* Must add mising output option; use def to determine option,type */
+			def[GMT_OUT][flavor] = pos;
 		if ((key[pos][2] == 'O' || key[pos][2] == 'o') && key[pos][1] == 'X' && key[pos][0] == '-') PS = 1;	/* This program produces PostScript */
 	}
 	return (PS);
@@ -253,7 +261,10 @@ char **make_char_array (char *string, unsigned int *n_items, char type)
 #ifdef NO_MEX
 int GMTMEX_Register_IO (void *API, unsigned int data_type, unsigned int geometry, unsigned int direction, const mxArray *ptr)
 {
-	return (unique_ID++);	/* Fake IDs */
+	if (direction == GMT_IN)
+		return (ID_rhs++);	/* Fake IDs */
+	else
+		return (ID_lhs++);	/* Fake IDs */
 }
 #else
 struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxArray *ptr)
@@ -377,7 +388,7 @@ int GMTMEX_Register_IO (void *API, unsigned int data_type, unsigned int geometry
 }
 #endif
 
-int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs, const mxArray *prhs[], int nrhs, char *keys, struct GMT_OPTION *head, struct GMTMEX **X)
+int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs, const mxArray *prhs[], int nrhs, char *keys, struct GMT_OPTION **head, struct GMTMEX **X)
 {
 	/* API controls all things within GMT.
 	 * plhs (and nlhs) are the outputs specified on the left side of the equal sign in Matlab.
@@ -390,10 +401,9 @@ int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs
 	int direction;		/* Either GMT_IN or GMT_OUT */
 	int data_type;		/* Either GMT_IS_DATASET, GMT_IS_TEXTSET, GMT_IS_GRID, GMT_IS_CPT, GMT_IS_IMAGE */
 	int geometry;		/* Either GMT_IS_NONE, GMT_IS_POINT, GMT_IS_LINE, GMT_IS_POLY, or GMT_IS_SURFACE */
-	int def[2];		/* Either GMT_MEX_EXPLICIT or the item number in the keys array */
+	int given[2][2];	/* Either GMT_MEX_EXPLICIT or the item number in the keys array for a filename or an option with implicit arg */
 	int ID, error;
-	int pos;
-	unsigned int k, n_keys = 0, PS, n_alloc = 8U, n_items = 0;
+	unsigned int k, flavor, n_keys = 0, PS, n_alloc = 8U, n_items = 0;
 	char name[GMT_STR16];	/* Used to hold the GMT API embedded file name, e.g., @GMTAPI@-###### */
 	char **key = NULL;
 	char *text = NULL;
@@ -408,66 +418,60 @@ int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs
 
 	if (!strcmp (module, "gmtread") || !strcmp (module, "gmtwrite"))  {	/* Special case: Must determine which data type we are dealing with */
 		struct GMT_OPTION *t_ptr;
-		if ((t_ptr = GMT_Find_Option (API, 'T', head))) {	/* Found the -T<type> option */
+		if ((t_ptr = GMT_Find_Option (API, 'T', *head))) {	/* Found the -T<type> option */
 			type = toupper (t_ptr->arg[0]);	/* Find type and replace ? in keys with this type in uppercase (DGCIT) in make_char_array below */
 		}
-		if (!strcmp (module, "gmtwrite") && (t_ptr = GMT_Find_Option (API, GMT_OPT_INFILE, head))) {	/* Found a -<<file> option; this is actually the output file */
+		if (!strcmp (module, "gmtwrite") && (t_ptr = GMT_Find_Option (API, GMT_OPT_INFILE, *head))) {	/* Found a -<<file> option; this is actually the output file */
 			t_ptr->option = GMT_OPT_OUTFILE;
 		}
 	}
 	
-	key = make_char_array (keys, &n_keys, type);
-	info = malloc (n_alloc * sizeof (struct GMTMEX));
+	key = make_char_array (keys, &n_keys, type);		/* This is the array of keys for this module, e.g., "<DI,GGO,..." */
+	info = malloc (n_alloc * sizeof (struct GMTMEX));	/* Structure to keep track of which output items we need to assign to Matlab */
 	
-	PS = gmtmex_get_key_pos (key, n_keys, head, def);	/* Determine if we must add the primary in and out arguments to the option list */
+	/* We wish to enable Matlab/Octave by "implicit" options.  THese are options we will provide here in the code
+	 * when the user did not give them as part of the command.  For instance, if surface is called and the input data
+	 * will come from a Matlab matrix, we can just leave off any input name in the command, and then it is understood
+	 * that we need to add a memory reference to the first Matlab matrix given as input. */
+	PS = gmtmex_get_key_pos (key, n_keys, *head, given);	/* Determine if we must add the primary in and out arguments to the option list */
 	for (direction = GMT_IN; direction <= GMT_OUT; direction++) {
-		if (def[direction] == GMT_MEX_NONE) continue;	/* No source or destination required */
-		if (def[direction] == GMT_MEX_EXPLICIT) continue;	/* Source or destination was set explicitly; skip */
-		/* Must add the primary input or output from prhs[0] or plhs[0] */
-		(void)gmtmex_get_arg_dir (key[def[direction]][0], key, n_keys, &data_type, &geometry);		/* Get info about the data set */
-		ptr = (direction == GMT_IN) ? (void *)prhs[lr_pos[direction]] : (void *)plhs[lr_pos[direction]];	/* Pick the next left or right side pointer */
-		ID = GMTMEX_Register_IO (API, data_type, geometry, direction, ptr);
-		/* Register a Matlab/Octave entity as a source or destination */
-		if (direction == GMT_OUT) {
-			if (n_items == n_alloc) info = realloc ((void *)info, (n_alloc += 8) * sizeof (struct GMTMEX));
-			info[n_items].type = data_type;
-			info[n_items].ID = ID;
-			info[n_items].lhs_index = lr_pos[GMT_OUT];
-			n_items++;
+		for (flavor = 0; flavor < 2; flavor++) {	/* 0 means filename input, 1 means option input */
+			if (given[direction][flavor] == GMT_MEX_NONE) continue;	/* No source or destination required */
+			if (given[direction][flavor] == GMT_MEX_EXPLICIT) continue;	/* Source or destination was set explicitly; skip */
+			/* Must add the primary input or output from prhs[0] or plhs[0] */
+			(void)gmtmex_get_arg_dir (key[given[direction][flavor]][0], key, n_keys, &data_type, &geometry);		/* Get info about the data set */
+			ptr = (direction == GMT_IN) ? (void *)prhs[lr_pos[direction]] : (void *)plhs[lr_pos[direction]];	/* Pick the next left or right side pointer */
+			ID = GMTMEX_Register_IO (API, data_type, geometry, direction, ptr);
+			/* Register a Matlab/Octave entity as a source or destination */
+			if (direction == GMT_OUT) {
+				if (n_items == n_alloc) info = realloc ((void *)info, (n_alloc += 8) * sizeof (struct GMTMEX));
+				info[n_items].type = data_type;
+				info[n_items].ID = ID;
+				info[n_items].lhs_index = lr_pos[GMT_OUT];
+				n_items++;
+			}
+			lr_pos[direction]++;		/* Advance position counter for next time */
+			if (GMT_Encode_ID (API, name, ID) != GMT_NOERROR) {	/* Make filename with embedded object ID */
+				mexErrMsgTxt ("GMTMEX_pre_process: Failure to encode string\n");
+			}
+			if (flavor == 0) {	/* Must add option */
+				new_ptr = GMT_Make_Option (API, key[given[direction][0]][0], name);	/* Create the missing (implicit) GMT option */
+				*head = GMT_Append_Option (API, new_ptr, *head);				/* Append it to the option list */
+			}
+			else {	/* Must find the option and update it, or addit */
+				if ((new_ptr = GMT_Find_Option (API, key[given[direction][1]][0], *head)) == NULL) {
+					new_ptr = GMT_Make_Option (API, key[given[direction][1]][0], name);	/* Create the missing (implicit) GMT option */
+					*head = GMT_Append_Option (API, new_ptr, *head);				/* Append it to the option list */
+				}
+				else if (GMT_Update_Option (API, new_ptr, name)) {
+					mexErrMsgTxt ("GMTMEX_pre_process: Failure to update option argument\n");
+				}
+			}
 		}
-		lr_pos[direction]++;		/* Advance position counter for next time */
-		if (GMT_Encode_ID (API, name, ID) != GMT_NOERROR) {	/* Make filename with embedded object ID */
-			mexErrMsgTxt ("GMTMEX_pre_process: Failure to encode string\n");
-		}
-		new_ptr = GMT_Make_Option (API, key[def[direction]][0], name);	/* Create the missing (implicit) GMT option */
-		GMT_Append_Option (API, new_ptr, head);				/* Append it to the option list */
 	}
 		
-	for (opt = head; opt; opt = opt->next) {	/* Loop over the module options given */
+	for (opt = *head; opt; opt = opt->next) {	/* Loop over the module options given */
 		if (PS && opt->option == GMT_OPT_OUTFILE) PS++;
-		/* Determine if this option has a $ in its argument and if so return its position in pos; return -1 otherwise */
-		if ((pos = gmtmex_get_arg_pos (opt->arg)) == -1) continue;	/* No $ argument found or it is part of a text string */
-		
-		/* Determine several things about this option, such as direction, data type, and geometry */
-		direction = gmtmex_get_arg_dir (opt->option, key, n_keys, &data_type, &geometry);
-		ptr = (direction == GMT_IN) ? (void *)prhs[lr_pos[direction]] : (void *)plhs[lr_pos[direction]];	/* Pick the next left or right side pointer */
-		ID = GMTMEX_Register_IO (API, data_type, geometry, direction, ptr);
-		if (direction == GMT_OUT) {
-			if (n_items == n_alloc) info = realloc ((void *)info, (n_alloc += 8) * sizeof (struct GMTMEX));
-			info[n_items].type = data_type;
-			info[n_items].ID = ID;
-			info[n_items].lhs_index = lr_pos[GMT_OUT];
-			n_items++;
-		}
-		if (GMT_Encode_ID (API, name, ID) != GMT_NOERROR) {	/* Make filename with embedded object ID */
-			mexErrMsgTxt ("GMTMEX_pre_process: Failure to encode string\n");
-		}
-		lr_pos[direction]++;		/* Advance position counter for next time */
-		
-		/* Replace the option argument with the embedded file */
-		if (GMT_Update_Option (API, opt, name)) {
-			mexErrMsgTxt ("GMTMEX_pre_process: Failure to update option argument\n");
-		}
 	}
 	if (n_items && n_items < n_alloc) info = realloc ((void *)info, n_items * sizeof (struct GMTMEX));
 	else if (n_items == 0) free ((void *)info);
@@ -481,9 +485,9 @@ int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs
 	for (k = 0; k < n_keys; k++) free ((void *)key[k]);
 	free ((void *)key);
 	
-	text = GMT_Create_Cmd (API, head);
+	text = GMT_Create_Cmd (API, *head);
 #ifdef NO_MEX
-	GMT_Report (API, GMT_MSG_NORMAL, "Revised mex string is \'%s\'\n", text);
+	GMT_Report (API, GMT_MSG_NORMAL, "Revised mex string for %s is \'%s\'\n", module, text);
 #else
 	GMT_Report (API, GMT_MSG_VERBOSE, "Args are now [%s]\n", text);
 #endif
