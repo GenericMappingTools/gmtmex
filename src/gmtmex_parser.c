@@ -116,7 +116,8 @@ int GMTMEX_print_func (FILE *fp, const char *message)
 #endif
 
 int gmtmex_find_option (char option, char *key[], int n_keys) {
-	/* gmtmex_find_option determines if the given option is among the special options listed in the key array that might take $ as filename */
+	/* gmtmex_find_option determines if the given option is among the special options listed
+           in the key array that might take $ as filename */
 	int pos = -1, k;
 	for (k = 0; pos == -1 && k < n_keys; k++) if (key[k][0] == option) pos = k;
 	return (pos);	/* -1 if not found, otherwise the position in the key array */
@@ -162,19 +163,25 @@ unsigned int gmtmex_get_key_pos (char *key[], unsigned int n_keys, struct GMT_OP
 		else			/* Command option; e.g., here we have -G<file>, -G$, or -G [the last two means implicit] */
 			def[dir][flavor] = (opt->arg[0] == '\0' || opt->arg[0] == '$') ? GMT_MEX_IMPLICIT : GMT_MEX_EXPLICIT;	/* The option provided no file name (or gave $) so it is implicit */
 	}
-	/* Here, if def[] == GMT_MEX_IMPLICIT (the default in/out option was NOT given), then we want to return the corresponding entry in key */
+	/* Here, if def[] == GMT_MEX_IMPLICIT (the default in/out option was NOT given),
+           then we want to return the corresponding entry in key */
 	for (pos = 0; pos < n_keys; pos++) {	/* For all module options that might take a file */
 		//flavor = (key[pos][0] == '<' || key[pos][0] == '>') ? 0 : 1;
 		flavor = (key[pos][0] == '<') ? 0 : 1;
-		if ((key[pos][2] == 'I' || key[pos][2] == 'i') && key[pos][0] == '-') /* This program takes no input (e.g., psbasemap) */
+		if ((key[pos][2] == 'I' || key[pos][2] == 'i') && key[pos][0] == '-')
+			/* This program takes no input (e.g., psbasemap) */
 			def[GMT_IN][0] = def[GMT_IN][1]  = GMT_MEX_NONE;
-		else if (key[pos][2] == 'I' && def[GMT_IN][flavor] == GMT_MEX_IMPLICIT) /* Must add implicit input; use def to determine option,type */
+		else if (key[pos][2] == 'I' && def[GMT_IN][flavor] == GMT_MEX_IMPLICIT)
+			/* Must add implicit input; use def to determine option,type */
 			def[GMT_IN][flavor] = pos;
-		else if ((key[pos][2] == 'O' || key[pos][2] == 'o') && key[pos][0] == '-') /* This program produces no output */
+		else if ((key[pos][2] == 'O' || key[pos][2] == 'o') && key[pos][0] == '-')
+			/* This program produces no output */
 			def[GMT_OUT][0] = def[GMT_OUT][1] = GMT_MEX_NONE;
-		else if (key[pos][2] == 'O' && def[GMT_OUT][flavor] == GMT_MEX_IMPLICIT) /* Must add implicit output; use def to determine option,type */
+		else if (key[pos][2] == 'O' && def[GMT_OUT][flavor] == GMT_MEX_IMPLICIT)
+			/* Must add implicit output; use def to determine option,type */
 			def[GMT_OUT][flavor] = pos;
-		else if (key[pos][2] == 'O' && def[GMT_OUT][flavor] == GMT_MEX_NONE && flavor == 1) /* Must add mising output option; use def to determine option,type */
+		else if (key[pos][2] == 'O' && def[GMT_OUT][flavor] == GMT_MEX_NONE && flavor == 1)
+			/* Must add mising output option; use def to determine option,type */
 			def[GMT_OUT][flavor] = pos;
 		if ((key[pos][2] == 'O' || key[pos][2] == 'o') && key[pos][1] == 'X' && key[pos][0] == '-') PS = 1;	/* This program produces PostScript */
 	}
@@ -362,7 +369,7 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
 		M->dim = M->n_rows;	// This is actualy wrong if input data is scanline as for Octave oct
 		M->alloc_mode = GMT_ALLOCATED_EXTERNALLY;	/* Since matrix was allocated by Matlab */
 	}
-	else {	/* On output we produce doubles */
+	else {	/* On output we produce singles */
 		M->type = GMT_FLOAT;
 	}
 	return (M);
@@ -376,12 +383,15 @@ int GMTMEX_Register_IO (void *API, unsigned int data_type, unsigned int geometry
 
 	switch (data_type) {
 		case GMT_IS_GRID:
-			G = GMTMEX_grid_init (API, direction, ptr);	/* Get a grid and associate it with the Matlab grid pointer (if input) */
+			/* Get a grid and associate it with the Matlab grid pointer (if input) */
+			G = GMTMEX_grid_init (API, direction, ptr);
 			ID = GMT_Get_ID (API, GMT_IS_GRID, direction, G);
 			break;
 		case GMT_IS_DATASET:
-			M = GMTMEX_matrix_init (API, direction, ptr);	/* Get a matrix container and associate it with the Matlab pointer (if input) */
-			if ((ID = GMT_Register_IO (API, GMT_IS_DATASET, GMT_IS_REFERENCE + GMT_VIA_MATRIX, geometry, direction, NULL, M)) == GMT_NOTSET) {
+			/* Get a matrix container and associate it with the Matlab pointer (if input) */
+			M = GMTMEX_matrix_init (API, direction, ptr);
+			if ((ID = GMT_Register_IO (API, GMT_IS_DATASET, GMT_IS_REFERENCE + GMT_VIA_MATRIX,
+                                                   geometry, direction, NULL, M)) == GMT_NOTSET) {
 				mexErrMsgTxt ("GMTMEX_pre_process: Failure to register GMT matrix source or destination\n");
 			}
 			break;
@@ -393,8 +403,8 @@ int GMTMEX_Register_IO (void *API, unsigned int data_type, unsigned int geometry
 }
 #endif
 
-int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs, const mxArray *prhs[], int nrhs, char *keys, struct GMT_OPTION **head, struct GMTMEX **X)
-{
+int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs, const mxArray *prhs[],
+                        int nrhs, char *keys, struct GMT_OPTION **head, struct GMTMEX **X) {
 	/* API controls all things within GMT.
 	 * plhs (and nlhs) are the outputs specified on the left side of the equal sign in Matlab.
 	 * prhs (and nrhs) are the inputs specified after the option string in the GMT-mex function.
@@ -444,8 +454,10 @@ int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs
 			if (given[direction][flavor] == GMT_MEX_NONE) continue;	/* No source or destination required */
 			if (given[direction][flavor] == GMT_MEX_EXPLICIT) continue;	/* Source or destination was set explicitly; skip */
 			/* Must add the primary input or output from prhs[0] or plhs[0] */
-			(void)gmtmex_get_arg_dir (key[given[direction][flavor]][0], key, n_keys, &data_type, &geometry);	/* Get info about the data set */
-			ptr = (direction == GMT_IN) ? (void *)prhs[lr_pos[direction]] : (void *)plhs[lr_pos[direction]];	/* Pick the next left or right side pointer */
+			/* Get info about the data set */
+			(void)gmtmex_get_arg_dir (key[given[direction][flavor]][0], key, n_keys, &data_type, &geometry);
+			/* Pick the next left or right side pointer */
+			ptr = (direction == GMT_IN) ? (void *)prhs[lr_pos[direction]] : (void *)plhs[lr_pos[direction]];
 			ID = GMTMEX_Register_IO (API, data_type, geometry, direction, ptr);
 			/* Register a Matlab/Octave entity as a source or destination */
 			if (direction == GMT_OUT) {
@@ -460,13 +472,17 @@ int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs
 				mexErrMsgTxt ("GMTMEX_pre_process: Failure to encode string\n");
 			}
 			if (flavor == 0) {	/* Must add option */
-				new_ptr = GMT_Make_Option (API, key[given[direction][0]][0], name);	/* Create the missing (implicit) GMT option */
-				*head = GMT_Append_Option (API, new_ptr, *head);			/* Append it to the option list */
+				/* Create the missing (implicit) GMT option */
+				new_ptr = GMT_Make_Option (API, key[given[direction][0]][0], name);
+				/* Append it to the option list */
+				*head = GMT_Append_Option (API, new_ptr, *head);
 			}
 			else {	/* Must find the option and update it, or addit */
 				if ((new_ptr = GMT_Find_Option (API, key[given[direction][1]][0], *head)) == NULL) {
-					new_ptr = GMT_Make_Option (API, key[given[direction][1]][0], name);	/* Create the missing (implicit) GMT option */
-					*head = GMT_Append_Option (API, new_ptr, *head);			/* Append it to the option list */
+					/* Create the missing (implicit) GMT option */
+					new_ptr = GMT_Make_Option (API, key[given[direction][1]][0], name);
+					/* Append it to the option list */
+					*head = GMT_Append_Option (API, new_ptr, *head);
 				}
 				else if (GMT_Update_Option (API, new_ptr, name)) {
 					mexErrMsgTxt ("GMTMEX_pre_process: Failure to update option argument\n");
@@ -524,7 +540,7 @@ int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs
 	mxArray *mxProjectionRef = NULL;
 	mxArray *mxHeader = NULL, *mxtmp = NULL;
 	mxArray *grid_struct = NULL;
-	char    *fieldnames[23];	/* this array contains the names of the fields of the output structure. */
+	char    *fieldnames[22];	/* this array contains the names of the fields of the output structure. */
 	
 	GMT_Report (API, GMT_MSG_VERBOSE, "Enter GMTMEX_post_process\n");
 	for (item = 0; item < n_items; item++) {
@@ -550,17 +566,26 @@ int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs
 				fieldnames[13] = mxstrdup ("command");
 				fieldnames[14] = mxstrdup ("DataType");
 				fieldnames[15] = mxstrdup ("LayerCount");
-				fieldnames[16] = mxstrdup ("ColorMap");
-				fieldnames[17] = mxstrdup ("x");
-				fieldnames[18] = mxstrdup ("y");
-				fieldnames[19] = mxstrdup ("z");
-				fieldnames[20] = mxstrdup ("x_units");
-				fieldnames[21] = mxstrdup ("y_units");
-				fieldnames[22] = mxstrdup ("z_units");
-				grid_struct = mxCreateStructMatrix (1, 1, 23, (const char **)fieldnames );
+				fieldnames[16] = mxstrdup ("x");
+				fieldnames[17] = mxstrdup ("y");
+				fieldnames[18] = mxstrdup ("z");
+				fieldnames[19] = mxstrdup ("x_units");
+				fieldnames[20] = mxstrdup ("y_units");
+				fieldnames[21] = mxstrdup ("z_units");
+				grid_struct = mxCreateStructMatrix (1, 1, 22, (const char **)fieldnames );
+
+				mxtmp = mxCreateString (G->header->ProjRefPROJ4);
+				mxSetField (grid_struct, 0, (const char *) "ProjectionRefPROJ4", mxtmp);
+
+				mxtmp = mxCreateString (G->header->ProjRefWKT);
+				mxSetField (grid_struct, 0, (const char *) "ProjectionRefWKT", mxtmp);
+
 				mxHeader    = mxCreateNumericMatrix (1, 9, mxDOUBLE_CLASS, mxREAL);
 				dptr = mxGetPr (mxHeader);
-				dptr[0] = 0;	dptr[1] = 1;	dptr[2] = 0;	dptr[3] = 2;
+				for (n = 0; n < 4; n++) dptr[n] = G->header->wesn[n];
+				dptr[4] = G->header->z_min;	dptr[5] = G->header->z_max;
+				dptr[6] = G->header->registration;
+				for (n = 0; n < 2; n++) dptr[n+7] = G->header->inc[n];
 				mxSetField (grid_struct, 0, "hdr", mxHeader);
 
 				dptr = mxGetPr(mxtmp = mxCreateNumericMatrix (1, 4, mxDOUBLE_CLASS, mxREAL));
@@ -600,6 +625,12 @@ int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs
 				mxtmp = mxCreateString (G->header->remark);
 				mxSetField (grid_struct, 0, (const char *) "remark", mxtmp);
 
+				mxtmp = mxCreateString ("float32");
+				mxSetField (grid_struct, 0, (const char *) "DataType", mxtmp);
+
+				mxtmp = mxCreateDoubleScalar ((double)G->header->n_bands); 
+				mxSetField (grid_struct, 0, (const char *) "LayerCount", mxtmp);
+
 				mxtmp = mxCreateString (G->header->x_units);
 				mxSetField (grid_struct, 0, (const char *) "x_units", mxtmp);
 
@@ -636,9 +667,10 @@ int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs
 				mxSetField (grid_struct, 0, "y", mx_y);
 				plhs[k] = grid_struct;
 				break;
-				
+
 			case GMT_IS_DATASET:	/* Return tables with double (mxDOUBLE_CLASS) matrix */
-				if ((M = GMT_Retrieve_Data (API, X[item].ID)) == NULL) mexErrMsgTxt ("Error retrieving matrix from GMT\n");
+				if ((M = GMT_Retrieve_Data (API, X[item].ID)) == NULL)
+					mexErrMsgTxt ("Error retrieving matrix from GMT\n");
 				/* Create a Matlab matrix to hold this GMT matrix */
 				plhs[k] = mxCreateNumericMatrix (M->n_rows, M->n_columns, mxDOUBLE_CLASS, mxREAL);
 				d = mxGetData (plhs[k]);
