@@ -660,7 +660,7 @@ int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs
 				x = mxGetData (mx_x);
 				y = mxGetData (mx_y);
 				memcpy (x, G_x, G->header->nx * sizeof (double));
-				memcpy (y, G_y, G->header->ny * sizeof (double));
+				for (n = 0; n < G->header->ny; n++) y[G->header->ny-1-n] = G_y[n]; 
 				if (GMT_Destroy_Data (API, &G_x))
 					mexPrintf("Warning: Failure to delete G_x (x coordinate vector)\n");
 				if (GMT_Destroy_Data (API, &G_y))
