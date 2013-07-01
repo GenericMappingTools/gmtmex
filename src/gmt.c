@@ -74,6 +74,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	unsigned int got_API_in_input = 0; /* It will be set to 1 when gmt(API, 'module ...'); */
 	int n_items = 0;                /* Number of Matlab arguments (left and right) */
 	int module_id;
+	int pos;
 	size_t str_length, k;           /* Misc. counters */
 	struct GMTAPI_CTRL *API = NULL;	/* GMT API control structure */
 	struct GMT_OPTION *options = NULL; /* Linked list of options */
@@ -179,12 +180,12 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		mexErrMsgTxt ("Failure to parse GMT5 command options\n");
 
 	/* 5. Parse the mex command, update GMT option lists, and register in/out resources, and return X array */
-	k = (got_API_in_input) ? 2 : 1;
-	if ((n_items = GMTMEX_pre_process (API, module, plhs, nlhs, &prhs[MIN(k,nrhs-1)], nrhs-k, keys[module_id], &options, &X)) < 0)
+	pos = (got_API_in_input) ? 2 : 1;
+	if ((n_items = GMTMEX_pre_process (API, module, plhs, nlhs, &prhs[MIN(pos,nrhs-1)], nrhs-pos, keys[module_id], &options, &X)) < 0)
 		mexErrMsgTxt ("Failure to parse mex command options\n");
 	
 	/* 6. Run GMT module; give usage message if errors arise during parsing */
-	status = GMT_Call_Module (API, module, -1, options);
+	status = GMT_Call_Module (API, module, GMT_MODULE_OPT, options);
 
 	/* 7. Hook up module output to Matlab plhs arguments */
 	if (GMTMEX_post_process (API, X, n_items, plhs)) mexErrMsgTxt ("Failure to extract GMT5-produced data\n");

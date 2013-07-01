@@ -278,7 +278,9 @@ int GMTMEX_Register_IO (void *API, unsigned int data_type, unsigned int geometry
 #else
 struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxArray *ptr)
 {	/* Used to Create an empty Grid container and associate it with a Matlab grid.
- 	 * If direction is GMT_IN then we are given a Matlab grid and can determine size etc. */
+ 	 * If direction is GMT_IN then we are given a Matlab grid and can determine size etc.
+	 * If direction is GMT_OUT then we allocate an empty GMT grid that we will pass
+	 * off as a destination by adding the GMT_VIA_OUTPUT to the mode. */
 	struct GMT_GRID *G = NULL;
 	if (direction == GMT_IN) {	/* Dimensions are known from the input pointer */
 		mxArray *mx_ptr = NULL;
@@ -308,7 +310,7 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 		GMT_Report (API, GMT_MSG_DEBUG, " Allocate GMT Grid %lx in gmtmex_parser\n", (long)G);
 		GMT_Report (API, GMT_MSG_DEBUG, " Registered GMT Grid array %lx via memory reference from Matlab\n", (long)G->data);
 	}
-	else {	/* Set dummy range and inc so that GMT_check_region in GMT_Register_IO will pass */
+	else {	/* Set dummy range and inc so that GMT_check_region in GMT_Register_IO will accept the settings (will be reset when grid is read)  */
 		double range[4] = {0.0, 0.0, 0.0, 0.0}, inc[2] = {1.0, 1.0};
 		unsigned int registration = GMT_GRID_NODE_REG;
 		if ((G = GMT_Create_Data (API, GMT_IS_GRID, GMT_IS_SURFACE, GMT_GRID_HEADER_ONLY | 
@@ -514,7 +516,7 @@ int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs
 #endif
 	GMT_Destroy_Cmd (API, &text);
 
-	/* Here, a command line '-F200k -G$ $ -L$ -P' has been changed to '-F200k -G@GMTAPI@-000001 @GMTAPI@-000002 -L@GMTAPI@-000003 -P'
+	/* Here, a command line '-F200k -G $ -L -P' has been changed to '-F200k -G@GMTAPI@-000001 @GMTAPI@-000002 -L@GMTAPI@-000003 -P'
 	 * where the @GMTAPI@-00000x are encodings to registered resources or destinations */
 	*X = info;
 	return (error ? -error : n_items);
@@ -668,6 +670,8 @@ int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs
 				mxSetField (grid_struct, 0, "x", mx_x);
 				mxSetField (grid_struct, 0, "y", mx_y);
 				plhs[k] = grid_struct;
+				if (GMT_Destroy_Data (API, &G) != GMT_NOERROR)
+					mexErrMsgTxt ("GMTMEX_post_process: Failed to destroy grid G retrieved from GMT\n");
 				break;
 
 			case GMT_IS_DATASET:	/* Return tables with double (mxDOUBLE_CLASS) matrix */
@@ -679,6 +683,8 @@ int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs
 				/* Load the real data matrix into a double matlab array copying columns */
 				for (col = 0; col < M->n_columns; col++)
 					memcpy (&d[M->n_rows*col], M->data.f8, M->n_rows * sizeof(double));
+				if (GMT_Destroy_Data (API, &M) != GMT_NOERROR)
+					mexErrMsgTxt ("GMTMEX_post_process: Failed to destroy matrix M retrieved from GMT\n");
 				break;
 		}
 	}
