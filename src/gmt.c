@@ -80,6 +80,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	struct GMT_OPTION *options = NULL; /* Linked list of options */
 	struct GMTMEX *X = NULL;        /* Array of information about Matlab args */
 	char *cmd = NULL;               /* Pointer used to get Matlab command */
+	char *opt_args = NULL;		/* Pointer used to pass options */
 	char module[BUFSIZ];            /* Name of GMT module to call */
 	uintptr_t *pti;                 /* To locally store the API address */
 
@@ -176,7 +177,9 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	}
 
 	/* 4. Convert mex command line arguments to a linked option list */
-	if ((options = GMT_Create_Options (API, 0, &cmd[k+1])) == NULL)
+	while (cmd[k] == ' ') k++;	/* Skip any spaces between modules and start of options */
+	opt_args = (cmd[k]) ? &cmd[k] : NULL;
+	if ((options = GMT_Create_Options (API, 0, opt_args)) == NULL)
 		mexErrMsgTxt ("Failure to parse GMT5 command options\n");
 
 	/* 5. Parse the mex command, update GMT option lists, and register in/out resources, and return X array */

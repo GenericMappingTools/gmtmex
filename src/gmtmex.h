@@ -48,6 +48,7 @@
 
 struct GMTMEX {	/* Array to hold information relating to output from GMT */
 	unsigned int type;	/* type of GMT data, i.e., GMT_IS_DATASET, GMT_IS_GRID, etc. */
+	unsigned int direction;	/* Either GMT_IN or GMT_OUT */
 	int ID;			/* Registration ID returned by GMT_Register_IO */
 	int lhs_index;		/* Corresponding index into plhs array */
 };
