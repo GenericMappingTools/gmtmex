@@ -24,6 +24,7 @@ try
 	end
 catch
 	sprintf('Error in test: %s\n%s', opt{k}, lasterr)
+	gmt('destroy')
 end
 
 function G = gmtread()
@@ -49,7 +50,6 @@ function pscoast()
 function minmax()
 	t = rand(100,3) * 100;
 	gmt('create')
-	r = gmt('minmax $', t);
 	r = gmt('minmax', t);
 	disp(['minmax of random 0-100 is ' r])
 	gmt('destroy')
