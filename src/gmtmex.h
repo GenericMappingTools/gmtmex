@@ -26,7 +26,10 @@
 #define mxArray void
 #else
 #include <mex.h>
-#endif
+#define mxIsScalar_(mx) \
+	( (2 == mxGetNumberOfDimensions(mx)) \
+		&&  (1 == mxGetM(mx))&&  (1 == mxGetN(mx)) )
+#endif	/* NO_MEX */
 #include <string.h>
 #include <ctype.h>
 #ifndef GMTMEX_LIB
@@ -41,10 +44,6 @@
 #ifndef MIN
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 #endif
-
-#define mxIsScalar_(mx) \
-	( (2 == mxGetNumberOfDimensions(mx)) \
-		&&  (1 == mxGetM(mx))&&  (1 == mxGetN(mx)) )
 
 struct GMTMEX {	/* Array to hold information relating to output from GMT */
 	unsigned int type;	/* type of GMT data, i.e., GMT_IS_DATASET, GMT_IS_GRID, etc. */
