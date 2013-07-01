@@ -462,13 +462,12 @@ int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs
 			ptr = (direction == GMT_IN) ? (void *)prhs[lr_pos[direction]] : (void *)plhs[lr_pos[direction]];
 			ID = GMTMEX_Register_IO (API, data_type, geometry, direction, ptr);
 			/* Register a Matlab/Octave entity as a source or destination */
-			if (direction == GMT_OUT) {
-				if (n_items == n_alloc) info = realloc ((void *)info, (n_alloc += 8) * sizeof (struct GMTMEX));
-				info[n_items].type = data_type;
-				info[n_items].ID = ID;
-				info[n_items].lhs_index = lr_pos[GMT_OUT];
-				n_items++;
-			}
+			if (n_items == n_alloc) info = realloc ((void *)info, (n_alloc += 8) * sizeof (struct GMTMEX));
+			info[n_items].type = data_type;
+			info[n_items].ID = ID;
+			info[n_items].direction = direction;
+			info[n_items].lhs_index = lr_pos[direction];
+			n_items++;
 			lr_pos[direction]++;		/* Advance position counter for next time */
 			if (GMT_Encode_ID (API, name, ID) != GMT_NOERROR) {	/* Make filename with embedded object ID */
 				mexErrMsgTxt ("GMTMEX_pre_process: Failure to encode string\n");
@@ -497,7 +496,7 @@ int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs
 		if (PS && opt->option == GMT_OPT_OUTFILE) PS++;
 	}
 	if (n_items && n_items < n_alloc) info = realloc ((void *)info, n_items * sizeof (struct GMTMEX));
-	else if (n_items == 0) free ((void *)info);
+	else if (n_items == 0) free ((void *)info);	/* No containers used */
 	
 	if (PS == 1)	/* No redirection of PS to a file */
 		error = 1;
@@ -551,127 +550,129 @@ int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs
 			case GMT_IS_GRID:	/* Return grids via a float (mxSINGLE_CLASS) matrix in a struct */
 				if ((G = GMT_Retrieve_Data (API, X[item].ID)) == NULL)
 					mexErrMsgTxt ("Error retrieving grid from GMT\n");
-				/* Create a Matlab struct for this grid */
-				fieldnames[0]  = mxstrdup ("ProjectionRefPROJ4");
-				fieldnames[1]  = mxstrdup ("ProjectionRefWKT");
-				fieldnames[2]  = mxstrdup ("hdr");
-				fieldnames[3]  = mxstrdup ("range");
-				fieldnames[4]  = mxstrdup ("inc");
-				fieldnames[5]  = mxstrdup ("dim");
-				fieldnames[6]  = mxstrdup ("n_rows");
-				fieldnames[7]  = mxstrdup ("n_columns");
-				fieldnames[8]  = mxstrdup ("MinMax");
-				fieldnames[9]  = mxstrdup ("NoDataValue");
-				fieldnames[10] = mxstrdup ("registration");
-				fieldnames[11] = mxstrdup ("title");
-				fieldnames[12] = mxstrdup ("remark");
-				fieldnames[13] = mxstrdup ("command");
-				fieldnames[14] = mxstrdup ("DataType");
-				fieldnames[15] = mxstrdup ("LayerCount");
-				fieldnames[16] = mxstrdup ("x");
-				fieldnames[17] = mxstrdup ("y");
-				fieldnames[18] = mxstrdup ("z");
-				fieldnames[19] = mxstrdup ("x_units");
-				fieldnames[20] = mxstrdup ("y_units");
-				fieldnames[21] = mxstrdup ("z_units");
-				grid_struct = mxCreateStructMatrix (1, 1, 22, (const char **)fieldnames );
+				if (X[item].direction == GMT_OUT) {
+					/* Create a Matlab struct for this grid */
+					fieldnames[0]  = mxstrdup ("ProjectionRefPROJ4");
+					fieldnames[1]  = mxstrdup ("ProjectionRefWKT");
+					fieldnames[2]  = mxstrdup ("hdr");
+					fieldnames[3]  = mxstrdup ("range");
+					fieldnames[4]  = mxstrdup ("inc");
+					fieldnames[5]  = mxstrdup ("dim");
+					fieldnames[6]  = mxstrdup ("n_rows");
+					fieldnames[7]  = mxstrdup ("n_columns");
+					fieldnames[8]  = mxstrdup ("MinMax");
+					fieldnames[9]  = mxstrdup ("NoDataValue");
+					fieldnames[10] = mxstrdup ("registration");
+					fieldnames[11] = mxstrdup ("title");
+					fieldnames[12] = mxstrdup ("remark");
+					fieldnames[13] = mxstrdup ("command");
+					fieldnames[14] = mxstrdup ("DataType");
+					fieldnames[15] = mxstrdup ("LayerCount");
+					fieldnames[16] = mxstrdup ("x");
+					fieldnames[17] = mxstrdup ("y");
+					fieldnames[18] = mxstrdup ("z");
+					fieldnames[19] = mxstrdup ("x_units");
+					fieldnames[20] = mxstrdup ("y_units");
+					fieldnames[21] = mxstrdup ("z_units");
+					grid_struct = mxCreateStructMatrix (1, 1, 22, (const char **)fieldnames );
 
-				mxtmp = mxCreateString (G->header->ProjRefPROJ4);
-				mxSetField (grid_struct, 0, (const char *) "ProjectionRefPROJ4", mxtmp);
+					mxtmp = mxCreateString (G->header->ProjRefPROJ4);
+					mxSetField (grid_struct, 0, (const char *) "ProjectionRefPROJ4", mxtmp);
 
-				mxtmp = mxCreateString (G->header->ProjRefWKT);
-				mxSetField (grid_struct, 0, (const char *) "ProjectionRefWKT", mxtmp);
+					mxtmp = mxCreateString (G->header->ProjRefWKT);
+					mxSetField (grid_struct, 0, (const char *) "ProjectionRefWKT", mxtmp);
 
-				mxHeader    = mxCreateNumericMatrix (1, 9, mxDOUBLE_CLASS, mxREAL);
-				dptr = mxGetPr (mxHeader);
-				for (n = 0; n < 4; n++) dptr[n] = G->header->wesn[n];
-				dptr[4] = G->header->z_min;	dptr[5] = G->header->z_max;
-				dptr[6] = G->header->registration;
-				for (n = 0; n < 2; n++) dptr[n+7] = G->header->inc[n];
-				mxSetField (grid_struct, 0, "hdr", mxHeader);
+					mxHeader    = mxCreateNumericMatrix (1, 9, mxDOUBLE_CLASS, mxREAL);
+					dptr = mxGetPr (mxHeader);
+					for (n = 0; n < 4; n++) dptr[n] = G->header->wesn[n];
+					dptr[4] = G->header->z_min;	dptr[5] = G->header->z_max;
+					dptr[6] = G->header->registration;
+					for (n = 0; n < 2; n++) dptr[n+7] = G->header->inc[n];
+					mxSetField (grid_struct, 0, "hdr", mxHeader);
 
-				dptr = mxGetPr(mxtmp = mxCreateNumericMatrix (1, 4, mxDOUBLE_CLASS, mxREAL));
-				for (n = 0; n < 4; n++) dptr[n] = G->header->wesn[n];
-				mxSetField (grid_struct, 0, "range", mxtmp);
+					dptr = mxGetPr(mxtmp = mxCreateNumericMatrix (1, 4, mxDOUBLE_CLASS, mxREAL));
+					for (n = 0; n < 4; n++) dptr[n] = G->header->wesn[n];
+					mxSetField (grid_struct, 0, "range", mxtmp);
 
-				dptr = mxGetPr(mxtmp = mxCreateNumericMatrix (1, 2, mxDOUBLE_CLASS, mxREAL));
-				for (n = 0; n < 2; n++) dptr[n] = G->header->inc[n];
-				mxSetField (grid_struct, 0, "inc", mxtmp);
+					dptr = mxGetPr(mxtmp = mxCreateNumericMatrix (1, 2, mxDOUBLE_CLASS, mxREAL));
+					for (n = 0; n < 2; n++) dptr[n] = G->header->inc[n];
+					mxSetField (grid_struct, 0, "inc", mxtmp);
 
-				mxtmp = mxCreateDoubleScalar ((double)G->header->ny); 
-				mxSetField (grid_struct, 0, (const char *) "n_rows", mxtmp);
+					mxtmp = mxCreateDoubleScalar ((double)G->header->ny); 
+					mxSetField (grid_struct, 0, (const char *) "n_rows", mxtmp);
 
-				mxtmp = mxCreateDoubleScalar ((double)G->header->nx); 
-				mxSetField (grid_struct, 0, (const char *) "n_columns", mxtmp);
+					mxtmp = mxCreateDoubleScalar ((double)G->header->nx); 
+					mxSetField (grid_struct, 0, (const char *) "n_columns", mxtmp);
 
-				dptr = mxGetPr(mxtmp = mxCreateNumericMatrix (1, 2, mxDOUBLE_CLASS, mxREAL));
-				dptr[0] = G->header->z_min;	dptr[1] = G->header->z_max;
-				mxSetField (grid_struct, 0, "MinMax", mxtmp);
+					dptr = mxGetPr(mxtmp = mxCreateNumericMatrix (1, 2, mxDOUBLE_CLASS, mxREAL));
+					dptr[0] = G->header->z_min;	dptr[1] = G->header->z_max;
+					mxSetField (grid_struct, 0, "MinMax", mxtmp);
 
-				mxtmp = mxCreateDoubleScalar ((double)G->header->nan_value); 
-				mxSetField (grid_struct, 0, (const char *) "NoDataValue", mxtmp);
+					mxtmp = mxCreateDoubleScalar ((double)G->header->nan_value); 
+					mxSetField (grid_struct, 0, (const char *) "NoDataValue", mxtmp);
 
-				dptr = mxGetPr(mxtmp = mxCreateNumericMatrix (1, 2, mxDOUBLE_CLASS, mxREAL));
-				dptr[0] = G->header->ny;	dptr[1] = G->header->nx;
-				mxSetField (grid_struct, 0, "dim", mxtmp);
+					dptr = mxGetPr(mxtmp = mxCreateNumericMatrix (1, 2, mxDOUBLE_CLASS, mxREAL));
+					dptr[0] = G->header->ny;	dptr[1] = G->header->nx;
+					mxSetField (grid_struct, 0, "dim", mxtmp);
 
-				mxtmp = mxCreateDoubleScalar ((double)G->header->registration); 
-				mxSetField (grid_struct, 0, (const char *) "registration", mxtmp);
+					mxtmp = mxCreateDoubleScalar ((double)G->header->registration); 
+					mxSetField (grid_struct, 0, (const char *) "registration", mxtmp);
 
-				mxtmp = mxCreateString (G->header->title);
-				mxSetField (grid_struct, 0, (const char *) "title", mxtmp);
+					mxtmp = mxCreateString (G->header->title);
+					mxSetField (grid_struct, 0, (const char *) "title", mxtmp);
 
-				mxtmp = mxCreateString (G->header->command);
-				mxSetField (grid_struct, 0, (const char *) "command", mxtmp);
+					mxtmp = mxCreateString (G->header->command);
+					mxSetField (grid_struct, 0, (const char *) "command", mxtmp);
 
-				mxtmp = mxCreateString (G->header->remark);
-				mxSetField (grid_struct, 0, (const char *) "remark", mxtmp);
+					mxtmp = mxCreateString (G->header->remark);
+					mxSetField (grid_struct, 0, (const char *) "remark", mxtmp);
 
-				mxtmp = mxCreateString ("float32");
-				mxSetField (grid_struct, 0, (const char *) "DataType", mxtmp);
+					mxtmp = mxCreateString ("float32");
+					mxSetField (grid_struct, 0, (const char *) "DataType", mxtmp);
 
-				mxtmp = mxCreateDoubleScalar ((double)G->header->n_bands); 
-				mxSetField (grid_struct, 0, (const char *) "LayerCount", mxtmp);
+					mxtmp = mxCreateDoubleScalar ((double)G->header->n_bands); 
+					mxSetField (grid_struct, 0, (const char *) "LayerCount", mxtmp);
 
-				mxtmp = mxCreateString (G->header->x_units);
-				mxSetField (grid_struct, 0, (const char *) "x_units", mxtmp);
+					mxtmp = mxCreateString (G->header->x_units);
+					mxSetField (grid_struct, 0, (const char *) "x_units", mxtmp);
 
-				mxtmp = mxCreateString (G->header->y_units);
-				mxSetField (grid_struct, 0, (const char *) "y_units", mxtmp);
+					mxtmp = mxCreateString (G->header->y_units);
+					mxSetField (grid_struct, 0, (const char *) "y_units", mxtmp);
 
-				mxtmp = mxCreateString (G->header->z_units);
-				mxSetField (grid_struct, 0, (const char *) "z_units", mxtmp);
+					mxtmp = mxCreateString (G->header->z_units);
+					mxSetField (grid_struct, 0, (const char *) "z_units", mxtmp);
 
-				if (!G->data)
-					mexErrMsgTxt ("GMTMEX_post_process: programming error, output matrix G is empty\n");
+					if (!G->data)
+						mexErrMsgTxt ("GMTMEX_post_process: programming error, output matrix G is empty\n");
 
-				mxGrd = mxCreateNumericMatrix (G->header->ny, G->header->nx, mxSINGLE_CLASS, mxREAL);
-				f = mxGetData (mxGrd);
-				/* Load the real grd array into a double matlab array by transposing 
-			           from unpadded GMT grd format to unpadded matlab format */
-				for (gmt_ij = row = 0; row < G->header->ny; row++)
-					for (col = 0; col < G->header->nx; col++, gmt_ij++)
-						f[MEXG_IJ(G,row,col)] = G->data[gmt_ij];
-				mxSetField (grid_struct, 0, "z", mxGrd);
+					mxGrd = mxCreateNumericMatrix (G->header->ny, G->header->nx, mxSINGLE_CLASS, mxREAL);
+					f = mxGetData (mxGrd);
+					/* Load the real grd array into a double matlab array by transposing 
+				           from unpadded GMT grd format to unpadded matlab format */
+					for (gmt_ij = row = 0; row < G->header->ny; row++)
+						for (col = 0; col < G->header->nx; col++, gmt_ij++)
+							f[MEXG_IJ(G,row,col)] = G->data[gmt_ij];
+					mxSetField (grid_struct, 0, "z", mxGrd);
 
-				/* Also return x and y arrays */
-				G_x = GMT_Get_Coord (API, GMT_IS_GRID, GMT_X, G);	/* Get array of x coordinates */
-				G_y = GMT_Get_Coord (API, GMT_IS_GRID, GMT_Y, G);	/* Get array of y coordinates */
-				mx_x = mxCreateNumericMatrix (1, G->header->nx, mxDOUBLE_CLASS, mxREAL);
-				mx_y = mxCreateNumericMatrix (1, G->header->ny, mxDOUBLE_CLASS, mxREAL);
-				x = mxGetData (mx_x);
-				y = mxGetData (mx_y);
-				memcpy (x, G_x, G->header->nx * sizeof (double));
-				for (n = 0; n < G->header->ny; n++) y[G->header->ny-1-n] = G_y[n]; 
-				if (GMT_Destroy_Data (API, &G_x))
-					mexPrintf("Warning: Failure to delete G_x (x coordinate vector)\n");
-				if (GMT_Destroy_Data (API, &G_y))
-					mexPrintf("Warning: Failure to delete G_y (y coordinate vector)\n");
-				mxSetField (grid_struct, 0, "x", mx_x);
-				mxSetField (grid_struct, 0, "y", mx_y);
-				plhs[k] = grid_struct;
+					/* Also return x and y arrays */
+					G_x = GMT_Get_Coord (API, GMT_IS_GRID, GMT_X, G);	/* Get array of x coordinates */
+					G_y = GMT_Get_Coord (API, GMT_IS_GRID, GMT_Y, G);	/* Get array of y coordinates */
+					mx_x = mxCreateNumericMatrix (1, G->header->nx, mxDOUBLE_CLASS, mxREAL);
+					mx_y = mxCreateNumericMatrix (1, G->header->ny, mxDOUBLE_CLASS, mxREAL);
+					x = mxGetData (mx_x);
+					y = mxGetData (mx_y);
+					memcpy (x, G_x, G->header->nx * sizeof (double));
+					for (n = 0; n < G->header->ny; n++) y[G->header->ny-1-n] = G_y[n]; 
+					if (GMT_Destroy_Data (API, &G_x))
+						mexPrintf("Warning: Failure to delete G_x (x coordinate vector)\n");
+					if (GMT_Destroy_Data (API, &G_y))
+						mexPrintf("Warning: Failure to delete G_y (y coordinate vector)\n");
+					mxSetField (grid_struct, 0, "x", mx_x);
+					mxSetField (grid_struct, 0, "y", mx_y);
+					plhs[k] = grid_struct;
+				}
 				if (GMT_Destroy_Data (API, &G) != GMT_NOERROR)
-					mexErrMsgTxt ("GMTMEX_post_process: Failed to destroy grid G retrieved from GMT\n");
+					mexErrMsgTxt ("GMTMEX_post_process: Failed to destroy grid G used in the interface bewteen GMT and Matlab\n");
 				break;
 
 			case GMT_IS_DATASET:	/* Return tables with double (mxDOUBLE_CLASS) matrix */
