@@ -328,17 +328,18 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
 {	/* Used to Create an empty Matrix container and associate it with a Matlab matrix.
  	 * If direction is GMT_IN then we are given a Matlab matrix and can determine size etc.
 	 * If output then we dont know size but we can specify type */
-	uint64_t dim[2] = {0, 0};
+	uint64_t dim[2] = {0, 0}, *this_dim = NULL;
 	unsigned int mode = 0;
 	struct GMT_MATRIX *M = NULL;
 	if (direction == GMT_IN) {	/* Dimensions are known */
 		if (!mxIsNumeric (ptr)) mexErrMsgTxt ("Expected a Matrix for input\n");
 		dim[0] = mxGetN (ptr);
 		dim[1] = mxGetM (ptr);
+		this_dim = dim;
 	}
 	else	/* There are no dimensions yet, as we are getting data as output */
 		mode = GMT_VIA_OUTPUT;
-	if ((M = GMT_Create_Data (API, GMT_IS_MATRIX, GMT_IS_SURFACE, mode, NULL, NULL, NULL, 0, 0, NULL)) == NULL)
+	if ((M = GMT_Create_Data (API, GMT_IS_MATRIX, GMT_IS_SURFACE, mode, this_dim, NULL, NULL, 0, 0, NULL)) == NULL)
 		mexErrMsgTxt ("GMTMEX_matrix_init: Failure to alloc GMT source matrix\n");
 
 	GMT_Report (API, GMT_MSG_DEBUG, " Allocate GMT Matrix %lx in gmtmex_parser\n", (long)M);
