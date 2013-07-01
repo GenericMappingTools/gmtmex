@@ -169,7 +169,7 @@ unsigned int gmtmex_get_key_pos (char *key[], unsigned int n_keys, struct GMT_OP
 		//flavor = (key[pos][0] == '<' || key[pos][0] == '>') ? 0 : 1;
 		flavor = (key[pos][0] == '<') ? 0 : 1;
 		if ((key[pos][2] == 'I' || key[pos][2] == 'i') && key[pos][0] == '-')
-			/* This program takes no input (e.g., psbasemap) */
+			/* This program takes no input (e.g., psbasemap, pscoast) */
 			def[GMT_IN][0] = def[GMT_IN][1]  = GMT_MEX_NONE;
 		else if (key[pos][2] == 'I' && def[GMT_IN][flavor] == GMT_MEX_IMPLICIT)
 			/* Must add implicit input; use def to determine option,type */
@@ -334,7 +334,7 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
 	}
 	else
 		mode = GMT_VIA_OUTPUT;
-	if ((M = GMT_Create_Data (API, GMT_IS_MATRIX, GMT_IS_SURFACE, mode, dim, NULL, NULL, 0, 0, NULL)) == NULL)
+	if ((M = GMT_Create_Data (API, GMT_IS_MATRIX, GMT_IS_SURFACE, mode, NULL, NULL, NULL, 0, 0, NULL)) == NULL)
 		mexErrMsgTxt ("GMTMEX_matrix_init: Failure to alloc GMT source matrix\n");
 
 	GMT_Report (API, GMT_MSG_DEBUG, " Allocate GMT Matrix %lx in gmtmex_parser\n", (long)M);
