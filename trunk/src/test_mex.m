@@ -14,10 +14,10 @@ try
 		switch opt{k}
 			case 'gmtread'		% 
 				gmtread;
-			case 'minmax'
-				minmax;
 			case 'pscoast'
 				pscoast
+			case 'minmax'
+				minmax;
 			case 'surface'
 				surface;
 		end
