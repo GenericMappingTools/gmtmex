@@ -37,20 +37,20 @@ function G = gmtread()
 function G = surface()
 	t = rand(100,3) * 100;
 	gmt('create')
-	gmt('surface -R0/150/0/100 -I1 -Glixo.grd', t);
-	G = gmt('surface -R0/150/0/100 -I1', t);
-	%G = gmt('surface -R0/150/0/100 -I1 -G', t);		% This crashes
+	gmt('surface -R0/150/0/100 -I1 -Glixo.grd -V', t);
+	G = gmt('surface -R0/150/0/100 -I1 -V', t);
+	%G = gmt('surface -R0/150/0/100 -I1 -G -V', t);		% This crashes
 	gmt('destroy')
 
 function pscoast()
 	gmt('create')
-	gmt('pscoast -R110/140/20/35 -JB125/20/25/45/5i -Bag -Dl -Ggreen -Wthinnest -A250 -P > GMT_albers.ps')
+	gmt('pscoast -R110/140/20/35 -JB125/20/25/45/5i -Bag -Dl -Ggreen -Wthinnest -A250 -P -V > GMT_albers.ps')
 	gmt('destroy')
 
 function minmax()
 	t = rand(100,3) * 100;
 	gmt('create')
-	r = gmt('minmax', t);
+	r = gmt('minmax -V', t);
 	disp(['minmax of random 0-100 is ' r])
 	gmt('destroy')
 
