@@ -179,7 +179,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	/* 4. Convert mex command line arguments to a linked option list */
 	while (cmd[k] == ' ') k++;	/* Skip any spaces between modules and start of options */
 	opt_args = (cmd[k]) ? &cmd[k] : NULL;
-	if ((options = GMT_Create_Options (API, 0, opt_args)) == NULL)
+	if (opt_args && (options = GMT_Create_Options (API, 0, opt_args)) == NULL)
 		mexErrMsgTxt ("Failure to parse GMT5 command options\n");
 
 	/* 5. Parse the mex command, update GMT option lists, and register in/out resources, and return X array */
