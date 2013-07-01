@@ -457,6 +457,9 @@ int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs
 			if (given[direction][flavor] == GMT_MEX_EXPLICIT) continue;	/* Source or destination was set explicitly; skip */
 			/* Must add the primary input or output from prhs[0] or plhs[0] */
 			/* Get info about the data set */
+			if (given[direction][flavor] < 0) {
+				mexErrMsgTxt ("GMTMEX_pre_process: I am stoping here instead of crashing Matlab.\n\t\t'given[direction][flavor]' is negative\n");
+			}
 			(void)gmtmex_get_arg_dir (key[given[direction][flavor]][0], key, n_keys, &data_type, &geometry);
 			/* Pick the next left or right side pointer */
 			ptr = (direction == GMT_IN) ? (void *)prhs[lr_pos[direction]] : (void *)plhs[lr_pos[direction]];
