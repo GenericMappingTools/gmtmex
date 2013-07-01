@@ -310,12 +310,16 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 		GMT_Report (API, GMT_MSG_DEBUG, " Allocate GMT Grid %lx in gmtmex_parser\n", (long)G);
 		GMT_Report (API, GMT_MSG_DEBUG, " Registered GMT Grid array %lx via memory reference from Matlab\n", (long)G->data);
 	}
-	else {	/* Set dummy range and inc so that GMT_check_region in GMT_Register_IO will accept the settings (will be reset when grid is read)  */
+	else {	/* Just allocate an empty container to hold the output grid */
+#if 0		/* Set dummy range and inc so that GMT_check_region in GMT_Register_IO will accept the settings (will be reset when grid is read)  */
 		double range[4] = {0.0, 0.0, 0.0, 0.0}, inc[2] = {1.0, 1.0};
 		unsigned int registration = GMT_GRID_NODE_REG;
 		if ((G = GMT_Create_Data (API, GMT_IS_GRID, GMT_IS_SURFACE, GMT_GRID_HEADER_ONLY | 
                                           GMT_VIA_OUTPUT, NULL, range, inc, registration, 0, NULL)) == NULL)
-			mexErrMsgTxt ("GMTMEX_grid_init: Failure to alloc GMT source matrix for output\n");
+#endif
+		if ((G = GMT_Create_Data (API, GMT_IS_GRID, GMT_IS_SURFACE, GMT_GRID_HEADER_ONLY | 
+                         GMT_VIA_OUTPUT, NULL, NULL, NULL, 0, 0, NULL)) == NULL)
+			mexErrMsgTxt ("GMTMEX_grid_init: Failure to alloc GMT blank grid container for holding output grid\n");
 	}
 	return (G);
 }
@@ -332,7 +336,7 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
 		dim[0] = mxGetN (ptr);
 		dim[1] = mxGetM (ptr);
 	}
-	else
+	else	/* There are no dimensions yet, as we are getting data as output */
 		mode = GMT_VIA_OUTPUT;
 	if ((M = GMT_Create_Data (API, GMT_IS_MATRIX, GMT_IS_SURFACE, mode, NULL, NULL, NULL, 0, 0, NULL)) == NULL)
 		mexErrMsgTxt ("GMTMEX_matrix_init: Failure to alloc GMT source matrix\n");
@@ -340,9 +344,11 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
 	GMT_Report (API, GMT_MSG_DEBUG, " Allocate GMT Matrix %lx in gmtmex_parser\n", (long)M);
 	M->n_rows    = dim[1];
 	M->n_columns = dim[0];
+#if 0	/* No longer needed */
 	/* Set a silly range so that GMT_check_region in GMT_Register_IO will pass */
 	M->range[GMT_XLO] = M->range[GMT_YLO] = 1.0;
 	M->range[GMT_XHI] = (double)M->n_columns;	M->range[GMT_YHI] = (double)M->n_rows;
+#endif
 	if (direction == GMT_IN) {	/* We can inquire about the input */
 		if (mxIsDouble(ptr)) {
 			M->type = GMT_DOUBLE;
@@ -371,7 +377,7 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
 		M->dim = M->n_rows;	// This is actualy wrong if input data is scanline as for Octave oct
 		M->alloc_mode = GMT_ALLOCATED_EXTERNALLY;	/* Since matrix was allocated by Matlab */
 	}
-	else {	/* On output we produce singles */
+	else {	/* On output we produce single precision */
 		M->type = GMT_FLOAT;
 	}
 	return (M);
@@ -393,7 +399,7 @@ int GMTMEX_Register_IO (void *API, unsigned int data_type, unsigned int geometry
 			/* Get a matrix container and associate it with the Matlab pointer (if input) */
 			M = GMTMEX_matrix_init (API, direction, ptr);
 			if ((ID = GMT_Register_IO (API, GMT_IS_DATASET, GMT_IS_REFERENCE + GMT_VIA_MATRIX,
-                                                   geometry, direction, NULL, M)) == GMT_NOTSET) {
+                                  geometry, direction, NULL, M)) == GMT_NOTSET) {
 				mexErrMsgTxt ("GMTMEX_pre_process: Failure to register GMT matrix source or destination\n");
 			}
 			break;
