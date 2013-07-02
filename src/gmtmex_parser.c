@@ -311,12 +311,6 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 		GMT_Report (API, GMT_MSG_DEBUG, " Registered GMT Grid array %lx via memory reference from Matlab\n", (long)G->data);
 	}
 	else {	/* Just allocate an empty container to hold the output grid */
-#if 0		/* Set dummy range and inc so that GMT_check_region in GMT_Register_IO will accept the settings (will be reset when grid is read)  */
-		double range[4] = {0.0, 0.0, 0.0, 0.0}, inc[2] = {1.0, 1.0};
-		unsigned int registration = GMT_GRID_NODE_REG;
-		if ((G = GMT_Create_Data (API, GMT_IS_GRID, GMT_IS_SURFACE, GMT_GRID_HEADER_ONLY | 
-                                          GMT_VIA_OUTPUT, NULL, range, inc, registration, 0, NULL)) == NULL)
-#endif
 		if ((G = GMT_Create_Data (API, GMT_IS_GRID, GMT_IS_SURFACE, GMT_GRID_HEADER_ONLY | 
                          GMT_VIA_OUTPUT, NULL, NULL, NULL, 0, 0, NULL)) == NULL)
 			mexErrMsgTxt ("GMTMEX_grid_init: Failure to alloc GMT blank grid container for holding output grid\n");
@@ -345,11 +339,6 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
 	GMT_Report (API, GMT_MSG_DEBUG, " Allocate GMT Matrix %lx in gmtmex_parser\n", (long)M);
 	M->n_rows    = dim[1];
 	M->n_columns = dim[0];
-#if 0	/* No longer needed */
-	/* Set a silly range so that GMT_check_region in GMT_Register_IO will pass */
-	M->range[GMT_XLO] = M->range[GMT_YLO] = 1.0;
-	M->range[GMT_XHI] = (double)M->n_columns;	M->range[GMT_YHI] = (double)M->n_rows;
-#endif
 	if (direction == GMT_IN) {	/* We can inquire about the input */
 		if (mxIsDouble(ptr)) {
 			M->type = GMT_DOUBLE;
