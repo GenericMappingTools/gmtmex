@@ -322,7 +322,7 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
 {	/* Used to Create an empty Matrix container and associate it with a Matlab matrix.
  	 * If direction is GMT_IN then we are given a Matlab matrix and can determine size etc.
 	 * If output then we dont know size but we can specify type */
-	uint64_t dim[2] = {0, 0}, *this_dim = NULL;
+	uint64_t dim[3] = {0, 0, 1}, *this_dim = NULL;
 	unsigned int mode = 0;
 	struct GMT_MATRIX *M = NULL;
 	if (direction == GMT_IN) {	/* Dimensions are known */
