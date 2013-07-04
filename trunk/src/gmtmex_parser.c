@@ -320,9 +320,10 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 
 struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const mxArray *ptr)
 {	/* Used to Create an empty Matrix container and associate it with a Matlab matrix.
+ 	 * Note that in GMT these will be considered DATASETs via GMT_MATRIX.
  	 * If direction is GMT_IN then we are given a Matlab matrix and can determine size etc.
 	 * If output then we dont know size but we can specify type */
-	uint64_t dim[3] = {0, 0, 1}, *this_dim = NULL;
+	uint64_t dim[3] = {0, 0, 0}, *this_dim = NULL;
 	unsigned int mode = 0;
 	struct GMT_MATRIX *M = NULL;
 	if (direction == GMT_IN) {	/* Dimensions are known */
@@ -333,7 +334,7 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
 	}
 	else	/* There are no dimensions yet, as we are getting data as output */
 		mode = GMT_VIA_OUTPUT;
-	if ((M = GMT_Create_Data (API, GMT_IS_MATRIX, GMT_IS_SURFACE, mode, this_dim, NULL, NULL, 0, 0, NULL)) == NULL)
+	if ((M = GMT_Create_Data (API, GMT_IS_MATRIX, GMT_IS_PLP, mode, this_dim, NULL, NULL, 0, 0, NULL)) == NULL)
 		mexErrMsgTxt ("GMTMEX_matrix_init: Failure to alloc GMT source matrix\n");
 
 	GMT_Report (API, GMT_MSG_DEBUG, " Allocate GMT Matrix %lx in gmtmex_parser\n", (long)M);
@@ -388,10 +389,13 @@ int GMTMEX_Register_IO (void *API, unsigned int data_type, unsigned int geometry
 		case GMT_IS_DATASET:
 			/* Get a matrix container and associate it with the Matlab pointer (if input) */
 			M = GMTMEX_matrix_init (API, direction, ptr);
+			ID = GMT_Get_ID (API, GMT_IS_DATASET, direction, M);
+#if 0
 			if ((ID = GMT_Register_IO (API, GMT_IS_DATASET, GMT_IS_REFERENCE + GMT_VIA_MATRIX,
                                   geometry, direction, NULL, M)) == GMT_NOTSET) {
 				mexErrMsgTxt ("GMTMEX_pre_process: Failure to register GMT matrix source or destination\n");
 			}
+#endif
 			break;
 		default:
 			mexErrMsgTxt ("GMTMEX_pre_process: Bad data type\n");
@@ -549,7 +553,7 @@ int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs
 			case GMT_IS_GRID:	/* Return grids via a float (mxSINGLE_CLASS) matrix in a struct */
 				if ((G = GMT_Retrieve_Data (API, X[item].ID)) == NULL)
 					mexErrMsgTxt ("Error retrieving grid from GMT\n");
-				if (X[item].direction == GMT_OUT) {
+				if (X[item].direction == GMT_OUT) {	/* Here, GMT_OUT means "Return this info to Matlab" */
 					/* Create a Matlab struct for this grid */
 					fieldnames[0]  = mxstrdup ("ProjectionRefPROJ4");
 					fieldnames[1]  = mxstrdup ("ProjectionRefWKT");
@@ -670,6 +674,7 @@ int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs
 					mxSetField (grid_struct, 0, "y", mx_y);
 					plhs[k] = grid_struct;
 				}
+				/* We always destroy G at this point, whether input or output */
 				if (GMT_Destroy_Data (API, &G) != GMT_NOERROR)
 					mexErrMsgTxt ("GMTMEX_post_process: Failed to destroy grid G used in the interface bewteen GMT and Matlab\n");
 				break;
@@ -677,14 +682,17 @@ int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs
 			case GMT_IS_DATASET:	/* Return tables with double (mxDOUBLE_CLASS) matrix */
 				if ((M = GMT_Retrieve_Data (API, X[item].ID)) == NULL)
 					mexErrMsgTxt ("Error retrieving matrix from GMT\n");
-				/* Create a Matlab matrix to hold this GMT matrix */
-				plhs[k] = mxCreateNumericMatrix (M->n_rows, M->n_columns, mxDOUBLE_CLASS, mxREAL);
-				d = mxGetData (plhs[k]);
-				/* Load the real data matrix into a double matlab array copying columns */
-				for (col = 0; col < M->n_columns; col++)
-					memcpy (&d[M->n_rows*col], M->data.f8, M->n_rows * sizeof(double));
+				if (X[item].direction == GMT_OUT) {	/* Here, GMT_OUT means "Return this info to Matlab" */
+					/* Create a Matlab matrix to hold this GMT matrix */
+					plhs[k] = mxCreateNumericMatrix (M->n_rows, M->n_columns, mxDOUBLE_CLASS, mxREAL);
+					d = mxGetData (plhs[k]);
+					/* Load the real data matrix into a double matlab array copying columns */
+					for (col = 0; col < M->n_columns; col++)
+						memcpy (&d[M->n_rows*col], M->data.f8, M->n_rows * sizeof(double));
+				}
+				/* We always destroy M at this point, whether input or output */
 				if (GMT_Destroy_Data (API, &M) != GMT_NOERROR)
-					mexErrMsgTxt ("GMTMEX_post_process: Failed to destroy matrix M retrieved from GMT\n");
+					mexErrMsgTxt ("GMTMEX_post_process: Failed to destroy matrix M used in the interface bewteen GMT and Matlab\n");
 				break;
 		}
 	}
