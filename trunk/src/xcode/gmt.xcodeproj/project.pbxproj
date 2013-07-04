@@ -157,6 +157,11 @@
 				LIBRARY_SEARCH_PATHS = "$(MATLABROOT)/bin/maci64";
 				MACH_O_TYPE = mh_bundle;
 				New_Setting = "";
+				"OTHER_CFLAGS[arch=*]" = (
+					"-I/usr/local/include",
+					"-g",
+					"-DGMT_MATLAB",
+				);
 				OTHER_LDFLAGS = (
 					"-L/usr/local/lib",
 					"-lgmt",
@@ -184,6 +189,11 @@
 				LIBRARY_SEARCH_PATHS = "$(MATLABROOT)/bin/maci64";
 				MACH_O_TYPE = mh_bundle;
 				New_Setting = "";
+				"OTHER_CFLAGS[arch=*]" = (
+					"-I/usr/local/include",
+					"-g",
+					"-DGMT_MATLAB",
+				);
 				OTHER_LDFLAGS = (
 					"-L/usr/local/lib",
 					"-lgmt",
