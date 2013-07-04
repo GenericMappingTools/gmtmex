@@ -340,6 +340,11 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
 	GMT_Report (API, GMT_MSG_DEBUG, " Allocate GMT Matrix %lx in gmtmex_parser\n", (long)M);
 	M->n_rows    = dim[1];
 	M->n_columns = dim[0];
+#ifdef GMT_MATLAB
+	M->shape = GMT_IS_COL_FORMAT;
+#else
+	M->shape = GMT_IS_ROW_FORMAT;
+#endif
 	if (direction == GMT_IN) {	/* We can inquire about the input */
 		if (mxIsDouble(ptr)) {
 			M->type = GMT_DOUBLE;
@@ -364,13 +369,16 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
 		else
 			mexErrMsgTxt ("Unsupported data type in GMT matrix input.");
 
-		M->shape = GMT_IS_COL_FORMAT;
-		M->dim = M->n_rows;	// This is actualy wrong if input data is scanline as for Octave oct
+#ifdef GMT_MATLAB
+		M->dim = M->n_rows;
+#else
+		M->dim = M->n_columns;
+#endif
 		M->alloc_mode = GMT_ALLOCATED_EXTERNALLY;	/* Since matrix was allocated by Matlab */
 	}
-	else {	/* On output we produce single precision */
-		M->type = GMT_FLOAT;
-	}
+	else	/* On output we produce double precision */
+		M->type = GMT_DOUBLE;
+
 	return (M);
 }
 
@@ -686,9 +694,11 @@ int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs
 					/* Create a Matlab matrix to hold this GMT matrix */
 					plhs[k] = mxCreateNumericMatrix (M->n_rows, M->n_columns, mxDOUBLE_CLASS, mxREAL);
 					d = mxGetData (plhs[k]);
-					/* Load the real data matrix into a double matlab array copying columns */
-					for (col = 0; col < M->n_columns; col++)
-						memcpy (&d[M->n_rows*col], M->data.f8, M->n_rows * sizeof(double));
+					/* Duplicate the double data matrix into the matlab double array*/
+					memcpy (d, M->data.f8, M->n_rows * M->n_columns * sizeof(double));
+			//		/* Load the real data matrix into a double matlab array copying columns */
+			//		for (col = 0; col < M->n_columns; col++)
+			//			memcpy (&d[M->n_rows*col], M->data.f8, M->n_rows * sizeof(double));
 				}
 				/* We always destroy M at this point, whether input or output */
 				if (GMT_Destroy_Data (API, &M) != GMT_NOERROR)
