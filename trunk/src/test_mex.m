@@ -39,7 +39,7 @@ function G = surface()
 	gmt('create')
 	gmt('surface -R0/150/0/100 -I1 -Glixo.grd -V', t);
 	G = gmt('surface -R0/150/0/100 -I1 -V', t);
-	%G = gmt('surface -R0/150/0/100 -I1 -G -V', t);		% This crashes
+	G = gmt('surface -R0/150/0/100 -I1 -G -V', t);
 	gmt('destroy')
 
 function pscoast()
@@ -50,7 +50,7 @@ function pscoast()
 function minmax()
 	t = rand(100,3) * 100;
 	gmt('create')
-	r = gmt('minmax -V', t);
-	disp(['minmax of random 0-100 is ' r])
+	r = gmt('minmax -C -V', t);
+	disp(['minmax of random 0-100 is ' num2str(r)])
 	gmt('destroy')
 

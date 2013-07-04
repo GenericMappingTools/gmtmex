@@ -76,12 +76,19 @@ int ID_rhs = 0;
 #define GMT_IS_PS	99	/* Use for PS output; use GMT_IS_GRID or GMT_IS_DATASET for data */
 
 
-/* Macros for getting the Matlab/Octave ij that correspond to (row,col) [no pad involved] */
+#ifdef GMT_MATLAB
+/* Macros for getting the Matlab ij that correspond to (row,col) [no pad involved] */
 /* This one operates on GMT_MATRIX */
-#define MEXM_IJ(M,row,col) ((col)*M->n_rows + M->n_rows - (row) - 1)
-
+#define MEXM_IJ(M,row,col) ((col)*M->n_rows + (row))
 /* And this on GMT_GRID */
 #define MEXG_IJ(M,row,col) ((col)*M->header->ny + M->header->ny - (row) - 1)
+#else
+/* Macros for getting the Octave ij that correspond to (row,col) [no pad involved] */
+/* This one operates on GMT_MATRIX */
+#define MEXM_IJ(M,row,col) ((row)*M->n_columns + (col))
+/* And this on GMT_GRID */
+#define MEXG_IJ(M,row,col) ((row)*M->header->nx + (col))
+#endif
 
 int GMTMEX_find_module (void *API, char *module)
 {	/* Just search for module and return entry in keys array */
@@ -340,11 +347,6 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
 	GMT_Report (API, GMT_MSG_DEBUG, " Allocate GMT Matrix %lx in gmtmex_parser\n", (long)M);
 	M->n_rows    = dim[1];
 	M->n_columns = dim[0];
-#ifdef GMT_MATLAB
-	M->shape = GMT_IS_COL_FORMAT;
-#else
-	M->shape = GMT_IS_ROW_FORMAT;
-#endif
 	if (direction == GMT_IN) {	/* We can inquire about the input */
 		if (mxIsDouble(ptr)) {
 			M->type = GMT_DOUBLE;
@@ -368,16 +370,20 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
 		}
 		else
 			mexErrMsgTxt ("Unsupported data type in GMT matrix input.");
-
+		/* Data from Matlab is in col format and from Octave in row format */
 #ifdef GMT_MATLAB
 		M->dim = M->n_rows;
 #else
 		M->dim = M->n_columns;
 #endif
 		M->alloc_mode = GMT_ALLOCATED_EXTERNALLY;	/* Since matrix was allocated by Matlab */
+		M->shape = MEX_COL_ORDER;			/* Either col or row order, depending on Matlab/Octave */
 	}
-	else	/* On output we produce double precision */
+	else {	/* On output we produce double precision */
 		M->type = GMT_DOUBLE;
+		/* Data from GMT must be in row format since we may not know n_rows until later! */
+		M->shape = GMT_IS_ROW_FORMAT;
+	}
 
 	return (M);
 }
@@ -543,7 +549,7 @@ int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs
 {	/* Get the data from GMT output items into the corresponding Matlab struct or matrix */
 	int item, k, n;
 	unsigned int row, col;
-	uint64_t gmt_ij;
+	uint64_t gmt_ij, mex_ij;
 	float  *f = NULL;
 	double *d = NULL, *dptr = NULL, *G_x = NULL, *G_y = NULL, *x = NULL, *y = NULL;
 	struct GMT_GRID *G = NULL;
@@ -694,8 +700,17 @@ int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs
 					/* Create a Matlab matrix to hold this GMT matrix */
 					plhs[k] = mxCreateNumericMatrix (M->n_rows, M->n_columns, mxDOUBLE_CLASS, mxREAL);
 					d = mxGetData (plhs[k]);
-					/* Duplicate the double data matrix into the matlab double array*/
-					memcpy (d, M->data.f8, M->n_rows * M->n_columns * sizeof(double));
+					/* Duplicate the double data matrix into the matlab double array */
+					if (M->shape == MEX_COL_ORDER)	/* Easy, just copy */
+						memcpy (d, M->data.f8, M->n_rows * M->n_columns * sizeof (double));
+					else {	/* Must transpose */
+						for (gmt_ij = row = 0; row < M->n_rows; row++) {
+							for (col = 0; col < M->n_columns; col++, gmt_ij++) {
+								mex_ij = MEXM_IJ (M, row, col);
+								d[mex_ij] = M->data.f8[gmt_ij];
+							}
+						}
+					}
 			//		/* Load the real data matrix into a double matlab array copying columns */
 			//		for (col = 0; col < M->n_columns; col++)
 			//			memcpy (&d[M->n_rows*col], M->data.f8, M->n_rows * sizeof(double));
