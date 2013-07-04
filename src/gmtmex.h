@@ -37,8 +37,10 @@
 #endif
 #ifdef GMT_MATLAB
 #define MEX_PROG "Matlab"
+#define MEX_COL_ORDER GMT_IS_COL_FORMAT
 #else
 #define MEX_PROG "Octave"
+#define MEX_COL_ORDER GMT_IS_ROW_FORMAT
 #endif
 
 #ifndef MIN
