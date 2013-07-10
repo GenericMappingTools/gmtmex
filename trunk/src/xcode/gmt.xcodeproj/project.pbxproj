@@ -154,11 +154,15 @@
 				DYLIB_CURRENT_VERSION = "";
 				EXECUTABLE_EXTENSION = mexmaci64;
 				HEADER_SEARCH_PATHS = "$(MATLABROOT)/extern/include";
+				"HEADER_SEARCH_PATHS[arch=*]" = (
+					/usr/local/include/gmt,
+					"$(MATLABROOT)/extern/include",
+				);
 				LIBRARY_SEARCH_PATHS = "$(MATLABROOT)/bin/maci64";
 				MACH_O_TYPE = mh_bundle;
 				New_Setting = "";
 				"OTHER_CFLAGS[arch=*]" = (
-					"-I/usr/local/include",
+					"-I/usr/local/include/gmt",
 					"-g",
 					"-DGMT_MATLAB",
 				);
@@ -173,7 +177,9 @@
 					"-L/usr/local/lib",
 					"-lgmt",
 				);
+				PRIVATE_HEADERS_FOLDER_PATH = /usr/local/include/gmt;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PUBLIC_HEADERS_FOLDER_PATH = /usr/local/include/gmt;
 				SYMROOT = "$(SRCROOT)/build/$(CONFIGURATION)";
 			};
 			name = Debug;
@@ -185,12 +191,16 @@
 				DYLIB_COMPATIBILITY_VERSION = "";
 				DYLIB_CURRENT_VERSION = "";
 				EXECUTABLE_EXTENSION = mexmaci64;
-				HEADER_SEARCH_PATHS = "$(MATLABROOT)/extern/include";
+				HEADER_SEARCH_PATHS = (
+					"$(MATLABROOT)/extern/include",
+					"$(MATLABROOT)/extern/include",
+				);
+				"HEADER_SEARCH_PATHS[arch=*]" = /usr/local/include/gmt;
 				LIBRARY_SEARCH_PATHS = "$(MATLABROOT)/bin/maci64";
 				MACH_O_TYPE = mh_bundle;
 				New_Setting = "";
 				"OTHER_CFLAGS[arch=*]" = (
-					"-I/usr/local/include",
+					"-I/usr/local/include/gmt",
 					"-g",
 					"-DGMT_MATLAB",
 				);
@@ -198,7 +208,9 @@
 					"-L/usr/local/lib",
 					"-lgmt",
 				);
+				PRIVATE_HEADERS_FOLDER_PATH = /usr/local/include/gmt;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PUBLIC_HEADERS_FOLDER_PATH = /usr/local/include/gmt;
 				SYMROOT = "$(SRCROOT)/build/$(CONFIGURATION)";
 			};
 			name = Release;
