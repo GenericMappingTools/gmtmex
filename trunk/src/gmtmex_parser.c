@@ -447,12 +447,12 @@ int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs
 	struct GMT_MATRIX *M = NULL;		/* Pointer to matrix container */
 #endif
 
-	if (!strcmp (module, "gmtread") || !strcmp (module, "gmtwrite"))  {	/* Special case: Must determine which data type we are dealing with */
+	if (!strcmp (module, "read") || !strcmp (module, "write"))  {	/* Special case: Must determine which data type we are dealing with */
 		struct GMT_OPTION *t_ptr;
 		if ((t_ptr = GMT_Find_Option (API, 'T', *head))) {	/* Found the -T<type> option */
 			type = toupper (t_ptr->arg[0]);	/* Find type and replace ? in keys with this type in uppercase (DGCIT) in make_char_array below */
 		}
-		if (!strcmp (module, "gmtwrite") && (t_ptr = GMT_Find_Option (API, GMT_OPT_INFILE, *head))) {	/* Found a -<<file> option; this is actually the output file */
+		if (!strcmp (module, "write") && (t_ptr = GMT_Find_Option (API, GMT_OPT_INFILE, *head))) {	/* Found a -<<file> option; this is actually the output file */
 			t_ptr->option = GMT_OPT_OUTFILE;
 		}
 	}
