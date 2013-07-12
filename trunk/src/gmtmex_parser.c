@@ -92,11 +92,16 @@ int ID_rhs = 0;
 
 int GMTMEX_find_module (void *API, char *module)
 {	/* Just search for module and return entry in keys array */
+	char gmt_module[GMT_STR16] = {"gmt"};
 	int k, id = -1;
 	for (k = 0; id == -1 && k < N_GMT_MODULES; k++) if (!strcmp (module, module_name[k])) id = k;
-	if (id == -1) return (-1);	/* Not found in the known list */
+	if (id == -1) {	/* Not found in the known list, try prepending gmt to the module name (i.e. gmt + get = gmtget) */
+		strcat (gmt_module, module);
+		for (k = 0; id == -1 && k < N_GMT_MODULES; k++) if (!strcmp (gmt_module, module_name[k])) id = k;
+		if (id == -1) return (-1);	/* Not found in the known list */
+	}
 	if ((k = GMT_Call_Module (API, module_name[id], GMT_MODULE_EXIST, NULL)) == GMT_NOERROR) return (id);	/* Found and accessible */
-	return (id);	/* Not found in the shared library */
+	return (-1);	/* Not found in the shared library */
 }
 
 #ifdef NO_MEX
@@ -447,12 +452,12 @@ int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs
 	struct GMT_MATRIX *M = NULL;		/* Pointer to matrix container */
 #endif
 
-	if (!strcmp (module, "read") || !strcmp (module, "write"))  {	/* Special case: Must determine which data type we are dealing with */
+	if (!strcmp (module, "read") || !strcmp (module, "gmtread") || !strcmp (module, "write") || !strcmp (module, "gmtwrite"))  {	/* Special case: Must determine which data type we are dealing with */
 		struct GMT_OPTION *t_ptr;
 		if ((t_ptr = GMT_Find_Option (API, 'T', *head))) {	/* Found the -T<type> option */
 			type = toupper (t_ptr->arg[0]);	/* Find type and replace ? in keys with this type in uppercase (DGCIT) in make_char_array below */
 		}
-		if (!strcmp (module, "write") && (t_ptr = GMT_Find_Option (API, GMT_OPT_INFILE, *head))) {	/* Found a -<<file> option; this is actually the output file */
+		if (!strstr ("write", module) && (t_ptr = GMT_Find_Option (API, GMT_OPT_INFILE, *head))) {	/* Found a -<<file> option; this is actually the output file */
 			t_ptr->option = GMT_OPT_OUTFILE;
 		}
 	}
