@@ -1,27 +1,23 @@
 #	$Id$
 #
-The new Matlab/Octave API will be built on top of the GMT C API only.  Thus, we
-have decoupled its development from the GMT5 distribution.  We anticipate this
-is how the other APIs (Python, Julia) will be done as well.  To build gmtmex
-you first must update to the very latest GMT5 version from subversion and
-build it.
+#	AUthors: Paul Wessel and Joaquim Luis
+#	Updated: July 13, 2013
 
-The plan is to develop a generic GMTMEX_parser that is called by a dummy program
-called mexprogram.c (modelled after gmtprogram.c).  Scripts will loop over all
-GMT program names and supply their names to the process.  Program-specific option
-information is kept in the mexproginfo.txt and we use this to build the API. Once
-we get this right the entire API (i.e., mex files for each GMT program) will be
-built automatically.  A configure option will select Matlab versus Octave builds.
+The Matlab/Octave API is built on top of the GMT C/C++ API and is therefore
+decoupled from the GMT5 distribution.  We anticipate this is how other APIs
+(Python, Julia) will be done as well.  To build gmtmex you first must install
+GMT5 from subversion or via an official release.
 
-For testing of parser, see gmt_mextest which you can run like this:
+The single gmt.c program is linked with gmtmex_parser.c and the GMT5 API library
+into a mex executable.  Parsing is assisted via program-specific option information
+kept in the file mexproginfo.txt and we use this to build some include files for
+the parser. A configure option will select Matlab versus Octave builds.
 
-gmt_mextest nlhs nrhs "mex command line"
+To build the gmt mex executable, take the following steps:
 
-e.g.
+1. Run autoconf
+2. Run configure --help and acquaint yourself with the various options.
+3. Then, run configure with the selected options, in addition to using
+   either --enable-matlab or --enable-debug.
+4. Finally, run make all and make install
 
-gmt_mextest 1 1 "surface -R0/16/0/16 -I1 -T0.25 -V"
-
-and it should determine that matlab provides input array and wants output grid returned.
-The output should be
-
-'surface -R0/16/0/16 -I1 -T0.25 -V @GMTAPI@-000000 -G@GMTAPI@-000001'
