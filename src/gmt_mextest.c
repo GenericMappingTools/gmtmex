@@ -46,7 +46,7 @@ int main (int argc, char *argv[]) {
 	}
 
 	/* 1. Initializing new GMT session with zero pad */
-	if ((API = GMT_Create_Session ("GMT5", 0U, 1U, NULL)) == NULL) fprintf (stderr, "Failure to create GMT5 Session\n");
+	if ((API = GMT_Create_Session ("GMT5", 0U, 3U, NULL)) == NULL) fprintf (stderr, "Failure to create GMT5 Session\n");
 
 	nlhs = atoi (argv[1]);
 	nrhs = atoi (argv[2]);
