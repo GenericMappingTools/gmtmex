@@ -111,7 +111,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 			}
 
 			/* Initializing new GMT session with zero pad and replacement printf function */
-			if ((API = GMT_Create_Session ("GMT5", 0U, 1U, GMTMEX_print_func)) == NULL)
+			if ((API = GMT_Create_Session ("GMT5", 0U, 3U, GMTMEX_print_func)) == NULL)
 				mexErrMsgTxt ("Failure to create GMT5 Session\n");
 
 			pPersistent = mxMalloc(sizeof(uintptr_t));
