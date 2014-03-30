@@ -33,6 +33,10 @@
 #include <math.h>
 #include <limits.h>
 
+#ifndef rint
+	#define rint(x) (floor((x)+0.5f)) //does not work reliable.
+#endif
+
 #if defined(WIN32) && !defined(lrint)
 #	define lrint (int64_t)rint
 #endif
@@ -94,14 +98,19 @@ int GMTMEX_find_module (void *API, char *module)
 {	/* Just search for module and return entry in keys array.  Only modules listed in mexproginfo.txt are used */
 	char gmt_module[GMT_STR16] = {"gmt"};
 	int k, id = -1;
-	for (k = 0; id == -1 && k < N_GMT_MODULES; k++) if (!strcmp (module, module_name[k])) id = k;
+	for (k = 0; id == -1 && k < N_GMT_MODULES; k++)
+		if (!strcmp (module, module_name[k]))
+			id = k;
 	if (id == -1) {	/* Not found in the known list, try prepending gmt to the module name (i.e. gmt + get = gmtget) */
 		strcat (gmt_module, module);
-		for (k = 0; id == -1 && k < N_GMT_MODULES; k++) if (!strcmp (gmt_module, module_name[k])) id = k;
+		for (k = 0; id == -1 && k < N_GMT_MODULES; k++)
+			if (!strcmp (gmt_module, module_name[k]))
+				id = k;
 		if (id == -1) return (-1);	/* Not found in the known list */
 	}
 	/* OK, found in the list - now call it and see if it is actually available */
-	if ((k = GMT_Call_Module (API, module_name[id], GMT_MODULE_EXIST, NULL)) == GMT_NOERROR) return (id);	/* Found and accessible */
+	if ((k = GMT_Call_Module (API, module_name[id], GMT_MODULE_EXIST, NULL)) == GMT_NOERROR)	/* Found and accessible */
+		return (id);
 	return (-1);	/* Not found in any shared libraries */
 }
 
@@ -132,7 +141,8 @@ int gmtmex_find_option (char option, char *key[], int n_keys) {
 	/* gmtmex_find_option determines if the given option is among the special options listed
            in the key array that might take $ as filename */
 	int pos = -1, k;
-	for (k = 0; pos == -1 && k < n_keys; k++) if (key[k][0] == option) pos = k;
+	for (k = 0; pos == -1 && k < n_keys; k++)
+		if (key[k][0] == option) pos = k;
 	return (pos);	/* -1 if not found, otherwise the position in the key array */
 }
 
@@ -269,9 +279,12 @@ char **make_char_array (char *string, unsigned int *n_items, char type)
 	if (len == 0) return NULL;	/* Got no characters, give up */
 	tmp = strdup (string);		/* Get a working copy of string */
 	/* Replace unknown types in tmp with selected type */
-	if (type) for (k = 0; k < strlen (tmp); k++) if (tmp[k] == '?') tmp[k] = type;
+	if (type)
+		for (k = 0; k < strlen (tmp); k++)
+			if (tmp[k] == '?') tmp[k] = type;
 	/* Count the number of items */
-	for (k = n = 0; k < len; k++) if (tmp[k] == ',') n++;
+	for (k = n = 0; k < len; k++)
+		if (tmp[k] == ',') n++;
 	n++;	/* Since one less comma than items */
 	/* Allocate and populate the character array, then return it and n_items */
 	s = (char **) calloc (n, sizeof (char *));
@@ -304,23 +317,29 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 		double *inc = NULL, *range = NULL, *reg = NULL;
 		unsigned int registration;
 		
-		if (mxIsEmpty (ptr)) mexErrMsgTxt ("The input that was supposed to contain the Grid, is empty\n");
-		if (!mxIsStruct (ptr)) mexErrMsgTxt ("Expected a Grid for input\n");
+		if (mxIsEmpty (ptr))
+			mexErrMsgTxt ("The input that was supposed to contain the Grid, is empty\n");
+		if (!mxIsStruct (ptr))
+			mexErrMsgTxt ("Expected a Grid for input\n");
 		mx_ptr = mxGetField (ptr, 0, "inc");
-		if (mx_ptr == NULL) mexErrMsgTxt ("Could not find inc array with Grid increments\n");
+		if (mx_ptr == NULL)
+			mexErrMsgTxt ("Could not find inc array with Grid increments\n");
 		inc = mxGetData (mx_ptr);
 		mx_ptr = mxGetField (ptr, 0, "range");
-		if (mx_ptr == NULL) mexErrMsgTxt ("Could not find range array for Grid range\n");
+		if (mx_ptr == NULL)
+			mexErrMsgTxt ("Could not find range array for Grid range\n");
 		range = mxGetData (mx_ptr);
 		mx_ptr = mxGetField (ptr, 0, "registration");
-		if (mx_ptr == NULL) mexErrMsgTxt ("Could not find registration array for Grid registration\n");
+		if (mx_ptr == NULL)
+			mexErrMsgTxt ("Could not find registration array for Grid registration\n");
 		reg = mxGetData (mx_ptr);
 		registration = (unsigned int)lrint (reg[0]);
 		if ((G = GMT_Create_Data (API, GMT_IS_GRID, GMT_IS_SURFACE, GMT_GRID_HEADER_ONLY, 
 					NULL, range, inc, registration, 0, NULL)) == NULL)
 			mexErrMsgTxt ("GMTMEX_grid_init: Failure to alloc GMT source matrix for input\n");
 		mx_ptr = mxGetField (ptr, 0, "z");
-		if (mx_ptr == NULL) mexErrMsgTxt ("Could not find data array for Grid\n");
+		if (mx_ptr == NULL)
+			mexErrMsgTxt ("Could not find data array for Grid\n");
 
 		G->data = mxGetData (mx_ptr);
 		G->alloc_mode = GMT_ALLOCATED_EXTERNALLY;	/* Since array was allocated by Matlab */
@@ -453,7 +472,8 @@ int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs
 #endif
 
 	/* First, we check if this is either the read of write special module, which specifies what data type to deal with */
-	if (!strcmp (module, "read") || !strcmp (module, "gmtread") || !strcmp (module, "write") || !strcmp (module, "gmtwrite"))  {	/* Special case: Must determine which data type we are dealing with */
+	if (!strcmp (module, "read") || !strcmp (module, "gmtread") || !strcmp (module, "write") || !strcmp (module, "gmtwrite")) {
+		/* Special case: Must determine which data type we are dealing with */
 		struct GMT_OPTION *t_ptr = NULL;
 		if ((t_ptr = GMT_Find_Option (API, 'T', *head))) {	/* Found the -T<type> option */
 			type = toupper (t_ptr->arg[0]);	/* Find type and replace ? in keys with this type in uppercase (DGCIT) in make_char_array below */
@@ -461,7 +481,8 @@ int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs
 		if (!strchr ("cdgit", type)) {
 			mexErrMsgTxt ("GMTMEX_pre_process: No or bad data type given to read|write\n");
 		}
-		if (!strstr ("write", module) && (t_ptr = GMT_Find_Option (API, GMT_OPT_INFILE, *head))) {	/* Found a -<<file> option; this is actually the output file */
+		if (!strstr ("write", module) && (t_ptr = GMT_Find_Option (API, GMT_OPT_INFILE, *head))) {
+			/* Found a -<<file> option; this is actually the output file */
 			t_ptr->option = GMT_OPT_OUTFILE;
 		}
 	}
@@ -482,9 +503,9 @@ int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs
 			if (given[direction][flavor] == GMT_MEX_EXPLICIT) continue;	/* Source or destination was set explicitly in the command; skip */
 			/* Here we must add the primary input or output from prhs[0] or plhs[0] */
 			/* Get info about the data set */
-			if (given[direction][flavor] < 0) {
-				mexErrMsgTxt ("GMTMEX_pre_process: I am stoping here instead of crashing Matlab.\n\t\t'given[direction][flavor]' is negative\n");
-			}
+			if (given[direction][flavor] < 0)
+				mexErrMsgTxt("GMTMEX_pre_process: stoping here instead of crashing Matlab.\n\t\t'given[direction][flavor]' is negative\n");
+
 			(void)gmtmex_get_arg_dir (key[given[direction][flavor]][0], key, n_keys, &data_type, &geometry);
 			/* Pick the next left or right side Matlab array pointer */
 			ptr = (direction == GMT_IN) ? (void *)prhs[lr_pos[GMT_IN]] : (void *)plhs[lr_pos[GMT_OUT]];
@@ -498,9 +519,9 @@ int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs
 			info[n_items].lhs_index = lr_pos[direction];
 			n_items++;
 			lr_pos[direction]++;		/* Advance position counter for next time */
-			if (GMT_Encode_ID (API, name, ID) != GMT_NOERROR) {	/* Make filename with embedded object ID */
+			if (GMT_Encode_ID (API, name, ID) != GMT_NOERROR) 	/* Make filename with embedded object ID */
 				mexErrMsgTxt ("GMTMEX_pre_process: Failure to encode string\n");
-			}
+
 			if (flavor == 0) {	/* Must add a new option */
 				/* Create the missing (implicit) GMT option */
 				new_ptr = GMT_Make_Option (API, key[given[direction][0]][0], name);
@@ -521,9 +542,9 @@ int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs
 		}
 	}
 		
-	for (opt = *head; opt; opt = opt->next) {	/* Loop over the module options given */
+	for (opt = *head; opt; opt = opt->next) 	/* Loop over the module options given */
 		if (PS && opt->option == GMT_OPT_OUTFILE) PS++;	/* Count additional output options */
-	}
+
 	/* Reallocate the information structure array or remove entirely if nothing given. */
 	if (n_items && n_items < n_alloc) info = realloc ((void *)info, n_items * sizeof (struct GMTMEX));
 	else if (n_items == 0) free ((void *)info);	/* No containers used */
@@ -556,14 +577,13 @@ int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs
 }
 
 #ifdef NO_MEX
-int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs[])
-{
+int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs[]) {
 	GMT_Report (API, GMT_MSG_VERBOSE, "Exit GMTMEX_post_process\n");
 	return (0);
 }
 #else
-int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs[])
-{	/* Get the data from GMT output items into the corresponding Matlab struct or matrix */
+int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs[]) {
+	/* Get the data from GMT output items into the corresponding Matlab struct or matrix */
 	int item, k, n;
 	unsigned int row, col;
 	uint64_t gmt_ij, mex_ij;
@@ -742,6 +762,7 @@ int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs
 				 * will prevent accidential freeing of any Matlab-allocated arrays */
 				if (GMT_Destroy_Data (API, &M) != GMT_NOERROR)
 					mexErrMsgTxt ("GMTMEX_post_process: Failed to destroy matrix M used in the interface bewteen GMT and Matlab\n");
+
 				break;
 		}
 	}
