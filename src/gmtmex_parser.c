@@ -511,6 +511,8 @@ int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs
 	struct GMT_GRID *G = NULL;		/* Pointer to grid container */
 	struct GMT_MATRIX *M = NULL;		/* Pointer to matrix container */
 #endif
+	struct GMTAPI_CTRL *APIPI = NULL;
+	APIPI = GMT_get_API_ptr(API);
 
 	/* First, we check if this is either the read of write special module, which specifies what data type to deal with */
 	if (!strcmp (module, "read") || !strcmp (module, "gmtread") || !strcmp (module, "write") || !strcmp (module, "gmtwrite")) {
@@ -519,7 +521,7 @@ int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs
 		if ((t_ptr = GMT_Find_Option (API, 'T', *head))) {	/* Found the -T<type> option */
 			type = toupper (t_ptr->arg[0]);	/* Find type and replace ? in keys with this type in uppercase (DGCIT) in make_char_array below */
 		}
-		if (!strchr ("cdgit", type)) {
+		if (!strchr ("DGCIT", type)) {
 			mexErrMsgTxt ("GMTMEX_pre_process: No or bad data type given to read|write\n");
 		}
 		if (!strstr ("write", module) && (t_ptr = GMT_Find_Option (API, GMT_OPT_INFILE, *head))) {
