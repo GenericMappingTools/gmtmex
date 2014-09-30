@@ -552,6 +552,9 @@ int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs
 			ptr = (direction == GMT_IN) ? (void *)prhs[lr_pos[GMT_IN]] : (void *)plhs[lr_pos[GMT_OUT]];
 			/* Create and thus register this container */
 			ID = GMTMEX_Register_IO (API, data_type, geometry, direction, ptr);
+			if (ID == GMT_NOTSET)
+				mexErrMsgTxt("GMTMEX_pre_process: Failure to register the resource\n");
+
 			/* Keep a record or this container as a source or destination */
 			if (n_items == n_alloc) info = realloc ((void *)info, (n_alloc += 8) * sizeof (struct GMTMEX));
 			info[n_items].type = data_type;
