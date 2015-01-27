@@ -48,15 +48,15 @@
 #endif
 
 struct GMTMEX {	/* Array to hold information relating to output from GMT */
-	unsigned int type;	/* type of GMT data, i.e., GMT_IS_DATASET, GMT_IS_GRID, etc. */
-	unsigned int direction;	/* Either GMT_IN or GMT_OUT */
-	int ID;			/* Registration ID returned by GMT_Register_IO */
-	int lhs_index;		/* Corresponding index into plhs array */
+	enum GMT_enum_family type;	/* type of GMT data, i.e., GMT_IS_DATASET, GMT_IS_GRID, etc. */
+	enum GMT_io_enum direction;	/* Either GMT_IN or GMT_OUT */
+	int ID;				/* Registration ID returned by GMT_Register_IO */
+	int lhs_index;			/* Corresponding index into plhs array */
 };
 
-extern int GMTMEX_print_func (FILE *fp, const char *message);
-extern int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs, const mxArray *prhs[], int nrhs, char *keys, struct GMT_OPTION **head, struct GMTMEX **X);
-extern int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs[]);
-extern int GMTMEX_find_module (void *API, char *module);
+EXTERN_MSC int GMTMEX_print_func (FILE *fp, const char *message);
+EXTERN_MSC int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs, const mxArray *prhs[], int nrhs, char *keys, struct GMT_OPTION **head, struct GMTMEX **X);
+EXTERN_MSC int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs[]);
+EXTERN_MSC int GMTMEX_find_module (void *API, char *module);
 
 #endif

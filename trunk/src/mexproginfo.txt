@@ -1,13 +1,13 @@
 # $Id$
 #
-# Edit this file after adding a new GMT module or changing how the options are set.
-# Each program has a list of zero or more 3-character codes ###:
+# Edit this file after adding a new GMT module or changing how its options are set.
+# Each module has a list of zero or more 3-character codes XYZ:
 #
-# The first code # stands for the specific program option (e.g., L for -L) or <,>
-#    for standard input,output.  A - means there is no option for this item.
-# The second code # stand for data type (C = CPT, D = Dataset/Point, L = Dataset/Line,
+# X stands for the specific program option (e.g., L for -L) or <,>
+#    for standard input,output.  A hyphen (-) means there is no option for this item.
+# Y stands for data type (C = CPT, D = Dataset/Point, L = Dataset/Line,
 #    P = Dataset/Polygon, G = Grid, I = Image, T = Textset, X = PostScript, ? = via option),
-# The third code # stand for primary input (I), primary output (O), or secondary output (o).
+# Z stands for primary input (I), primary output (O), or secondary output (o).
 #
 # Note (1): PostScript is only allowed to be written to a given file and is never
 # returned to the calling program via memory.
@@ -24,8 +24,10 @@ gmt2kml		core		"<DI,>TO"
 gmtconnect	core		"<DI,>DO,CDo,LTo,QTo"
 gmtconvert	core		"<DI,>DO"
 gmtdefaults	core		">TO"
+gmtflexure	potential	"<DI,QDI,>DO"
 gmtget		core		">TO"
 gmtgravmag3d	potential	"<DI,FDI,GGO"
+gmtlogo		core		""
 gmtinfo		core		"<DI,>DO"
 gmtmath		core		"<DI,ADI,>DO"
 gmtselect	core		"<DI,CDI,FDI,LDI,>DO"
@@ -41,10 +43,12 @@ grd2xyz		core		"<GI,>DO"
 grdblend	core		"<TI,GGO"
 grdclip		core		"<GI,GGO"
 grdcontour	core		"<GI,CCI,-Xo"
+grdconvert	core		"<GI,>GO"
 grdcut		core		"<GI,GGO"
 grdedit		core		"<GI,NDI,GGO"
 grdfft		core		"<GI,GGO"
 grdfilter	core		"<GI,GGO"
+grdflexure	potential	"<GI,GGO"
 grdgradient	core		"<GI,GGO,SGo"
 grdgravmag3d	potential	"<GI,FDI,GGO"
 grdhisteq	core		"<GI,GGO,DTo"
@@ -58,7 +62,6 @@ grdpmodeler	spotter		"<GI,ETI,FDI,GGO"
 grdproject	core		"<GI,GGO"
 grdraster	core		"GGO,TDo"
 grdredpol	potential	"<GI,EGI,GGO"
-grdreformat	core		"<GI,>GO"
 grdrotater	spotter		"<GI,ETI,FDI,GGO"
 grdsample	core		"<GI,GGO"
 grdseamount	potential	"<DI,GGO"
@@ -86,11 +89,11 @@ mgd77track	mgd77		"-Xo"
 nearneighbor	core		"<DI,GGO"
 originator	spotter		"<DI,ETI,FDI,>DO"
 project		core		"<DI,>DO"
-ps2raster	core		"--O"
 psbasemap	core		"-XI,-Xo"
 psclip		core		"<DI,-Xo"
 pscoast		core		"-XI,-Xo,>Do"
 pscontour	core		"<DI,CCI,QDI,-Xo"
+psconvert	core		"--O"
 pscoupe		meca		"<DI,-Xo"
 pshistogram	core		"<DI,-Xo,>Do"
 psimage		core		"<II,-Xo"

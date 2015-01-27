@@ -1,4 +1,7 @@
 function  test_mex(opt)
+%	$Id$
+%	Test suite for the GMT-MEX API
+%
 
 all_tests = {'gmtread' 'minmax' 'pscoast' 'surface' 'gmtmath' 'simplify'}; 
 

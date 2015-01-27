@@ -62,15 +62,18 @@ int ID_rhs = 0;
 
 /* For the Mex interface we will wish to pass either filenames or matrices via GMT command options.
  * We select a Matlab matrix by suppying $ as the file name.  The parser will then find these $
- * arguments and replace them with references to a matrix via the GMT API mechanisms.
+ * arguments and replace them with references to matrices via the GMT API mechanisms.
  * This requires us to know which options in a module may accept a file name.  As an example,
  * consider surface whose -L option may take a grid.  To pass a Matlab/Octave grid already in memory
  * we would use -L$ and give the grid as an argument to the module, e.g.,
- * Z = surface ('-R0/50/0/50 -I1 -V xyzfile -L$', lowmatrix);
+ *    Z = gmt ('surface -R0/50/0/50 -I1 -V xyzfile -L$', lowmatrix);
  * For each option that may take a file we need to know what kind of file and if this is input or output.
- * We encode this in a 3-character word, where the first char is the option, the second is the data type,
- * and the third is I(n) or O(out).  E.g., the surface example would have the word LGI.  The data types
- * are P(olygons), L(ines), D(point data), G(rid), C(PT file), T(ext table). [We originally only had
+ * We encode this in a 3-character word, where
+ *	1. The first char is the option flag (e.g., L for -L)
+ *	2. The second is the data type (P|L|D|G|C|T)
+ *	3. The third is I(n) or O(out)
+ * E.g., the surface example would have the word LGI.  The data types P|L|D|G|C|T stand for
+ * P(olygons), L(ines), D(point data), G(rid), C(PT file), T(ext table). [We originally only had
  * D for datasets but perhaps the geometry needs to be passed too (if known); hence the P|L|D char]
  * In addition, the only common option that might take a file is -R which may take a grid as input.
  * We check for that in addition to the module-specific info passed via the key variable.
@@ -85,7 +88,7 @@ int ID_rhs = 0;
 #define GMT_MEX_EXPLICIT	-2
 #define GMT_MEX_IMPLICIT	-1
 
-#define GMT_IS_PS	99	/* Use for PS output; use GMT_IS_GRID or GMT_IS_DATASET for data */
+#define GMT_IS_PS		99	/* Use for PS output; use GMT_IS_GRID or GMT_IS_DATASET for data */
 
 
 #ifdef GMT_MATLAB
