@@ -1,7 +1,7 @@
 /*
  *	$Id$
  *
- *	Copyright (c) 1991-2013 by P. Wessel, W. H. F. Smith, R. Scharroo, J. Luis and F. Wobbe
+ *	Copyright (c) 1991-2015 by P. Wessel, W. H. F. Smith, R. Scharroo, J. Luis and F. Wobbe
  *      See LICENSE.TXT file for copying and redistribution conditions.
  *
  *      This program is free software; you can redistribute it and/or modify
@@ -49,7 +49,7 @@
 
 struct GMTMEX {	/* Array to hold information relating to output from GMT */
 	enum GMT_enum_family type;	/* type of GMT data, i.e., GMT_IS_DATASET, GMT_IS_GRID, etc. */
-	enum GMT_io_enum direction;	/* Either GMT_IN or GMT_OUT */
+	enum GMT_enum_std direction;	/* Either GMT_IN or GMT_OUT */
 	int ID;				/* Registration ID returned by GMT_Register_IO */
 	int lhs_index;			/* Corresponding index into plhs array */
 };

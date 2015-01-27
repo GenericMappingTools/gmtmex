@@ -352,8 +352,7 @@ int GMTMEX_Register_IO (void *API, unsigned int data_type, unsigned int geometry
 struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxArray *ptr)
 {	/* Used to Create an empty Grid container to hold a GMT grid.
  	 * If direction is GMT_IN then we are given a Matlab grid and can determine its size, etc.
-	 * If direction is GMT_OUT then we allocate an empty GMT grid that we will pass
-	 * off as a destination by adding the GMT_VIA_OUTPUT to the mode. */
+	 * If direction is GMT_OUT then we allocate an empty GMT grid as a destination. */
 	struct GMT_GRID *G = NULL;
 	if (direction == GMT_IN) {	/* Dimensions are known from the input pointer */
 		mxArray *mx_ptr = NULL;
@@ -385,13 +384,13 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 			mexErrMsgTxt ("Could not find data array for Grid\n");
 
 		G->data = mxGetData (mx_ptr);
-		G->alloc_mode = GMT_ALLOCATED_EXTERNALLY;	/* Since array was allocated by Matlab */
+		G->alloc_mode = GMT_ALLOC_EXTERNALLY;	/* Since array was allocated by Matlab */
 		GMT_Report (API, GMT_MSG_DEBUG, " Allocate GMT Grid %lx in gmtmex_parser\n", (long)G);
 		GMT_Report (API, GMT_MSG_DEBUG, " Registered GMT Grid array %lx via memory reference from Matlab\n", (long)G->data);
 	}
-	else {	/* Just allocate an empty container to hold the output grid, and pass GMT_VIA_OUTPUT */
-		if ((G = GMT_Create_Data (API, GMT_IS_GRID, GMT_IS_SURFACE, GMT_GRID_HEADER_ONLY |
-                         GMT_VIA_OUTPUT, NULL, NULL, NULL, 0, 0, NULL)) == NULL)
+	else {	/* Just allocate an empty container to hold the output grid */
+		if ((G = GMT_Create_Data (API, GMT_IS_GRID, GMT_IS_SURFACE, GMT_GRID_HEADER_ONLY,
+                         NULL, NULL, NULL, 0, 0, NULL)) == NULL)
 			mexErrMsgTxt ("GMTMEX_grid_init: Failure to alloc GMT blank grid container for holding output grid\n");
 	}
 	return (G);
@@ -403,7 +402,6 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
  	 * If direction is GMT_IN then we are given a Matlab matrix and can determine size etc.
 	 * If output then we dont know size but we can specify type */
 	uint64_t dim[3] = {0, 0, 0}, *this_dim = NULL;
-	unsigned int mode = 0;
 	struct GMT_MATRIX *M = NULL;
 	if (direction == GMT_IN) {	/* Dimensions are known */
 		if (!mxIsNumeric (ptr)) mexErrMsgTxt ("Expected a Matrix for input\n");
@@ -411,9 +409,8 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
 		dim[1] = mxGetM (ptr);
 		this_dim = dim;
 	}
-	else	/* There are no dimensions yet, as we are getting data as output */
-		mode = GMT_VIA_OUTPUT;	/* And this_dim == NULL */
-	if ((M = GMT_Create_Data (API, GMT_IS_MATRIX, GMT_IS_PLP, mode, this_dim, NULL, NULL, 0, 0, NULL)) == NULL)
+	/* Eelse there are no dimensions yet, as we are getting data as output */
+	if ((M = GMT_Create_Data (API, GMT_IS_MATRIX, GMT_IS_PLP, 0, this_dim, NULL, NULL, 0, 0, NULL)) == NULL)
 		mexErrMsgTxt ("GMTMEX_matrix_init: Failure to alloc GMT source matrix\n");
 
 	GMT_Report (API, GMT_MSG_DEBUG, " Allocate GMT Matrix %lx in gmtmex_parser\n", (long)M);
@@ -448,7 +445,7 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
 #else
 		M->dim = M->n_columns;
 #endif
-		M->alloc_mode = GMT_ALLOCATED_EXTERNALLY;	/* Since matrix was allocated by Matlab */
+		M->alloc_mode = GMT_ALLOC_EXTERNALLY;	/* Since matrix was allocated by Matlab */
 		M->shape = MEX_COL_ORDER;			/* Either col or row order, depending on Matlab/Octave */
 	}
 	else {	/* On output we produce double precision */
@@ -514,8 +511,8 @@ int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs
 	struct GMT_GRID *G = NULL;		/* Pointer to grid container */
 	struct GMT_MATRIX *M = NULL;		/* Pointer to matrix container */
 #endif
-	struct GMTAPI_CTRL *APIPI = NULL;
-	APIPI = GMT_get_API_ptr(API);
+//	struct GMTAPI_CTRL *APIPI = NULL;
+//	APIPI = GMT_get_API_ptr(API);
 
 	/* First, we check if this is either the read of write special module, which specifies what data type to deal with */
 	if (!strcmp (module, "read") || !strcmp (module, "gmtread") || !strcmp (module, "write") || !strcmp (module, "gmtwrite")) {
@@ -813,6 +810,15 @@ int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs
 				if (GMT_Destroy_Data (API, &M) != GMT_NOERROR)
 					mexErrMsgTxt ("GMTMEX_post_process: Failed to destroy matrix M used in the interface bewteen GMT and Matlab\n");
 
+				break;
+				
+			case GMT_IS_TEXTSET:
+			case GMT_IS_CPT:
+			case GMT_IS_IMAGE:
+			case GMT_IS_VECTOR:	/* These next three are just here to avoid compiler warnings */
+			case GMT_IS_MATRIX:
+			case GMT_IS_COORD:
+				mexErrMsgTxt ("GMT_IS_TEXTSET GMT_IS_CPT GMT_IS_IMAGE not yet implemented\n");
 				break;
 		}
 	}

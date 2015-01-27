@@ -167,7 +167,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	/* 2. Get mex arguments, if any, and extract the GMT module name */
 	str_length = strlen (cmd);				/* Length of command argument */
 	for (k = 0; k < str_length && cmd[k] != ' '; k++);	/* Determine first space in command */
-	GMT_memset (module, BUFSIZ, char);			/* Initialize module name to blank */
+	memset (module, 0, BUFSIZ * sizeof (char));		/* Initialize module name to blank */
 	strncpy (module, cmd, k);				/* Isolate the module name in this string */
 
 	/* 3. Determine the GMT module ID, or list module usages and return if the module is not found */
