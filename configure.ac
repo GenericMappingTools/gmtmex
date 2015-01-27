@@ -25,7 +25,7 @@ dnl We also need to gather the following information
 dnl 1. Location of GMT5 include and library files
 dnl -----------------------------------------------------------------
 dnl
-AC_INIT(gmtmex, 5, pwessel@hawaii.edu)
+AC_INIT(gmt-mex, 5, pwessel@hawaii.edu)
 dnl
 dnl -----------------------------------------------------------------
 dnl The remainder should need no editing

@@ -75,7 +75,7 @@
 		3F2ADA4717827DCB00E2675F /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0460;
+				LastUpgradeCheck = 0510;
 			};
 			buildConfigurationList = 3F2ADA4A17827DCB00E2675F /* Build configuration list for PBXProject "gmt" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -111,7 +111,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 3F2ADA5017827DCB00E2675F /* mex.xcconfig */;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				"HEADER_SEARCH_PATHS[arch=*]" = /usr/local/include;
@@ -131,7 +130,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 3F2ADA5017827DCB00E2675F /* mex.xcconfig */;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -153,6 +151,7 @@
 				DYLIB_COMPATIBILITY_VERSION = "";
 				DYLIB_CURRENT_VERSION = "";
 				EXECUTABLE_EXTENSION = mexmaci64;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = "$(MATLABROOT)/extern/include";
 				"HEADER_SEARCH_PATHS[arch=*]" = (
 					/usr/local/include/gmt,
@@ -191,6 +190,7 @@
 				DYLIB_COMPATIBILITY_VERSION = "";
 				DYLIB_CURRENT_VERSION = "";
 				EXECUTABLE_EXTENSION = mexmaci64;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = (
 					"$(MATLABROOT)/extern/include",
 					"$(MATLABROOT)/extern/include",

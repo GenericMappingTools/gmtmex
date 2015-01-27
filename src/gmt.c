@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------
  *	$Id$
  *
- *	Copyright (c) 1991-$year by P. Wessel, W. H. F. Smith, R. Scharroo, J. Luis and F. Wobbe
+ *	Copyright (c) 1991-2015 by P. Wessel, W. H. F. Smith, R. Scharroo, J. Luis and F. Wobbe
  *	See LICENSE.TXT file for copying and redistribution conditions.
  *
  *	This program is free software; you can redistribute it and/or modify
@@ -50,8 +50,8 @@ static void force_Destroy_Session(void) {
 void usage(int nlhs, int nrhs) {
 
 	if (nrhs == 0) {	/* No arguments at all results in the GMT banner message */
-		mexPrintf("\nGMT - The Generic Mapping Tools, Version %s\n", "5.0");
-		mexPrintf("Copyright 1991-2013 Paul Wessel, Walter H. F. Smith, R. Scharroo, J. Luis, and F. Wobbe\n\n");
+		mexPrintf("\nGMT - The Generic Mapping Tools, Version %s\n", "5.2");
+		mexPrintf("Copyright 1991-2015 Paul Wessel, Walter H. F. Smith, R. Scharroo, J. Luis, and F. Wobbe\n\n");
 		mexPrintf("This program comes with NO WARRANTY, to the extent permitted by law.\n");
 		mexPrintf("You may redistribute copies of this program under the terms of the\n");
 		mexPrintf("GNU Lesser General Public License.\n");
@@ -162,15 +162,15 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		return;
 	}
 
-	/* Here we have GMT module calls of various sorts */
+	/* Here we have a GMT module call of various sorts */
 	
 	/* 2. Get mex arguments, if any, and extract the GMT module name */
-	str_length = strlen  (cmd);				/* Length of command argument */
+	str_length = strlen (cmd);				/* Length of command argument */
 	for (k = 0; k < str_length && cmd[k] != ' '; k++);	/* Determine first space in command */
-	memset ((void *)module, 0, BUFSIZ*sizeof (char));	/* Initialize module name to blank */
+	GMT_memset (module, BUFSIZ, char);			/* Initialize module name to blank */
 	strncpy (module, cmd, k);				/* Isolate the module name in this string */
 
-	/* 3. Determine the GMT module ID, or list module usages and return if module is not found */
+	/* 3. Determine the GMT module ID, or list module usages and return if the module is not found */
 	if ((module_id = GMTMEX_find_module (API, module)) == -1) {
 		GMT_Call_Module (API, NULL, GMT_MODULE_PURPOSE, NULL);
 		return;
@@ -190,10 +190,9 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	/* 6. Run GMT module; give usage message if errors arise during parsing */
 	status = GMT_Call_Module (API, module, GMT_MODULE_OPT, options);
 
-	/* 7. Hook up module output to Matlab plhs arguments */
+	/* 7. Hook up module outputs to Matlab plhs arguments */
 	if (GMTMEX_post_process (API, X, n_items, plhs)) mexErrMsgTxt ("Failure to extract GMT5-produced data\n");
 	
 	/* 8. Destroy linked option list */
 	if (GMT_Destroy_Options (API, &options)) mexErrMsgTxt ("Failure to destroy GMT5 options\n");
 }
-
