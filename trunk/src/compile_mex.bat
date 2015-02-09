@@ -68,14 +68,14 @@ SET MEX_EXT="dll"
 ) ELSE (
 
 IF %BITS%==64 (
-SET MATLIB=C:\SVN\pracompila\ML2010a_w64\lib\win64\microsoft 
+SET MATLIB=C:\SVN\pracompila\ML2010a_w64\lib\win64\microsoft
 SET MATINC=C:\SVN\pracompila\ML2010a_w64\include
 SET _MX_COMPAT=-DMX_COMPAT_32
 SET MEX_EXT="mexw64"
 
 ) ELSE (
 
-SET MATLIB=C:\SVN\pracompila\ML2009b_w32\lib\win32\microsoft 
+SET MATLIB=C:\SVN\pracompila\ML2009b_w32\lib\win32\microsoft
 SET MATINC=C:\SVN\pracompila\ML2009b_w32\include
 SET _MX_COMPAT=-DMX_COMPAT_32
 SET MEX_EXT="mexw32"
@@ -84,23 +84,23 @@ SET MEX_EXT="mexw32"
 REM -------------- Set GMT & NetCDF lib and include ----------------------------
 IF %BITS%==64 (
 
-SET  NETCDF_LIB=C:\programs\compa_libs\netcdf\compileds\VC10_64\lib\netcdf.lib
+SET  NETCDF_LIB=C:\programs\compa_libs\netcdf_GIT\compileds\VC10_64\lib\netcdf.lib
 SET     GMT_LIB=c:\progs_cygw\GMTdev\gmt5\trunk\WIN%BITS%\lib\gmt.lib
 SET    GDAL_LIB=c:\programs\GDALtrunk\gdal\compileds\VC10_64\lib\gdal_i.lib
 call "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\vcvarsall.bat" amd64
 
 ) ELSE (
 
-SET  NETCDF_LIB=C:\programs\compa_libs\netcdf\compileds\VC10_32\lib\netcdf.lib
+SET  NETCDF_LIB=C:\programs\compa_libs\netcdf_GIT\compileds\VC10_32\lib\netcdf.lib
 SET     GMT_LIB=c:\progs_cygw\GMTdev\gmt5\trunk\WIN%BITS%\lib\gmt.lib
 SET    GDAL_LIB=c:\programs\GDALtrunk\gdal\compileds\VC10_32\lib\gdal_i.lib
 call "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\vcvarsall.bat" x86
 
 )
 
-SET  NETCDF_INC=C:\programs\compa_libs\netcdf\compileds\VC10_32\include
-SET     GMT_INC=c:\progs_cygw\GMTdev\gmt5\trunk\WIN%BITS%\include
-SET    GMT_INC2=c:\progs_cygw\GMTdev\gmt5\trunk\src
+SET  NETCDF_INC=C:\programs\compa_libs\netcdf_GIT\compileds\VC10_32\include
+rem SET     GMT_INC=c:\progs_cygw\GMTdev\gmt5\trunk\WIN%BITS%\include
+SET    GMT_INC=C:\progs_cygw\GMTdev\gmt5\branches\5.2.0\src
 SET    GDAL_INC=c:\programs\GDALtrunk\gdal\compileds\VC10_32\include
 REM ----------------------------------------------------------------------------
 
