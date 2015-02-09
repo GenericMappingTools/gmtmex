@@ -388,7 +388,12 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 		GMT_Report (API, GMT_MSG_DEBUG, " Allocate GMT Grid %lx in gmtmex_parser\n", (long)G);
 		GMT_Report (API, GMT_MSG_DEBUG, " Registered GMT Grid array %lx via memory reference from Matlab\n", (long)G->data);
 	}
-	else {	/* Just allocate an empty container to hold the output grid */
+	else {	/* Just allocate an empty container to hold the output grid, and pass GMT_VIA_OUTPUT */
+#if 0 
+		if ((G = GMT_Create_Data (API, GMT_IS_GRID, GMT_IS_SURFACE, GMT_GRID_HEADER_ONLY |
+                         GMT_VIA_OUTPUT, NULL, NULL, NULL, 0, 0, NULL)) == NULL)
+			mexErrMsgTxt ("GMTMEX_grid_init: Failure to alloc GMT blank grid container for holding output grid\n");
+#endif
 		if ((G = GMT_Create_Data (API, GMT_IS_GRID, GMT_IS_SURFACE, GMT_GRID_HEADER_ONLY,
                          NULL, NULL, NULL, 0, 0, NULL)) == NULL)
 			mexErrMsgTxt ("GMTMEX_grid_init: Failure to alloc GMT blank grid container for holding output grid\n");
@@ -409,7 +414,7 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
 		dim[1] = mxGetM (ptr);
 		this_dim = dim;
 	}
-	/* Eelse there are no dimensions yet, as we are getting data as output */
+	/* Else there are no dimensions yet, as we are getting data as output */
 	if ((M = GMT_Create_Data (API, GMT_IS_MATRIX, GMT_IS_PLP, 0, this_dim, NULL, NULL, 0, 0, NULL)) == NULL)
 		mexErrMsgTxt ("GMTMEX_matrix_init: Failure to alloc GMT source matrix\n");
 

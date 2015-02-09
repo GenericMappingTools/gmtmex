@@ -112,9 +112,12 @@
 			baseConfigurationReference = 3F2ADA5017827DCB00E2675F /* mex.xcconfig */;
 			buildSettings = {
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				HEADER_SEARCH_PATHS = "";
-				"HEADER_SEARCH_PATHS[arch=*]" = /usr/local/include;
+				"HEADER_SEARCH_PATHS[arch=*]" = (
+					"$(inherited)",
+					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+				);
 				"LIBRARY_SEARCH_PATHS[arch=*]" = "";
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				MATLABROOT = "$(LOCAL_APPS_DIR)/MATLAB_R2014b.app";
@@ -135,9 +138,9 @@
 			buildSettings = {
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				HEADER_SEARCH_PATHS = "";
-				"HEADER_SEARCH_PATHS[arch=*]" = /usr/local/include;
+				"HEADER_SEARCH_PATHS[arch=*]" = /usr/local/include/gmt;
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				MATLABROOT = "$(LOCAL_APPS_DIR)/MATLAB_R2014b.app";
 				"OTHER_CFLAGS[arch=*]" = "-I/usr/local/include";
