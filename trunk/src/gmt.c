@@ -17,20 +17,26 @@
  *--------------------------------------------------------------------*/
 /*
  * This is the Matlab/Octave GMT application, which can do the following:
- * 1) Create a new session and optionally return the API pointer. Store the pointer as a global variable.
- * 2) Destroy a GMT session, either given the API pointer or by fetching it from a global var
+ * 1) Create a new session and optionally return the API pointer. We provide for
+ *    storing the pointer as a global variable (persistent) bewteen calls.
+ * 2) Destroy a GMT session, either given the API pointer or by fetching it from
+ *    the global (persistent) variable.
  * 3) Call any of the GMT modules.
- * First argument to GMT may be the API, followed by a command string, or simply the command string
- * with optional comma-separated Matlab array entities.
+ *
+ * First argument to the gmt app is the API pointer, but it is optional once created.
+ * Next argument is the command string that starts with the module name
+ * Finally, there are ptional comma-separated Matlab array entities required by the command.
  * Information about the options of each program is provided by the include
  * files generated from mexproginfo.txt.
  *
  * Version:	5
- * Created:	12-May-2013
+ * Created:	9-FEB-2015
  *
  */
 
 #include "gmtmex.h"
+
+#define MODULE_LEN 256
 
 /* Being declared external we can access it between MEX calls */
 static uintptr_t *pPersistent;    /* To store API address back and forth to a Matlab session */
@@ -39,8 +45,7 @@ static uintptr_t *pPersistent;    /* To store API address back and forth to a Ma
    cleared and when the user exits MATLAB. The mexAtExit function
    should always be declared as static. */
 static void force_Destroy_Session(void) {
-	void *API;
-	API = (void *)pPersistent[0];	/* Get the GMT API pointer */
+	void *API = (void *)pPersistent[0];	/* Get the GMT API pointer */
 	if (API != NULL) {		/* Otherwise just silently ignore this call */
 		mexPrintf("Destroying session due to a brute user usage.\n");
 		if (GMT_Destroy_Session (API)) mexErrMsgTxt ("Failure to destroy GMT5 session\n");
@@ -48,7 +53,7 @@ static void force_Destroy_Session(void) {
 }
 
 void usage(int nlhs, int nrhs) {
-
+	/* Basic usage message */
 	if (nrhs == 0) {	/* No arguments at all results in the GMT banner message */
 		mexPrintf("\nGMT - The Generic Mapping Tools, Version %s\n", "5.2");
 		mexPrintf("Copyright 1991-2015 Paul Wessel, Walter H. F. Smith, R. Scharroo, J. Luis, and F. Wobbe\n\n");
@@ -59,9 +64,9 @@ void usage(int nlhs, int nrhs) {
 		mexPrintf("For a brief description of GMT modules, type GMT('--help')\n\n");
 	}
 	else {
-		mexPrintf("Usage is:\n\tgmt ('create');\n");
-		mexPrintf("\tgmt ('module_name ... args');\n");
-		mexPrintf("\tgmt ('destroy');\n");
+		mexPrintf("Usage is:\n\tgmt ('create');  %% Create a new GMT/MEX session\n");
+		mexPrintf("\tgmt ('module_name andoptions'[, <matlab arrays>]); %% Run a GMT module\n");
+		mexPrintf("\tgmt ('destroy');  %% Destroy the GMT/MEX session\n");
 		if (nlhs != 0)
 			mexErrMsgTxt ("But meanwhile you already made an error by asking help and an output.\n");
 	}
@@ -70,19 +75,19 @@ void usage(int nlhs, int nrhs) {
 void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	int status = 0;                 /* Status code from GMT API */
 	unsigned int first = 0;         /* Array ID of first command argument (not 0 when API-ID is first) */
-	unsigned int help;              /* 1 if we just gave --help */
-	unsigned int got_API_in_input = 0; /* It will be set to 1 when gmt(API, 'module ...'); */
+	unsigned int help = 0;          /* 1 if we just gave --help */
+	unsigned int got_API_in_input = 0; /* It will be set to 1 by gmt(API, 'module ...'); */
 	int n_items = 0;                /* Number of Matlab arguments (left and right) */
-	int module_id;
-	int pos;
-	size_t str_length, k;           /* Misc. counters */
+	int module_id = 0;		/* Internal number of the desired GMT module */
+	int pos = 0;         		/* Misc. counters */
+	size_t str_length = 0, k = 0;   /* Misc. counters */
 	struct GMTAPI_CTRL *API = NULL;	/* GMT API control structure */
-	struct GMT_OPTION *options = NULL; /* Linked list of options */
+	struct GMT_OPTION *options = NULL; /* Linked list of module options */
 	struct GMTMEX *X = NULL;        /* Array of information about Matlab args */
-	char *cmd = NULL;               /* Pointer used to get Matlab command */
-	char *opt_args = NULL;		/* Pointer used to pass options */
-	char module[BUFSIZ];            /* Name of GMT module to call */
-	uintptr_t *pti;                 /* To locally store the API address */
+	char *cmd = NULL;               /* Pointer used to get the user's Matlab command */
+	char *opt_args = NULL;		/* Pointer to the user's module options */
+	char module[MODULE_LEN];        /* Name of GMT module to call */
+	uintptr_t *pti = NULL;          /* To locally store the API address */
 
 	if (nrhs == 0) {	/* No arguments at all results in the GMT banner message */
 		usage(nlhs, nrhs);
@@ -167,7 +172,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	/* 2. Get mex arguments, if any, and extract the GMT module name */
 	str_length = strlen (cmd);				/* Length of command argument */
 	for (k = 0; k < str_length && cmd[k] != ' '; k++);	/* Determine first space in command */
-	memset (module, 0, BUFSIZ * sizeof (char));		/* Initialize module name to blank */
+	memset (module, MODULE_LEN, sizeof (char));		/* Initialize module name to blank */
 	strncpy (module, cmd, k);				/* Isolate the module name in this string */
 
 	/* 3. Determine the GMT module ID, or list module usages and return if the module is not found */
