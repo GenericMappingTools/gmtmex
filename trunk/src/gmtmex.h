@@ -24,6 +24,7 @@
 #include "gmt.h"
 #ifdef NO_MEX
 #define mxArray void
+char revised_cmd[BUFSIZ];	/* Global variable used to show revised command when testing only */
 #else
 #include <mex.h>
 #define mxIsScalar_(mx) \

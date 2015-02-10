@@ -29,33 +29,65 @@
 int main (int argc, char *argv[]) {
 	int module_id;					/* Module ID */
 	int n_items = 0;				/* Number of Matlab arguments (left and right) */
-	int nlhs, nrhs;					/* Simulated counts */
-	size_t str_length, k;				/* Misc. counters */
+	int nlhs = 0, nrhs = 0, k;				/* Simulated counts */
+	int start, quotes;
+	size_t str_length;				/* Misc. counters */
 	struct GMTAPI_CTRL *API = NULL;			/* GMT API control structure */
 	struct GMT_OPTION *options = NULL;		/* Linked list of options */
 	struct GMTMEX *X = NULL;			/* Array of information about Matlab args */
-	char *cmd = NULL, *str = NULL;				/* Pointer used to get Matlab command */
-	char module[BUFSIZ];				/* Name of GMT module to call */
+	char *str = NULL;				/* Pointer used to get Matlab command */
+	char module[BUFSIZ] = {""}, cmd[BUFSIZ] = {""};	/* Name of GMT module to call and the command */
 	mxArray *plhs[5] = {NULL, NULL, NULL, NULL, NULL};	/* Simulated pointers to Matlab arrays */
 	const mxArray *prhs[5] = {NULL, NULL, NULL, NULL, NULL};
 
-	if (argc != 4) {
-		fprintf (stderr, "\ngmt_mextest - Test mex argument parsing\n");
-		fprintf (stderr, "usage: nlhs nrhs \"mex-command\"\n");
+	if (argc != 2) {
+		fprintf (stderr, "\ngmt_mextest - Test mex argument parsing\n\n");
+		fprintf (stderr, "usage: Single double-quoted GMT/MEX command of the forms\n");
+		fprintf (stderr, "	\"gmt ('module -options');\"\n");
+		fprintf (stderr, "	\"gmt ('module -options', X);\"\n");
+		fprintf (stderr, "	\"A = gmt ('module -options');\"\n");
+		fprintf (stderr, "	\"A = gmt ('module -options', X);\"\n");
+		fprintf (stderr, "	\"[A, B, ...] = gmt ('module -options', X, Y, ...);\"\n");
 		exit (-1);
 	}
 
 	/* 1. Initializing new GMT session with zero pad */
 	if ((API = GMT_Create_Session ("GMT5", 0U, 3U, NULL)) == NULL) fprintf (stderr, "Failure to create GMT5 Session\n");
 
-	nlhs = atoi (argv[1]);
-	nrhs = atoi (argv[2]);
-	cmd = argv[3];
+	/* Expect a single argument (due to enclosing double quotes) of these forms:
+		gmt ('module -options');
+		gmt ('module -options', X)
+	 	A = gmt ('module -options');
+	 	A = gmt ('module -options', X);
+		[A,...] = gmt ('module -options', X, ...);
+	 */
 	
+	if (strchr (argv[1], '=')) {	/* Gave output arguments via <left> = gmt ('   '); */
+		nlhs = 1;	/* At least one output argument given */
+		if (argv[1][0] == '[') {	/* Gave several output arguments in [] */
+			k = 1;
+			while (argv[1][k] && argv[1][k] != ']') {
+				if (argv[1][k] == ',' || (argv[1][k] == ' ' && argv[1][k-1] != ',')) nlhs++;
+				k++;
+			}
+		}
+	}
+	quotes = start = k = 0;
+	while (quotes < 2 && argv[1][k]) {	/* Wind to 2nd single quote */
+		if (start == 0 && argv[1][k] == '\'') start = k + 1;
+		if (argv[1][k++] == '\'') quotes++;
+	}
+	strncpy (cmd, &argv[1][start], k-start-1);
+	if (argv[1][k] != ')') {	/* Input arguments given */
+		nrhs = 0;	/* At least one, count commas to determine total input items */
+		while (argv[1][k] && argv[1][k] != ')') {
+			if (argv[1][k++] == ',') nrhs++;
+		}
+	}
+
 	/* 2. Get mex arguments, if any, and extract the GMT module name */
 	str_length = strlen  (cmd);				/* Length of command argument */
 	for (k = 0; k < str_length && cmd[k] != ' '; k++);	/* Determine first space in command */
-	memset ((void *)module, 0, BUFSIZ*sizeof (char));	/* Initialize module name to blank */
 	strncpy (module, cmd, k);				/* Isolate the module name in this string */
 
 	/* 3. Determine the GMT module ID, or list module usages and return if module is not found */
@@ -73,6 +105,29 @@ int main (int argc, char *argv[]) {
 	/* 5. Parse the mex command, update GMT option lists, and register in/out resources, and return X array */
 	if ((n_items = GMTMEX_pre_process (API, module, plhs, nlhs, prhs, nrhs-1, keys[module_id], &options, &X)) < 0)
 		fprintf (stderr, "Failure to parse mex command options\n");
+	
+	/* Print out expanded command line */
+	if (nlhs) {
+		if (nlhs == 1)
+			printf ("A");
+		else {
+			printf ("[");
+			for (k = 0; k < nlhs; k++) {
+				if (k) putchar (' ');
+				printf ("%c", 'A' + k);
+			}
+			printf ("]");
+		}
+		printf (" = ");
+	}
+	printf ("gmt (%s", revised_cmd);
+	if (nlhs) {
+		for (k = 0; k > nrhs; k++) {
+			printf (", ");
+			printf ("%c", 'X' + k);
+		}
+	}
+	printf (");\n");
 	
 	/* 6. Fake Run GMT module; g */
 
