@@ -33,7 +33,7 @@ dnl -----------------------------------------------------------------
 dnl
 AC_CONFIG_SRCDIR(src/gmtmex.h)
 AC_CONFIG_AUX_DIR(`pwd`)
-AC_PREFIX_PROGRAM(gmtvector)	
+AC_PREFIX_PROGRAM(gmt)	
 AC_CYGWIN
 AC_CANONICAL_SYSTEM
 AC_LANG_C
@@ -85,10 +85,18 @@ dnl -----------------------------------------------------------------
 dnl Check for ar, csh/bash, ld, awk, and ranlib
 dnl -----------------------------------------------------------------
 dnl
-AC_CHECK_PROG(GMT_in_path, gmtvector, 1, 0)
+AC_CHECK_PROG(GMT_in_path, gmt, 1, 0)
 if test "$GMT_in_path" = "X0" ; then
 	AC_MSG_RESULT(GMT5 executables are not in your path - aborting)
 	exit 1
+else
+	gversion=`gmt --version | awk '{print substr($1,1,1)}'`
+	if test "X$gversion" = "X5" ; then
+		AC_MSG_RESULT(GMT5 executables found)
+	else
+		AC_MSG_RESULT(GMT5 executables are not in your path - aborting)
+		exit 1
+	fi
 fi
 AC_CHECK_PROGS(PAGER, less more, cat)
 AC_CHECK_PROG(AR, ar, ar, :)
