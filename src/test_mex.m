@@ -3,7 +3,7 @@ function  test_mex(opt)
 %	Test suite for the GMT-MEX API
 %
 
-all_tests = {'gmtread' 'minmax' 'pscoast' 'surface' 'gmtmath' 'simplify'}; 
+all_tests = {'gmtread' 'gmtinfo' 'pscoast' 'surface' 'gmtmath' 'simplify'}; 
 
 if (nargin == 0)
 	opt = all_tests;
@@ -17,7 +17,7 @@ try
 			case 'gmtread',		gmtread;
 			case 'gmtwrite',	gmtwrite;
 			case 'pscoast',		pscoast
-			case 'minmax',		minmax;
+			case 'gmtinfo',		gmtinfo;
 			case 'surface',		surface;
 			case 'gmtmath',		gmtmath;
 			case 'gmtsimplify',	gmtsimplify;
@@ -59,11 +59,11 @@ function pscoast()
 	gmt('destroy')
 
 function minmax()
-	disp ('Test minmax');
+	disp ('Test gmtinfo');
 	t = rand(100,3) * 100;
 	gmt('create')
-	r = gmt('minmax -C', t);
-	disp(['minmax of random 0-100 is ' num2str(r)])
+	r = gmt('info -C', t);
+	disp(['gmtinfo of random 0-100 is ' num2str(r)])
 	gmt('destroy')
 
 function gmtmath()
