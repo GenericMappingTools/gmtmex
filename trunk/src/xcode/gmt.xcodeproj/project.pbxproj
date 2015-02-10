@@ -127,6 +127,8 @@
 				"OTHER_LDFLAGS[arch=*]" = (
 					"-L/usr/local/lib",
 					"-lgmt",
+					"-L$(MATLABROOT)",
+					"-lmex",
 				);
 				SDKROOT = macosx;
 			};
@@ -174,6 +176,7 @@
 				OTHER_LDFLAGS = "";
 				"OTHER_LDFLAGS[arch=*]" = (
 					"-L$(MATLABROOT)/bin/maci64",
+					"-lmx",
 					"-lmex",
 					"-L/usr/local/lib",
 					"-lgmt",

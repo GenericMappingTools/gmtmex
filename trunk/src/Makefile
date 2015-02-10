@@ -22,6 +22,8 @@ LIB_O		= $(LIB_C:.c=.o)
 
 all:		$(PROGS)
 
+config:		$(LIB_H)
+
 install:	all
 		$(INSTALL) -d $(bindir)
 		$(INSTALL) $(PROGS) $(bindir)
@@ -48,10 +50,10 @@ gmt_mextest:	gmt_mextest.o $(LIB_O)
 		$(CC) $(LDFLAGS) -DNO_MEX gmt_mextest.o $(LIB_O) $(GMT_LIB) $(LIBS) -o $@
 
 $(LIB_O):	$(LIB_C) $(LIB_H)
-		$(CC) $(CFLAGS) -DNO_MEX $(LIB_C) -c -o $@
+		$(CC) $(CFLAGS)  $(GMT_INC) -DNO_MEX $(LIB_C) -c -o $@
 
 gmt_mextest.o:	gmt_mextest.c
-		$(CC) $(CFLAGS) -DNO_MEX gmt_mextest.c -c -o $@
+		$(CC) $(CFLAGS)  $(GMT_INC) -DNO_MEX gmt_mextest.c -c -o $@
 
 #-------------------------------------------------------------------------------
 #	Build include files
