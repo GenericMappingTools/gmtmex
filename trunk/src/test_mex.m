@@ -58,7 +58,7 @@ function pscoast()
 	gmt('pscoast -R110/140/20/35 -JB125/20/25/45/5i -Bag -Dl -Ggreen -Wthinnest -A250 -P > GMT_albers.ps')
 	gmt('destroy')
 
-function minmax()
+function gmtinfo()
 	disp ('Test gmtinfo');
 	t = rand(100,3) * 100;
 	gmt('create')
