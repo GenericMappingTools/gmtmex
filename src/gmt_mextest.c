@@ -120,7 +120,7 @@ int main (int argc, char *argv[]) {
 		}
 		printf (" = ");
 	}
-	printf ("gmt (%s); %% Arguments: %d output %d input\n", revised_cmd, nlhs, nrhs);
+	printf ("gmt (%s); %% Arguments: %d output %d input [%s]\n", revised_cmd, nlhs, nrhs, argv[1]);
 	
 	/* 6. Fake Run GMT module; g */
 

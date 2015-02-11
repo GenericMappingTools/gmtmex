@@ -526,7 +526,7 @@ int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs
 		if (!strchr ("DGCIT", type)) {
 			mexErrMsgTxt ("GMTMEX_pre_process: No or bad data type given to read|write\n");
 		}
-		if (!strstr ("write", module) && (t_ptr = GMT_Find_Option (API, GMT_OPT_INFILE, *head))) {
+		if (strstr (module, "write") && (t_ptr = GMT_Find_Option (API, GMT_OPT_INFILE, *head))) {
 			/* Found a -<<file> option; this is actually the output file so we override the option */
 			t_ptr->option = GMT_OPT_OUTFILE;
 		}
