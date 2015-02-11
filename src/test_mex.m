@@ -3,7 +3,7 @@ function  test_mex(opt)
 %	Test suite for the GMT-MEX API
 %
 
-all_tests = {'gmtread' 'gmtinfo' 'pscoast' 'surface' 'gmtmath' 'simplify'}; 
+all_tests = {'gmtread' 'gmtinfo' 'psbasemap' 'pscoast' 'surface' 'gmtmath' 'simplify'}; 
 
 if (nargin == 0)
 	opt = all_tests;
@@ -16,6 +16,7 @@ try
 		switch opt{k}
 			case 'gmtread',		gmtread;
 			case 'gmtwrite',	gmtwrite;
+			case 'psbasemap',	psbasemap
 			case 'pscoast',		pscoast
 			case 'gmtinfo',		gmtinfo;
 			case 'surface',		surface;
@@ -56,6 +57,12 @@ function pscoast()
 	disp ('Test pscoast');
 	gmt('create')
 	gmt('pscoast -R110/140/20/35 -JB125/20/25/45/5i -Bag -Dl -Ggreen -Wthinnest -A250 -P > GMT_albers.ps')
+	gmt('destroy')
+
+function psbasemap()
+	disp ('Test psbasemap');
+	gmt('create')
+	gmt('psbasemap -R110/140/20/35 -JB125/20/25/45/5i -Bafg -BWSne+ggreen -P > plot.ps')
 	gmt('destroy')
 
 function gmtinfo()
