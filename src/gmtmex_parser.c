@@ -56,6 +56,10 @@ int ID_rhs = 0;
 #define mexErrMsgTxt(txt) fprintf (stderr, txt)
 #endif
 
+enum MEX_dim {
+	DIM_COL	= 0,	/* Holds the number of columns for vectors and x-nodes for matrix */
+	DIM_ROW = 1};	/* Holds the number of rows for vectors and y-nodes for matrix */
+
 /* New parser for all GMT mex modules based on design discussed by PW and JL on Mon, 2/21/11 */
 /* Wherever we say "Matlab" we mean "Matlab of Octave" */
 
@@ -409,8 +413,8 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
 	struct GMT_MATRIX *M = NULL;
 	if (direction == GMT_IN) {	/* Dimensions are known, extract them and set this_dim pointer */
 		if (!mxIsNumeric (ptr)) mexErrMsgTxt ("Expected a Matrix for input\n");
-		dim[0] = mxGetN (ptr);
-		dim[1] = mxGetM (ptr);
+		dim[DIM_ROW] = mxGetM (ptr);	/* Number of rows */
+		dim[DIM_COL] = mxGetN (ptr);	/* Number of columns */
 		this_dim = dim;
 	}
 	/* Else there are no dimensions yet, this_dim is NULL and we are getting an empty container for output */
@@ -418,8 +422,8 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
 		mexErrMsgTxt ("GMTMEX_matrix_init: Failure to alloc GMT source matrix\n");
 
 	GMT_Report (API, GMT_MSG_DEBUG, " Allocate GMT Matrix %lx in gmtmex_parser\n", (long)M);
-	M->n_rows    = dim[1];
-	M->n_columns = dim[0];
+	M->n_rows    = dim[DIM_ROW];
+	M->n_columns = dim[DIM_COL];
 	if (direction == GMT_IN) {	/* We can inquire about the input */
 		if (mxIsDouble(ptr)) {
 			M->type = GMT_DOUBLE;
