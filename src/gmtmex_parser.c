@@ -477,14 +477,14 @@ void * GMTMEX_Register_IO (void *API, unsigned int data_type, unsigned int geome
 			/* Get an empty grid, and if input we and associate it with the Matlab grid pointer */
 			G = GMTMEX_grid_init (API, direction, ptr);
 			*ID = GMT_Get_ID (API, GMT_IS_GRID, direction, G);
-			GMT_Insert_Data (API, ID, G);
+			GMT_Insert_Data (API, *ID, G);
 			obj = G;
 			break;
 		case GMT_IS_DATASET:
 			/* Get a matrix container, and if input and associate it with the Matlab pointer */
 			M = GMTMEX_matrix_init (API, direction, ptr);
 			*ID = GMT_Get_ID (API, GMT_IS_DATASET, direction, M);
-			GMT_Insert_Data (API, ID, M);
+			GMT_Insert_Data (API, *ID, M);
 			obj = M;
 			break;
 		default:
