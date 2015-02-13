@@ -53,6 +53,7 @@ struct GMTMEX {	/* Array to hold information relating to output from GMT */
 	enum GMT_enum_std direction;	/* Either GMT_IN or GMT_OUT */
 	int ID;				/* Registration ID returned by GMT_Register_IO */
 	int lhs_index;			/* Corresponding index into plhs array */
+	void *obj;			/* Pointer to this object */
 };
 
 EXTERN_MSC int GMTMEX_print_func (FILE *fp, const char *message);

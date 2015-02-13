@@ -465,29 +465,33 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
 	return (M);
 }
 
-int GMTMEX_Register_IO (void *API, unsigned int data_type, unsigned int geometry, unsigned int direction, const mxArray *ptr)
+void * GMTMEX_Register_IO (void *API, unsigned int data_type, unsigned int geometry, unsigned int direction, const mxArray *ptr, int *ID)
 {	/* Create the grid or matrix container, register it, and return the ID */
-	int ID = GMT_NOTSET;
 	struct GMT_GRID *G = NULL;	/* Pointer to grid container */
 	struct GMT_MATRIX *M = NULL;	/* Pointer to matrix container */
+	void *obj = NULL;		/* POinter to the container we created */
+	*ID = GMT_NOTSET;
 
 	switch (data_type) {
 		case GMT_IS_GRID:
 			/* Get an empty grid, and if input we and associate it with the Matlab grid pointer */
 			G = GMTMEX_grid_init (API, direction, ptr);
-			ID = GMT_Get_ID (API, GMT_IS_GRID, direction, G);
+			*ID = GMT_Get_ID (API, GMT_IS_GRID, direction, G);
 			GMT_Insert_Data (API, ID, G);
+			obj = G;
 			break;
 		case GMT_IS_DATASET:
 			/* Get a matrix container, and if input and associate it with the Matlab pointer */
 			M = GMTMEX_matrix_init (API, direction, ptr);
-			ID = GMT_Get_ID (API, GMT_IS_DATASET, direction, M);
+			*ID = GMT_Get_ID (API, GMT_IS_DATASET, direction, M);
+			GMT_Insert_Data (API, ID, M);
+			obj = M;
 			break;
 		default:
 			mexErrMsgTxt ("GMTMEX_pre_process: Bad data type\n");
 			break;
 	}
-	return (ID);
+	return (obj);
 }
 #endif
 
@@ -512,7 +516,7 @@ int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs
 	char **key = NULL;
 	char *text = NULL;
 	char type = 0;
-	void *ptr = NULL;
+	void *ptr = NULL, *obj = NULL;
 	struct GMT_OPTION *opt = NULL, *new_ptr = NULL;	/* Pointer to a GMT option structure */
 	struct GMTMEX *info = NULL;
 #ifndef NO_MEX
@@ -559,7 +563,7 @@ int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs
 			/* Pick the next left or right side Matlab array pointer */
 			ptr = (direction == GMT_IN) ? (void *)prhs[lr_pos[GMT_IN]] : (void *)plhs[lr_pos[GMT_OUT]];
 			/* Create and thus register this container */
-			ID = GMTMEX_Register_IO (API, data_type, geometry, direction, ptr);
+			obj = GMTMEX_Register_IO (API, data_type, geometry, direction, ptr, &ID);
 			if (ID == GMT_NOTSET)
 				mexErrMsgTxt("GMTMEX_pre_process: Failure to register the resource\n");
 
@@ -569,6 +573,7 @@ int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs
 			info[n_items].ID = ID;
 			info[n_items].direction = direction;
 			info[n_items].lhs_index = lr_pos[direction];
+			info[n_items].obj = obj;
 			n_items++;
 			lr_pos[direction]++;		/* Advance position counter for next time */
 			if (GMT_Encode_ID (API, name, ID) != GMT_NOERROR) 	/* Make filename with embedded object ID */
@@ -659,9 +664,9 @@ int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs
 		k = X[item].lhs_index;	/* Short-hand for index into the plhs[] array being returned to Matlab */
 		switch (X[item].type) {	/* Determine what container we got */
 			case GMT_IS_GRID:	/* We read or wrote a GMT grid, examine further */
-				if ((G = GMT_Retrieve_Data (API, X[item].ID)) == NULL)
-					mexErrMsgTxt ("Error retrieving grid from GMT\n");
 				if (X[item].direction == GMT_OUT) {	/* Here, GMT_OUT means "Return this info to Matlab" */
+					if ((G = GMT_Retrieve_Data (API, X[item].ID)) == NULL)
+						mexErrMsgTxt ("Error retrieving grid from GMT\n");
 					/* Return grids via a float (mxSINGLE_CLASS) matrix in a struct */
 					/* Create a Matlab struct for this grid */
 					fieldnames[0]  = mxstrdup ("ProjectionRefPROJ4");
@@ -783,6 +788,8 @@ int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs
 					mxSetField (grid_struct, 0, "y", mx_y);
 					plhs[k] = grid_struct;	/* Hook this grid into the k'th output item */
 				}
+				else
+					G = X[item].obj;
 				/* Else it is a matlab grid that was passed into GMT as input and we are now done with it. */
 				/* We always destroy G at this point, whether input or output.  The alloc_mode
 				 * will prevent accidential freeing of any Matlab-allocated arrays */
@@ -794,7 +801,6 @@ int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs
 				if (X[item].direction == GMT_OUT) {		/* Here, GMT_OUT means "Return this info to Matlab" */
 					if ((M = GMT_Retrieve_Data(API, X[item].ID)) == NULL)
 						mexErrMsgTxt ("Error retrieving matrix from GMT\n");
-
 					/* Create a Matlab matrix to hold this GMT matrix/data table */
 					plhs[k] = mxCreateNumericMatrix (M->n_rows, M->n_columns, mxDOUBLE_CLASS, mxREAL);
 					d = mxGetData (plhs[k]);
@@ -813,6 +819,8 @@ int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs
 			//		for (col = 0; col < M->n_columns; col++)
 			//			memcpy (&d[M->n_rows*col], M->data.f8, M->n_rows * sizeof(double));
 				}
+				else
+					M = X[item].obj;
 				/* Else we were passing Matlab data into GMT as data input and we are now done with it. */
 				/* We always destroy M at this point, whether input or output.  The alloc_mode
 				 * will prevent accidential freeing of any Matlab-allocated arrays */
