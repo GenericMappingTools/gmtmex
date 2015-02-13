@@ -196,7 +196,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	status = GMT_Call_Module (API, module, GMT_MODULE_OPT, options);
 
 	/* 7. Hook up module outputs to Matlab plhs arguments */
-	if (nlhs && GMTMEX_post_process (API, X, n_items, plhs)) mexErrMsgTxt ("Failure to extract GMT5-produced data\n");
+	if (GMTMEX_post_process (API, X, n_items, plhs)) mexErrMsgTxt ("Failure to extract GMT5-produced data\n");
 	
 	/* 8. Destroy linked option list */
 	if (GMT_Destroy_Options (API, &options)) mexErrMsgTxt ("Failure to destroy GMT5 options\n");
