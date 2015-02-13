@@ -361,10 +361,13 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 {	/* Used to Create an empty Grid container to hold a GMT grid.
  	 * If direction is GMT_IN then we are given a Matlab grid and can determine its size, etc.
 	 * If direction is GMT_OUT then we allocate an empty GMT grid as a destination. */
+	unsigned int row, col;
+	uint64_t gmt_ij;
 	struct GMT_GRID *G = NULL;
 	if (direction == GMT_IN) {	/* Dimensions are known from the input pointer */
 		mxArray *mx_ptr = NULL;
 		double *inc = NULL, *range = NULL, *reg = NULL;
+		float *f = NULL;
 		unsigned int registration;
 
 		if (mxIsEmpty (ptr))
@@ -384,15 +387,17 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 			mexErrMsgTxt ("Could not find registration array for Grid registration\n");
 		reg = mxGetData (mx_ptr);
 		registration = (unsigned int)lrint (reg[0]);
-		if ((G = GMT_Create_Data (API, GMT_IS_GRID, GMT_IS_SURFACE, GMT_GRID_HEADER_ONLY,
+		if ((G = GMT_Create_Data (API, GMT_IS_GRID, GMT_IS_SURFACE, GMT_GRID_ALL,
 				NULL, range, inc, registration, 0, NULL)) == NULL)
 			mexErrMsgTxt ("GMTMEX_grid_init: Failure to alloc GMT source matrix for input\n");
 		mx_ptr = mxGetField (ptr, 0, "z");
 		if (mx_ptr == NULL)
 			mexErrMsgTxt ("Could not find data array for Grid\n");
 
-		G->data = mxGetData (mx_ptr);
-		G->alloc_mode = GMT_ALLOC_EXTERNALLY;	/* Since array was allocated by Matlab */
+		f = mxGetData (mx_ptr);
+		for (gmt_ij = row = 0; row < G->header->ny; row++)
+			for (col = 0; col < G->header->nx; col++, gmt_ij++)
+				G->data [gmt_ij] = f[MEXG_IJ(G,row,col)];
 		GMT_Report (API, GMT_MSG_DEBUG, " Allocate GMT Grid %lx in gmtmex_parser\n", (long)G);
 		GMT_Report (API, GMT_MSG_DEBUG, " Registered GMT Grid array %lx via memory reference from Matlab\n", (long)G->data);
 	}
