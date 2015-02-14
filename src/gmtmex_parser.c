@@ -139,28 +139,6 @@ char *strsep_ (char **stringp, const char *delim) {
 }
 #endif
 
-int GMTMEX_find_module (void *API, char *module, unsigned int *prefix)
-{	/* Just search for module and return entry in keys array.  Only modules listed in mexproginfo.txt are used */
-	char gmt_module[GMT_STR16] = {"gmt"};
-	int k, id = -1;
-	*prefix = 0;	/* No need to add gmt prefix yet */
-	for (k = 0; id == -1 && k < N_GMT_MODULES; k++)
-		if (!strcmp (module, module_name[k]))
-			id = k;
-	if (id == -1) {	/* Not found in the known list, try prepending gmt to the module name (i.e. gmt + get = gmtget) */
-		strcat (gmt_module, module);
-		for (k = 0; id == -1 && k < N_GMT_MODULES; k++)
-			if (!strcmp (gmt_module, module_name[k]))
-				id = k;
-		if (id == -1) return (-1);	/* Not found in the known list */
-		*prefix = 1;	/* Here we know we need to add gmt prefix */
-	}
-	/* OK, found in the list - now call it and see if it is actually available */
-	if ((k = GMT_Call_Module (API, module_name[id], GMT_MODULE_EXIST, NULL)) == GMT_NOERROR)	/* Found and accessible */
-		return (id);
-	return (-1);	/* Not found in any shared libraries */
-}
-
 #ifdef NO_MEX
 #define mxstrdup(s) strdup(s)
 #else
@@ -183,6 +161,39 @@ int GMTMEX_print_func (FILE *fp, const char *message)
 	return 0;
 }
 #endif
+
+/* Here lies functions that are independent of the actual lauguage-specific things
+ * of the API.  THese only depend on GMT things and should be the same for all APIs
+ * trying to hook into GMT.
+ * Possible plan:
+ *	1. The mexproginfo.txt and derived include files are actuall GMT-specific
+ *	   and could be obtained from the GMT API instead having to distribute
+ *	   separate files with lists of modules, etc.
+ *	2. Some or all of the functions below that only require GMT might end up
+ *	   in the GMT library and may then be used by these API interfaces.
+ */
+
+int GMTMEX_find_module (void *API, char *module, unsigned int *prefix)
+{	/* Just search for module and return entry in keys array.  Only modules listed in mexproginfo.txt are used */
+	char gmt_module[GMT_STR16] = {"gmt"};
+	int k, id = -1;
+	*prefix = 0;	/* No need to add gmt prefix yet */
+	for (k = 0; id == -1 && k < N_GMT_MODULES; k++)
+		if (!strcmp (module, module_name[k]))
+			id = k;
+	if (id == -1) {	/* Not found in the known list, try prepending gmt to the module name (i.e. gmt + get = gmtget) */
+		strcat (gmt_module, module);
+		for (k = 0; id == -1 && k < N_GMT_MODULES; k++)
+			if (!strcmp (gmt_module, module_name[k]))
+				id = k;
+		if (id == -1) return (-1);	/* Not found in the known list */
+		*prefix = 1;	/* Here we know we need to add gmt prefix */
+	}
+	/* OK, found in the list - now call it and see if it is actually available */
+	if ((k = GMT_Call_Module (API, module_name[id], GMT_MODULE_EXIST, NULL)) == GMT_NOERROR)	/* Found and accessible */
+		return (id);
+	return (-1);	/* Not found in any shared libraries */
+}
 
 int gmtmex_find_option (char option, char *key[], int n_keys) {
 	/* gmtmex_find_option determines if the given option is among the special options listed
