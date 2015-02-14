@@ -139,10 +139,11 @@ char *strsep_ (char **stringp, const char *delim) {
 }
 #endif
 
-int GMTMEX_find_module (void *API, char *module)
+int GMTMEX_find_module (void *API, char *module, unsigned int *prefix)
 {	/* Just search for module and return entry in keys array.  Only modules listed in mexproginfo.txt are used */
 	char gmt_module[GMT_STR16] = {"gmt"};
 	int k, id = -1;
+	*prefix = 0;	/* No need to add gmt prefix yet */
 	for (k = 0; id == -1 && k < N_GMT_MODULES; k++)
 		if (!strcmp (module, module_name[k]))
 			id = k;
@@ -152,6 +153,7 @@ int GMTMEX_find_module (void *API, char *module)
 			if (!strcmp (gmt_module, module_name[k]))
 				id = k;
 		if (id == -1) return (-1);	/* Not found in the known list */
+		*prefix = 1;	/* Here we know we need to add gmt prefix */
 	}
 	/* OK, found in the list - now call it and see if it is actually available */
 	if ((k = GMT_Call_Module (API, module_name[id], GMT_MODULE_EXIST, NULL)) == GMT_NOERROR)	/* Found and accessible */

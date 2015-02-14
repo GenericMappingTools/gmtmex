@@ -76,6 +76,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	int status = 0;                 /* Status code from GMT API */
 	unsigned int first = 0;         /* Array ID of first command argument (not 0 when API-ID is first) */
 	unsigned int help = 0;          /* 1 if we just gave --help */
+	unsigned int use_prefix = 0;	/* 1 if we must prefix module with "gmt" */
 	unsigned int got_API_in_input = 0; /* It will be set to 1 by gmt(API, 'module ...'); */
 	int n_items = 0;                /* Number of Matlab arguments (left and right) */
 	int module_id = 0;		/* Internal number of the desired GMT module */
@@ -87,6 +88,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	char *cmd = NULL;               /* Pointer used to get the user's Matlab command */
 	char *opt_args = NULL;		/* Pointer to the user's module options */
 	char module[MODULE_LEN];        /* Name of GMT module to call */
+	char module_name[MODULE_LEN];   /* Full name of GMT module to call (incl gmt prefix) */
 	uintptr_t *pti = NULL;          /* To locally store the API address */
 
 	if (nrhs == 0) {	/* No arguments at all results in the GMT banner message */
@@ -177,11 +179,15 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	strncpy (module, cmd, k);				/* Isolate the module name in this string */
 
 	/* 3. Determine the GMT module ID, or list module usages and return if the module is not found */
-	if ((module_id = GMTMEX_find_module (API, module)) == -1) {
+	if ((module_id = GMTMEX_find_module (API, module, &use_prefix)) == -1) {
 		GMT_Call_Module (API, NULL, GMT_MODULE_PURPOSE, NULL);
 		return;
 	}
 
+	if (use_prefix)
+		sprintf (module_name, "gmt%s", module);
+	else
+		strcpy (module_name, module);
 	/* 4. Convert mex command line arguments to a linked option list */
 	while (cmd[k] == ' ') k++;	/* Skip any spaces between modules and start of options */
 	opt_args = (cmd[k]) ? &cmd[k] : NULL;
@@ -190,11 +196,11 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 
 	/* 5. Parse the mex command, update GMT option lists, and register in/out resources, and return X array */
 	pos = (got_API_in_input) ? 2 : 1;
-	if ((n_items = GMTMEX_pre_process (API, module, plhs, nlhs, &prhs[MIN(pos,nrhs-1)], nrhs-pos, keys[module_id], &options, &X)) < 0)
+	if ((n_items = GMTMEX_pre_process (API, module_name, plhs, nlhs, &prhs[MIN(pos,nrhs-1)], nrhs-pos, keys[module_id], &options, &X)) < 0)
 		mexErrMsgTxt ("Failure to parse mex command options\n");
 	
 	/* 6. Run GMT module; give usage message if errors arise during parsing */
-	status = GMT_Call_Module (API, module, GMT_MODULE_OPT, options);
+	status = GMT_Call_Module (API, module_name, GMT_MODULE_OPT, options);
 
 	/* 7. Hook up module outputs to Matlab plhs arguments */
 	if (GMTMEX_post_process (API, X, n_items, plhs)) mexErrMsgTxt ("Failure to extract GMT5-produced data\n");
