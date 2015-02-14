@@ -3,7 +3,7 @@ function  test_mex(opt)
 %	Test suite for the GMT-MEX API
 %
 
-all_tests = {'gmtread' 'gmtinfo' 'blockmean' 'psbasemap' 'pscoast' 'surface' 'gmtmath' 'simplify'}; 
+all_tests = {'filter1d' 'gmtread' 'gmtinfo' 'blockmean' 'psbasemap' 'pscoast' 'surface' 'gmtmath' 'simplify'}; 
 
 if (nargin == 0)
 	opt = all_tests;
@@ -17,6 +17,7 @@ try
 			case 'gmtread',		gmtread;
 			case 'gmtwrite',	gmtwrite;
 			case 'blockmean',	blockmean
+			case 'filter1d',	filter1d
 			case 'psbasemap',	psbasemap
 			case 'pscoast',		pscoast
 			case 'gmtinfo',		gmtinfo;
@@ -52,6 +53,17 @@ function G = blockmean()
 	gmt('blockmean -R0/150/0/100 -I10 > ave1.txt', t);
 	B = gmt('blockmean -R0/150/0/100 -I10', t);
 	gmt ('write -Td ave2.txt', B);
+	gmt('destroy')
+
+function G = filter1d
+	disp ('Test blockmean');
+	t = zeros (100,2);
+	t(:,1) = 1:100;
+	t(:,2) = rand(100,1) * 100;
+	gmt('create')
+	gmt('filter1d -Fg10 -E > filt1.txt', t);
+	F = gmt('filter1d -Fg10 -E', t);
+	gmt ('write -Td filt2.txt', F);
 	gmt('destroy')
 
 function G = surface()
