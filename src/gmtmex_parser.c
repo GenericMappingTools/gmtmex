@@ -20,7 +20,6 @@
 #define STDC_FORMAT_MACROS
 #define GMTMEX_LIB
 #include "gmtmex.h"
-#include "gmtmex_modules.h"
 #include <math.h>
 #include <inttypes.h>
 #include <stdarg.h>
@@ -71,10 +70,16 @@ enum MEX_dim {
  * we would use -L$ and give the grid as an argument to the module, e.g.,
  *    Z = gmt ('surface -R0/50/0/50 -I1 -V xyzfile -L$', lowmatrix);
  * For each option that may take a file we need to know what kind of file and if this is input or output.
- * We encode this in a 3-character word, where
- *	1. The first char is the option flag (e.g., L for -L)
- *	2. The second is the data type (P|L|D|G|C|T)
- *	3. The third is I(n) or O(out)
+ * We encode this in a 3-character word XYZ, explained below.  Note that each module may
+ * need several comma-separated XYZ words and these are returned as one string via GMT_Get_Moduleinfo.
+ *
+ * X stands for the specific program option (e.g., L for -L, F for -F), or <,>
+ *    for standard input,output (if reading tables) or command-line files (if reading grids).
+ *    A hyphen (-) means there is no option for this item.
+ * Y stands for data type (C = CPT, D = Dataset/Point, L = Dataset/Line,
+ *    P = Dataset/Polygon, G = Grid, I = Image, T = Textset, X = PostScript, ? = type given via module option),
+ * Z stands for primary inputs (I), primary output (O), or secondary output (o).
+ *
  * E.g., the surface example would have the word LGI.  The data types P|L|D|G|C|T stand for
  * P(olygons), L(ines), D(point data), G(rid), C(PT file), T(ext table). [We originally only had
  * D for datasets but perhaps the geometry needs to be passed too (if known); hence the P|L|D char]
@@ -162,39 +167,7 @@ int GMTMEX_print_func (FILE *fp, const char *message)
 }
 #endif
 
-/* Here lies functions that are independent of the actual lauguage-specific things
- * of the API.  THese only depend on GMT things and should be the same for all APIs
- * trying to hook into GMT.
- * Possible plan:
- *	1. The mexproginfo.txt and derived include files are actuall GMT-specific
- *	   and could be obtained from the GMT API instead having to distribute
- *	   separate files with lists of modules, etc.
- *	2. Some or all of the functions below that only require GMT might end up
- *	   in the GMT library and may then be used by these API interfaces.
- */
-
-int GMTMEX_find_module (void *API, char *module, unsigned int *prefix)
-{	/* Just search for module and return entry in keys array.  Only modules listed in mexproginfo.txt are used */
-	char gmt_module[GMT_STR16] = {"gmt"};
-	int k, id = -1;
-	*prefix = 0;	/* No need to add gmt prefix yet */
-	for (k = 0; id == -1 && k < N_GMT_MODULES; k++)
-		if (!strcmp (module, module_name[k]))
-			id = k;
-	if (id == -1) {	/* Not found in the known list, try prepending gmt to the module name (i.e. gmt + get = gmtget) */
-		strcat (gmt_module, module);
-		for (k = 0; id == -1 && k < N_GMT_MODULES; k++)
-			if (!strcmp (gmt_module, module_name[k]))
-				id = k;
-		if (id == -1) return (-1);	/* Not found in the known list */
-		*prefix = 1;	/* Here we know we need to add gmt prefix */
-	}
-	/* OK, found in the list - now call it and see if it is actually available */
-	if ((k = GMT_Call_Module (API, module_name[id], GMT_MODULE_EXIST, NULL)) == GMT_NOERROR)	/* Found and accessible */
-		return (id);
-	return (-1);	/* Not found in any shared libraries */
-}
-
+/* These functions require GMT only */ 
 int gmtmex_find_option (char option, char *key[], int n_keys) {
 	/* gmtmex_find_option determines if the given option is among the special options listed
            in the key array that might take $ as filename.  A $ indicates the "file" is being
@@ -283,7 +256,7 @@ int gmtmex_get_arg_dir (char option, char *key[], int n_keys, int *data_type, in
 
 	item = gmtmex_find_option (option, key, n_keys);
 	if (item == -1)		/* This means a coding error we must fix */
-		mexErrMsgTxt ("GMTMEX_pre_process: This option does not allow $ arguments\n");
+		return -1;
 
 	/* 2. Assign direction, data_type, and geometry */
 
@@ -321,7 +294,7 @@ int gmtmex_get_arg_dir (char option, char *key[], int n_keys, int *data_type, in
 			*geometry = GMT_IS_NONE;
 			break;
 		default:
-			mexErrMsgTxt ("GMTMEX_pre_process: Bad data_type character in 3-char module code!\n");
+			return -2;
 			break;
 	}
 
@@ -331,7 +304,7 @@ int gmtmex_get_arg_dir (char option, char *key[], int n_keys, int *data_type, in
 	return ((key[item][2] == 'i') ? GMT_IN : GMT_OUT);	/* Return the direction of the i/o */
 }
 
-char **make_char_array (char *string, unsigned int *n_items, char type)
+char **make_char_array (const char *string, unsigned int *n_items, char type)
 {	/* Turn the comma-separated list of 3-char codes into an array of such codes.
  	 * In the process, replace any ?-types with the selected type. */
 	size_t len, k, n;
@@ -362,12 +335,17 @@ char **make_char_array (char *string, unsigned int *n_items, char type)
 }
 
 #ifdef NO_MEX
-int GMTMEX_Register_IO (void *API, unsigned int data_type, unsigned int geometry, unsigned int direction, const mxArray *ptr)
+void * GMTMEX_Register_IO (void *API, unsigned int data_type, unsigned int geometry, unsigned int direction, const mxArray *ptr, int *ID)
 {	/* For testing we do not hook anything up, just increment the fake IDs */
-	if (direction == GMT_IN)
-		return (ID_rhs++);	/* Fake IDs */
-	else
-		return (ID_lhs++);	/* Fake IDs */
+	if (direction == GMT_IN) {
+		ID_rhs++;	/* Fake IDs */
+		*ID = ID_rhs;
+	}
+	else {
+		ID_lhs++;	/* Fake IDs */
+		*ID = ID_lhs;
+	}
+	return (NULL);
 }
 #else
 struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxArray *ptr)
@@ -514,7 +492,7 @@ void * GMTMEX_Register_IO (void *API, unsigned int data_type, unsigned int geome
 #endif
 
 int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs, const mxArray *prhs[],
-                        int nrhs, char *keys, struct GMT_OPTION **head, struct GMTMEX **X) {
+                        int nrhs, const char *keys, struct GMT_OPTION **head, struct GMTMEX **X) {
 	/* API controls all things within GMT.
 	 * plhs (and nlhs) are the outputs specified on the left side of the equal sign in Matlab/Octave.
 	 * prhs (and nrhs) are the inputs specified after the option string in the gmt call.
@@ -525,10 +503,11 @@ int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs
 
 	int lr_pos[2] = {0, 0};	/* These position keeps track where we are in the L and R pointer arrays */
 	int direction;		/* Either GMT_IN or GMT_OUT */
+	int error;		/* To capture error return codes */
 	int data_type;		/* Either GMT_IS_DATASET, GMT_IS_TEXTSET, GMT_IS_GRID, GMT_IS_CPT, GMT_IS_IMAGE */
 	int geometry;		/* Either GMT_IS_NONE, GMT_IS_POINT, GMT_IS_LINE, GMT_IS_POLY, or GMT_IS_SURFACE */
 	int given[2][2];	/* Either GMT_MEX_EXPLICIT, the item number in the keys array for a filename, or an option with implicit arg */
-	int ID, error;
+	int ID;
 	unsigned int k, flavor, n_keys = 0, PS, n_alloc = 8U, n_items = 0;
 	char name[GMT_STR16];	/* Used to hold the GMT API embedded file name, e.g., @GMTAPI@-###### */
 	char **key = NULL;
@@ -575,9 +554,14 @@ int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs
 			/* Here we must add the primary input or output from prhs[0] or plhs[0] */
 			/* Get info about the data set */
 			if (given[direction][flavor] < 0)
-				mexErrMsgTxt("GMTMEX_pre_process: stoping here instead of crashing Matlab.\n\t\t'given[direction][flavor]' is negative\n");
+				mexErrMsgTxt("GMTMEX_pre_process: stopping here instead of crashing Matlab.\n\t\t'given[direction][flavor]' is negative\n");
 
-			(void)gmtmex_get_arg_dir (key[given[direction][flavor]][0], key, n_keys, &data_type, &geometry);
+			error = gmtmex_get_arg_dir (key[given[direction][flavor]][0], key, n_keys, &data_type, &geometry);
+			if (error == -1)
+				mexErrMsgTxt ("GMTMEX_pre_process: This option does not allow $ arguments\n");
+			else if (error == -2)
+				mexErrMsgTxt ("GMTMEX_pre_process: Bad data_type character in 3-char module code!\n");
+			if (error < 0) return (error);
 			/* Pick the next left or right side Matlab array pointer */
 			ptr = (direction == GMT_IN) ? (void *)prhs[lr_pos[GMT_IN]] : (void *)plhs[lr_pos[GMT_OUT]];
 			/* Create and thus register this container */

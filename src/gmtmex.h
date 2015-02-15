@@ -33,9 +33,9 @@ char revised_cmd[BUFSIZ];	/* Global variable used to show revised command when t
 #endif	/* NO_MEX */
 #include <string.h>
 #include <ctype.h>
-#ifndef GMTMEX_LIB
-#include "gmtmex_keys.h"
-#endif
+//#ifndef GMTMEX_LIB
+//#include "gmtmex_keys.h"
+//#endif
 #ifdef GMT_MATLAB
 #define MEX_PROG "Matlab"
 #define MEX_COL_ORDER GMT_IS_COL_FORMAT
@@ -57,7 +57,7 @@ struct GMTMEX {	/* Array to hold information relating to output from GMT */
 };
 
 EXTERN_MSC int GMTMEX_print_func (FILE *fp, const char *message);
-EXTERN_MSC int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs, const mxArray *prhs[], int nrhs, char *keys, struct GMT_OPTION **head, struct GMTMEX **X);
+EXTERN_MSC int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs, const mxArray *prhs[], int nrhs, const char *keys, struct GMT_OPTION **head, struct GMTMEX **X);
 EXTERN_MSC int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs[]);
 EXTERN_MSC int GMTMEX_find_module (void *API, char *module, unsigned int *prefix);
 

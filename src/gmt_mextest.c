@@ -19,15 +19,14 @@
  * This is a test program for the GMTMEX_pre_process function. No
  * Matlab/Octave libraries or actions are involved 
  *
- * Version:	5
- * Created:	28-Jun-2013
+ * Version:	5.2
+ * Created:	9-Feb-2015
  *
  */
 
 #include "gmtmex.h"
 
 int main (int argc, char *argv[]) {
-	int module_id;					/* Module ID */
 	int n_items = 0;				/* Number of Matlab arguments (left and right) */
 	int nlhs = 0, nrhs = 0, k;				/* Simulated counts */
 	int start, quotes;
@@ -37,6 +36,7 @@ int main (int argc, char *argv[]) {
 	struct GMTMEX *X = NULL;			/* Array of information about Matlab args */
 	char *str = NULL;				/* Pointer used to get Matlab command */
 	char module[BUFSIZ] = {""}, cmd[BUFSIZ] = {""};	/* Name of GMT module to call and the command */
+	const char *keys = NULL;			/* List of module option keys */
 	mxArray *plhs[5] = {NULL, NULL, NULL, NULL, NULL};	/* Simulated pointers to Matlab arrays */
 	const mxArray *prhs[5] = {NULL, NULL, NULL, NULL, NULL};
 
@@ -90,20 +90,20 @@ int main (int argc, char *argv[]) {
 	for (k = 0; k < str_length && cmd[k] != ' '; k++);	/* Determine first space in command */
 	strncpy (module, cmd, k);				/* Isolate the module name in this string */
 
-	/* 3. Determine the GMT module ID, or list module usages and return if module is not found */
-	if ((module_id = GMTMEX_find_module (API, module)) == -1) {
+	/* 3. Determine the GMT module ID, or list module usages and return if the module is not found */
+	if ((keys = GMT_Get_Moduleinfo (API, module)) == NULL) {
 		GMT_Call_Module (API, NULL, GMT_MODULE_PURPOSE, NULL);
 		if (GMT_Destroy_Session (API)) fprintf (stderr, "Failure to destroy GMT5 session\n");
 		exit (-1);
 	}
-
+	
 	/* 4. Convert mex command line arguments to a linked option list */
 	str = (k < str_length) ? &cmd[k+1] : NULL;
 	if ((options = GMT_Create_Options (API, 0, str)) == NULL)
 		fprintf (stderr, "Failure to parse GMT5 command options\n");
 
 	/* 5. Parse the mex command, update GMT option lists, and register in/out resources, and return X array */
-	if ((n_items = GMTMEX_pre_process (API, module, plhs, nlhs, prhs, nrhs-1, keys[module_id], &options, &X)) < 0)
+	if ((n_items = GMTMEX_pre_process (API, module, plhs, nlhs, prhs, nrhs-1, keys, &options, &X)) < 0)
 		fprintf (stderr, "Failure to parse mex command options\n");
 	
 	/* Print out expanded command line */

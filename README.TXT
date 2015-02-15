@@ -1,17 +1,19 @@
 #	$Id$
 #
 #	Authors: Paul Wessel and Joaquim Luis
-#	Updated: Feb 9, 2015
+#	Updated: Feb 14, 2015
 
-The Matlab/Octave API is built on top of the GMT C/C++ API and is therefore
-decoupled from the GMT5 distribution.  We anticipate this is how other APIs
-(Python, Julia) will be done as well.  To build gmtmex you first must install
+The Matlab/Octave API is built on top of the GMT C/C++ API
+and is therefore decoupled from the GMT5 distribution.  We
+anticipate this is how other APIs (Python, Julia) will be
+done as well.  To build gmtmex you first must install
 GMT >=5.2 from subversion or via an official release.
 
-The single gmt.c program is linked with gmtmex_parser.c and the GMT5 API library
-into a mex executable.  Parsing is assisted via program-specific option information
-kept in the file mexproginfo.txt and we use this to build some include files for
-the parser. A configure option will select Matlab versus Octave builds.
+The single gmt.c program is linked with gmtmex_parser.c and
+the GMT5 API library into a mex executable.  Parsing is
+assisted via program-specific option information obtained via
+GMT_Get_Moduleinfo. A configure option will select Matlab
+versus Octave builds.
 
 To build the gmt mex executable, take the following steps:
 
