@@ -70,7 +70,7 @@ function G = surface()
 	disp ('Test surface');
 	t = rand(100,3) * 100;
 	% Make a somewhat recognizible grid instead of random numbers
-	t(:,3) = (t(:,1)/150).^2 - (t(:,2)/100).^2 + 1.0
+	t(:,3) = (t(:,1)/150).^2 - (t(:,2)/100).^2 + 1.0;
 	gmt('create')
 	gmt('surface -R0/150/0/100 -I1 -Glixo.grd', t);
 	G = gmt('surface -R0/150/0/100 -I1', t);
