@@ -178,8 +178,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	 *    Note: If module needed "gmt" prepended then module is returned with the correct prefix */
 	if ((keys = GMT_Get_Moduleinfo (API, module)) == NULL) {
 		GMT_Call_Module (API, NULL, GMT_MODULE_PURPOSE, NULL);
-		if (GMT_Destroy_Session (API)) fprintf (stderr, "Failure to destroy GMT5 session\n");
-		exit (-1);
+		if (GMT_Destroy_Session (API)) mexErrMsgTxt("Failure to destroy GMT5 session\n");
 	}
 
 	/* 4. Convert mex command line arguments to a linked option list */
