@@ -86,15 +86,19 @@ enum MEX_dim {
  * In addition, the only common option that might take a file is -R which may take a grid as input.
  * We check for that in addition to the module-specific info passed via the key variable.
  *
- * The actual reading/writing will occur in gmt_api.c where we will add a case MEX: for each type.
- * and here we will use mx* for allocation for stuff that is sent to Matlab, and GMT_memory for things
- * that are read and reformatted from Matlab.  This includes packing up GMT grids into Matlab grid structs
- * and vice versa.
+ * The actual reading/writing will occur in gmt_api.c via the standard GMT containers.
+ * The packing up GMT grids into Matlab grid structs and vice versa happens after getting the
+ * results out of the GMT API and before passing into back to Matlab.
  */
 
-#define GMT_MEX_NONE		-3
-#define GMT_MEX_EXPLICIT	-2
-#define GMT_MEX_IMPLICIT	-1
+/* We will consolidate this code once everything is working.  Parts of this code (the things that
+ * only depend on GMT functions) will be included in the API and only documented in the API developer
+ * section while things that is tied to the external languate (Matlab, Python, etc) will remain here.
+ * We flag sections either as GMT_ONLY or EXTERNAL below for now. */
+
+#define GMT_FILE_NONE		-3
+#define GMT_FILE_EXPLICIT	-2
+#define GMT_FILE_IMPLICIT	-1
 
 #define GMT_IS_PS		99	/* Use for PS output; use GMT_IS_GRID or GMT_IS_DATASET for data */
 
@@ -168,8 +172,8 @@ int GMTMEX_print_func (FILE *fp, const char *message)
 #endif
 
 /* These functions require GMT only */ 
-int gmtmex_find_option (char option, char *key[], int n_keys) {
-	/* gmtmex_find_option determines if the given option is among the special options listed
+int gmtapi_find_option (char option, char *key[], int n_keys) {
+	/* gmtapi_find_option determines if the given option is among the special options listed
            in the key array that might take $ as filename.  A $ indicates the "file" is being
  	   passed via a Matlab array/grid instead.  */
 	int pos = -1, k;
@@ -178,7 +182,7 @@ int gmtmex_find_option (char option, char *key[], int n_keys) {
 	return (pos);	/* -1 if not found, otherwise the position in the key array */
 }
 
-int gmtmex_get_arg_pos (char *arg)
+int gmtapi_get_arg_pos (char *arg)
 {	/* Look for a $ in the arg; if found return position, else return -1. Skips $ inside quoted texts */
 	int pos, k;
 	unsigned int mute = 0;
@@ -189,7 +193,7 @@ int gmtmex_get_arg_pos (char *arg)
 	return (pos);	/* Either -1 (not found) or in the 0-(strlen(arg)-1) range [position of $] */
 }
 
-unsigned int gmtmex_get_key_pos (char *key[], unsigned int n_keys, struct GMT_OPTION *head, int def[2][2])
+unsigned int gmtapi_get_key_pos (char *key[], unsigned int n_keys, struct GMT_OPTION *head, int def[2][2])
 {	/* Must determine if default input and output have been set via program options or if they should be added explicitly.
  	 * As an example, consider the GMT command grdfilter in.nc -Fg200k -Gfilt.nc.  In Matlab this might be
 	 * filt = gmt ('grdfilter $ -Fg200k -G$', in);
@@ -206,40 +210,40 @@ unsigned int gmtmex_get_key_pos (char *key[], unsigned int n_keys, struct GMT_OP
 	 */
 	int pos, dir, flavor, PS = 0;
 	struct GMT_OPTION *opt = NULL;
-	def[GMT_IN][0] = GMT_MEX_IMPLICIT;	/* Initialize to setting the i/o implicitly for filenames */
-	def[GMT_OUT][0] = GMT_MEX_NONE;		/* Initialize to setting the i/o implicitly for filenames */
-	def[GMT_IN][1] = def[GMT_OUT][1] = GMT_MEX_NONE;	/* For options with mising filenames they are NONE unless set  */
+	def[GMT_IN][0] = GMT_FILE_IMPLICIT;	/* Initialize to setting the i/o implicitly for filenames */
+	def[GMT_OUT][0] = GMT_FILE_NONE;		/* Initialize to setting the i/o implicitly for filenames */
+	def[GMT_IN][1] = def[GMT_OUT][1] = GMT_FILE_NONE;	/* For options with mising filenames they are NONE unless set  */
 
 	/* Loop over the module options to see if inputs and outputs are set explicitly or implicitly */
 	for (opt = head; opt; opt = opt->next) {
-		pos = gmtmex_find_option (opt->option, key, n_keys);	/* First see if this option is one that might take $ */
+		pos = gmtapi_find_option (opt->option, key, n_keys);	/* First see if this option is one that might take $ */
 		if (pos == -1) continue;	/* No, it was some other harmless option, e.g., -J, -O , etc. */
 		//flavor = (opt->option == '<' || opt->option == '>') ? 0 : 1;	/* Filename or option with filename ? */
 		flavor = (opt->option == '<') ? 0 : 1;	/* Filename or option with filename ? */
 		dir = (key[pos][2] == 'I') ? GMT_IN : GMT_OUT;	/* Input of output ? */
 		if (flavor == 0)	/* File name was given on command line */
-			def[dir][flavor] = GMT_MEX_EXPLICIT;
+			def[dir][flavor] = GMT_FILE_EXPLICIT;
 		else			/* Command option; e.g., here we have -G<file>, -G$, or -G [the last two means implicit] */
-			def[dir][flavor] = (opt->arg[0] == '\0' || opt->arg[0] == '$') ? GMT_MEX_IMPLICIT : GMT_MEX_EXPLICIT;	/* The option provided no file name (or gave $) so it is implicit */
+			def[dir][flavor] = (opt->arg[0] == '\0' || opt->arg[0] == '$') ? GMT_FILE_IMPLICIT : GMT_FILE_EXPLICIT;	/* The option provided no file name (or gave $) so it is implicit */
 	}
-	/* Here, if def[] == GMT_MEX_IMPLICIT (the default in/out option was NOT given),
+	/* Here, if def[] == GMT_FILE_IMPLICIT (the default in/out option was NOT given),
            then we want to return the corresponding entry in key */
 	for (pos = 0; pos < n_keys; pos++) {	/* For all module options that might take a file */
 		//flavor = (key[pos][0] == '<' || key[pos][0] == '>') ? 0 : 1;
 		flavor = (key[pos][0] == '<') ? 0 : 1;
 		if ((key[pos][2] == 'I' || key[pos][2] == 'i') && key[pos][0] == '-')
 			/* This program takes no input (e.g., psbasemap, pscoast) */
-			def[GMT_IN][0] = def[GMT_IN][1]  = GMT_MEX_NONE;
-		else if (key[pos][2] == 'I' && def[GMT_IN][flavor] == GMT_MEX_IMPLICIT)
+			def[GMT_IN][0] = def[GMT_IN][1]  = GMT_FILE_NONE;
+		else if (key[pos][2] == 'I' && def[GMT_IN][flavor] == GMT_FILE_IMPLICIT)
 			/* Must add implicit input; use def to determine option,type */
 			def[GMT_IN][flavor] = pos;
 		else if ((key[pos][2] == 'O' || key[pos][2] == 'o') && key[pos][0] == '-')
 			/* This program produces no output */
-			def[GMT_OUT][0] = def[GMT_OUT][1] = GMT_MEX_NONE;
-		else if (key[pos][2] == 'O' && def[GMT_OUT][flavor] == GMT_MEX_IMPLICIT)
+			def[GMT_OUT][0] = def[GMT_OUT][1] = GMT_FILE_NONE;
+		else if (key[pos][2] == 'O' && def[GMT_OUT][flavor] == GMT_FILE_IMPLICIT)
 			/* Must add implicit output; use def to determine option,type */
 			def[GMT_OUT][flavor] = pos;
-		else if (key[pos][2] == 'O' && def[GMT_OUT][flavor] == GMT_MEX_NONE && flavor == 1)
+		else if (key[pos][2] == 'O' && def[GMT_OUT][flavor] == GMT_FILE_NONE && flavor == 1)
 			/* Must add mising output option; use def to determine option,type */
 			def[GMT_OUT][flavor] = pos;
 		if ((key[pos][2] == 'O' || key[pos][2] == 'o') && key[pos][1] == 'X' && key[pos][0] == '-')
@@ -248,13 +252,13 @@ unsigned int gmtmex_get_key_pos (char *key[], unsigned int n_keys, struct GMT_OP
 	return (PS);
 }
 
-int gmtmex_get_arg_dir (char option, char *key[], int n_keys, int *data_type, int *geometry)
+int gmtapi_get_arg_dir (char option, char *key[], int n_keys, int *data_type, int *geometry)
 {	/* key[] is an array with options of the current program that read/write data */
 	int item;
 
 	/* 1. First determine if option is one of the choices in key */
 
-	item = gmtmex_find_option (option, key, n_keys);
+	item = gmtapi_find_option (option, key, n_keys);
 	if (item == -1)		/* This means a coding error we must fix */
 		return -1;
 
@@ -304,7 +308,7 @@ int gmtmex_get_arg_dir (char option, char *key[], int n_keys, int *data_type, in
 	return ((key[item][2] == 'i') ? GMT_IN : GMT_OUT);	/* Return the direction of the i/o */
 }
 
-char **make_char_array (const char *string, unsigned int *n_items, char type)
+char **gmtapi_make_char_array (const char *string, unsigned int *n_items, char type)
 {	/* Turn the comma-separated list of 3-char codes into an array of such codes.
  	 * In the process, replace any ?-types with the selected type. */
 	size_t len, k, n;
@@ -506,7 +510,7 @@ int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs
 	int error;		/* To capture error return codes */
 	int data_type;		/* Either GMT_IS_DATASET, GMT_IS_TEXTSET, GMT_IS_GRID, GMT_IS_CPT, GMT_IS_IMAGE */
 	int geometry;		/* Either GMT_IS_NONE, GMT_IS_POINT, GMT_IS_LINE, GMT_IS_POLY, or GMT_IS_SURFACE */
-	int given[2][2];	/* Either GMT_MEX_EXPLICIT, the item number in the keys array for a filename, or an option with implicit arg */
+	int given[2][2];	/* Either GMT_FILE_EXPLICIT, the item number in the keys array for a filename, or an option with implicit arg */
 	int ID;
 	unsigned int k, flavor, n_keys = 0, PS, n_alloc = 8U, n_items = 0;
 	char name[GMT_STR16];	/* Used to hold the GMT API embedded file name, e.g., @GMTAPI@-###### */
@@ -526,7 +530,7 @@ int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs
 		/* Special case: Must determine which data type we are dealing with */
 		struct GMT_OPTION *t_ptr = NULL;
 		if ((t_ptr = GMT_Find_Option (API, 'T', *head))) {	/* Found the -T<type> option */
-			type = toupper (t_ptr->arg[0]);	/* Find type and replace ? in keys with this type in uppercase (DGCIT) in make_char_array below */
+			type = toupper (t_ptr->arg[0]);	/* Find type and replace ? in keys with this type in uppercase (DGCIT) in gmtapi_make_char_array below */
 		}
 		if (!strchr ("DGCIT", type)) {
 			mexErrMsgTxt ("GMTMEX_pre_process: No or bad data type given to read|write\n");
@@ -537,7 +541,7 @@ int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs
 		}
 	}
 
-	key = make_char_array (keys, &n_keys, type);		/* This is the array of keys for this module, e.g., "<DI,GGO,..." */
+	key = gmtapi_make_char_array (keys, &n_keys, type);		/* This is the array of keys for this module, e.g., "<DI,GGO,..." */
 	info = malloc (n_alloc * sizeof (struct GMTMEX));	/* Structure to keep track of which output items we need to assign to Matlab */
 
 	/* We wish to enable Matlab/Octave by "implicit" options.  These are options we will add in the code
@@ -545,18 +549,18 @@ int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs
 	 * comes from a Matlab matrix, we may leave off any input name in the command, and then it is understood
 	 * that we need to add a memory reference to the first Matlab matrix given as input. */
 
-	PS = gmtmex_get_key_pos (key, n_keys, *head, given);	/* Determine if we must add the primary in and out arguments to the option list */
+	PS = gmtapi_get_key_pos (key, n_keys, *head, given);	/* Determine if we must add the primary in and out arguments to the option list */
 	/* Note: PS will be 1 if this module produces PostScript (and hence nothing is returned to Matlab) */
 	for (direction = GMT_IN; direction <= GMT_OUT; direction++) {	/* Separately consider input and output arguments */
 		for (flavor = 0; flavor < 2; flavor++) {	/* 0 means filename input, 1 means option input */
-			if (given[direction][flavor] == GMT_MEX_NONE) continue;		/* No source or destination required by this module */
-			if (given[direction][flavor] == GMT_MEX_EXPLICIT) continue;	/* Source or destination was set explicitly in the command; skip */
+			if (given[direction][flavor] == GMT_FILE_NONE) continue;		/* No source or destination required by this module */
+			if (given[direction][flavor] == GMT_FILE_EXPLICIT) continue;	/* Source or destination was set explicitly in the command; skip */
 			/* Here we must add the primary input or output from prhs[0] or plhs[0] */
 			/* Get info about the data set */
 			if (given[direction][flavor] < 0)
 				mexErrMsgTxt("GMTMEX_pre_process: stopping here instead of crashing Matlab.\n\t\t'given[direction][flavor]' is negative\n");
 
-			error = gmtmex_get_arg_dir (key[given[direction][flavor]][0], key, n_keys, &data_type, &geometry);
+			error = gmtapi_get_arg_dir (key[given[direction][flavor]][0], key, n_keys, &data_type, &geometry);
 			if (error == -1)
 				mexErrMsgTxt ("GMTMEX_pre_process: This option does not allow $ arguments\n");
 			else if (error == -2)

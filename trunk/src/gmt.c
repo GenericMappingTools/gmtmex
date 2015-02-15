@@ -60,11 +60,11 @@ void usage(int nlhs, int nrhs) {
 		mexPrintf("You may redistribute copies of this program under the terms of the\n");
 		mexPrintf("GNU Lesser General Public License.\n");
 		mexPrintf("For more information about these matters, see the file named LICENSE.TXT.\n");
-		mexPrintf("For a brief description of GMT modules, type GMT('--help')\n\n");
+		mexPrintf("For a brief description of GMT modules, type gmt ('--help')\n\n");
 	}
 	else {
 		mexPrintf("Usage is:\n\tgmt ('create');  %% Create a new GMT/MEX session\n");
-		mexPrintf("\tgmt ('module_name andoptions'[, <matlab arrays>]); %% Run a GMT module\n");
+		mexPrintf("\tgmt ('module_name and options'[, <matlab arrays>]); %% Run a GMT module\n");
 		mexPrintf("\tgmt ('destroy');  %% Destroy the GMT/MEX session\n");
 		if (nlhs != 0)
 			mexErrMsgTxt ("But meanwhile you already made an error by asking help and an output.\n");
@@ -76,8 +76,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	unsigned int first = 0;         /* Array ID of first command argument (not 0 when API-ID is first) */
 	unsigned int help = 0;          /* 1 if we just gave --help */
 	unsigned int got_API_in_input = 0; /* It will be set to 1 by gmt(API, 'module ...'); */
-	int n_items = 0;                /* Number of Matlab arguments (left and right) */
-	int pos = 0;         		/* Misc. counters */
+	int n_items = 0, pos = 0;       /* Number of Matlab arguments (left and right) */
 	size_t str_length = 0, k = 0;   /* Misc. counters */
 	struct GMTAPI_CTRL *API = NULL;	/* GMT API control structure */
 	struct GMT_OPTION *options = NULL; /* Linked list of module options */
@@ -184,13 +183,13 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	}
 
 	/* 4. Convert mex command line arguments to a linked option list */
-	while (cmd[k] == ' ') k++;	/* Skip any spaces between modules and start of options */
+	while (cmd[k] == ' ') k++;	/* Skip any spaces between module name and start of options */
 	opt_args = (cmd[k]) ? &cmd[k] : NULL;
 	if (opt_args && (options = GMT_Create_Options (API, 0, opt_args)) == NULL)
 		mexErrMsgTxt ("Failure to parse GMT5 command options\n");
 
 	/* 5. Parse the mex command, update GMT option lists, and register in/out resources, and return X array */
-	pos = (got_API_in_input) ? 2 : 1;
+	pos = (got_API_in_input) ? 2 : 1;	/* Start depends on whether or not the API pointer was given or not */
 	if ((n_items = GMTMEX_pre_process (API, module, plhs, nlhs, &prhs[MIN(pos,nrhs-1)], nrhs-pos, keys, &options, &X)) < 0)
 		mexErrMsgTxt ("Failure to parse mex command options\n");
 	
