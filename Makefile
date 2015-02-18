@@ -7,6 +7,9 @@ sinclude config.mk
 all:
 	cd src; $(MAKE) all
 
+info:
+	bash make_help.sh
+
 test:
 	cd src; $(MAKE) gmt_mextest
 
