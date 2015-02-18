@@ -102,20 +102,6 @@ enum MEX_dim {
 
 #define GMT_IS_PS		99	/* Use for PS output; use GMT_IS_GRID or GMT_IS_DATASET for data */
 
-#ifdef GMT_MATLAB
-/* Macros for getting the Matlab ij that correspond to (row,col) [no pad involved] */
-/* This one operates on GMT_MATRIX */
-#define MEXM_IJ(M,row,col) ((col)*M->n_rows + (row))
-/* And this on GMT_GRID */
-#define MEXG_IJ(M,row,col) ((col)*M->header->ny + M->header->ny - (row) - 1)
-#else
-/* Macros for getting the Octave ij that correspond to (row,col) [no pad involved] */
-/* This one operates on GMT_MATRIX */
-#define MEXM_IJ(M,row,col) ((row)*M->n_columns + (col))
-/* And this on GMT_GRID */
-#define MEXG_IJ(M,row,col) ((row)*M->header->nx + (col))
-#endif
-
 #ifdef _MSC_VER
 char *strsep_ (char **stringp, const char *delim) {
 	char *start = *stringp;
@@ -447,14 +433,15 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
 		}
 		else
 			mexErrMsgTxt ("Unsupported data type in GMT matrix input.");
-		/* Data from Matlab is in col format and data from Octave is in row format */
-#ifdef GMT_MATLAB
-		M->dim = M->n_rows;
-#else
+		/* Data from Matlab and Octave(mex) is in col format and data from Octave(oct) is in row format */
+#ifdef GMT_OCTOCT
 		M->dim = M->n_columns;
+#else
+		M->dim = M->n_rows;
 #endif
+
 		M->alloc_mode = GMT_ALLOC_EXTERNALLY;	/* Since matrix was allocated by Matlab/Octave */
-		M->shape = MEX_COL_ORDER;		/* Either col or row order, depending on Matlab/Octave */
+		M->shape = MEX_COL_ORDER;		/* Either col or row order, depending on Matlab/Octave setting in gmtmex.h */
 	}
 	else {	/* On output we produce double precision */
 		M->type = GMT_DOUBLE;

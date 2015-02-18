@@ -35,8 +35,6 @@
 
 #include "gmtmex.h"
 
-#define MODULE_LEN 32
-
 /* Being declared external we can access it between MEX calls */
 static uintptr_t *pPersistent;    /* To store API address back and forth to a Matlab session */
 

@@ -20,7 +20,7 @@ To build the gmt mex executable, take the following steps:
 1. Run autoconf
 2. Run configure --help and acquaint yourself with the various options.
 3. Then, run configure with the selected options, in addition to using
-   either --enable-matlab or --enable-debug.
+   either --enable-matlab or --enable-octave (and --enable-octmode=mex|oct).
 4. Finally, run make all and make install
 
 To debug the mex please see the wiki for gmt-mex at
