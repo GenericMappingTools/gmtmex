@@ -47,7 +47,7 @@ gmt_mextest:	gmt_mextest.o $(LIB_O)
 		$(CC) $(LDFLAGS) -DNO_MEX gmt_mextest.o $(LIB_O) $(GMT_LIB) $(LIBS) -o $@
 
 $(LIB_O):	$(LIB_C)
-		$(CC) $(CFLAGS)  $(GMT_INC) -DNO_MEX $(LIB_C) -c -o $@
+		$(CC) $(FLAGS)  $(GMT_INC) -DNO_MEX $(LIB_C) -c -o $@
 
 gmt_mextest.o:	gmt_mextest.c
 		$(CC) $(CFLAGS)  $(GMT_INC) -DNO_MEX gmt_mextest.c -c -o $@

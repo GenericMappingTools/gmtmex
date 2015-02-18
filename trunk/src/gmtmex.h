@@ -22,31 +22,26 @@
 #define GMTMEX_H
 
 #include "gmt.h"
-#ifdef NO_MEX
+#include <string.h>
+#include <ctype.h>
+
+#ifdef NO_MEX	/* THis would just be for testing the parser */
 #define mxArray void
 char revised_cmd[BUFSIZ];	/* Global variable used to show revised command when testing only */
+#else
+#ifdef GMT_OCTOCT
+#include <oct.h>
 #else
 #include <mex.h>
 #define mxIsScalar_(mx) \
 	( (2 == mxGetNumberOfDimensions(mx)) \
 		&&  (1 == mxGetM(mx))&&  (1 == mxGetN(mx)) )
+#endif	/* Matlab and Octave(mex) */
 #endif	/* NO_MEX */
-#include <string.h>
-#include <ctype.h>
 
 /* Matlab and Octave (in -mex mode) are identical, oct files are different and not yet tested */
 
-#ifdef GMT_MATLAB
-#define MEX_PROG "Matlab"
-#define MEX_COL_ORDER GMT_IS_COL_FORMAT
-/* Macros for getting the Matlab ij that correspond to (row,col) [no pad involved] */
-/* This one operates on GMT_MATRIX */
-#define MEXM_IJ(M,row,col) ((col)*M->n_rows + (row))
-/* And this on GMT_GRID */
-#define MEXG_IJ(M,row,col) ((col)*M->header->ny + M->header->ny - (row) - 1)
-#endif
-
-#ifdef GMT_OCTOCT
+#ifdef GMT_OCTOCT	/* Octave oct files only */
 #define MEX_PROG "Octave(oct)"
 #define MEX_COL_ORDER GMT_IS_ROW_FORMAT
 /* Macros for getting the Octave(oct) ij that correspond to (row,col) [no pad involved] */
@@ -54,12 +49,14 @@ char revised_cmd[BUFSIZ];	/* Global variable used to show revised command when t
 #define MEXM_IJ(M,row,col) ((row)*M->n_columns + (col))
 /* And this on GMT_GRID */
 #define MEXG_IJ(M,row,col) ((row)*M->header->nx + (col))
+#else	/* Here we go for Matlab or Octave(mex) */
+#ifdef GMT_MATLAB
+#define MEX_PROG "Matlab"
+#else
+#define MEX_PROG "Octave(oct)"
 #endif
-
-#ifdef GMT_OCTMEX
-#define MEX_PROG "Octave(mex)"
 #define MEX_COL_ORDER GMT_IS_COL_FORMAT
-/* Macros for getting the Octave(mex) ij that correspond to (row,col) [no pad involved] */
+/* Macros for getting the Matlab/Octave(mex) ij that correspond to (row,col) [no pad involved] */
 /* This one operates on GMT_MATRIX */
 #define MEXM_IJ(M,row,col) ((col)*M->n_rows + (row))
 /* And this on GMT_GRID */
