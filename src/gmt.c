@@ -74,7 +74,6 @@ void usage(int nlhs, int nrhs) {
 void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	int status = 0;                 /* Status code from GMT API */
 	unsigned int first = 0;         /* Array ID of first command argument (not 0 when API-ID is first) */
-	unsigned int help = 0;          /* 1 if we just gave --help */
 	unsigned int got_API_in_input = 0; /* It will be set to 1 by gmt(API, 'module ...'); */
 	int n_items = 0, pos = 0;       /* Number of Matlab arguments (left and right) */
 	size_t str_length = 0, k = 0;   /* Misc. counters */
@@ -88,33 +87,34 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	uintptr_t *pti = NULL;          /* To locally store the API address */
 
 	if (nrhs == 0) {	/* No arguments at all results in the GMT banner message */
-		usage(nlhs, nrhs);
+		usage (nlhs, nrhs);
 		return;
 	}
 
-	/* First check for the special commands create or destroy, while watching out for the lone --help argument */
+	/* 1. First check for the special commands create or destroy, while watching out for the lone --help argument */
 	
 	if (nrhs == 1) {	/* This may be create or --help */
 		cmd = mxArrayToString (prhs[0]);
-		help = !strncmp (cmd, "--help", 6U);
-		if (help) {
-			usage(nlhs, 1);
+		if (!strncmp (cmd, "--help", 6U)) {
+			usage (nlhs, 1);
 			return;
 		}
 
 		if (!strncmp (cmd, "create", 6U)) {
+			if (nlhs > 1)	/* Asked for too much output */
+				mexErrMsgTxt ("Usage: gmt ('create') or API = gmt ('create');\n");
 			if (pPersistent)                        /* See if have an GMT API pointer */
 				API = (void *)pPersistent[0];
 			if (API != NULL) {                      /* If another session still exists */
-				mexPrintf ("A previous session is still active. Ignoring this 'create' request.\n");
+				mexPrintf ("A previous GMT session is still active. Ignoring your 'create' request.\n");
 				if (nlhs) {
 					plhs[0] = mxCreateNumericMatrix (1, 0, mxUINT64_CLASS, mxREAL);
 				}
 				return;
 			}
 
-			/* Initializing new GMT session with zero pad and replacement printf function */
-			if ((API = GMT_Create_Session ("GMT5", 0U, 3U, GMTMEX_print_func)) == NULL)
+			/* Initializing new GMT session with zero pad and a Matlab-acceptable replacement for the printf function */
+			if ((API = GMT_Create_Session ("GMT5", 0U, GMT_SESSION_NOEXIT+GMT_SESSION_EXTERNAL, GMTMEX_print_func)) == NULL)
 				mexErrMsgTxt ("Failure to create GMT5 Session\n");
 
 			pPersistent = mxMalloc(sizeof(uintptr_t));
@@ -131,12 +131,11 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 			return;
 		}
 
-		/* OK, no create and no --help, so it must be a single command with no arguments, nor the API. So get it */
+		/* OK, no create and no --help, so it must be a single command with no arguments nor the API. So get it: */
 		if (!pPersistent)
 			mexErrMsgTxt ("Booo: you shouldn't have cleared this mex. Now the GMT5 session is lost (mem leaked).\n"); 
 		API = (void *)pPersistent[0];	/* Get the GMT API pointer */
 		if (API == NULL) mexErrMsgTxt ("This GMT5 session has already been destroyed, or currupted.\n"); 
-		 
 	}
 	else if (mxIsScalar_(prhs[0]) && mxIsUint64(prhs[0])) {
 		/* Here, nrhs > 1 . If first arg is a scalar int, assume it is the API memory adress */
