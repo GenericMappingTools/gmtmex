@@ -1,5 +1,5 @@
 function  test_mex(opt)
-%	$Id $
+%	$Id$
 %	Test suite for the GMT-MEX API
 %
 
@@ -127,5 +127,5 @@ function grdimage()
 	gmt('create')
 	t = rand(100,3) * 100;
 	G = gmt('surface -R0/150/0/100 -I1', t);
-	gmt('grdimge -JX8c -Ba -P -Cblue,red > crap_img.ps', G);
+	gmt('grdimage -JX8c -Ba -P -Cblue,red > crap_img.ps', G);
 	gmt('destroy')
