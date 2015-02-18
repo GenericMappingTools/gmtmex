@@ -52,13 +52,13 @@ static void force_Destroy_Session(void) {
 void usage(int nlhs, int nrhs) {
 	/* Basic usage message */
 	if (nrhs == 0) {	/* No arguments at all results in the GMT banner message */
-		mexPrintf("\nGMT - The Generic Mapping Tools, Version %s\n", "5.2");
+		mexPrintf("\nGMT - The Generic Mapping Tools, Version %s %s API\n", "5.2", MEX_PROG);
 		mexPrintf("Copyright 1991-2015 Paul Wessel, Walter H. F. Smith, R. Scharroo, J. Luis, and F. Wobbe\n\n");
 		mexPrintf("This program comes with NO WARRANTY, to the extent permitted by law.\n");
 		mexPrintf("You may redistribute copies of this program under the terms of the\n");
 		mexPrintf("GNU Lesser General Public License.\n");
 		mexPrintf("For more information about these matters, see the file named LICENSE.TXT.\n");
-		mexPrintf("For a brief description of GMT modules, type gmt ('--help')\n\n");
+		mexPrintf("For a brief description of GMT modules, type gmt ('help')\n\n");
 	}
 	else {
 		mexPrintf("Usage is:\n\tgmt ('create');  %% Create a new GMT/MEX session\n");
@@ -89,11 +89,11 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		return;
 	}
 
-	/* 1. First check for the special commands create or destroy, while watching out for the lone --help argument */
+	/* 1. First check for the special commands create or destroy, while watching out for the lone help argument */
 	
 	if (nrhs == 1) {	/* This may be create or --help */
 		cmd = mxArrayToString (prhs[0]);
-		if (!strncmp (cmd, "--help", 6U)) {
+		if (!strncmp (cmd, "--help", 6U) || !strncmp (cmd, "help", 4U)) {
 			usage (nlhs, 1);
 			return;
 		}
@@ -112,7 +112,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 			}
 
 			/* Initializing new GMT session with zero pad and a Matlab-acceptable replacement for the printf function */
-			if ((API = GMT_Create_Session ("GMT5", 0U, GMT_SESSION_NOEXIT+GMT_SESSION_EXTERNAL, GMTMEX_print_func)) == NULL)
+			if ((API = GMT_Create_Session (MEX_PROG, 0U, GMT_SESSION_NOEXIT+GMT_SESSION_EXTERNAL, GMTMEX_print_func)) == NULL)
 				mexErrMsgTxt ("Failure to create GMT5 Session\n");
 
 			pPersistent = mxMalloc(sizeof(uintptr_t));

@@ -52,7 +52,7 @@ int main (int argc, char *argv[]) {
 	}
 
 	/* 1. Initializing new GMT session with zero pad */
-	if ((API = GMT_Create_Session ("GMT5", 0U, 3U, NULL)) == NULL) fprintf (stderr, "Failure to create GMT5 Session\n");
+	if ((API = GMT_Create_Session ("GMT5", 0U, GMT_SESSION_NOEXIT+GMT_SESSION_EXTERNAL, NULL)) == NULL) fprintf (stderr, "Failure to create GMT5 Session\n");
 
 	/* Expect a single argument (due to enclosing double quotes) of these forms:
 		gmt ('module -options');
