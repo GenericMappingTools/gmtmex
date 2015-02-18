@@ -56,7 +56,7 @@ function G = blockmean()
 	gmt('destroy')
 
 function G = filter1d
-	disp ('Test blockmean');
+	disp ('Test filter1d');
 	t = zeros (100,2);
 	t(:,1) = 1:100;
 	t(:,2) = rand(100,1) * 100;
@@ -101,10 +101,16 @@ function gmtmath()
 	disp ('Test gmtmath');
 	t1 = rand(10,1);
 	t2 = rand(10,1);
-	gmt('create')
-	t = gmt('math ADD 0.5 MUL LOG10 =', t1, t2);
-	if (~isempty(t))
-		disp('gmtmath gave something when operating into two input files')
+	gmt('create');
+	gmt ('write -Td t1.txt', t1);
+	gmt ('write -Td t2.txt', t2);
+	A = gmt('math t1.txt t2.txt ADD 0.5 MUL LOG10 =');
+	if (~isempty(A))
+		disp('gmtmath gave something when operating on two input files given on command line')
+	end
+	B = gmt('math $ $ ADD 0.5 MUL LOG10 =', t1, t2);
+	if (~isempty(B))
+		disp('gmtmath gave something when operating on two input files given as vectors')
 	end
 	gmt('destroy')
 
@@ -112,5 +118,5 @@ function gmtsimplify()
 	disp ('Test gmtsimplify');
 	t = rand(50,2);
 	gmt('create')
-	t2 = gmt('simplify -T0.01', t);
+	t2 = gmt('simplify -T0.2', t);
 	gmt('destroy')
