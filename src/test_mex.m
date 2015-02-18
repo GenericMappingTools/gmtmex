@@ -3,7 +3,7 @@ function  test_mex(opt)
 %	Test suite for the GMT-MEX API
 %
 
-all_tests = {'gmtread' 'gmtwrite' 'blockmean' 'filter1d' 'psbasemap' 'pscoast' 'gmtinfo' 'surface' 'gmtmath' 'gmtsimplify'}; 
+all_tests = {'gmtread' 'gmtwrite' 'blockmean' 'filter1d' 'psbasemap' 'pscoast' 'gmtinfo' 'surface' 'gmtmath' 'gmtsimplify' 'grdimage'}; 
 
 if (nargin == 0)
 	opt = all_tests;
@@ -24,6 +24,7 @@ try
 			case 'surface',		surface;
 			case 'gmtmath',		gmtmath;
 			case 'gmtsimplify',	gmtsimplify;
+			case 'grdimage',	grdimage;
 		end
 	end
 catch
@@ -119,4 +120,12 @@ function gmtsimplify()
 	gmt('create')
 	t = rand(50,2);
 	t2 = gmt('simplify -T0.2', t);
+	gmt('destroy')
+
+function grdimage()
+	disp ('Test grdimage');
+	gmt('create')
+	t = rand(100,3) * 100;
+	G = gmt('surface -R0/150/0/100 -I1', t);
+	gmt('grdimge -JX8c -Ba -P -Cblue,red > crap_img.ps', G);
 	gmt('destroy')
