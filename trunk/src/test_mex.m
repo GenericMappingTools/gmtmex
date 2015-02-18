@@ -1,9 +1,9 @@
 function  test_mex(opt)
-%	$Id$
+%	$Id $
 %	Test suite for the GMT-MEX API
 %
 
-all_tests = {'filter1d' 'gmtread' 'gmtinfo' 'blockmean' 'psbasemap' 'pscoast' 'surface' 'gmtmath' 'simplify'}; 
+all_tests = {'gmtread' 'gmtwrite' 'blockmean' 'filter1d' 'psbasemap' 'pscoast' 'gmtinfo' 'surface' 'gmtmath' 'gmtsimplify'}; 
 
 if (nargin == 0)
 	opt = all_tests;
@@ -48,8 +48,8 @@ function G = gmtwrite()
 
 function G = blockmean()
 	disp ('Test blockmean');
-	t = rand(100,3) * 100;
 	gmt('create')
+	t = rand(100,3) * 100;
 	gmt('blockmean -R0/150/0/100 -I10 > ave1.txt', t);
 	B = gmt('blockmean -R0/150/0/100 -I10', t);
 	gmt ('write -Td ave2.txt', B);
@@ -57,10 +57,10 @@ function G = blockmean()
 
 function G = filter1d
 	disp ('Test filter1d');
+	gmt('create')
 	t = zeros (100,2);
 	t(:,1) = 1:100;
 	t(:,2) = rand(100,1) * 100;
-	gmt('create')
 	gmt('filter1d -Fg10 -E > filt1.txt', t);
 	F = gmt('filter1d -Fg10 -E', t);
 	gmt ('write -Td filt2.txt', F);
@@ -68,10 +68,10 @@ function G = filter1d
 
 function G = surface()
 	disp ('Test surface');
+	gmt('create')
 	t = rand(100,3) * 100;
 	% Make a somewhat recognizible grid instead of random numbers
 	t(:,3) = (t(:,1)/150).^2 - (t(:,2)/100).^2 + 1.0;
-	gmt('create')
 	gmt('surface -R0/150/0/100 -I1 -Glixo.grd', t);
 	G = gmt('surface -R0/150/0/100 -I1', t);
 	G = gmt('surface -R0/150/0/100 -I1 -G', t);
@@ -91,17 +91,17 @@ function psbasemap()
 
 function gmtinfo()
 	disp ('Test gmtinfo');
-	t = rand(100,3) * 100;
 	gmt('create')
+	t = rand(100,3) * 100;
 	r = gmt('info -C', t);
 	disp(['gmtinfo of random 0-100 is ' num2str(r)])
 	gmt('destroy')
 
 function gmtmath()
 	disp ('Test gmtmath');
+	gmt('create');
 	t1 = rand(10,1);
 	t2 = rand(10,1);
-	gmt('create');
 	gmt ('write -Td t1.txt', t1);
 	gmt ('write -Td t2.txt', t2);
 	A = gmt('math t1.txt t2.txt ADD 0.5 MUL LOG10 =');
@@ -116,7 +116,7 @@ function gmtmath()
 
 function gmtsimplify()
 	disp ('Test gmtsimplify');
-	t = rand(50,2);
 	gmt('create')
+	t = rand(50,2);
 	t2 = gmt('simplify -T0.2', t);
 	gmt('destroy')
