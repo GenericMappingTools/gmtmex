@@ -31,7 +31,7 @@ uninstall:
 spotless::	clean
 
 clean:	
-		rm -f *.o *% core tags $(PROGS) gmt_mextest
+		rm -f *.o *% core tags gmt.mex gmt.oct gmt_mextest
 
 #-------------------------------------------------------------------------------
 #	program rules

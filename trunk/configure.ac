@@ -73,6 +73,7 @@ dnl
 AC_ARG_WITH(gmt_config, [  --with-gmt-config=      Full path to gmt-config [[auto]]])
 AC_ARG_ENABLE(matlab,   [  --enable-matlab=dir     Build GMT-matlab interface, give directory with Matlab distribution [[auto]]])
 AC_ARG_ENABLE(octave,   [  --enable-octave=dir     Build GMT-octave interface, give directory with Octave distribution [[auto]] (disables Matlab interface)])
+AC_ARG_ENABLE(octmode,  [  --enable-octmode=mode   Append oct or mex [[auto]]])
 AC_ARG_ENABLE(mex_mdir, [  --enable-mex-mdir=dir   Directory in which to install GMT-octave/Matlab .m files [[auto]]])
 AC_ARG_ENABLE(mex_xdir, [  --enable-mex-xdir=dir   Directory in which to install GMT-octave/Matlab mex files [[auto]]])
 AC_ARG_ENABLE(debug,    [  --enable-debug          Compile for debugging instead of optimizing code])
@@ -402,9 +403,18 @@ elif test ! "X$enable_matlab" = "X"; then
 	AC_MSG_CHECKING(Matlab install dir for .mex files)
 	AC_MSG_RESULT([$MEX_XDIR])
 else
+	if test "X$enable_octmode" = "X" || test "X$enable_octmode" = "Xyes" || test "X$enable_octmode" = "Xoct" ; then
+		MEX_EXT='oct'
+		MEX_ARG=
+		OCT_ARG=GMT_OCTOCT
+	else
+		MEX_EXT='mex'
+		MEX_ARG='-mex'
+		OCT_ARG=GMT_OCTMEX
+	fi
+
 	AC_MSG_CHECKING(Compiler options for Octave)
-	MEX_BLD="mkoctfile --mex -DGMT_OCTAVE $MFLAGS"
-	MEX_EXT='mex'
+	MEX_BLD="mkoctfile -D$OCT_ARG $MEX_ARG $MFLAGS"
 	MEX_LIB=
 	MEX_INC=-I`octave-config --print INCLUDEDIR`
 	if test "X$enable_mex_mdir" = "X" || test "X$enable_mdir" = "Xyes" ; then
@@ -420,7 +430,7 @@ else
 	AC_MSG_RESULT([$MEX_BLD, extension .$MEX_EXT])
 	AC_MSG_CHECKING(Octave install dir for .m files)
 	AC_MSG_RESULT([$MEX_MDIR])
-	AC_MSG_CHECKING(Octave install dir for .mex files)
+	AC_MSG_CHECKING(Octave install dir for .$MEX_EXT files)
 	AC_MSG_RESULT([$MEX_XDIR])
 fi
 dnl -----------------------------------------------------------------

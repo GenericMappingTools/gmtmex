@@ -4,7 +4,7 @@ REM
 REM	$Id: compile_mex.bat 113 2013-04-15 21:18:29Z pwessel $
 REM
 REM
-REM	Copyright (c) 1991-2010 by P. Wessel, W. H. F. Smith, R. Scharroo, and J. Luis
+REM	Copyright (c) 1991-2015 by P. Wessel, W. H. F. Smith, R. Scharroo, and J. Luis
 REM	See LICENSE.TXT file for copying and redistribution conditions.
 REM
 REM	This program is free software; you can redistribute it and/or modify
@@ -39,7 +39,7 @@ REM ------------- Set the compiler (set to 'icl' to use the Intel compiler) ----
 SET CC=cl
 REM --------------------------------------------------------------------------------------
 
-REM If set to "yes", linkage is done againsts ML6.5 Libs
+REM If set to "yes", linkage is done against ML6.5 Libs
 SET R13="no"
 
 REM Set it to 32 or 64 to build under 64-bits or 32-bits respectively.
@@ -115,19 +115,6 @@ IF %DEBUG%=="yes" SET OPTIMFLAGS=/Z7
 IF %BITS%==64 SET arc=X64
 IF %BITS%==32 SET arc=X86
 SET LINKFLAGS=/dll /export:mexFunction /LIBPATH:%MATLIB% libmx.lib libmex.lib libmat.lib /MACHINE:%arc% kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /incremental:NO %LDEBUG%
-
-
-REM -------------- GENERATE THESE GUYS --------------------------------------------------------------------
-REM echo "enum GMT_prog_enum {" > gmtmex_id.h
-REM grep -v "#" mexproginfo.txt | gawk "{printf \"\tk_%s = %d,\n\", $1, NR-1}" >> gmtmex_id.h
-REM echo "k_dummy = -1};" >> gmtmex_id.h
-
-REM echo "static char *keys[] = {" > gmtmex_keys.h
-REM grep -v "#" mexproginfo.txt | gawk "{printf \"\t%s,\n\", $$3}" >> gmtmex_keys.h
-REM echo "\"\"};" >> gmtmex_keys.h
-
-REM -------------------------------------------------------------------------------------------------------
-
 
 REM -------------------------------------------------------------------------------------------------------
 %CC% /c -DWIN32 %COMPFLAGS% -I%MATINC% -I%NETCDF_INC% -I%GMT_INC% %OPTIMFLAGS% %_MX_COMPAT% -DLIBRARY_EXPORTS -DGMT_MATLAB gmtmex_parser.c gmt.c
