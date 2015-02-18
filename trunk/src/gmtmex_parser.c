@@ -347,7 +347,7 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 	struct GMT_GRID *G = NULL;
 	if (direction == GMT_IN) {	/* Dimensions are known from the input pointer */
 		mxArray *mx_ptr = NULL;
-		double *inc = NULL, *range = NULL, *reg = NULL;
+		double *inc = NULL, *range = NULL, *reg = NULL, *MinMax = NULL;
 		float *f = NULL;
 		unsigned int registration;
 
@@ -369,8 +369,16 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 		reg = mxGetData (mx_ptr);
 		registration = (unsigned int)lrint (reg[0]);
 		if ((G = GMT_Create_Data (API, GMT_IS_GRID, GMT_IS_SURFACE, GMT_GRID_ALL,
-				NULL, range, inc, registration, 0, NULL)) == NULL)
+		                          NULL, range, inc, registration, 0, NULL)) == NULL)
 			mexErrMsgTxt ("GMTMEX_grid_init: Failure to alloc GMT source matrix for input\n");
+
+		mx_ptr = mxGetField (ptr, 0, "MinMax");
+		if (mx_ptr != NULL) {	/* Because we sent a NULL instead of the data array, z_min, z_max are not known. Use those from ptr */
+			MinMax = mxGetData (mx_ptr);
+			G->header->z_min = MinMax[0];
+			G->header->z_max = MinMax[1];
+		}
+
 		mx_ptr = mxGetField (ptr, 0, "z");
 		if (mx_ptr == NULL)
 			mexErrMsgTxt ("Could not find data array for Grid\n");
