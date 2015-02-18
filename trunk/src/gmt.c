@@ -176,6 +176,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	if ((keys = GMT_Get_Moduleinfo (API, module)) == NULL) {
 		GMT_Call_Module (API, NULL, GMT_MODULE_PURPOSE, NULL);
 		if (GMT_Destroy_Session (API)) mexErrMsgTxt("Failure to destroy GMT5 session\n");
+		return;
 	}
 
 	/* 4. Convert mex command line arguments to a linked option list */
