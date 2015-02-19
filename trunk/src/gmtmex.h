@@ -68,17 +68,29 @@ char revised_cmd[BUFSIZ];	/* Global variable used to show revised command when t
 #endif
 
 #define MODULE_LEN 32	/* Max length of a module name */
+#define ARG_MARKER	'$'	/* Character that indicates an implicit dataset */
 
-struct GMTMEX {	/* Array to hold information relating to output from GMT */
-	enum GMT_enum_family type;	/* type of GMT data, i.e., GMT_IS_DATASET, GMT_IS_GRID, etc. */
+struct GMT_INFO {	/* Information related to passing results between GMT and external API */
+	enum GMT_enum_family family;	/* GMT data family, i.e., GMT_IS_DATASET, GMT_IS_GRID, etc. */
+	enum GMT_enum_geometry geometry;/* One of the recognized GMT geometries */
 	enum GMT_enum_std direction;	/* Either GMT_IN or GMT_OUT */
-	int ID;				/* Registration ID returned by GMT_Register_IO */
-	int lhs_index;			/* Corresponding index into plhs array */
-	void *obj;			/* Pointer to this object */
+	struct GMT_OPTION *option;	/* Pointer to the corresponding module option */
+	int object_ID;			/* Object ID returned by GMT_Register_IO */
+	int pos;			/* Corresponding index into external object in|out arrays */
+	void *object;			/* Pointer to the registered GMT object */
 };
 
 EXTERN_MSC int GMTMEX_print_func (FILE *fp, const char *message);
-EXTERN_MSC int GMTMEX_pre_process (void *API, const char *module, mxArray *plhs[], int nlhs, const mxArray *prhs[], int nrhs, const char *keys, struct GMT_OPTION **head, struct GMTMEX **X);
-EXTERN_MSC int GMTMEX_post_process (void *API, struct GMTMEX *X, int n_items, mxArray *plhs[]);
-
+EXTERN_MSC int GMT_Get_Info (void *API, char *module, char marker, struct GMT_OPTION **head, struct GMT_INFO **X);
+EXTERN_MSC void GMT_Expand_Option (void *API, struct GMT_OPTION *option, char marker, char *txt);
+#ifndef NO_MEX
+EXTERN_MSC void * GMTMEX_Get_Grid (void *API, struct GMT_GRID *G);
+EXTERN_MSC void * GMTMEX_Get_Table (void *API, struct GMT_MATRIX *M);
+EXTERN_MSC void * GMTMEX_Get_Text (void *API, struct GMT_MATRIX *M);
+EXTERN_MSC void * GMTMEX_Get_CPT (void *API, struct GMT_MATRIX *M);
+EXTERN_MSC void * GMTMEX_Get_Image (void *API, struct GMT_MATRIX *M);
+EXTERN_MSC struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxArray *ptr);
+EXTERN_MSC struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const mxArray *ptr);
+EXTERN_MSC void * GMTMEX_Register_IO (void *API, unsigned int data_type, unsigned int geometry, unsigned int direction, const mxArray *ptr, int *ID);
+#endif
 #endif
