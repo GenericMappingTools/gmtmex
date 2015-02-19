@@ -403,7 +403,7 @@ elif test ! "X$enable_matlab" = "X"; then
 	AC_MSG_CHECKING(Matlab install dir for .mex files)
 	AC_MSG_RESULT([$MEX_XDIR])
 else
-	if test "X$enable_octmode" = "X" || test "X$enable_octmode" = "Xyes" || test "X$enable_octmode" = "Xoct" ; then
+	if test "X$enable_octmode" = "Xyes" || test "X$enable_octmode" = "Xoct" ; then
 		MEX_EXT='oct'
 		MEX_ARG=
 		OCT_ARG=GMT_OCTOCT

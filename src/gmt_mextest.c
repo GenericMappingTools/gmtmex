@@ -25,20 +25,32 @@
  */
 
 #include "gmtmex.h"
+static const char *GMT_family[] = {"Data Table", "Text Table", "GMT Grid", "CPT Table", "GMT Image", "GMT Vector", "GMT Matrix", "GMT Coord"};
+static const char *GMT_geometry[] = {"Not Set", "Point", "Line", "Polygon", "Point|Line|Poly", "Line|Poly", "Surface", "Non-Geographical"};
+static const char *GMT_direction[] = {"Input", "Output"};
+unsigned int gmtry (unsigned int geometry) {
+	/* Return index to text representation in GMT_geometry[] */
+	if (geometry == GMT_IS_POINT)   return 1;
+	if (geometry == GMT_IS_LINE)    return 2;
+	if (geometry == GMT_IS_POLY)    return 3;
+	if (geometry == GMT_IS_PLP)     return 4;
+	if ((geometry & GMT_IS_LINE) && (geometry & GMT_IS_POLY)) return 5;
+	if (geometry == GMT_IS_SURFACE) return 6;
+	if (geometry == GMT_IS_NONE)    return 7;
+	return 0;
+}
 
 int main (int argc, char *argv[]) {
+	unsigned int g;
 	int n_items = 0;				/* Number of Matlab arguments (left and right) */
-	int nlhs = 0, nrhs = 0, k;				/* Simulated counts */
+	int k;				/* Simulated counts */
 	int start, quotes;
 	size_t str_length;				/* Misc. counters */
 	struct GMTAPI_CTRL *API = NULL;			/* GMT API control structure */
 	struct GMT_OPTION *options = NULL;		/* Linked list of options */
-	struct GMTMEX *X = NULL;			/* Array of information about Matlab args */
+	struct GMT_INFO *X = NULL;			/* Array of information about Matlab args */
 	char *str = NULL;				/* Pointer used to get Matlab command */
 	char module[BUFSIZ] = {""}, cmd[BUFSIZ] = {""};	/* Name of GMT module to call and the command */
-	const char *keys = NULL;			/* List of module option keys */
-	mxArray *plhs[5] = {NULL, NULL, NULL, NULL, NULL};	/* Simulated pointers to Matlab arrays */
-	const mxArray *prhs[5] = {NULL, NULL, NULL, NULL, NULL};
 
 	if (argc != 2) {
 		fprintf (stderr, "\ngmt_mextest - Test mex argument parsing\n\n");
@@ -52,7 +64,7 @@ int main (int argc, char *argv[]) {
 	}
 
 	/* 1. Initializing new GMT session with zero pad */
-	if ((API = GMT_Create_Session ("GMT5", 0U, GMT_SESSION_NOEXIT+GMT_SESSION_EXTERNAL, NULL)) == NULL) fprintf (stderr, "Failure to create GMT5 Session\n");
+	if ((API = GMT_Create_Session ("GMT5", 0, (GMT_MSG_DEBUG << 2)+GMT_SESSION_NOEXIT+GMT_SESSION_EXTERNAL, NULL)) == NULL) fprintf (stderr, "Failure to create GMT5 Session\n");
 
 	/* Expect a single argument (due to enclosing double quotes) of these forms:
 		gmt ('module -options');
@@ -62,71 +74,39 @@ int main (int argc, char *argv[]) {
 		[A,...] = gmt ('module -options', X, ...);
 	 */
 	
-	if (strchr (argv[1], '=')) {	/* Gave output arguments via <left> = gmt ('   '); */
-		nlhs = 1;	/* At least one output argument given */
-		if (argv[1][0] == '[') {	/* Gave several output arguments in [] */
-			k = 1;
-			while (argv[1][k] && argv[1][k] != ']') {
-				if (argv[1][k] == ',' || (argv[1][k] == ' ' && argv[1][k-1] != ',')) nlhs++;
-				k++;
-			}
-		}
-	}
 	quotes = start = k = 0;
 	while (quotes < 2 && argv[1][k]) {	/* Wind to 2nd single quote */
 		if (start == 0 && argv[1][k] == '\'') start = k + 1;
 		if (argv[1][k++] == '\'') quotes++;
 	}
 	strncpy (cmd, &argv[1][start], k-start-1);
-	if (argv[1][k] != ')') {	/* Input arguments given */
-		nrhs = 0;	/* At least one, count commas to determine total input items */
-		while (argv[1][k] && argv[1][k] != ')') {
-			if (argv[1][k++] == ',') nrhs++;
-		}
-	}
 
 	/* 2. Get mex arguments, if any, and extract the GMT module name */
 	str_length = strlen  (cmd);				/* Length of command argument */
 	for (k = 0; k < str_length && cmd[k] != ' '; k++);	/* Determine first space in command */
 	strncpy (module, cmd, k);				/* Isolate the module name in this string */
 
-	/* 3. Determine the GMT module ID, or list module usages and return if the module is not found */
-	if ((keys = GMT_Get_Moduleinfo (API, module)) == NULL) {
-		GMT_Call_Module (API, NULL, GMT_MODULE_PURPOSE, NULL);
-		if (GMT_Destroy_Session (API)) fprintf (stderr, "Failure to destroy GMT5 session\n");
-		exit (-1);
-	}
-	
-	/* 4. Convert mex command line arguments to a linked option list */
+	/* 3. Convert mex command line arguments to a linked option list */
 	str = (k < str_length) ? &cmd[k+1] : NULL;
 	if ((options = GMT_Create_Options (API, 0, str)) == NULL)
 		fprintf (stderr, "Failure to parse GMT5 command options\n");
 
-	/* 5. Parse the mex command, update GMT option lists, and register in/out resources, and return X array */
-	if ((n_items = GMTMEX_pre_process (API, module, plhs, nlhs, prhs, nrhs-1, keys, &options, &X)) < 0)
+	/* 4. Preprocess and update GMT option lists, and return X info array */
+	if ((n_items = GMT_Get_Info (API, module, ARG_MARKER, &options, &X)) < 0)
 		fprintf (stderr, "Failure to parse mex command options\n");
-	
-	/* Print out expanded command line */
-	if (nlhs) {
-		if (nlhs == 1)
-			printf ("A");
-		else {
-			printf ("[");
-			for (k = 0; k < nlhs; k++) {
-				if (k) putchar (' ');
-				printf ("%c", 'A' + k);
-			}
-			printf ("]");
-		}
-		printf (" = ");
-	}
-	printf ("gmt (%s); %% Arguments: %d output %d input [%s]\n", revised_cmd, nlhs, nrhs, argv[1]);
-	
-	/* 6. Fake Run GMT module; g */
 
-	/* 7. Hook up module output to Matlab plhs arguments */
-	if (GMTMEX_post_process (API, X, n_items, plhs)) fprintf (stderr, "Failure to extract GMT5-produced data\n");
+	printf ("Revised command: %s\n", revised_cmd);
 	
+	for (k = 0; k < n_items; k++) {
+		g = gmtry (X[k].geometry);
+		fprintf (stderr, "GMT_INFO item %d:", k);
+		fprintf (stderr, " %s", GMT_direction[X[k].direction]);
+		fprintf (stderr, " %s", GMT_family[X[k].family]);
+		fprintf (stderr, " [%s]", GMT_geometry[g]);
+		fprintf (stderr, " in position: %d\n", X[k].pos);
+	}
+
+	free (X);
 	/* 8. Destroy linked option list */
 	if (GMT_Destroy_Options (API, &options)) fprintf (stderr, "Failure to destroy GMT5 options\n");
 
