@@ -36,6 +36,7 @@
 #endif
 
 #if defined(WIN32)
+#define strdup _strdup
 #if !defined(lrint)
 #	define lrint (int64_t)rint
 #endif
@@ -91,7 +92,6 @@ enum MEX_dim {
  * only depend on GMT functions) will be included in the API and only documented in the API developer
  * section while things that is tied to the external languate (Matlab, Python, etc) will remain here.
  * We flag sections either as GMT_ONLY or EXTERNAL below for now. */
-
 
 #ifdef NO_MEX
 #define mxstrdup(s) strdup(s)
