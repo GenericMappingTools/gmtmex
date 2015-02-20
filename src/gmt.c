@@ -35,6 +35,7 @@
 
 #include "gmtmex.h"
 
+extern int GMT_get_V (char arg);
 
 /* Being declared external we can access it between MEX calls */
 static uintptr_t *pPersistent;    /* To store API address back and forth to a Matlab session */
@@ -70,11 +71,11 @@ void usage(int nlhs, int nrhs) {
 	}
 }
 
-struct GMTAPI_CTRL *Initiate_Session (void)
+struct GMTAPI_CTRL *Initiate_Session (unsigned int verbose)
 {
 	struct GMTAPI_CTRL *API = NULL;
 	/* Initializing new GMT session with zero pad and a Matlab-acceptable replacement for the printf function */
-	if ((API = GMT_Create_Session (MEX_PROG, 0U, (GMT_MSG_DEBUG << 2)+GMT_SESSION_NOEXIT+GMT_SESSION_EXTERNAL, GMTMEX_print_func)) == NULL)
+	if ((API = GMT_Create_Session (MEX_PROG, 0U, (verbose << 2)+GMT_SESSION_NOEXIT+GMT_SESSION_EXTERNAL, GMTMEX_print_func)) == NULL)
 		mexErrMsgTxt ("Failure to create GMT5 Session\n");
 
 	if (!pPersistent) pPersistent = mxMalloc(sizeof(uintptr_t));
@@ -87,6 +88,7 @@ struct GMTAPI_CTRL *Initiate_Session (void)
 void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	int status = 0;                 /* Status code from GMT API */
 	unsigned int first = 0;         /* Array ID of first command argument (not 0 when API-ID is first) */
+	unsigned int verbose = 0;       /* Default verbose setting */
 	int n_items = 0, pos = 0;       /* Number of Matlab arguments (left and right) */
 	size_t str_length = 0, k = 0;   /* Misc. counters */
 	struct GMTAPI_CTRL *API = NULL;	/* GMT API control structure */
@@ -126,8 +128,8 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 					plhs[0] = mxCreateNumericMatrix (1, 0, mxUINT64_CLASS, mxREAL);
 				return;
 			}
-
-			API = Initiate_Session ();	/* Initializing a new GMT session */
+			if ((gtxt = strstr (cmd, "-V"))) verbose = GMT_get_V (gtxt[2]);
+			API = Initiate_Session (verbose);	/* Initializing a new GMT session */
 
 			if (nlhs) {	/* Return the API adress as an integer (nlhs == 1 here) )*/
 				plhs[0] = mxCreateNumericMatrix (1, 1, mxUINT64_CLASS, mxREAL);
@@ -153,7 +155,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	}
 	else {		/* We still don't have the API, so we must get it from the past or initiate a new session */
 		if (!pPersistent || (API = (void *)pPersistent[0]) == NULL)
-			API = Initiate_Session ();	/* Initializing new GMT session */
+			API = Initiate_Session (verbose);	/* Initializing new GMT session */
 	}
 
 	if (!cmd) 	/* First argument is the command string, e.g., 'blockmean -R0/5/0/5 -I1' or just 'destroy' */
