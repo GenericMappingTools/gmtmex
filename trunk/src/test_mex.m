@@ -37,7 +37,7 @@ function G = gmtread()
 	surface;			% Create the lixo.grd grid
 	gmt('create')
 	G = gmt('read -Tg lixo.grd');
-	gmt('grdcontour -JX6i -P -Ba -C5 > crap.ps', G);
+	gmt('grdcontour -JX6i -P -Ba -C0.2 > crap.ps', G);
 	gmt('destroy')
 
 function G = gmtwrite()
