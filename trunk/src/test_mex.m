@@ -113,6 +113,10 @@ function gmtmath()
 	if (~isempty(B))
 		disp('gmtmath gave something when operating on two input files given as vectors')
 	end
+	C = gmt('math $ $ ADD 0.5 MUL LOG10', t1, t2);
+	if (~isempty(C))
+		disp('gmtmath gave something when operating on two input files given as vectors')
+	end
 	gmt('destroy')
 
 function gmtsimplify()
