@@ -31,14 +31,6 @@
 #include <math.h>
 #include <limits.h>
 
-/* We have one strsep in gmt.dll but it returns a temporary that is not visible here
-   because of the cross DLLs shit. Se we use a local copy, named strsep_ */
-#ifdef _MSC_VER
-#	define STRSEP strsep_
-#else
-#	define STRSEP strsep
-#endif
-
 #ifndef rint
 	#define rint(x) (floor((x)+0.5f)) //does not work reliable.
 #endif
@@ -47,12 +39,6 @@
 #if !defined(lrint)
 #	define lrint (int64_t)rint
 #endif
-#include <io.h>
-#else
-#include <unistd.h>
-#endif
-#ifndef F_OK
-#	define F_OK 0
 #endif
 #ifdef NO_MEX
 /* For testing, no data are actually touched and Matlab/Octave is not linked */
@@ -61,11 +47,6 @@ int ID_rhs = 0;
 #define mxArray void
 #define mexErrMsgTxt(txt) fprintf (stderr, txt)
 #endif
-
-/* Indices into the keys triple code */
-#define K_OPT	0
-#define K_TYPE	1
-#define K_DIR	2
 
 enum MEX_dim {
 	DIM_COL	= 0,	/* Holds the number of columns for vectors and x-nodes for matrix */
@@ -111,43 +92,6 @@ enum MEX_dim {
  * section while things that is tied to the external languate (Matlab, Python, etc) will remain here.
  * We flag sections either as GMT_ONLY or EXTERNAL below for now. */
 
-#define GMT_FILE_NONE		0
-#define GMT_FILE_EXPLICIT	1
-#define GMT_FILE_IMPLICIT	2
-
-#define GMT_IS_PS		99	/* Use for PS output; use GMT_IS_GRID or GMT_IS_DATASET for data */
-
-#ifdef _MSC_VER
-char *strsep_ (char **stringp, const char *delim) {
-	char *start = *stringp;
-	char *ptr;
-
-	if (start == NULL) return NULL;
-
-	/* Optimize the case of no delimiters.  */
-	if (delim[0] == '\0') {
-		*stringp = NULL;
-		return start;
-	}
-
-	/* Optimize the case of one delimiter.  */
-	if (delim[1] == '\0')
-		ptr = strchr (start, delim[0]);
-	else
-		/* The general case.  */
-		ptr = strpbrk (start, delim);
-
-	if (ptr == NULL) {
-		*stringp = NULL;
-		return start;
-	}
-
-	*ptr = '\0';
-	*stringp = ptr + 1;
-
-	return start;
-}
-#endif
 
 #ifdef NO_MEX
 #define mxstrdup(s) strdup(s)
@@ -330,17 +274,17 @@ void * GMTMEX_Get_Table (void *API, struct GMT_MATRIX *M) {	/* Hook this table i
 }
 
 void * GMTMEX_Get_Text (void *API, struct GMT_MATRIX *M) {
-	GMT_Report (API, GMT_MSG_NORMAL, "INTERNAL ERROR: Handling of TEXTSET not implemented yet\n");
+	GMT_Report (API, GMT_MSG_NORMAL, "GMTMEX_Get_Text: INTERNAL ERROR: Handling of TEXTSET not implemented yet\n");
 	return NULL;
 }
 
 void * GMTMEX_Get_CPT (void *API, struct GMT_MATRIX *M) {
-	GMT_Report (API, GMT_MSG_NORMAL, "INTERNAL ERROR: Handling of CPT not implemented yet\n");
+	GMT_Report (API, GMT_MSG_NORMAL, "GMTMEX_Get_CPT: INTERNAL ERROR: Handling of CPT not implemented yet\n");
 	return NULL;
 }
 
 void * GMTMEX_Get_Image (void *API, struct GMT_MATRIX *M) {
-	GMT_Report (API, GMT_MSG_NORMAL, "INTERNAL ERROR: Handling of IMAGE not implemented yet\n");
+	GMT_Report (API, GMT_MSG_NORMAL, "GMTMEX_Get_Image: INTERNAL ERROR: Handling of IMAGE not implemented yet\n");
 	return NULL;
 }
 #endif
@@ -373,20 +317,20 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 		unsigned int registration;
 
 		if (mxIsEmpty (ptr))
-			mexErrMsgTxt ("The input that was supposed to contain the Grid, is empty\n");
+			mexErrMsgTxt ("GMTMEX_grid_init: The input that was supposed to contain the Grid, is empty\n");
 		if (!mxIsStruct (ptr))
-			mexErrMsgTxt ("Expected a Grid for input\n");
+			mexErrMsgTxt ("GMTMEX_grid_init: Expected a Grid for input\n");
 		mx_ptr = mxGetField (ptr, 0, "inc");
 		if (mx_ptr == NULL)
-			mexErrMsgTxt ("Could not find inc array with Grid increments\n");
+			mexErrMsgTxt ("GMTMEX_grid_init: Could not find inc array with Grid increments\n");
 		inc = mxGetData (mx_ptr);
 		mx_ptr = mxGetField (ptr, 0, "range");
 		if (mx_ptr == NULL)
-			mexErrMsgTxt ("Could not find range array for Grid range\n");
+			mexErrMsgTxt ("GMTMEX_grid_init: Could not find range array for Grid range\n");
 		range = mxGetData (mx_ptr);
 		mx_ptr = mxGetField (ptr, 0, "registration");
 		if (mx_ptr == NULL)
-			mexErrMsgTxt ("Could not find registration array for Grid registration\n");
+			mexErrMsgTxt ("GMTMEX_grid_init: Could not find registration array for Grid registration\n");
 		reg = mxGetData (mx_ptr);
 		registration = (unsigned int)lrint (reg[0]);
 		if ((G = GMT_Create_Data (API, GMT_IS_GRID, GMT_IS_SURFACE, GMT_GRID_ALL,
@@ -402,14 +346,14 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 
 		mx_ptr = mxGetField (ptr, 0, "z");
 		if (mx_ptr == NULL)
-			mexErrMsgTxt ("Could not find data array for Grid\n");
+			mexErrMsgTxt ("GMTMEX_grid_init: Could not find data array for Grid\n");
 
 		f = mxGetData (mx_ptr);
 		for (gmt_ij = row = 0; row < G->header->ny; row++)
 			for (col = 0; col < G->header->nx; col++, gmt_ij++)
 				G->data [gmt_ij] = f[MEXG_IJ(G,row,col)];
-		GMT_Report (API, GMT_MSG_DEBUG, " Allocate GMT Grid %lx in gmtmex_parser\n", (long)G);
-		GMT_Report (API, GMT_MSG_DEBUG, " Registered GMT Grid array %lx via memory reference from Matlab\n", (long)G->data);
+		GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_grid_init: Allocated GMT Grid %lx\n", (long)G);
+		GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_grid_init: Registered GMT Grid array %lx via memory reference from Matlab\n", (long)G->data);
 	}
 	else {	/* Just allocate an empty container to hold an output grid (signal this by passing NULLs) */
 		if ((G = GMT_Create_Data (API, GMT_IS_GRID, GMT_IS_SURFACE, GMT_GRID_HEADER_ONLY,
@@ -427,7 +371,7 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
 	uint64_t dim[3] = {0, 0, 0}, *this_dim = NULL;
 	struct GMT_MATRIX *M = NULL;
 	if (direction == GMT_IN) {	/* Dimensions are known, extract them and set this_dim pointer */
-		if (!mxIsNumeric (ptr)) mexErrMsgTxt ("Expected a Matrix for input\n");
+		if (!mxIsNumeric (ptr)) mexErrMsgTxt ("GMTMEX_matrix_init: Expected a Matrix for input\n");
 		dim[DIM_ROW] = mxGetM (ptr);	/* Number of rows */
 		dim[DIM_COL] = mxGetN (ptr);	/* Number of columns */
 		this_dim = dim;
@@ -436,7 +380,7 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
 	if ((M = GMT_Create_Data (API, GMT_IS_MATRIX, GMT_IS_PLP, 0, this_dim, NULL, NULL, 0, 0, NULL)) == NULL)
 		mexErrMsgTxt ("GMTMEX_matrix_init: Failure to alloc GMT source matrix\n");
 
-	GMT_Report (API, GMT_MSG_DEBUG, " Allocate GMT Matrix %lx in gmtmex_parser\n", (long)M);
+	GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_matrix_init: Allocated GMT Matrix %lx\n", (long)M);
 	M->n_rows    = dim[DIM_ROW];
 	M->n_columns = dim[DIM_COL];
 	if (direction == GMT_IN) {	/* We can inquire about the input */
@@ -461,7 +405,7 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
 			M->data.sc1 = (int8_t *)mxGetData (ptr);
 		}
 		else
-			mexErrMsgTxt ("Unsupported data type in GMT matrix input.");
+			mexErrMsgTxt ("GMTMEX_matrix_init: Unsupported Matlab data type in GMT matrix input.");
 		/* Data from Matlab and Octave(mex) is in col format and data from Octave(oct) is in row format */
 #ifdef GMT_OCTOCT
 		M->dim = M->n_columns;
@@ -483,293 +427,26 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
 
 void * GMTMEX_Register_IO (void *API, unsigned int family, unsigned int geometry, unsigned int direction, const mxArray *ptr, int *ID)
 {	/* Create the grid or matrix container, register it, and return the ID */
-	struct GMT_GRID *G = NULL;	/* Pointer to grid container */
-	struct GMT_MATRIX *M = NULL;	/* Pointer to matrix container */
 	void *obj = NULL;		/* Pointer to the container we created */
 	*ID = GMT_NOTSET;
 
 	switch (family) {
 		case GMT_IS_GRID:
 			/* Get an empty grid, and if input we and associate it with the Matlab grid pointer */
-			G = GMTMEX_grid_init (API, direction, ptr);
-			*ID = GMT_Get_ID (API, GMT_IS_GRID, direction, G);
-			GMT_Insert_Data (API, *ID, G);
-			obj = G;
-			GMT_Report (API, GMT_MSG_LONG_VERBOSE, "Got Grid G with ID %d\n", *ID);
+			obj = GMTMEX_grid_init (API, direction, ptr);
+			*ID = GMT_Get_ID (API, GMT_IS_GRID, direction, obj);
+			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Register_IO: Got Grid with Object ID %d\n", *ID);
 			break;
 		case GMT_IS_DATASET:
 			/* Get a matrix container, and if input and associate it with the Matlab pointer */
-			M = GMTMEX_matrix_init (API, direction, ptr);
-			*ID = GMT_Get_ID (API, GMT_IS_DATASET, direction, M);
-			GMT_Insert_Data (API, *ID, M);
-			obj = M;
-			GMT_Report (API, GMT_MSG_LONG_VERBOSE, "Got Matrix M with ID %d\n", *ID);
+			obj = GMTMEX_matrix_init (API, direction, ptr);
+			*ID = GMT_Get_ID (API, GMT_IS_DATASET, direction, obj);
+			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Register_IO: Got Matrix with Object ID %d\n", *ID);
 			break;
 		default:
-			GMT_Report (API, GMT_MSG_LONG_VERBOSE, "GMTMEX_Register_IO: Bad data type (%d)\n", family);
+			GMT_Report (API, GMT_MSG_NORMAL, "GMTMEX_Register_IO: Bad data type (%d)\n", family);
 			break;
 	}
 	return (obj);
 }
 #endif
-
-/* These functions require GMT only and may go into gmt_api.c eventually.
- * Some may become part of the API:
- *   int GMT_Get_Info 		Parse the options and the module keys and build info array
- *   void GMT_Expand_Option	Replace a marker ($) with a memory filename
- * The others are called from GMT_Get_Info only.
- */ 
-
-int GMTAPI_key_to_family (char *key, int *family, int *geometry)
-{
-	/* Assign direction, family, and geometry based on key */
-
-	switch (key[K_TYPE]) {	/* 2nd char contains the data type code */
-		case 'G':
-			*family = GMT_IS_GRID;
-			*geometry = GMT_IS_SURFACE;
-			break;
-		case 'P':
-			*family = GMT_IS_DATASET;
-			*geometry = GMT_IS_POLY;
-			break;
-		case 'L':
-			*family = GMT_IS_DATASET;
-			*geometry = GMT_IS_LINE;
-			break;
-		case 'D':
-			*family = GMT_IS_DATASET;
-			*geometry = GMT_IS_POINT;
-			break;
-		case 'C':
-			*family = GMT_IS_CPT;
-			*geometry = GMT_IS_NONE;
-			break;
-		case 'T':
-			*family = GMT_IS_TEXTSET;
-			*geometry = GMT_IS_NONE;
-			break;
-		case 'I':
-			*family = GMT_IS_IMAGE;
-			*geometry = GMT_IS_SURFACE;
-			break;
-		case 'X':
-			*family = GMT_IS_PS;
-			*geometry = GMT_IS_NONE;
-			break;
-		default:
-			return -2;
-			break;
-	}
-
-	/* Third key character contains the in/out code */
-	return ((key[K_DIR] == 'i' || key[K_DIR] == 'I') ? GMT_IN : GMT_OUT);	/* Return the direction of the i/o */
-}
-
-char **GMTAPI_process_keys (void *API, const char *string, char type, unsigned int *n_items, unsigned int *PS)
-{	/* Turn the comma-separated list of 3-char codes into an array of such codes.
- 	 * In the process, replace any ?-types with the selected type if type is not 0. */
-	size_t len, k, n;
-	char **s = NULL, *next = NULL, *tmp = NULL;
-	*PS = 0;	/* No PostScript output indicated so far */
-
-	if (!string) return NULL;	/* Got NULL, just give up */
-	len = strlen (string);		/* Get the length of this item */
-	if (len == 0) return NULL;	/* Got no characters, give up */
-	tmp = strdup (string);		/* Get a working copy of string */
-	/* Replace unknown types (?) in tmp with selected type give by variable "type" */
-	if (type)	/* Got a nonzero type */
-		for (k = 0; k < strlen (tmp); k++)
-			if (tmp[k] == '?') tmp[k] = type;
-	/* Count the number of items */
-	for (k = 0, n = 1; k < len; k++)
-		if (tmp[k] == ',') n++;
-	/* Allocate and populate the character array, then return it and n_items */
-	s = (char **) calloc (n, sizeof (char *));
-	k = 0;
-	while ((next = STRSEP(&tmp, ",")) != NULL) {
-		s[k++] = strdup (next);
-		if (strlen (next) != 3)
-			GMT_Report (API, GMT_MSG_NORMAL, "INTERNAL ERROR: key %s does not contain exactly 3 characters\n", next);
-		if (!strcmp (next, "-Xo")) (*PS)++;	/* Found key for PostScript output */
-	}
-	*n_items = (unsigned int)n;
-	free ((void *)tmp);
-	return s;
-}
-
-int GMTAPI_get_key (char option, char *keys[], int n_keys)
-{	/* Return the position in the keys array that matches this option, or -1 if not found */
-	int k;
-	for (k = 0; k < n_keys; k++) if (keys[k][K_OPT] == option) return (k);
-	return (-1);
-}
-
-int GMT_Get_Info (void *API, char *module, char marker, struct GMT_OPTION **head, struct GMT_INFO **X) {
-	/* This function determines which input sources and output destinations are required.
-	 * These are the arguments:
-	 *   API controls all things within GMT.
-	 *   module is the name of the GMT module. While an input arg it may grow if a prefix of "gmt" is prepended.
-	 *   marker is the character that represents a resource, typically $
-	 *   head is the linked list of GMT options passed for this module.  We may hook on 1-2 additional options.
-	 *   X is a returned array of structures with information about registered resources going to/from GMT.
-	 *   Number of structures is returned by the function.
-	 */
-
-	unsigned int n_keys, direction, PS, kind;
-	unsigned int n_items = 0, n_explicit = 0, n_implicit = 0, output_pos = 0, explicit_pos = 0, implicit_pos = 0;
-	int family;		/* -1, or one of GMT_IS_DATASET, GMT_IS_TEXTSET, GMT_IS_GRID, GMT_IS_CPT, GMT_IS_IMAGE */
-	int geometry;		/* -1, or one of GMT_IS_NONE, GMT_IS_POINT, GMT_IS_LINE, GMT_IS_POLY, GMT_IS_SURFACE */
-	int k;
-	size_t n_alloc, len;
-	const char *keys = NULL;	/* This module's option keys */
-	char **key = NULL;		/* Array of items in keys */
-	char *text = NULL, *LR[2] = {"rhs", "lhs"}, *S[2] = {" IN", "OUT"}, txt[16] = {""};
-	char type = 0;
-	struct GMT_OPTION *opt = NULL, *new_ptr = NULL;	/* Pointer to a GMT option structure */
-	struct GMT_INFO *info = NULL;	/* Our return array of n_items info structures */
-
-	/* 0. Get the keys for the module, possibly prepend "gmt" to module if required, or list modules and return if unknown module */
-	if ((keys = GMT_Get_Moduleinfo (API, module)) == NULL) {	/* Gave an unknown module */
-		GMT_Call_Module (API, NULL, GMT_MODULE_PURPOSE, NULL);	/* List available modules */
-		return (-1);	/* Unknown module */
-	}
-
-	/* 1. Check if this is either the read of write special module, which specifies what data type to deal with via -T<type> */
-	if (!strncmp (module, "gmtread", 7U) || !strncmp (module, "gmtwrite", 8U)) {
-		/* Special case: Must determine which data type we are dealing with via -T<type> */
-		if ((opt = GMT_Find_Option (API, 'T', *head)))	/* Found the -T<type> option */
-			type = toupper (opt->arg[0]);	/* Find type and replace ? in keys with this type in uppercase (DGCIT) in GMTAPI_process_keys below */
-		if (!strchr ("DGCIT", type)) {
-			GMT_Report (API, GMT_MSG_NORMAL, "No or bad data type given to read|write (%c)\n", type);
-			return (-2);
-		}
-		if (!strncmp (module, "gmtwrite", 8U) && (opt = GMT_Find_Option (API, GMT_OPT_INFILE, *head))) {
-			/* Found a -<"file" option; this is actually the output file so we reset the option */
-			opt->option = GMT_OPT_OUTFILE;
-		}
-	}
-
-	/* 2. Get the option key array for this module, and determine if it produces PostScript output (PS == 1) */
-	key = GMTAPI_process_keys (API, keys, type, &n_keys, &PS);	/* This is the array of keys for this module, e.g., "<DI,GGO,..." */
-
-	/* 3. Count the module options and any input files referenced via marker, then allocate info struct array */
-	for (opt = *head; opt; opt = opt->next) {
-		if (strchr (opt->arg, marker)) n_explicit++;	/* Found an explicit dollar sign referring to an input matrix */
-		if (PS && opt->option == GMT_OPT_OUTFILE) PS++;	/* Count given output options when PS will be produced. */
-	}
-	if (PS == 1) {	/* No redirection of the PS to an actual file means an error */
-		GMT_Report (API, GMT_MSG_NORMAL, "No PostScript output file given\n");
-		return (-3);
-	}
-	else if (PS > 2) {
-		GMT_Report (API, GMT_MSG_NORMAL, "Can only specify one PostScript output file\n");
-		return (-4);
-	}
-	n_alloc = n_explicit + n_keys;	/* Max number of registrations needed (may be just n_explicit) */
-	info = calloc (n_alloc, sizeof (struct GMT_INFO));
-
-	/* 4. Determine position of file args given as $ or via missing arg (proxy for input matrix) */
-	/* Note: All implicit options must be given after all implicit matrices have been listed */
-	for (opt = *head, implicit_pos = n_explicit; opt; opt = opt->next) {	/* Process options */
-		k = GMTAPI_get_key (opt->option, key, n_keys);	/* If k >= 0 then this option is among those listed in the keys array */
-		family = geometry = -1;	/* Not set yet */
-		if (k >= 0) direction = GMTAPI_key_to_family (key[k], &family, &geometry);	/* Get dir, datatype, and geometry */
-		
-		if (strchr (opt->arg, marker)) {	/* Found an explicit dollar sign [these are always inputs] */
-			direction = GMT_IN;
-			/* Note sure about the OPT_INFILE test - should apply to all, no? */
-			if (k >= 0 && key[k][K_OPT] == GMT_OPT_INFILE) key[k][K_DIR] = tolower (key[k][K_DIR]);	/* Make sure required I becomes i so we dont add it later */
-			info[n_items].option = opt;
-			info[n_items].family = family;
-			info[n_items].geometry = geometry;
-			info[n_items].direction = direction;
-			info[n_items].pos = explicit_pos++;	/* Explicitly given arguments are the first given on the r.h.s. */
-			kind = GMT_FILE_EXPLICIT;
-			n_items++;
-		}
-		else if (k >= 0 && key[k][K_OPT] != GMT_OPT_INFILE && (len = strlen (opt->arg)) < 2) {	/* Got some option like -G or -Lu with further args */
-			/* This is an implicit reference and we must add the missing item */
-			info[n_items].option = opt;
-			info[n_items].family = family;
-			info[n_items].geometry = geometry;
-			info[n_items].direction = direction;
-			key[k][K_DIR] = tolower (key[k][K_DIR]);	/* Change to lowercase i or o since option was provided, albeit implicitly */
-			info[n_items].pos = (direction == GMT_IN) ? implicit_pos++ : output_pos++;
-			/* Excplicitly add the missing marker ($) to the option argument */
-			sprintf (txt, "%s%c", opt->arg, marker);
-			free (opt->arg);
-			opt->arg = strdup (txt);
-			n_implicit++;
-			kind = GMT_FILE_EXPLICIT;
-			n_items++;
-		}
-		else
-			kind = GMT_FILE_NONE;	/* No file argument involved */
-		if (kind == GMT_FILE_EXPLICIT)
-			GMT_Report (API, GMT_MSG_LONG_VERBOSE, "%s: Option -%c%s includes an explicit reference to %s argument # %d\n", S[direction], opt->option, opt->arg, LR[direction], info[n_items].pos);
-		else
-			GMT_Report (API, GMT_MSG_LONG_VERBOSE, "---: Option -%c%s includes no special arguments\n", opt->option, opt->arg);
-	}
-	
-	/* Done processing things that were explicitly given in the options.  Now look if module has required
-	 * input or output items that we must add if not specified already */
-	
-	for (k = 0; k < n_keys; k++) {	/* Each set of keys specifies if the item is required via the 3rd key letter */
-		if (isupper (key[k][K_DIR])) {	/* Required, and was not reset above */
-			char str[2] = {0,0};
-			str[0] = marker;
-			direction = GMTAPI_key_to_family (key[k], &family, &geometry);
-			new_ptr = GMT_Make_Option (API, key[k][K_OPT], str);	/* Create new option with filename "$" */
-			/* Append the new option to the list */
-			*head = GMT_Append_Option (API, new_ptr, *head);
-			info[n_items].option = new_ptr;
-			info[n_items].family = family;
-			info[n_items].geometry = geometry;
-			info[n_items].direction = direction;
-			info[n_items].pos = (direction == GMT_IN) ? implicit_pos++ : output_pos++;
-			GMT_Report (API, GMT_MSG_LONG_VERBOSE, "%s: Must add -%c%c as implicit reference to %s argument # %d\n",
-				S[direction], key[k][K_OPT], marker, LR[direction], info[n_items].pos);
-			n_items++;
-		}
-		free ((void *)key[k]);	/* Free up this key */
-	}
-	/* Free up the temporary key array */
-	free ((void *)key);
-
-	/* Reallocate the information structure array or remove entirely if nothing given. */
-	if (n_items && n_items < n_alloc) info = realloc ((void *)info, n_items * sizeof (struct GMT_INFO));
-	else if (n_items == 0) free ((void *)info);	/* No containers used */
-
-
-	GMT_Report (API, GMT_MSG_LONG_VERBOSE, "Found %d inputs and %d outputs\n", implicit_pos, output_pos);
-	/* Just checking that the options were properly processed */
-	text = GMT_Create_Cmd (API, *head);
-#ifdef NO_MEX
-	sprintf (revised_cmd, "\'%s %s\'", module, text);
-#else
-	GMT_Report (API, GMT_MSG_LONG_VERBOSE, "Revised command: %s\n", text);
-#endif
-	GMT_Destroy_Cmd (API, &text);	/* Only needed it for the above verbose */
-
-	/* Pass back the info array and the number of items */
-	*X = info;
-	return (n_items);
-}
-
-void GMT_Expand_Option (void *API, struct GMT_OPTION *option, char marker, char *txt)
-{	/* Replace marker with txt in the option argument */
-	char buffer[BUFSIZ] = {""};
-	size_t i = 0, o = 0;
-	while (option->arg[i]) {
-		if (option->arg[i] == marker) {
-			strcat (&buffer[o], txt);
-			o += strlen (txt);
-		}
-		else
-			buffer[o++] = option->arg[i];
-		i++;
-	}
-	free (option->arg);
-	option->arg = strdup (buffer);
-}

@@ -48,7 +48,7 @@ int main (int argc, char *argv[]) {
 	size_t str_length;				/* Misc. counters */
 	struct GMTAPI_CTRL *API = NULL;			/* GMT API control structure */
 	struct GMT_OPTION *options = NULL;		/* Linked list of options */
-	struct GMT_INFO *X = NULL;			/* Array of information about Matlab args */
+	struct GMT_RESOURCE *X = NULL;			/* Array of information about Matlab args */
 	char *str = NULL;				/* Pointer used to get Matlab command */
 	char module[BUFSIZ] = {""}, cmd[BUFSIZ] = {""};	/* Name of GMT module to call and the command */
 
@@ -92,14 +92,15 @@ int main (int argc, char *argv[]) {
 		fprintf (stderr, "Failure to parse GMT5 command options\n");
 
 	/* 4. Preprocess and update GMT option lists, and return X info array */
-	if ((n_items = GMT_Get_Info (API, module, ARG_MARKER, &options, &X)) < 0)
-		fprintf (stderr, "Failure to parse mex command options\n");
+	if ((n_items = GMT_Encode_Options (API, module, ARG_MARKER, &options, &X)) < 0)
+		fprintf (stderr, "Failure to encode mex command options\n");
 
 	printf ("Revised command: %s\n", revised_cmd);
 	
 	for (k = 0; k < n_items; k++) {
 		g = gmtry (X[k].geometry);
-		fprintf (stderr, "GMT_INFO item %d:", k);
+		fprintf (stderr, "GMT_RESOURCE item %d:", k);
+		fprintf (stderr, " Id = %d", X[k].object_ID);
 		fprintf (stderr, " %s", GMT_direction[X[k].direction]);
 		fprintf (stderr, " %s", GMT_family[X[k].family]);
 		fprintf (stderr, " [%s]", GMT_geometry[g]);
