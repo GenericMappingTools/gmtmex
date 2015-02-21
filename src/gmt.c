@@ -71,9 +71,9 @@ void usage (int nlhs, int nrhs) {
 	}
 }
 
-struct GMTAPI_CTRL *Initiate_Session (unsigned int verbose)
+void *Initiate_Session (unsigned int verbose)
 {	/* Initialize the GMT Session and store the API pointer in a persistent variable */
-	struct GMTAPI_CTRL *API = NULL;
+	void *API = NULL;
 	/* Initializing new GMT session with zero pad and a Matlab-acceptable replacement for the printf function */
 	if ((API = GMT_Create_Session (MEX_PROG, 0U, (verbose << 2) + GMT_SESSION_NOEXIT + GMT_SESSION_EXTERNAL, GMTMEX_print_func)) == NULL)
 		mexErrMsgTxt ("Failure to create GMT5 Session\n");
