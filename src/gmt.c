@@ -16,7 +16,7 @@
  *	Contact info: gmt.soest.hawaii.edu
  *--------------------------------------------------------------------*/
 /*
- * This is the Matlab/Octave GMT application, which can do the following:
+ * This is the Matlab/Octave(mex) GMT application, which can do the following:
  * 1) Create a new session and optionally return the API pointer. We provide for
  *    storing the pointer as a global variable (persistent) bewteen calls.
  * 2) Destroy a GMT session, either given the API pointer or by fetching it from
@@ -26,10 +26,10 @@
  * First argument to the gmt app is the API pointer, but it is optional once created.
  * Next argument is the command string that starts with the module name
  * Finally, there are optional comma-separated Matlab array entities required by the command.
- * Information about the options of each program is provided via GMT_Get_Moduleinfo.
+ * Information about the options of each program is provided via GMT_Encode_Options.
  *
  * Version:	5.2
- * Created:	14-FEB-2015
+ * Created:	20-FEB-2015
  *
  */
 
@@ -38,12 +38,12 @@
 extern int GMT_get_V (char arg);
 
 /* Being declared external we can access it between MEX calls */
-static uintptr_t *pPersistent;    /* To store API address back and forth to a Matlab session */
+static uintptr_t *pPersistent;    /* To store API address back and forth within a single Matlab session */
 
 /* Here is the exit function, which gets run when the MEX-file is
    cleared and when the user exits MATLAB. The mexAtExit function
    should always be declared as static. */
-static void force_Destroy_Session(void) {
+static void force_Destroy_Session (void) {
 	void *API = (void *)pPersistent[0];	/* Get the GMT API pointer */
 	if (API != NULL) {		/* Otherwise just silently ignore this call */
 		mexPrintf("Destroying session due to a brute user usage.\n");
@@ -51,7 +51,7 @@ static void force_Destroy_Session(void) {
 	}
 }
 
-void usage(int nlhs, int nrhs) {
+void usage (int nlhs, int nrhs) {
 	/* Basic usage message */
 	if (nrhs == 0) {	/* No arguments at all results in the GMT banner message */
 		mexPrintf("\nGMT - The Generic Mapping Tools, Version %s %s API\n", "5.2", MEX_PROG);
@@ -72,10 +72,10 @@ void usage(int nlhs, int nrhs) {
 }
 
 struct GMTAPI_CTRL *Initiate_Session (unsigned int verbose)
-{
+{	/* Initialize the GMT Session and store the API pointer in a persistent variable */
 	struct GMTAPI_CTRL *API = NULL;
 	/* Initializing new GMT session with zero pad and a Matlab-acceptable replacement for the printf function */
-	if ((API = GMT_Create_Session (MEX_PROG, 0U, (verbose << 2)+GMT_SESSION_NOEXIT+GMT_SESSION_EXTERNAL, GMTMEX_print_func)) == NULL)
+	if ((API = GMT_Create_Session (MEX_PROG, 0U, (verbose << 2) + GMT_SESSION_NOEXIT + GMT_SESSION_EXTERNAL, GMTMEX_print_func)) == NULL)
 		mexErrMsgTxt ("Failure to create GMT5 Session\n");
 
 	if (!pPersistent) pPersistent = mxMalloc(sizeof(uintptr_t));
@@ -85,15 +85,16 @@ struct GMTAPI_CTRL *Initiate_Session (unsigned int verbose)
 	return (API);
 }
 
+/* This is the function that is called when we type gmt in Matlab/Octave */
 void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	int status = 0;                 /* Status code from GMT API */
 	unsigned int first = 0;         /* Array ID of first command argument (not 0 when API-ID is first) */
 	unsigned int verbose = 0;       /* Default verbose setting */
 	unsigned int n_items = 0, pos = 0; /* Number of Matlab arguments (left and right) */
 	size_t str_length = 0, k = 0;   /* Misc. counters */
-	struct GMTAPI_CTRL *API = NULL;	/* GMT API control structure */
+	void *API = NULL;		/* GMT API control structure */
 	struct GMT_OPTION *options = NULL; /* Linked list of module options */
-	struct GMT_RESOURCE *X = NULL;   /* Array of information about Matlab args */
+	struct GMT_RESOURCE *X = NULL;  /* Array of information about Matlab args */
 	char *cmd = NULL;               /* Pointer used to get the user's Matlab command */
 	char *gtxt = NULL;              /* For debug printing of revised command */
 	char *opt_args = NULL;		/* Pointer to the user's module options */
