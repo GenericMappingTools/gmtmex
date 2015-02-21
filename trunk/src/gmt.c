@@ -89,7 +89,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	int status = 0;                 /* Status code from GMT API */
 	unsigned int first = 0;         /* Array ID of first command argument (not 0 when API-ID is first) */
 	unsigned int verbose = 0;       /* Default verbose setting */
-	int n_items = 0, pos = 0;       /* Number of Matlab arguments (left and right) */
+	unsigned int n_items = 0, pos = 0; /* Number of Matlab arguments (left and right) */
 	size_t str_length = 0, k = 0;   /* Misc. counters */
 	struct GMTAPI_CTRL *API = NULL;	/* GMT API control structure */
 	struct GMT_OPTION *options = NULL; /* Linked list of module options */
@@ -187,7 +187,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		mexErrMsgTxt ("GMT: Failure to parse GMT5 command options\n");
 
 	/* 4. Preprocess to update GMT option lists and return info array X */
-	if ((n_items = GMT_Encode_Options (API, module, ARG_MARKER, &options, &X)) < 0)
+	if ((X = GMT_Encode_Options (API, module, ARG_MARKER, &options, &n_items)) == NULL)
 		mexErrMsgTxt ("GMT: Failure to encode mex command options\n");
 	
 	/* 5. Assign input (from mex) and output (from GMT) resources */
@@ -199,7 +199,8 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 			mexErrMsgTxt("GMT: Failure to register the resource\n");
 		if (GMT_Encode_ID (API, name, X[k].object_ID) != GMT_NOERROR) 	/* Make filename with embedded object ID */
 			mexErrMsgTxt ("GMT: Failure to encode string\n");
-		GMT_Expand_Option (API, X[k].option, ARG_MARKER, name);	/* Replace ARG_MARKER in argument with name */
+		if (GMT_Expand_Option (API, X[k].option, ARG_MARKER, name) != GMT_NOERROR)	/* Replace ARG_MARKER in argument with name */
+			mexErrMsgTxt ("GMT: Failure to expand filename marker\n");
 	}
 	
 	/* 6. Run GMT module; give usage message if errors arise during parsing */

@@ -92,7 +92,7 @@ int main (int argc, char *argv[]) {
 		fprintf (stderr, "Failure to parse GMT5 command options\n");
 
 	/* 4. Preprocess and update GMT option lists, and return X info array */
-	if ((n_items = GMT_Encode_Options (API, module, ARG_MARKER, &options, &X)) < 0)
+	if ((X = GMT_Encode_Options (API, module, ARG_MARKER, &options, &n_items)) == NULL)
 		fprintf (stderr, "Failure to encode mex command options\n");
 
 	printf ("Revised command: %s\n", revised_cmd);
