@@ -42,11 +42,11 @@ unsigned int gmtry (unsigned int geometry) {
 
 int main (int argc, char *argv[]) {
 	unsigned int g;
-	int n_items = 0;				/* Number of Matlab arguments (left and right) */
-	int k;				/* Simulated counts */
+	unsigned int n_items = 0;	/* Number of Matlab arguments (left and right) */
+	unsigned int k;			/* Simulated counts */
 	int start, quotes;
 	size_t str_length;				/* Misc. counters */
-	struct GMTAPI_CTRL *API = NULL;			/* GMT API control structure */
+	void *API = NULL;				/* GMT API control structure */
 	struct GMT_OPTION *options = NULL;		/* Linked list of options */
 	struct GMT_RESOURCE *X = NULL;			/* Array of information about Matlab args */
 	char *str = NULL;				/* Pointer used to get Matlab command */
