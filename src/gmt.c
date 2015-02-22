@@ -18,12 +18,12 @@
 /*
  * This is the Matlab/Octave(mex) GMT application, which can do the following:
  * 1) Create a new session and optionally return the API pointer. We provide for
- *    storing the pointer as a global variable (persistent) bewteen calls.
+ *    storing the pointer as a global variable (persistent) between calls.
  * 2) Destroy a GMT session, either given the API pointer or by fetching it from
  *    the global (persistent) variable.
- * 3) Call any of the GMT modules.
+ * 3) Call any of the GMT modules while passing data in and out of GMT.
  *
- * First argument to the gmt app is the API pointer, but it is optional once created.
+ * First argument to the gmt function is the API pointer, but it is optional once created.
  * Next argument is the command string that starts with the module name
  * Finally, there are optional comma-separated Matlab array entities required by the command.
  * Information about the options of each program is provided via GMT_Encode_Options.
@@ -215,30 +215,31 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	/* 7. Hook up module GMT outputs to Matlab plhs array */
 	
 	for (k = 0; k < n_items; k++) {	/* Number of GMT containers involved in this module call */
-		pos = X[k].pos;	/* Short-hand for index into the plhs[] array being returned to Matlab */
-		/* Here, GMT_OUT means "Return this info from GMT to Matlab" */
-		if (X[k].direction == GMT_OUT && (X[k].object = GMT_Retrieve_Data (API, X[k].object_ID)) == NULL)
-			mexErrMsgTxt ("GMT: Error retrieving object from GMT\n");
-		switch (X[k].family) {	/* Determine what container we got */
-			case GMT_IS_GRID:	/* A GMT grid; make it the pos'th output item */
-				if (X[k].direction == GMT_OUT) plhs[pos] = GMTMEX_Get_Grid (API, X[k].object);
-				break;
-			case GMT_IS_DATASET:	/* A GMT table; make it a matrix and the pos'th output item */
-				if (X[k].direction == GMT_OUT) plhs[pos] = GMTMEX_Get_Table (API, X[k].object);
-				break;
-			case GMT_IS_TEXTSET:	/* A GMT textset; make it a cell and the pos'th output item */
-				if (X[k].direction == GMT_OUT) plhs[pos] = GMTMEX_Get_Text (API, X[k].object);
-				break;
-			case GMT_IS_CPT:	/* A GMT CPT; make it a colormap and the pos'th output item  */
-				if (X[k].direction == GMT_OUT) plhs[pos] = GMTMEX_Get_CPT (API, X[k].object);
-				break;
-			case GMT_IS_IMAGE:	/* A GMT Image; make it the pos'th output item  */
-				if (X[k].direction == GMT_OUT) plhs[pos] = GMTMEX_Get_Image (API, X[k].object);
-				break;
-			default:
-				mexErrMsgTxt ("GMT: Unsupported data type\n");
-				break;
-		}
+		if (X[k].direction == GMT_OUT) {	/* Get results from GMT into Matlab arrays */
+			if ((X[k].object = GMT_Retrieve_Data (API, X[k].object_ID)) == NULL)
+				mexErrMsgTxt ("GMT: Error retrieving object from GMT\n");
+			pos = X[k].pos;	/* Short-hand for index into the plhs[] array being returned to Matlab */
+			switch (X[k].family) {	/* Determine what container we got */
+				case GMT_IS_GRID:	/* A GMT grid; make it the pos'th output item */
+					plhs[pos] = GMTMEX_Get_Grid (API, X[k].object);
+					break;
+				case GMT_IS_DATASET:	/* A GMT table; make it a matrix and the pos'th output item */
+					plhs[pos] = GMTMEX_Get_Table (API, X[k].object);
+					break;
+				case GMT_IS_TEXTSET:	/* A GMT textset; make it a cell and the pos'th output item */
+					plhs[pos] = GMTMEX_Get_Text (API, X[k].object);
+					break;
+				case GMT_IS_CPT:	/* A GMT CPT; make it a colormap and the pos'th output item  */
+					plhs[pos] = GMTMEX_Get_CPT (API, X[k].object);
+					break;
+				case GMT_IS_IMAGE:	/* A GMT Image; make it the pos'th output item  */
+					plhs[pos] = GMTMEX_Get_Image (API, X[k].object);
+					break;
+				default:
+					mexErrMsgTxt ("GMT: Unsupported data type\n");
+					break;
+			}
+		}	/* else means we have an object used to pass arrays from Matlab into GMT */
 		if (GMT_Destroy_Data (API, &X[k].object) != GMT_NOERROR)
 			mexErrMsgTxt ("GMT: Failed to destroy object used in the interface bewteen GMT and Matlab\n");
 	}
