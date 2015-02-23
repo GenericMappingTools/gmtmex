@@ -315,7 +315,7 @@ void * GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C)
 		for (k = 0; k < 3; k++) color[j+k*n_colors] = C->range[C->n_colors-1].rgb_high[k];
 	}
 	range[0] = C->range[0].z_low;
-	range[C->n_colors-1] = C->range[C->n_colors-1].z_high;
+	range[1] = C->range[C->n_colors-1].z_high;
 	
 	mxSetField (CPT_struct, 0, "colormap", mxcolormap);
 	mxSetField (CPT_struct, 0, "range", mxrange);
@@ -472,7 +472,7 @@ struct GMT_PALETTE *GMTMEX_CPT_init (void *API, unsigned int direction, const mx
 	struct GMT_PALETTE *P = NULL;
 	if (direction == GMT_IN) {	/* Dimensions are known from the input pointer */
 		unsigned int k, j;
-		uint64_t dim[1] = {0};
+		uint64_t dim[1];
 		mxArray *mx_ptr = NULL;
 		double dz, *colormap = NULL, *range = NULL, *alpha = NULL;
 
@@ -493,13 +493,13 @@ struct GMT_PALETTE *GMTMEX_CPT_init (void *API, unsigned int direction, const mx
 		if (mx_ptr == NULL)
 			mexErrMsgTxt ("GMTMEX_CPT_init: Could not find alpha array for CPT transparency\n");
 		alpha = mxGetData (mx_ptr);
-		if ((P = GMT_Create_Data (API, GMT_IS_CPT, GMT_IS_NONE, GMT_GRID_ALL,
+		if ((P = GMT_Create_Data (API, GMT_IS_CPT, GMT_IS_NONE, 0,
 		                          dim, NULL, NULL, 0, 0, NULL)) == NULL)
 			mexErrMsgTxt ("GMTMEX_CPT_init: Failure to alloc GMT source CPT for input\n");
 		dz = (range[1] - range[0]) / (P->n_colors + 1);
 		for (j = 0; j < P->n_colors; j++) {
 			for (k = 0; k < 3; k++)
-				P->range[j].rgb_low[k] = colormap[j+3*dim[0]];
+				P->range[j].rgb_low[k] = colormap[j+k*dim[0]];
 			P->range[j].rgb_low[3] = alpha[j];
 			P->range[j].z_low = j * dz;
 			P->range[j].z_high = (j+1) * dz;
@@ -507,7 +507,7 @@ struct GMT_PALETTE *GMTMEX_CPT_init (void *API, unsigned int direction, const mx
 		GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_CPT_init: Allocated GMT CPT %lx\n", (long)P);
 	}
 	else {	/* Just allocate an empty container to hold an output grid (signal this by passing NULLs) */
-		if ((P = GMT_Create_Data (API, GMT_IS_CPT, GMT_IS_NONE, GMT_GRID_HEADER_ONLY,
+		if ((P = GMT_Create_Data (API, GMT_IS_CPT, GMT_IS_NONE, 0,
                         NULL, NULL, NULL, 0, 0, NULL)) == NULL)
 			mexErrMsgTxt ("GMTMEX_CPT_init: Failure to alloc GMT blank CPT container for holding output CPT\n");
 	}
