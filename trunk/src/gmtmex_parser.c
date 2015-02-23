@@ -115,7 +115,7 @@ int GMTMEX_print_func (FILE *fp, const char *message)
 	return 0;
 }
 
-#define N_MEX_FIELDNAMES	22
+#define N_MEX_FIELDNAMES_GRID	22
 
 void * GMTMEX_Get_Grid (void *API, struct GMT_GRID *G)
 {	/* Hook this grid into the k'th output item */
@@ -129,12 +129,12 @@ void * GMTMEX_Get_Grid (void *API, struct GMT_GRID *G)
 	mxArray *mxProjectionRef = NULL;
 	mxArray *mxHeader = NULL, *mxtmp = NULL;
 	mxArray *grid_struct = NULL;
-	char    *fieldnames[N_MEX_FIELDNAMES];	/* this array contains the names of the fields of the output grid structure. */
+	char    *fieldnames[N_MEX_FIELDNAMES_GRID];	/* this array contains the names of the fields of the output grid structure. */
 
 	if (!G->data)
 		mexErrMsgTxt ("GMTMEX_Get_Grid: programming error, output matrix G is empty\n");
 
-	memset (fieldnames, 0, N_MEX_FIELDNAMES*sizeof (char *));
+	memset (fieldnames, 0, N_MEX_FIELDNAMES_GRID*sizeof (char *));
 	/* Return grids via a float (mxSINGLE_CLASS) matrix in a struct */
 	/* Create a Matlab struct for this grid */
 	fieldnames[0]  = mxstrdup ("ProjectionRefPROJ4");
@@ -159,7 +159,7 @@ void * GMTMEX_Get_Grid (void *API, struct GMT_GRID *G)
 	fieldnames[19] = mxstrdup ("x_units");
 	fieldnames[20] = mxstrdup ("y_units");
 	fieldnames[21] = mxstrdup ("z_units");
-	grid_struct = mxCreateStructMatrix (1, 1, N_MEX_FIELDNAMES, (const char **)fieldnames );
+	grid_struct = mxCreateStructMatrix (1, 1, N_MEX_FIELDNAMES_GRID, (const char **)fieldnames );
 
 	mxtmp = mxCreateString (G->header->ProjRefPROJ4);
 	mxSetField (grid_struct, 0, (const char *) "ProjectionRefPROJ4", mxtmp);
@@ -278,9 +278,49 @@ void * GMTMEX_Get_Text (void *API, struct GMT_MATRIX *M) {
 	return NULL;
 }
 
-void * GMTMEX_Get_CPT (void *API, struct GMT_MATRIX *M) {
-	GMT_Report (API, GMT_MSG_NORMAL, "GMTMEX_Get_CPT: INTERNAL ERROR: Handling of CPT not implemented yet\n");
-	return NULL;
+#define N_MEX_FIELDNAMES_CPT	3
+
+void * GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C)
+{	/* Hook this Matlab CPT into the k'th output item */
+
+	unsigned int k, j, n_colors;
+	double *color = NULL, *alpha = NULL, *range = NULL;
+	mxArray *mxcolormap = NULL, *mxalpha = NULL, *mxrange = NULL;
+	mxArray *CPT_struct = NULL;
+	char    *fieldnames[N_MEX_FIELDNAMES_CPT];	/* this array contains the names of the fields of the output grid structure. */
+
+	if (!C->range)
+		mexErrMsgTxt ("GMTMEX_Get_CPT: programming error, output CPT C is empty\n");
+
+	memset (fieldnames, 0, N_MEX_FIELDNAMES_CPT*sizeof (char *));
+	/* Return CPT via colormap, range, and alpha arrays in a struct */
+	/* Create a Matlab struct for this CPT */
+	fieldnames[0]  = mxstrdup ("colormap");
+	fieldnames[1]  = mxstrdup ("range");
+	fieldnames[2]  = mxstrdup ("alpha");
+	CPT_struct = mxCreateStructMatrix (1, 1, N_MEX_FIELDNAMES_CPT, (const char **)fieldnames );
+
+	n_colors = (C->is_continuous) ? C->n_colors + 1 : C->n_colors;
+	mxcolormap = mxCreateNumericMatrix (n_colors, 3, mxDOUBLE_CLASS, mxREAL);
+	color = mxGetPr (mxcolormap);
+	mxalpha = mxCreateNumericMatrix (n_colors, 1, mxDOUBLE_CLASS, mxREAL);
+	alpha = mxGetPr (mxalpha);
+	mxrange = mxCreateNumericMatrix (2, 1, mxDOUBLE_CLASS, mxREAL);
+	range = mxGetPr (mxrange);
+	for (j = 0; j < C->n_colors; j++) {	/* Copy r/g/b from palette to Matlab array */
+		for (k = 0; k < 3; k++) color[j+k*n_colors] = C->range[j].rgb_low[k];
+		alpha[j] = C->range[j].rgb_low[3];
+	}
+	if (C->is_continuous) {	/* Add last color */
+		for (k = 0; k < 3; k++) color[j+k*n_colors] = C->range[C->n_colors-1].rgb_high[k];
+	}
+	range[0] = C->range[0].z_low;
+	range[C->n_colors-1] = C->range[C->n_colors-1].z_high;
+	
+	mxSetField (CPT_struct, 0, "colormap", mxcolormap);
+	mxSetField (CPT_struct, 0, "range", mxrange);
+	mxSetField (CPT_struct, 0, "alpha", mxalpha);
+	return (CPT_struct);
 }
 
 void * GMTMEX_Get_Image (void *API, struct GMT_MATRIX *M) {
@@ -319,7 +359,7 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 		if (mxIsEmpty (ptr))
 			mexErrMsgTxt ("GMTMEX_grid_init: The input that was supposed to contain the Grid, is empty\n");
 		if (!mxIsStruct (ptr))
-			mexErrMsgTxt ("GMTMEX_grid_init: Expected a Grid for input\n");
+			mexErrMsgTxt ("GMTMEX_grid_init: Expected a Grid structure for input\n");
 		mx_ptr = mxGetField (ptr, 0, "inc");
 		if (mx_ptr == NULL)
 			mexErrMsgTxt ("GMTMEX_grid_init: Could not find inc array with Grid increments\n");
@@ -425,6 +465,55 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
 	return (M);
 }
 
+struct GMT_PALETTE *GMTMEX_CPT_init (void *API, unsigned int direction, const mxArray *ptr)
+{	/* Used to Create an empty CPT container to hold a GMT CPT.
+ 	 * If direction is GMT_IN then we are given a Matlab CPT and can determine its size, etc.
+	 * If direction is GMT_OUT then we allocate an empty GMT CPT as a destination. */
+	struct GMT_PALETTE *P = NULL;
+	if (direction == GMT_IN) {	/* Dimensions are known from the input pointer */
+		unsigned int k, j;
+		uint64_t dim[1] = {0};
+		mxArray *mx_ptr = NULL;
+		double dz, *colormap = NULL, *range = NULL, *alpha = NULL;
+
+		if (mxIsEmpty (ptr))
+			mexErrMsgTxt ("GMTMEX_CPT_init: The input that was supposed to contain the CPT, is empty\n");
+		if (!mxIsStruct (ptr))
+			mexErrMsgTxt ("GMTMEX_CPT_init: Expected a CPT structure for input\n");
+		mx_ptr = mxGetField (ptr, 0, "colormap");
+		if (mx_ptr == NULL)
+			mexErrMsgTxt ("GMTMEX_CPT_init: Could not find colormap array with CPT values\n");
+		dim[0] = mxGetM (mx_ptr);	/* Number of rows */
+		colormap = mxGetData (mx_ptr);
+		mx_ptr = mxGetField (ptr, 0, "range");
+		if (mx_ptr == NULL)
+			mexErrMsgTxt ("GMTMEX_CPT_init: Could not find range array for CPT range\n");
+		range = mxGetData (mx_ptr);
+		mx_ptr = mxGetField (ptr, 0, "alpha");
+		if (mx_ptr == NULL)
+			mexErrMsgTxt ("GMTMEX_CPT_init: Could not find alpha array for CPT transparency\n");
+		alpha = mxGetData (mx_ptr);
+		if ((P = GMT_Create_Data (API, GMT_IS_CPT, GMT_IS_NONE, GMT_GRID_ALL,
+		                          dim, NULL, NULL, 0, 0, NULL)) == NULL)
+			mexErrMsgTxt ("GMTMEX_CPT_init: Failure to alloc GMT source CPT for input\n");
+		dz = (range[1] - range[0]) / (P->n_colors + 1);
+		for (j = 0; j < P->n_colors; j++) {
+			for (k = 0; k < 3; k++)
+				P->range[j].rgb_low[k] = colormap[j+3*dim[0]];
+			P->range[j].rgb_low[3] = alpha[j];
+			P->range[j].z_low = j * dz;
+			P->range[j].z_high = (j+1) * dz;
+		}
+		GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_CPT_init: Allocated GMT CPT %lx\n", (long)P);
+	}
+	else {	/* Just allocate an empty container to hold an output grid (signal this by passing NULLs) */
+		if ((P = GMT_Create_Data (API, GMT_IS_CPT, GMT_IS_NONE, GMT_GRID_HEADER_ONLY,
+                        NULL, NULL, NULL, 0, 0, NULL)) == NULL)
+			mexErrMsgTxt ("GMTMEX_CPT_init: Failure to alloc GMT blank CPT container for holding output CPT\n");
+	}
+	return (P);
+}
+
 void * GMTMEX_Register_IO (void *API, unsigned int family, unsigned int geometry, unsigned int direction, const mxArray *ptr, int *ID)
 {	/* Create the grid or matrix container, register it, and return the ID */
 	void *obj = NULL;		/* Pointer to the container we created */
@@ -442,6 +531,12 @@ void * GMTMEX_Register_IO (void *API, unsigned int family, unsigned int geometry
 			obj = GMTMEX_matrix_init (API, direction, ptr);
 			*ID = GMT_Get_ID (API, GMT_IS_DATASET, direction, obj);
 			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Register_IO: Got Matrix with Object ID %d\n", *ID);
+			break;
+		case GMT_IS_CPT:
+			/* Get a CPT container, and if input and associate it with the Matlab CPT pointer */
+			obj = GMTMEX_CPT_init (API, direction, ptr);
+			*ID = GMT_Get_ID (API, GMT_IS_CPT, direction, obj);
+			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Register_IO: Got CPT with Object ID %d\n", *ID);
 			break;
 		default:
 			GMT_Report (API, GMT_MSG_NORMAL, "GMTMEX_Register_IO: Bad data type (%d)\n", family);
