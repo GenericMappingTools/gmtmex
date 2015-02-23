@@ -313,6 +313,7 @@ void * GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C)
 	}
 	if (C->is_continuous) {	/* Add last color */
 		for (k = 0; k < 3; k++) color[j+k*n_colors] = C->range[C->n_colors-1].rgb_high[k];
+		alpha[j] = C->range[j].rgb_low[3];
 	}
 	range[0] = C->range[0].z_low;
 	range[1] = C->range[C->n_colors-1].z_high;
@@ -483,7 +484,10 @@ struct GMT_PALETTE *GMTMEX_CPT_init (void *API, unsigned int direction, const mx
 		mx_ptr = mxGetField (ptr, 0, "colormap");
 		if (mx_ptr == NULL)
 			mexErrMsgTxt ("GMTMEX_CPT_init: Could not find colormap array with CPT values\n");
-		dim[0] = mxGetM (mx_ptr);	/* Number of rows */
+		dim[0] = mxGetM (mx_ptr);	/* Number of rows minus one since continous CPT */
+		if (dim[0] < 1)
+			mexErrMsgTxt ("GMTMEX_CPT_init: Colormap array has no CPT values\n");
+		dim[0]--;	/* The number of CPT slices is one less since colormap is continuous */
 		colormap = mxGetData (mx_ptr);
 		mx_ptr = mxGetField (ptr, 0, "range");
 		if (mx_ptr == NULL)
@@ -496,14 +500,18 @@ struct GMT_PALETTE *GMTMEX_CPT_init (void *API, unsigned int direction, const mx
 		if ((P = GMT_Create_Data (API, GMT_IS_CPT, GMT_IS_NONE, 0,
 		                          dim, NULL, NULL, 0, 0, NULL)) == NULL)
 			mexErrMsgTxt ("GMTMEX_CPT_init: Failure to alloc GMT source CPT for input\n");
-		dz = (range[1] - range[0]) / (P->n_colors + 1);
-		for (j = 0; j < P->n_colors; j++) {
-			for (k = 0; k < 3; k++)
-				P->range[j].rgb_low[k] = colormap[j+k*dim[0]];
+		dz = (range[1] - range[0]) / P->n_colors;
+		for (j = 0; j < P->n_colors; j++) {	/* OK to access j+1'th elemenent since length of colormap is P->n_colors+1 */
+			for (k = 0; k < 3; k++) {
+				P->range[j].rgb_low[k]  = colormap[j+k*dim[0]];
+				P->range[j].rgb_high[k] = colormap[(j+1)+k*dim[0]];
+			}
 			P->range[j].rgb_low[3] = alpha[j];
-			P->range[j].z_low = j * dz;
-			P->range[j].z_high = (j+1) * dz;
+			P->range[j].rgb_high[3] = alpha[j+1];
+			P->range[j].z_low = range[0] + j * dz;
+			P->range[j].z_high = P->range[j].z_low + dz;
 		}
+		P->is_continuous = true;
 		GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_CPT_init: Allocated GMT CPT %lx\n", (long)P);
 	}
 	else {	/* Just allocate an empty container to hold an output grid (signal this by passing NULLs) */
