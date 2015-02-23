@@ -3,7 +3,7 @@ function  test_mex(opt)
 %	Test suite for the GMT-MEX API
 %
 
-all_tests = {'gmtread' 'gmtwrite' 'blockmean' 'filter1d' 'psbasemap' 'pscoast' 'gmtinfo' 'surface' 'gmtmath' 'gmtsimplify' 'grdimage'}; 
+all_tests = {'gmtread' 'gmtwrite' 'blockmean' 'filter1d' 'psbasemap' 'pscoast' 'gmtinfo' 'surface' 'gmtmath' 'gmtsimplify' 'grd2xyz' 'grdimage'}; 
 
 if (nargin == 0)
 	opt = all_tests;
@@ -14,38 +14,24 @@ end
 try
 	for (k = 1: numel(opt))
 		switch opt{k}
-			case 'gmtread',		gmtread;
-			case 'gmtwrite',	gmtwrite;
-			case 'blockmean',	blockmean
-			case 'filter1d',	filter1d
-			case 'psbasemap',	psbasemap
-			case 'pscoast',		pscoast
-			case 'gmtinfo',		gmtinfo;
-			case 'surface',		surface;
-			case 'gmtmath',		gmtmath;
+			case 'gmtread',     gmtread;
+			case 'gmtwrite',    gmtwrite;
+			case 'blockmean',   blockmean
+			case 'filter1d',    filter1d
+			case 'psbasemap',   psbasemap
+			case 'pscoast',    	pscoast
+			case 'gmtinfo',    	gmtinfo;
+			case 'surface',     surface;
+			case 'gmtmath',     gmtmath;
 			case 'gmtsimplify',	gmtsimplify;
-			case 'grdimage',	grdimage;
+			case 'grd2xyz',     grd2xyz;
+			case 'grdimage',    grdimage;
 		end
 	end
 catch
 	sprintf('Error in test: %s\n%s', opt{k}, lasterr)
 	gmt('destroy')
 end
-
-function G = gmtread()
-	disp ('Test read');
-	surface;			% Create the lixo.grd grid
-	gmt('create')
-	G = gmt('read -Tg lixo.grd');
-	gmt('grdcontour -JX6i -P -Ba -C0.2 > crap.ps', G);
-	gmt('destroy')
-
-function G = gmtwrite()
-	disp ('Test write');
-	gmt('create')
-	G = gmt('read -Tg lixo.grd');
-	gmt ('write -Tg crap.grd', G);
-	gmt('destroy')
 
 function G = blockmean()
 	disp ('Test blockmean');
@@ -65,29 +51,6 @@ function G = filter1d
 	gmt('filter1d -Fg10 -E > filt1.txt', t);
 	F = gmt('filter1d -Fg10 -E', t);
 	gmt ('write -Td filt2.txt', F);
-	gmt('destroy')
-
-function G = surface()
-	disp ('Test surface');
-	gmt('create')
-	t = rand(100,3) * 100;
-	% Make a somewhat recognizible grid instead of random numbers
-	t(:,3) = (t(:,1)/150).^2 - (t(:,2)/100).^2 + 1.0;
-	gmt('surface -R0/150/0/100 -I1 -Glixo.grd', t);
-	G = gmt('surface -R0/150/0/100 -I1', t);
-	G = gmt('surface -R0/150/0/100 -I1 -G', t);
-	gmt('destroy')
-
-function pscoast()
-	disp ('Test pscoast');
-	gmt('create')
-	gmt('pscoast -R110/140/20/35 -JB125/20/25/45/5i -Bag -Dl -Ggreen -Wthinnest -A250 -P > GMT_albers.ps')
-	gmt('destroy')
-
-function psbasemap()
-	disp ('Test psbasemap');
-	gmt('create')
-	gmt('psbasemap -R110/140/20/35 -JB125/20/25/45/5i -Bafg -BWSne+ggreen -P > plot.ps')
 	gmt('destroy')
 
 function gmtinfo()
@@ -119,11 +82,56 @@ function gmtmath()
 	end
 	gmt('destroy')
 
+function G = gmtread()
+	disp ('Test read');
+	surface;			% Create the lixo.grd grid
+	gmt('create')
+	G = gmt('read -Tg lixo.grd');
+	gmt('grdcontour -JX6i -P -Ba -C0.2 > crap.ps', G);
+	gmt('destroy')
+
 function gmtsimplify()
 	disp ('Test gmtsimplify');
 	gmt('create')
 	t = rand(50,2);
 	t2 = gmt('simplify -T0.2', t);
+	gmt('destroy')
+
+function G = gmtwrite()
+	disp ('Test write');
+	gmt('create')
+	G = gmt('read -Tg lixo.grd');
+	gmt ('write -Tg crap.grd', G);
+	gmt('destroy')
+
+function pscoast()
+	disp ('Test pscoast');
+	gmt('create')
+	gmt('pscoast -R110/140/20/35 -JB125/20/25/45/5i -Bag -Dl -Ggreen -Wthinnest -A250 -P > GMT_albers.ps')
+	gmt('destroy')
+
+function psbasemap()
+	disp ('Test psbasemap');
+	gmt('create')
+	gmt('psbasemap -R110/140/20/35 -JB125/20/25/45/5i -Bafg -BWSne+ggreen -P > plot.ps')
+	gmt('destroy')
+
+function G = surface()
+	disp ('Test surface');
+	gmt('create')
+	t = rand(100,3) * 100;
+	% Make a somewhat recognizible grid instead of random numbers
+	t(:,3) = (t(:,1)/150).^2 - (t(:,2)/100).^2 + 1.0;
+	gmt('surface -R0/150/0/100 -I1 -Glixo.grd', t);
+	G = gmt('surface -R0/150/0/100 -I1', t);
+	G = gmt('surface -R0/150/0/100 -I1 -G', t);
+	gmt('destroy')
+
+function grd2xyz()
+	disp ('Test grd2xyz');
+	gmt('create')
+	G = gmt('surface -R0/150/0/150 -I1', rand(100,3) * 100);
+	xyz = gmt('grd2xyz', G);
 	gmt('destroy')
 
 function grdimage()
