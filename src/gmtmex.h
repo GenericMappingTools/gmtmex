@@ -71,7 +71,7 @@ EXTERN_MSC int GMTMEX_print_func (FILE *fp, const char *message);
 EXTERN_MSC void * GMTMEX_Get_Grid (void *API, struct GMT_GRID *G);
 EXTERN_MSC void * GMTMEX_Get_Table (void *API, struct GMT_MATRIX *M);
 EXTERN_MSC void * GMTMEX_Get_Text (void *API, struct GMT_MATRIX *M);
-EXTERN_MSC void * GMTMEX_Get_CPT (void *API, struct GMT_MATRIX *M);
+EXTERN_MSC void * GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *P);
 EXTERN_MSC void * GMTMEX_Get_Image (void *API, struct GMT_MATRIX *M);
 EXTERN_MSC struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxArray *ptr);
 EXTERN_MSC struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const mxArray *ptr);
