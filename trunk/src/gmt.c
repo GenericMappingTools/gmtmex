@@ -46,8 +46,9 @@ static uintptr_t *pPersistent;    /* To store API address back and forth within 
 static void force_Destroy_Session (void) {
 	void *API = (void *)pPersistent[0];	/* Get the GMT API pointer */
 	if (API != NULL) {		/* Otherwise just silently ignore this call */
-		mexPrintf("Destroying session due to a brute user usage.\n");
-		if (GMT_Destroy_Session (API)) mexErrMsgTxt ("Failure to destroy GMT5 session\n");
+		mexPrintf("GMT: Destroying GMT session due to a brute user usage.\n");
+		if (GMT_Destroy_Session (API)) mexErrMsgTxt ("Failure to destroy GMT session\n");
+		mexPrintf("GMT: GMT session destroyed.\n");
 	}
 }
 
@@ -76,7 +77,7 @@ void *Initiate_Session (unsigned int verbose)
 	void *API = NULL;
 	/* Initializing new GMT session with zero pad and a Matlab-acceptable replacement for the printf function */
 	if ((API = GMT_Create_Session (MEX_PROG, 0U, (verbose << 2) + GMT_SESSION_NOEXIT + GMT_SESSION_EXTERNAL, GMTMEX_print_func)) == NULL)
-		mexErrMsgTxt ("Failure to create GMT5 Session\n");
+		mexErrMsgTxt ("GMT: Failure to create new GMT session\n");
 
 	if (!pPersistent) pPersistent = mxMalloc(sizeof(uintptr_t));
 	pPersistent[0] = (uintptr_t)(API);
@@ -224,10 +225,10 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 					plhs[pos] = GMTMEX_Get_Grid (API, X[k].object);
 					break;
 				case GMT_IS_DATASET:	/* A GMT table; make it a matrix and the pos'th output item */
-					plhs[pos] = GMTMEX_Get_Table (API, X[k].object);
+					plhs[pos] = GMTMEX_Get_Dataset (API, X[k].object);
 					break;
 				case GMT_IS_TEXTSET:	/* A GMT textset; make it a cell and the pos'th output item */
-					plhs[pos] = GMTMEX_Get_Text (API, X[k].object);
+					plhs[pos] = GMTMEX_Get_Textset (API, X[k].object);
 					break;
 				case GMT_IS_CPT:	/* A GMT CPT; make it a colormap and the pos'th output item  */
 					plhs[pos] = GMTMEX_Get_CPT (API, X[k].object);

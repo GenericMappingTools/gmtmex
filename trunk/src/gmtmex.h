@@ -25,7 +25,7 @@
 #include <string.h>
 #include <ctype.h>
 
-#ifdef NO_MEX	/* THis would just be for testing the parser */
+#ifdef NO_MEX	/* This would just be for testing the parser */
 #define mxArray void
 char revised_cmd[BUFSIZ];	/* Global variable used to show revised command when testing only */
 #else
@@ -35,7 +35,7 @@ char revised_cmd[BUFSIZ];	/* Global variable used to show revised command when t
 #include <mex.h>
 #define mxIsScalar_(mx) \
 	( (2 == mxGetNumberOfDimensions(mx)) \
-		&&  (1 == mxGetM(mx))&&  (1 == mxGetN(mx)) )
+	&&  (1 == mxGetM(mx))&&  (1 == mxGetN(mx)) )
 #endif	/* Matlab and Octave(mex) */
 #endif	/* NO_MEX */
 
@@ -53,7 +53,7 @@ char revised_cmd[BUFSIZ];	/* Global variable used to show revised command when t
 #ifdef GMT_MATLAB
 #define MEX_PROG "Matlab"
 #else
-#define MEX_PROG "Octave(oct)"
+#define MEX_PROG "Octave(mex)"
 #endif
 #define MEX_COL_ORDER GMT_IS_COL_FORMAT
 /* Macros for getting the Matlab/Octave(mex) ij that correspond to (row,col) [no pad involved] */
@@ -63,16 +63,16 @@ char revised_cmd[BUFSIZ];	/* Global variable used to show revised command when t
 #define MEXG_IJ(M,row,col) ((col)*M->header->ny + M->header->ny - (row) - 1)
 #endif
 
-#define MODULE_LEN 	32	/* Max length of a module name */
-#define ARG_MARKER	'$'	/* Character that indicates an implicit dataset */
+#define MODULE_LEN 	32	/* Max length of a GMT module name */
+#define ARG_MARKER	'$'	/* Character that indicates an memory reference to data */
 
 EXTERN_MSC int GMTMEX_print_func (FILE *fp, const char *message);
 #ifndef NO_MEX
-EXTERN_MSC void * GMTMEX_Get_Grid (void *API, struct GMT_GRID *G);
-EXTERN_MSC void * GMTMEX_Get_Table (void *API, struct GMT_MATRIX *M);
-EXTERN_MSC void * GMTMEX_Get_Text (void *API, struct GMT_TEXTSET *M);
-EXTERN_MSC void * GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *P);
-EXTERN_MSC void * GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I);
+EXTERN_MSC void * GMTMEX_Get_Grid    (void *API, struct GMT_GRID *G);
+EXTERN_MSC void * GMTMEX_Get_Dataset (void *API, struct GMT_MATRIX *M);
+EXTERN_MSC void * GMTMEX_Get_Textset (void *API, struct GMT_TEXTSET *M);
+EXTERN_MSC void * GMTMEX_Get_CPT     (void *API, struct GMT_PALETTE *P);
+EXTERN_MSC void * GMTMEX_Get_Image   (void *API, struct GMT_IMAGE *I);
 EXTERN_MSC void * GMTMEX_Register_IO (void *API, unsigned int data_type, unsigned int geometry, unsigned int direction, const mxArray *ptr, int *ID);
 #endif
 #endif
