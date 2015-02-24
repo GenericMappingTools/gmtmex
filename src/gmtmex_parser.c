@@ -13,10 +13,13 @@
  *      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *      GNU Lesser General Public License for more details.
  *
- *      Contact info: www.soest.hawaii.edu/pwessel
+ *      Contact info: www.soest.hawaii.edu/gmt
  *--------------------------------------------------------------------*/
-/* GMT convenience functions used by MATLAB/OCTAVE mex functions
+/* GMT convenience functions used by MATLAB/OCTAVE mex functions.
+ * All code that requires knowledge about MATLAB/OCTAVE functions is
+ * found here.
  */
+
 #define STDC_FORMAT_MACROS
 #define GMTMEX_LIB
 #include "gmtmex.h"
@@ -53,21 +56,21 @@ enum MEX_dim {
 	DIM_COL	= 0,	/* Holds the number of columns for vectors and x-nodes for matrix */
 	DIM_ROW = 1};	/* Holds the number of rows for vectors and y-nodes for matrix */
 
-/* New parser for all GMT mex modules based on design discussed by PW and JL on Mon, 2/21/11 */
-/* Wherever we say "Matlab" we mean "Matlab of Octave" */
+/* Note: Wherever we say "Matlab" below we mean "Matlab of Octave" */
 
-/* For the Mex interface we will wish to pass either filenames or matrices via GMT command options.
- * We select a Matlab matrix by suppying $ as the file name.  The parser will then find these $
- * arguments and replace them with references to matrices via the GMT API mechanisms.
+/* For the Mex interface we will wish to pass either filenames or mex variables via GMT command options.
+ * We select a Matlab variable by suppying $ as the file name.  The parser will then find these $
+ * arguments and replace them with references to mex variables via the GMT API mechanisms.
  * This requires us to know which options in a module may accept a file name.  As an example,
- * consider surface whose -L option may take a grid.  To pass a Matlab/Octave grid already in memory
- * we would use -L$ and give the grid as an argument to the module, e.g.,
- *    Z = gmt ('surface -R0/50/0/50 -I1 -V xyzfile -L$', lowmatrix);
+ * consider surface whose -Lu|l option may take a grid.  To pass a Matlab grid already in memory
+ * we would use -Lu$ and give the grid as an argument to the module, e.g.,
+ *    Z = gmt ('surface -R0/50/0/50 -I1 -V xyzfile -Lu$', uppergrid);
  * For each option that may take a file we need to know what kind of file and if this is input or output.
  * We encode this in a 3-character word XYZ, explained below.  Note that each module may
  * need several comma-separated XYZ words and these are returned as one string via GMT_Get_Moduleinfo.
+ * The origin of these words are given by the THIS_MODULE_KEY in every module source code.
  *
- * X stands for the specific program option (e.g., L for -L, F for -F), or <,>
+ * X stands for the specific program option (e.g., L for -L, F for -F) or <,>
  *    for standard input,output (if reading tables) or command-line files (if reading grids).
  *    A hyphen (-) means there is no option for this item.
  * Y stands for data type (C = CPT, D = Dataset/Point, L = Dataset/Line,
@@ -86,12 +89,22 @@ enum MEX_dim {
  * The actual reading/writing will occur in gmt_api.c via the standard GMT containers.
  * The packing up GMT grids into Matlab grid structs and vice versa happens after getting the
  * results out of the GMT API and before passing into back to Matlab.
+ *
+ * All 5 GMT Resources are supported in this API, according to these rules:
+ *  GMT_GRID:	Handled with a Matlab grid structure that holds, we use GMT's native GMT_GRID for the passing.
+ *		  + Basic header array of length 9 [xmin, xmax, ymin, ymax, zmin, zmax, reg, xinc, yinc]
+ *		  + The 2-D grid array (single precision)
+ *		  + An x-array of coordinates
+ *		  + An y-array of coordinates
+ * GMT_DATASET: Handled with a Matlab matrix and we use GMT's native GMT_MATRIX for the passing.
+ *		  + A 2-D matrix with rows and columns (double precision)
+ * GMT_TEXTSET: Handled with a Matlab cell array and we use GMT's native GMT_TEXTSET for the passing.
+ *		  + A 1-D cell array with one text record per cell
+ * GMT_PALETTE: Handled with a Matlab structure and we use GMT's native GMT_PALETTE for the passing.
+ *		  + colormap is the N*3 matrix for Matlab colormaps
+ *		  + range is a 2-element array with zmin and zmax
+ *		  + alpha is a N-element array with transparencies
  */
-
-/* We will consolidate this code once everything is working.  Parts of this code (the things that
- * only depend on GMT functions) will be included in the API and only documented in the API developer
- * section while things that is tied to the external languate (Matlab, Python, etc) will remain here.
- * We flag sections either as GMT_ONLY or EXTERNAL below for now. */
 
 #ifdef NO_MEX
 #define mxstrdup(s) strdup(s)
@@ -118,7 +131,7 @@ int GMTMEX_print_func (FILE *fp, const char *message)
 #define N_MEX_FIELDNAMES_GRID	22
 
 void * GMTMEX_Get_Grid (void *API, struct GMT_GRID *G)
-{	/* Hook this grid into the k'th output item */
+{	/* Given a GMT grid G, build a Matlab structure and assign the output components */
 
 	int item, n;
 	unsigned int row, col;
@@ -254,12 +267,14 @@ void * GMTMEX_Get_Grid (void *API, struct GMT_GRID *G)
 	return (grid_struct);
 }
 
-void * GMTMEX_Get_Table (void *API, struct GMT_MATRIX *M) {	/* Hook this table into the k'th output item */
+void * GMTMEX_Get_Dataset (void *API, struct GMT_MATRIX *M)
+{	/* Given a GMT dataset via a matrix, build a Matlab matrix and assign values */
 	unsigned int row, col;
 	uint64_t gmt_ij, mex_ij;
+	/* Create a 2-D Matlab double matrix of correct size */
 	mxArray *P = mxCreateNumericMatrix (M->n_rows, M->n_columns, mxDOUBLE_CLASS, mxREAL);
 	double *d = mxGetData (P);
-	/* Duplicate the double data matrix into the matlab double array */
+	/* Duplicate the double GMT data matrix into the matlab double array */
 	if (M->shape == MEX_COL_ORDER)	/* Easy, just copy */
 		memcpy (d, M->data.f8, M->n_rows * M->n_columns * sizeof (double));
 	else {	/* Must transpose */
@@ -273,14 +288,18 @@ void * GMTMEX_Get_Table (void *API, struct GMT_MATRIX *M) {	/* Hook this table i
 	return (P);
 }
 
-void * GMTMEX_Get_Text (void *API, struct GMT_TEXTSET *T) {
+void * GMTMEX_Get_Textset (void *API, struct GMT_TEXTSET *T)
+{	/* Given a GMT textset T, build a Matlab cell array and assign values */
 	uint64_t seg, row, k;
 	mxArray *C = NULL, *p = NULL;
 	struct GMT_TEXTSEGMENT *S = NULL;
 	
 	if (T == NULL || !T->table)
-		mexErrMsgTxt ("GMTMEX_Get_Text: programming error, output textset T is NULL or empty\n");
+		mexErrMsgTxt ("GMTMEX_Get_Textset: programming error, output textset T is NULL or empty\n");
+	/* Create a cell array to hold all records */
 	C = mxCreateCellMatrix (T->n_records, 1);
+	/* There is only one table when used in the external API, but it may have many segments.
+	 * The segment information is lost when returned to Matlab */
 	for (seg = k = 0; seg < T->table[0]->n_segments; seg++) {
 		S = T->table[0]->segment[seg];
 		for (row = 0; row <S->n_rows; row++, k++) {
@@ -294,13 +313,13 @@ void * GMTMEX_Get_Text (void *API, struct GMT_TEXTSET *T) {
 #define N_MEX_FIELDNAMES_CPT	3
 
 void * GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C)
-{	/* Hook this Matlab CPT into the k'th output item */
+{	/* Given a GMT CPT C, build a Matlab structure and assign values */
 
 	unsigned int k, j, n_colors;
 	double *color = NULL, *alpha = NULL, *range = NULL;
 	mxArray *mxcolormap = NULL, *mxalpha = NULL, *mxrange = NULL;
 	mxArray *CPT_struct = NULL;
-	char    *fieldnames[N_MEX_FIELDNAMES_CPT];	/* this array contains the names of the fields of the output grid structure. */
+	char *fieldnames[N_MEX_FIELDNAMES_CPT];	/* Array with the names of the fields of the output grid structure. */
 
 	if (!C->range)
 		mexErrMsgTxt ("GMTMEX_Get_CPT: programming error, output CPT C is empty\n");
@@ -550,9 +569,12 @@ struct GMT_TEXTSET *GMTMEX_Text_init (void *API, unsigned int direction, const m
 			mexErrMsgTxt ("GMTMEX_Text_init: The input that was supposed to contain the Cell array is empty\n");
 		if (!mxIsCell (ptr))
 			mexErrMsgTxt ("GMTMEX_Text_init: Expected a Cell array for input\n");
-		dim[GMT_ROW] = mxGetM (ptr);	/* Number of rows */
-		if ((T = GMT_Create_Data (API, GMT_IS_TEXTSET, GMT_IS_NONE, 0,
-		                          dim, NULL, NULL, 0, 0, NULL)) == NULL)
+		dim[GMT_ROW] = mxGetM (ptr);	/* Number of records */
+		if (dim[GMT_ROW] == 1) {	/* Check if we got a transpose arrangement or just one record */
+			rec = mxGetN (ptr);	/* Also possibly number of records */
+			if (rec > 1) dim[GMT_ROW] = rec;	/* User gave row-vector of cells */
+		}
+		if ((T = GMT_Create_Data (API, GMT_IS_TEXTSET, GMT_IS_NONE, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
 			mexErrMsgTxt ("GMTMEX_Text_init: Failure to alloc GMT source TEXTSET for input\n");
 		S = T->table[0]->segment[0];	/* Only one segment coming from Matlab */
 		S->n_rows = dim[GMT_ROW];

@@ -3,7 +3,7 @@ function  test_mex(opt)
 %	Test suite for the GMT-MEX API
 %
 
-all_tests = {'gmtread' 'gmtwrite' 'blockmean' 'filter1d' 'psbasemap' 'pscoast' 'gmtinfo' 'surface' 'gmtmath' 'gmtsimplify' 'grd2xyz' 'grdimage'}; 
+all_tests = {'gmtread' 'gmtwrite' 'blockmean' 'filter1d' 'psbasemap' 'pscoast' 'gmtinfo' 'surface' 'gmtmath' 'gmtsimplify' 'grd2xyz' 'grdinfo' 'grdimage'}; 
 
 if (nargin == 0)
 	opt = all_tests;
@@ -21,6 +21,7 @@ try
 			case 'psbasemap',   psbasemap
 			case 'pscoast',    	pscoast
 			case 'gmtinfo',    	gmtinfo;
+			case 'grdinfo',    	grdinfo;
 			case 'surface',     surface;
 			case 'gmtmath',     gmtmath;
 			case 'gmtsimplify',	gmtsimplify;
@@ -116,6 +117,13 @@ function psbasemap()
 	gmt('psbasemap -R110/140/20/35 -JB125/20/25/45/5i -Bafg -BWSne+ggreen -P > plot.ps')
 	gmt('destroy')
 
+function pstext()
+	disp ('Test pstext');
+	gmt('create')
+	lines = {'5 6 Some label', '6 7 Another label'};
+	gmt('pstext -R0/10/0/10 -JM6i -Bafg -F+f18p -P > text.ps', lines)
+	gmt('destroy')
+
 function G = surface()
 	disp ('Test surface');
 	gmt('create')
@@ -132,6 +140,13 @@ function grd2xyz()
 	gmt('create')
 	G = gmt('surface -R0/150/0/150 -I1', rand(100,3) * 100);
 	xyz = gmt('grd2xyz', G);
+	gmt('destroy')
+
+function grdinfo()
+	disp ('Test grdinfo');
+	gmt('create')
+	G = gmt('surface -R0/150/0/150 -I1', rand(100,3) * 100);
+	T = gmt('grdinfo', G)
 	gmt('destroy')
 
 function grdimage()
