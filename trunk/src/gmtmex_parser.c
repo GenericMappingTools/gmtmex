@@ -293,15 +293,23 @@ void * GMTMEX_Get_Textset (void *API, struct GMT_TEXTSET *T)
 	uint64_t seg, row, k;
 	mxArray *C = NULL, *p = NULL;
 	struct GMT_TEXTSEGMENT *S = NULL;
+	char text[BUFSIZ] = {""};
 	
 	if (T == NULL || !T->table)
 		mexErrMsgTxt ("GMTMEX_Get_Textset: programming error, output textset T is NULL or empty\n");
 	/* Create a cell array to hold all records */
-	C = mxCreateCellMatrix (T->n_records, 1);
+	k = T->n_records;
+	if (T->table[0]->n_segments > 1) k += T->table[0]->n_segments;
+	C = mxCreateCellMatrix (k, 1);
 	/* There is only one table when used in the external API, but it may have many segments.
 	 * The segment information is lost when returned to Matlab */
 	for (seg = k = 0; seg < T->table[0]->n_segments; seg++) {
 		S = T->table[0]->segment[seg];
+		if (T->table[0]->n_segments > 1) {
+			sprintf (text, "> %s", S->header);
+			p = mxCreateString (text);
+			mxSetCell (C, k++, p);
+		}
 		for (row = 0; row <S->n_rows; row++, k++) {
 			p = mxCreateString (S->record[row]);
 			mxSetCell (C, k, p);
