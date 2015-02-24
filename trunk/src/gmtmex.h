@@ -74,5 +74,6 @@ EXTERN_MSC void * GMTMEX_Get_Textset (void *API, struct GMT_TEXTSET *M);
 EXTERN_MSC void * GMTMEX_Get_CPT     (void *API, struct GMT_PALETTE *P);
 EXTERN_MSC void * GMTMEX_Get_Image   (void *API, struct GMT_IMAGE *I);
 EXTERN_MSC void * GMTMEX_Register_IO (void *API, unsigned int data_type, unsigned int geometry, unsigned int direction, const mxArray *ptr, int *ID);
+EXTERN_MSC void GMTMEX_Free_Textset (void *API, struct GMT_TEXTSET *T);
 #endif
 #endif
