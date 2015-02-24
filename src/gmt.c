@@ -241,6 +241,9 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 					break;
 			}
 		}	/* else means we have an object used to pass arrays from Matlab into GMT */
+		else if (X[k].family == GMT_IS_TEXTSET)	/* Because Windows cannot stomack another DLL freeing strings */
+			GMTMEX_Free_Textset (API, X[k].object);
+			
 		if (GMT_Destroy_Data (API, &X[k].object) != GMT_NOERROR)
 			mexErrMsgTxt ("GMT: Failed to destroy object used in the interface bewteen GMT and Matlab\n");
 	}

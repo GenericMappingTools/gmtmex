@@ -318,6 +318,25 @@ void * GMTMEX_Get_Textset (void *API, struct GMT_TEXTSET *T)
 	return C;
 }
 
+void GMTMEX_Free_Textset (void *API, struct GMT_TEXTSET *T)
+{
+	/* Because of Windows DLL Hell we have to free those strdup'ed strings
+	 * done in GMTMEX_init_text here instead of in GMT_Destroy_Data.
+	 */
+	uint64_t seg, row, k;
+	struct GMT_TEXTSEGMENT *S = NULL;
+
+	if (T == NULL || !T->table)
+		mexErrMsgTxt ("GMTMEX_Get_Textset: programming error, textset T is NULL or empty\n");
+	for (seg = k = 0; seg < T->table[0]->n_segments; seg++) {
+		S = T->table[0]->segment[seg];
+		for (row = 0; row <S->n_rows; row++) {
+			free (S->record[row]);
+			S->record[row] = NULL;
+		}
+	}
+}
+
 #define N_MEX_FIELDNAMES_CPT	3
 
 void * GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C)
