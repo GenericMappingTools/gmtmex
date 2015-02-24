@@ -273,9 +273,22 @@ void * GMTMEX_Get_Table (void *API, struct GMT_MATRIX *M) {	/* Hook this table i
 	return (P);
 }
 
-void * GMTMEX_Get_Text (void *API, struct GMT_MATRIX *M) {
-	GMT_Report (API, GMT_MSG_NORMAL, "GMTMEX_Get_Text: INTERNAL ERROR: Handling of TEXTSET not implemented yet\n");
-	return NULL;
+void * GMTMEX_Get_Text (void *API, struct GMT_TEXTSET *T) {
+	uint64_t seg, row, k;
+	mxArray *C = NULL, *p = NULL;
+	struct GMT_TEXTSEGMENT *S = NULL;
+	
+	if (T == NULL || !T->table)
+		mexErrMsgTxt ("GMTMEX_Get_Text: programming error, output textset T is NULL or empty\n");
+	C = mxCreateCellMatrix (T->n_records, 1);
+	for (seg = k = 0; seg < T->table[0]->n_segments; seg++) {
+		S = T->table[0]->segment[seg];
+		for (row = 0; row <S->n_rows; row++, k++) {
+			p = mxCreateString (S->record[row]);
+			mxSetCell (C, k, p);
+		}
+	}
+	return C;
 }
 
 #define N_MEX_FIELDNAMES_CPT	3
@@ -324,7 +337,7 @@ void * GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C)
 	return (CPT_struct);
 }
 
-void * GMTMEX_Get_Image (void *API, struct GMT_MATRIX *M) {
+void * GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I) {
 	GMT_Report (API, GMT_MSG_NORMAL, "GMTMEX_Get_Image: INTERNAL ERROR: Handling of IMAGE not implemented yet\n");
 	return NULL;
 }
@@ -522,6 +535,43 @@ struct GMT_PALETTE *GMTMEX_CPT_init (void *API, unsigned int direction, const mx
 	return (P);
 }
 
+struct GMT_TEXTSET *GMTMEX_Text_init (void *API, unsigned int direction, const mxArray *ptr)
+{	/* Used to Create an empty Textset container to hold a GMT TEXTSET.
+ 	 * If direction is GMT_IN then we are given a Matlab cell array and can determine its size, etc.
+	 * If direction is GMT_OUT then we allocate an empty GMT TEXTSET as a destination. */
+	struct GMT_TEXTSET *T = NULL;
+	if (direction == GMT_IN) {	/* Dimensions are known from the input pointer */
+		uint64_t rec, dim[3] = { 1, 1, 0};
+		mxArray *mx_ptr = NULL;
+		char *txt = NULL;
+		struct GMT_TEXTSEGMENT *S = NULL;
+
+		if (mxIsEmpty (ptr))
+			mexErrMsgTxt ("GMTMEX_Text_init: The input that was supposed to contain the Cell array is empty\n");
+		if (!mxIsCell (ptr))
+			mexErrMsgTxt ("GMTMEX_Text_init: Expected a Cell array for input\n");
+		dim[GMT_ROW] = mxGetM (ptr);	/* Number of rows */
+		if ((T = GMT_Create_Data (API, GMT_IS_TEXTSET, GMT_IS_NONE, 0,
+		                          dim, NULL, NULL, 0, 0, NULL)) == NULL)
+			mexErrMsgTxt ("GMTMEX_Text_init: Failure to alloc GMT source TEXTSET for input\n");
+		S = T->table[0]->segment[0];	/* Only one segment coming from Matlab */
+		S->n_rows = dim[GMT_ROW];
+		for (rec = 0; rec < S->n_rows; rec++) {
+			mx_ptr = mxGetCell (ptr, rec);
+			txt = mxArrayToString (mx_ptr);
+			S->record[rec] = strdup (txt);
+		}
+		T->n_records = T->table[0]->n_records = S->n_rows;
+		GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Text_init: Allocated GMT TEXTSET %lx\n", (long)T);
+	}
+	else {	/* Just allocate an empty container to hold an output grid (signal this by passing NULLs) */
+		if ((T = GMT_Create_Data (API, GMT_IS_TEXTSET, GMT_IS_NONE, 0,
+                        NULL, NULL, NULL, 0, 0, NULL)) == NULL)
+			mexErrMsgTxt ("GMTMEX_Text_init: Failure to alloc GMT blank TEXTSET container for holding output TEXT\n");
+	}
+	return (T);
+}
+
 void * GMTMEX_Register_IO (void *API, unsigned int family, unsigned int geometry, unsigned int direction, const mxArray *ptr, int *ID)
 {	/* Create the grid or matrix container, register it, and return the ID */
 	void *obj = NULL;		/* Pointer to the container we created */
@@ -529,19 +579,25 @@ void * GMTMEX_Register_IO (void *API, unsigned int family, unsigned int geometry
 
 	switch (family) {
 		case GMT_IS_GRID:
-			/* Get an empty grid, and if input we and associate it with the Matlab grid pointer */
+			/* Get an empty grid, and if input we associate it with the Matlab grid pointer */
 			obj = GMTMEX_grid_init (API, direction, ptr);
 			*ID = GMT_Get_ID (API, GMT_IS_GRID, direction, obj);
 			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Register_IO: Got Grid with Object ID %d\n", *ID);
 			break;
 		case GMT_IS_DATASET:
-			/* Get a matrix container, and if input and associate it with the Matlab pointer */
+			/* Get a matrix container, and if input we associate it with the Matlab pointer */
 			obj = GMTMEX_matrix_init (API, direction, ptr);
 			*ID = GMT_Get_ID (API, GMT_IS_DATASET, direction, obj);
 			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Register_IO: Got Matrix with Object ID %d\n", *ID);
 			break;
+		case GMT_IS_TEXTSET:
+			/* Get a TEXTSET container, and if input we associate it with the Matlab pointer */
+			obj = GMTMEX_Text_init (API, direction, ptr);
+			*ID = GMT_Get_ID (API, GMT_IS_TEXTSET, direction, obj);
+			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Register_IO: Got TEXTSET with Object ID %d\n", *ID);
+			break;
 		case GMT_IS_CPT:
-			/* Get a CPT container, and if input and associate it with the Matlab CPT pointer */
+			/* Get a CPT container, and if input we associate it with the Matlab CPT pointer */
 			obj = GMTMEX_CPT_init (API, direction, ptr);
 			*ID = GMT_Get_ID (API, GMT_IS_CPT, direction, obj);
 			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Register_IO: Got CPT with Object ID %d\n", *ID);
