@@ -463,6 +463,60 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 	return (G);
 }
 
+struct GMT_IMAGE *GMTMEX_image_init (void *API, unsigned int direction, const mxArray *ptr)
+{	/* Used to Create an empty Image container to hold a GMT image.
+ 	 * If direction is GMT_IN then we are given a Matlab image and can determine its size, etc.
+	 * If direction is GMT_OUT then we allocate an empty GMT image as a destination. */
+	unsigned int row, col;
+	uint64_t gmt_ij;
+	struct GMT_IMAGE *I = NULL;
+	if (direction == GMT_IN) {	/* Dimensions are known from the input pointer */
+		mxArray *mx_ptr = NULL;
+		double *inc = NULL, *range = NULL, *reg = NULL, *MinMax = NULL;
+		float *f = NULL;
+
+		if (mxIsEmpty (ptr))
+			mexErrMsgTxt ("GMTMEX_image_init: The input that was supposed to contain the Image, is empty\n");
+		if (!mxIsStruct (ptr))
+			mexErrMsgTxt ("GMTMEX_image_init: Expected a Image structure for input\n");
+		mx_ptr = mxGetField (ptr, 0, "inc");
+		if (mx_ptr == NULL)
+			mexErrMsgTxt ("GMTMEX_image_init: Could not find inc array with Image increments\n");
+		inc = mxGetData (mx_ptr);
+		mx_ptr = mxGetField (ptr, 0, "range");
+		if (mx_ptr == NULL)
+			mexErrMsgTxt ("GMTMEX_image_init: Could not find range array for Image range\n");
+		range = mxGetData (mx_ptr);
+		if ((I = GMT_Create_Data (API, GMT_IS_IMAGE, GMT_IS_SURFACE, GMT_GRID_ALL,
+			NULL, range, inc, 0, 0, NULL)) == NULL)
+			mexErrMsgTxt ("GMTMEX_image_init: Failure to alloc GMT source image for input\n");
+
+		mx_ptr = mxGetField (ptr, 0, "MinMax");
+		if (mx_ptr != NULL) {	/* Because we sent a NULL instead of the data array, z_min, z_max are not known. Use those from ptr */
+			MinMax = mxGetData (mx_ptr);
+			I->header->z_min = MinMax[0];
+			I->header->z_max = MinMax[1];
+		}
+
+		mx_ptr = mxGetField (ptr, 0, "z");
+		if (mx_ptr == NULL)
+			mexErrMsgTxt ("GMTMEX_image_init: Could not find data array for Grid\n");
+
+		f = mxGetData (mx_ptr);
+		for (gmt_ij = row = 0; row < I->header->ny; row++)
+			for (col = 0; col < I->header->nx; col++, gmt_ij++)
+				I->data [gmt_ij] = f[MEXG_IJ(I,row,col)];
+		GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_image_init: Allocated GMT Image %lx\n", (long)I);
+		GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_image_init: Registered GMT Image array %lx via memory reference from Matlab\n", (long)I->data);
+	}
+	else {	/* Just allocate an empty container to hold an output grid (signal this by passing NULLs) */
+		if ((I = GMT_Create_Data (API, GMT_IS_IMAGE, GMT_IS_SURFACE, GMT_GRID_HEADER_ONLY,
+                        NULL, NULL, NULL, 0, 0, NULL)) == NULL)
+			mexErrMsgTxt ("GMTMEX_image_init: Failure to alloc GMT blank image container for holding output image\n");
+	}
+	return (I);
+}
+
 struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const mxArray *ptr)
 {	/* Used to Create an empty Matrix container and associate it with a data matrix.
  	 * Note that in GMT these will be considered DATASETs via GMT_MATRIX.
@@ -632,6 +686,12 @@ void * GMTMEX_Register_IO (void *API, unsigned int family, unsigned int geometry
 			obj = GMTMEX_grid_init (API, direction, ptr);
 			*ID = GMT_Get_ID (API, GMT_IS_GRID, direction, obj);
 			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Register_IO: Got Grid with Object ID %d\n", *ID);
+			break;
+		case GMT_IS_IMAGE:
+			/* Get an empty image, and if input we associate it with the Matlab image pointer */
+			obj = GMTMEX_image_init (API, direction, ptr);
+			*ID = GMT_Get_ID (API, GMT_IS_IMAGE, direction, obj);
+			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Register_IO: Got Image with Object ID %d\n", *ID);
 			break;
 		case GMT_IS_DATASET:
 			/* Get a matrix container, and if input we associate it with the Matlab pointer */
