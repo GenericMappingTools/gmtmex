@@ -86,14 +86,12 @@ IF %BITS%==64 (
 
 SET  NETCDF_LIB=C:\programs\compa_libs\netcdf_GIT\compileds\VC12_64\lib\netcdf.lib
 SET     GMT_LIB=c:\progs_cygw\GMTdev\gmt5\trunk\WIN%BITS%\lib\gmt.lib
-SET    GDAL_LIB=c:\programs\GDALtrunk\gdal\compileds\VC12_64\lib\gdal_i.lib
 call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" amd64
 
 ) ELSE (
 
 SET  NETCDF_LIB=C:\programs\compa_libs\netcdf_GIT\compileds\VC12_32\lib\netcdf.lib
 SET     GMT_LIB=c:\progs_cygw\GMTdev\gmt5\trunk\WIN%BITS%\lib\gmt.lib
-SET    GDAL_LIB=c:\programs\GDALtrunk\gdal\compileds\VC12_32\lib\gdal_i.lib
 call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" x86
 
 )
@@ -101,7 +99,6 @@ call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" x86
 SET  NETCDF_INC=C:\programs\compa_libs\netcdf_GIT\compileds\VC12_32\include
 rem SET     GMT_INC=c:\progs_cygw\GMTdev\gmt5\trunk\WIN%BITS%\include
 SET    GMT_INC=C:\progs_cygw\GMTdev\gmt5\branches\5.2.0\src
-SET    GDAL_INC=c:\programs\GDALtrunk\gdal\compileds\VC12_32\include
 REM ----------------------------------------------------------------------------
 
 REM ____________________________________________________________________________
