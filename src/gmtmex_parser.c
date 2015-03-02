@@ -52,6 +52,10 @@ int ID_rhs = 0;
 #define mexErrMsgTxt(txt) fprintf (stderr, txt)
 #endif
 
+#ifndef MIN
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))	/* min macro */
+#endif
+
 enum MEX_dim {
 	DIM_COL	= 0,	/* Holds the number of columns for vectors and x-nodes for matrix */
 	DIM_ROW = 1};	/* Holds the number of rows for vectors and y-nodes for matrix */
@@ -383,9 +387,173 @@ void * GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C)
 	return (CPT_struct);
 }
 
+#define N_MEX_FIELDNAMES_IMAGE	24
+
 void * GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I) {
-	GMT_Report (API, GMT_MSG_NORMAL, "GMTMEX_Get_Image: INTERNAL ERROR: Handling of IMAGE not implemented yet\n");
-	return NULL;
+	int item, n;
+	mwSize dim[3];
+	unsigned int row, col;
+	uint64_t gmt_ij, mex_ij;
+	uint8_t *u = NULL, *alpha = NULL;
+	double *d = NULL, *dptr = NULL, *I_x = NULL, *I_y = NULL, *x = NULL, *y = NULL;
+	double *color = NULL;
+	mxArray *mxImg = NULL, *mx_x = NULL, *mx_y= NULL, *mxalpha = NULL, *mxcolormap = NULL;
+	mxArray *mxProjectionRef = NULL;
+	mxArray *mxHeader = NULL, *mxtmp = NULL;
+	mxArray *image_struct = NULL;
+	char    *fieldnames[N_MEX_FIELDNAMES_IMAGE];	/* this array contains the names of the fields of the output grid structure. */
+
+	if (!I->data)
+		mexErrMsgTxt ("GMTMEX_Get_Image: programming error, output image I is empty\n");
+
+	memset (fieldnames, 0, N_MEX_FIELDNAMES_IMAGE*sizeof (char *));
+	/* Return umage via a uint8_t (mxUINT8_CLASS) matrix in a struct */
+	/* Create a Matlab struct for this image */
+	fieldnames[0]  = mxstrdup ("ProjectionRefPROJ4");
+	fieldnames[1]  = mxstrdup ("ProjectionRefWKT");
+	fieldnames[2]  = mxstrdup ("hdr");
+	fieldnames[3]  = mxstrdup ("range");
+	fieldnames[4]  = mxstrdup ("inc");
+	fieldnames[5]  = mxstrdup ("dim");
+	fieldnames[6]  = mxstrdup ("n_rows");
+	fieldnames[7]  = mxstrdup ("n_columns");
+	fieldnames[8]  = mxstrdup ("MinMax");
+	fieldnames[9]  = mxstrdup ("NoDataValue");
+	fieldnames[10] = mxstrdup ("registration");
+	fieldnames[11] = mxstrdup ("title");
+	fieldnames[12] = mxstrdup ("remark");
+	fieldnames[13] = mxstrdup ("command");
+	fieldnames[14] = mxstrdup ("DataType");
+	fieldnames[15] = mxstrdup ("LayerCount");
+	fieldnames[16] = mxstrdup ("x");
+	fieldnames[17] = mxstrdup ("y");
+	fieldnames[18] = mxstrdup ("image");
+	fieldnames[19] = mxstrdup ("x_units");
+	fieldnames[20] = mxstrdup ("y_units");
+	fieldnames[21] = mxstrdup ("z_units");
+	fieldnames[22] = mxstrdup ("colormap");
+	fieldnames[23] = mxstrdup ("alpha");
+	image_struct = mxCreateStructMatrix (1, 1, N_MEX_FIELDNAMES_IMAGE, (const char **)fieldnames );
+
+	mxtmp = mxCreateString (I->header->ProjRefPROJ4);
+	mxSetField (image_struct, 0, (const char *) "ProjectionRefPROJ4", mxtmp);
+
+	mxtmp = mxCreateString (I->header->ProjRefWKT);
+	mxSetField (image_struct, 0, (const char *) "ProjectionRefWKT", mxtmp);
+
+	mxHeader = mxCreateNumericMatrix (1, 9, mxDOUBLE_CLASS, mxREAL);
+	dptr = mxGetPr (mxHeader);
+	for (n = 0; n < 4; n++) dptr[n] = I->header->wesn[n];
+	dptr[4] = I->header->z_min;	dptr[5] = I->header->z_max;
+	dptr[6] = I->header->registration;
+	for (n = 0; n < 2; n++) dptr[n+7] = I->header->inc[n];
+	mxSetField (image_struct, 0, "hdr", mxHeader);
+
+	dptr = mxGetPr(mxtmp = mxCreateNumericMatrix (1, 4, mxDOUBLE_CLASS, mxREAL));
+	for (n = 0; n < 4; n++) dptr[n] = I->header->wesn[n];
+	mxSetField (image_struct, 0, "range", mxtmp);
+
+	dptr = mxGetPr(mxtmp = mxCreateNumericMatrix (1, 2, mxDOUBLE_CLASS, mxREAL));
+	for (n = 0; n < 2; n++) dptr[n] = I->header->inc[n];
+	mxSetField (image_struct, 0, "inc", mxtmp);
+
+	mxtmp = mxCreateDoubleScalar ((double)I->header->ny);
+	mxSetField (image_struct, 0, (const char *) "n_rows", mxtmp);
+
+	mxtmp = mxCreateDoubleScalar ((double)I->header->nx);
+	mxSetField (image_struct, 0, (const char *) "n_columns", mxtmp);
+
+	dptr = mxGetPr(mxtmp = mxCreateNumericMatrix (1, 2, mxDOUBLE_CLASS, mxREAL));
+	dptr[0] = I->header->z_min;	dptr[1] = I->header->z_max;
+	mxSetField (image_struct, 0, "MinMax", mxtmp);
+
+	mxtmp = mxCreateDoubleScalar ((double)I->header->nan_value);
+	mxSetField (image_struct, 0, (const char *) "NoDataValue", mxtmp);
+
+	mxtmp = mxCreateDoubleScalar ((double)I->header->n_bands);
+	mxSetField (image_struct, 0, (const char *) "LayerCount", mxtmp);
+	
+	dptr = mxGetPr(mxtmp = mxCreateNumericMatrix (1, 2, mxDOUBLE_CLASS, mxREAL));
+	dptr[0] = I->header->ny;	dptr[1] = I->header->nx;
+	mxSetField (image_struct, 0, "dim", mxtmp);
+
+	mxtmp = mxCreateDoubleScalar ((double)I->header->registration);
+	mxSetField (image_struct, 0, (const char *) "registration", mxtmp);
+
+	mxtmp = mxCreateString (I->header->title);
+	mxSetField (image_struct, 0, (const char *) "title", mxtmp);
+
+	mxtmp = mxCreateString (I->header->command);
+	mxSetField (image_struct, 0, (const char *) "command", mxtmp);
+
+	mxtmp = mxCreateString (I->header->remark);
+	mxSetField (image_struct, 0, (const char *) "remark", mxtmp);
+
+	mxtmp = mxCreateString ("uint8");
+	mxSetField (image_struct, 0, (const char *) "DataType", mxtmp);
+
+	mxtmp = mxCreateDoubleScalar ((double)MIN(3,I->header->n_bands));
+	mxSetField (image_struct, 0, (const char *) "LayerCount", mxtmp);
+
+	mxtmp = mxCreateString (I->header->x_units);
+	mxSetField (image_struct, 0, (const char *) "x_units", mxtmp);
+
+	mxtmp = mxCreateString (I->header->y_units);
+	mxSetField (image_struct, 0, (const char *) "y_units", mxtmp);
+
+	mxtmp = mxCreateString (I->header->z_units);
+	mxSetField (image_struct, 0, (const char *) "z_units", mxtmp);
+
+	if (I->ColorMap != NULL) {	/* Indexed image has a color map */
+		mxcolormap = mxCreateNumericMatrix (256, 3, mxDOUBLE_CLASS, mxREAL);
+		mxImg = mxCreateNumericMatrix (I->header->ny, I->header->nx, mxUINT8_CLASS, mxREAL);
+		color = mxGetPr (mxcolormap);
+		u = mxGetData (mxImg);
+		for (n = 0; n < 4 * 256 && I->ColorMap[n] >= 0; n++) color[n] = (uint8_t)I->ColorMap[n];
+		n /= 4;
+		memcpy (u, I->data, I->header->nm * sizeof (uint8_t));
+		mxSetField (image_struct, 0, "colormap", mxcolormap);
+	}	
+	else if (I->header->n_bands == 1) { /* gray image */
+		mxImg = mxCreateNumericMatrix (I->header->ny, I->header->nx, mxUINT8_CLASS, mxREAL);
+		u = mxGetData (mxImg);
+		memcpy (u, I->data, I->header->nm * sizeof (uint8_t));
+	}
+	else if (I->header->n_bands == 3) { /* RGB image */
+		mxImg = mxCreateNumericMatrix (I->header->ny, I->header->nx, mxUINT8_CLASS, mxREAL);
+		u = mxGetData (mxImg);
+		memcpy (u, I->data, 3 * I->header->nm * sizeof (uint8_t));
+	}
+	else if (I->header->n_bands == 4) { /* RGBA image, with a color map */
+		dim[0] = I->header->ny;	dim[1] = I->header->nx; dim[2] = 3;
+		mxImg = mxCreateNumericArray (3, dim, mxUINT8_CLASS, mxREAL);
+		u = mxGetData (mxImg);
+		mxalpha = mxCreateNumericMatrix (I->header->ny, I->header->nx, mxUINT8_CLASS, mxREAL);
+		alpha = mxGetData (mxalpha);
+		for (n = 0; n < I->header->nm; n++) {
+			memcpy (&u[3*n], &(I->data)[4*n], 3 * sizeof (uint8_t));
+			alpha[n] = (uint8_t)I->data[4*n+3];
+		}
+		mxSetField (image_struct, 0, "alpha", mxalpha);
+	}
+	mxSetField (image_struct, 0, "image", mxImg);
+
+	/* Also return the convenient x and y arrays */
+	I_x = GMT_Get_Coord (API, GMT_IS_IMAGE, GMT_X, I);	/* Get array of x coordinates */
+	I_y = GMT_Get_Coord (API, GMT_IS_IMAGE, GMT_Y, I);	/* Get array of y coordinates */
+	mx_x = mxCreateNumericMatrix (1, I->header->nx, mxDOUBLE_CLASS, mxREAL);
+	mx_y = mxCreateNumericMatrix (1, I->header->ny, mxDOUBLE_CLASS, mxREAL);
+	x = mxGetData (mx_x);
+	y = mxGetData (mx_y);
+	memcpy (x, I_x, I->header->nx * sizeof (double));
+	for (n = 0; n < I->header->ny; n++) y[I->header->ny-1-n] = I_y[n];	/* Must reverse the y-array */
+	if (GMT_Destroy_Data (API, &I_x))
+		mexPrintf("Warning: Failure to delete I_x (x coordinate vector)\n");
+	if (GMT_Destroy_Data (API, &I_y))
+		mexPrintf("Warning: Failure to delete I_y (y coordinate vector)\n");
+	mxSetField (image_struct, 0, "x", mx_x);
+	mxSetField (image_struct, 0, "y", mx_y);
+	return (image_struct);
 }
 #endif
 
@@ -624,7 +792,7 @@ struct GMT_PALETTE *GMTMEX_CPT_init (void *API, unsigned int direction, const mx
 			P->range[j].z_low = range[0] + j * dz;
 			P->range[j].z_high = P->range[j].z_low + dz;
 		}
-		P->is_continuous = true;
+		P->is_continuous = 1;
 		GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_CPT_init: Allocated GMT CPT %lx\n", (long)P);
 	}
 	else {	/* Just allocate an empty container to hold an output grid (signal this by passing NULLs) */
