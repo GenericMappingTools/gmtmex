@@ -84,19 +84,16 @@ SET MEX_EXT="mexw32"
 REM -------------- Set GMT & NetCDF lib and include ----------------------------
 IF %BITS%==64 (
 
-SET  NETCDF_LIB=C:\programs\compa_libs\netcdf_GIT\compileds\VC12_64\lib\netcdf.lib
 SET     GMT_LIB=c:\progs_cygw\GMTdev\gmt5\trunk\WIN%BITS%\lib\gmt.lib
 call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" amd64
 
 ) ELSE (
 
-SET  NETCDF_LIB=C:\programs\compa_libs\netcdf_GIT\compileds\VC12_32\lib\netcdf.lib
 SET     GMT_LIB=c:\progs_cygw\GMTdev\gmt5\trunk\WIN%BITS%\lib\gmt.lib
 call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" x86
 
 )
 
-SET  NETCDF_INC=C:\programs\compa_libs\netcdf_GIT\compileds\VC12_32\include
 rem SET     GMT_INC=c:\progs_cygw\GMTdev\gmt5\trunk\WIN%BITS%\include
 SET    GMT_INC=C:\progs_cygw\GMTdev\gmt5\branches\5.2.0\src
 REM ----------------------------------------------------------------------------
@@ -114,8 +111,8 @@ IF %BITS%==32 SET arc=X86
 SET LINKFLAGS=/dll /export:mexFunction /LIBPATH:%MATLIB% libmx.lib libmex.lib libmat.lib /MACHINE:%arc% kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /incremental:NO %LDEBUG%
 
 REM -------------------------------------------------------------------------------------------------------
-%CC% /c -DWIN32 %COMPFLAGS% -I%MATINC% -I%NETCDF_INC% -I%GMT_INC% %OPTIMFLAGS% %_MX_COMPAT% -DLIBRARY_EXPORTS -DGMT_MATLAB gmtmex_parser.c gmt.c
-link  /out:"gmt.%MEX_EXT%" %LINKFLAGS% %NETCDF_LIB% %GMT_LIB% /implib:templib.x gmtmex_parser.obj gmt.obj
+%CC% /c -DWIN32 %COMPFLAGS% -I%MATINC% -I%GMT_INC% %OPTIMFLAGS% %_MX_COMPAT% -DLIBRARY_EXPORTS -DGMT_MATLAB gmtmex_parser.c gmt.c
+link  /out:"gmt.%MEX_EXT%" %LINKFLAGS% %GMT_LIB% /implib:templib.x gmtmex_parser.obj gmt.obj
 
 REM %CC% /c -DWIN32 %COMPFLAGS% -I%GMT_INC% %OPTIMFLAGS% %_MX_COMPAT% -DGMT_MATLAB -DNO_MEX gmtmex_parser.c gmt_mextest.c
 REM link /MACHINE:%arc% /nologo %LDEBUG% %GMT_LIB%  gmtmex_parser.obj gmt_mextest.obj
