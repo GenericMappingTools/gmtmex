@@ -189,7 +189,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		mexErrMsgTxt ("GMT: Failure to parse GMT5 command options\n");
 
 	/* 4. Preprocess to update GMT option lists and return info array X */
-	if ((X = GMT_Encode_Options (API, module, ARG_MARKER, &options, &n_items)) == NULL)
+	if ((X = GMT_Encode_Options (API, module, ARG_MARKER, nlhs, &options, &n_items)) == NULL)
 		mexErrMsgTxt ("GMT: Failure to encode mex command options\n");
 	
 	/* 5. Assign input (from mex) and output (from GMT) resources */
