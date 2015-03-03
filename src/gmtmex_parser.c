@@ -389,7 +389,7 @@ void * GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C)
 
 #define N_MEX_FIELDNAMES_IMAGE	24
 
-void * GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I) {
+void *GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I) {
 	int item, n;
 	mwSize dim[3];
 	unsigned int row, col;
@@ -530,10 +530,14 @@ void * GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I) {
 		u = mxGetData (mxImg);
 		mxalpha = mxCreateNumericMatrix (I->header->ny, I->header->nx, mxUINT8_CLASS, mxREAL);
 		alpha = mxGetData (mxalpha);
+		memcpy(u, I->data, 3 * I->header->nm * sizeof (uint8_t)); 
+		memcpy(alpha, &(I->data)[3 * I->header->nm], I->header->nm * sizeof (uint8_t)); 
+		/*
 		for (n = 0; n < I->header->nm; n++) {
 			memcpy (&u[3*n], &(I->data)[4*n], 3 * sizeof (uint8_t));
 			alpha[n] = (uint8_t)I->data[4*n+3];
 		}
+		*/
 		mxSetField (image_struct, 0, "alpha", mxalpha);
 	}
 	mxSetField (image_struct, 0, "image", mxImg);
