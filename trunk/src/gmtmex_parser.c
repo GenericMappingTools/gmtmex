@@ -390,7 +390,7 @@ void * GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C)
 #define N_MEX_FIELDNAMES_IMAGE	24
 
 void *GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I) {
-	int item, n;
+	int item, n, k;
 	mwSize dim[3];
 	unsigned int row, col;
 	uint64_t gmt_ij, mex_ij;
@@ -522,6 +522,9 @@ void *GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I) {
 	else if (I->header->n_bands == 3) { /* RGB image */
 		mxImg = mxCreateNumericMatrix (I->header->ny, I->header->nx, mxUINT8_CLASS, mxREAL);
 		u = mxGetData (mxImg);
+		for (n = 0; n < I->header->nm; n++)
+			for (k = 0; k < 3; k++)
+				u[n+k*I->header->nm] = (uint8_t)I->data[3*n+k];
 		memcpy (u, I->data, 3 * I->header->nm * sizeof (uint8_t));
 	}
 	else if (I->header->n_bands == 4) { /* RGBA image, with a color map */
@@ -534,7 +537,8 @@ void *GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I) {
 		memcpy(alpha, &(I->data)[3 * I->header->nm], I->header->nm * sizeof (uint8_t)); 
 		/*
 		for (n = 0; n < I->header->nm; n++) {
-			memcpy (&u[3*n], &(I->data)[4*n], 3 * sizeof (uint8_t));
+			for (k = 0; k < 3; k++)
+				u[n+k*I->header->nm] = (uint8_t)I->data[4*n+k];
 			alpha[n] = (uint8_t)I->data[4*n+3];
 		}
 		*/
