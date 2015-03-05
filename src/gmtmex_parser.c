@@ -327,12 +327,12 @@ void GMTMEX_Free_Textset (void *API, struct GMT_TEXTSET *T)
 	/* Because of Windows DLL Hell we have to free those strdup'ed strings
 	 * done in GMTMEX_init_text here instead of in GMT_Destroy_Data.
 	 */
-	uint64_t seg, row, k;
+	uint64_t seg, row;
 	struct GMT_TEXTSEGMENT *S = NULL;
 
 	if (T == NULL || !T->table)
 		mexErrMsgTxt ("GMTMEX_Get_Textset: programming error, textset T is NULL or empty\n");
-	for (seg = k = 0; seg < T->table[0]->n_segments; seg++) {
+	for (seg = 0; seg < T->table[0]->n_segments; seg++) {
 		S = T->table[0]->segment[seg];
 		for (row = 0; row <S->n_rows; row++) {
 			free (S->record[row]);
