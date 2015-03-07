@@ -151,7 +151,9 @@ function pstext()
 function psxy()
 	disp ('Test psxy');
 	gmt('create')
-	gmt('psxy -Sc0.5c -G191/101/95 -JX10c -R0/10/0/10 -P -W1,171/43/33 > Jlogo.ps', [4. 4.])
+	gmt('psxy -Sc0.5c -G191/101/95  -JX10c -R0/10/0/10 -W1,171/43/33  -P -K >  Jlogo.ps', [0.5 1.0])
+	gmt('psxy -Sc0.4c -G158/122/190 -JX10c -R0/10/0/10 -W1,130/83/171 -O -K >> Jlogo.ps', [1.5 1.0])
+	gmt('psxy -Sc0.4c -G128/171/93  -JX10c -R0/10/0/10 -W1,81/143/24  -O    >> Jlogo.ps', [1.0 1.5])
 	gmt('destroy')
 
 function G = surface()
