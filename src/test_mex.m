@@ -3,7 +3,7 @@ function  test_mex(opt)
 %	Test suite for the GMT-MEX API
 %
 
-all_tests = {'blockmean' 'filter1d' 'gmtinfo' 'gmtmath' 'gmtread' 'gmtsimplify' 'gmtwrite' 'psbasemap' 'pscoast' 'pstext' 'grd2xyz' 'grdinfo' 'grdimage' 'surface'}; 
+all_tests = {'blockmean' 'filter1d' 'gmtinfo' 'gmtmath' 'gmtread' 'gmtsimplify' 'gmtwrite' 'psbasemap' 'pscoast' 'pstext' 'psxy' 'grd2xyz' 'grdinfo' 'grdimage' 'surface'}; 
 
 if (nargin == 0)
 	opt = all_tests;
@@ -24,6 +24,7 @@ try
 			case 'psbasemap',   psbasemap
 			case 'pscoast',    	pscoast
 			case 'pstext',    	pstext
+			case 'psxy',    	psxy
 			case 'grd2xyz',     grd2xyz;
 			case 'grdinfo',    	grdinfo;
 			case 'grdimage',    grdimage;
@@ -145,6 +146,12 @@ function pstext()
 	gmt('create')
 	lines = {'5 6 Some label', '6 7 Another label'};
 	gmt('pstext -R0/10/0/10 -JM6i -Bafg -F+f18p -P > text.ps', lines)
+	gmt('destroy')
+
+function psxy()
+	disp ('Test psxy');
+	gmt('create')
+	gmt('psxy -Sc0.5c -G191/101/95 -JX10c -R0/10/0/10 -P -W1,171/43/33 > Jlogo.ps', [4. 4.])
 	gmt('destroy')
 
 function G = surface()
