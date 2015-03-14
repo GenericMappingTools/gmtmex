@@ -689,6 +689,7 @@ struct GMT_IMAGE *GMTMEX_image_init (void *API, unsigned int direction, const mx
 		if ((I = GMT_Create_Data (API, GMT_IS_IMAGE, GMT_IS_SURFACE, GMT_GRID_HEADER_ONLY,
                         NULL, NULL, NULL, 0, 0, NULL)) == NULL)
 			mexErrMsgTxt ("GMTMEX_image_init: Failure to alloc GMT blank image container for holding output image\n");
+		GMT_set_mem_layout(API, "TCLS");
 	}
 	return (I);
 }
