@@ -520,11 +520,14 @@ void *GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I) {
 		memcpy (u, I->data, I->header->nm * sizeof (uint8_t));
 	}
 	else if (I->header->n_bands == 3) { /* RGB image */
-		mxImg = mxCreateNumericMatrix (I->header->ny, I->header->nx, mxUINT8_CLASS, mxREAL);
+		dim[0] = I->header->ny;	dim[1] = I->header->nx; dim[2] = 3;
+		mxImg = mxCreateNumericArray (3, dim, mxUINT8_CLASS, mxREAL);
 		u = mxGetData (mxImg);
+		/*
 		for (n = 0; n < I->header->nm; n++)
 			for (k = 0; k < 3; k++)
 				u[n+k*I->header->nm] = (uint8_t)I->data[3*n+k];
+		*/
 		memcpy (u, I->data, 3 * I->header->nm * sizeof (uint8_t));
 	}
 	else if (I->header->n_bands == 4) { /* RGBA image, with a color map */
