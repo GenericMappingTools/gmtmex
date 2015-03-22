@@ -41,6 +41,11 @@ char revised_cmd[BUFSIZ];	/* Global variable used to show revised command when t
 
 /* Matlab and Octave (in -mex mode) are identical, oct files are different and not yet tested */
 
+/* Older Ml versions don't have mwSize */
+#ifndef mwSize
+	typedef int mwSize;
+#endif
+
 #ifdef GMT_OCTOCT	/* Octave oct files only */
 #define MEX_PROG "Octave(oct)"
 #define MEX_COL_ORDER GMT_IS_ROW_FORMAT
