@@ -134,7 +134,7 @@ int GMTMEX_print_func (FILE *fp, const char *message)
 
 #define N_MEX_FIELDNAMES_GRID	22
 
-void * GMTMEX_Get_Grid (void *API, struct GMT_GRID *G)
+void *GMTMEX_Get_Grid (void *API, struct GMT_GRID *G)
 {	/* Given a GMT grid G, build a Matlab structure and assign the output components */
 
 	int item, n;
@@ -271,7 +271,7 @@ void * GMTMEX_Get_Grid (void *API, struct GMT_GRID *G)
 	return (grid_struct);
 }
 
-void * GMTMEX_Get_Dataset (void *API, struct GMT_MATRIX *M)
+void *GMTMEX_Get_Dataset (void *API, struct GMT_MATRIX *M)
 {	/* Given a GMT dataset via a matrix, build a Matlab matrix and assign values */
 	unsigned int row, col;
 	uint64_t gmt_ij, mex_ij;
@@ -292,7 +292,7 @@ void * GMTMEX_Get_Dataset (void *API, struct GMT_MATRIX *M)
 	return (P);
 }
 
-void * GMTMEX_Get_Textset (void *API, struct GMT_TEXTSET *T)
+void *GMTMEX_Get_Textset (void *API, struct GMT_TEXTSET *T)
 {	/* Given a GMT textset T, build a Matlab cell array and assign values */
 	uint64_t seg, row, k;
 	mxArray *C = NULL, *p = NULL;
@@ -341,14 +341,14 @@ void GMTMEX_Free_Textset (void *API, struct GMT_TEXTSET *T)
 	}
 }
 
-#define N_MEX_FIELDNAMES_CPT	3
+#define N_MEX_FIELDNAMES_CPT	4
 
-void * GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C)
+void *GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C)
 {	/* Given a GMT CPT C, build a Matlab structure and assign values */
 
 	unsigned int k, j, n_colors;
-	double *color = NULL, *alpha = NULL, *range = NULL;
-	mxArray *mxcolormap = NULL, *mxalpha = NULL, *mxrange = NULL;
+	double *color = NULL, *alpha = NULL, *rangeMinMax = NULL, *range = NULL;
+	mxArray *mxcolormap = NULL, *mxalpha = NULL, *mxrangeMinMax = NULL, *mxrange = NULL;
 	mxArray *CPT_struct = NULL;
 	char *fieldnames[N_MEX_FIELDNAMES_CPT];	/* Array with the names of the fields of the output grid structure. */
 
@@ -358,32 +358,38 @@ void * GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C)
 	memset (fieldnames, 0, N_MEX_FIELDNAMES_CPT*sizeof (char *));
 	/* Return CPT via colormap, range, and alpha arrays in a struct */
 	/* Create a Matlab struct for this CPT */
-	fieldnames[0]  = mxstrdup ("colormap");
-	fieldnames[1]  = mxstrdup ("range");
-	fieldnames[2]  = mxstrdup ("alpha");
+	fieldnames[0] = mxstrdup ("colormap");
+	fieldnames[1] = mxstrdup ("alpha");
+	fieldnames[2] = mxstrdup ("range");
+	fieldnames[3] = mxstrdup ("rangeMinMax");
 	CPT_struct = mxCreateStructMatrix (1, 1, N_MEX_FIELDNAMES_CPT, (const char **)fieldnames );
 
 	n_colors = (C->is_continuous) ? C->n_colors + 1 : C->n_colors;
-	mxcolormap = mxCreateNumericMatrix (n_colors, 3, mxDOUBLE_CLASS, mxREAL);
-	color = mxGetPr (mxcolormap);
-	mxalpha = mxCreateNumericMatrix (n_colors, 1, mxDOUBLE_CLASS, mxREAL);
-	alpha = mxGetPr (mxalpha);
-	mxrange = mxCreateNumericMatrix (2, 1, mxDOUBLE_CLASS, mxREAL);
-	range = mxGetPr (mxrange);
+	mxcolormap    = mxCreateNumericMatrix (n_colors, 3, mxDOUBLE_CLASS, mxREAL);
+	color         = mxGetPr (mxcolormap);
+	mxalpha       = mxCreateNumericMatrix (n_colors, 1, mxDOUBLE_CLASS, mxREAL);
+	alpha         = mxGetPr (mxalpha);
+	mxrangeMinMax = mxCreateNumericMatrix (2, 1, mxDOUBLE_CLASS, mxREAL);
+	rangeMinMax   = mxGetPr (mxrangeMinMax);
+	mxrange       = mxCreateNumericMatrix (C->n_colors, 2, mxDOUBLE_CLASS, mxREAL);
+	range         = mxGetPr (mxrange);
 	for (j = 0; j < C->n_colors; j++) {	/* Copy r/g/b from palette to Matlab array */
 		for (k = 0; k < 3; k++) color[j+k*n_colors] = C->range[j].rgb_low[k];
 		alpha[j] = C->range[j].rgb_low[3];
+		range[j] = C->range[j].z_low;
+		range[j+C->n_colors] = C->range[j].z_high;
 	}
 	if (C->is_continuous) {	/* Add last color */
 		for (k = 0; k < 3; k++) color[j+k*n_colors] = C->range[C->n_colors-1].rgb_high[k];
 		alpha[j] = C->range[j].rgb_low[3];
 	}
-	range[0] = C->range[0].z_low;
-	range[1] = C->range[C->n_colors-1].z_high;
+	rangeMinMax[0] = C->range[0].z_low;
+	rangeMinMax[1] = C->range[C->n_colors-1].z_high;
 	
 	mxSetField (CPT_struct, 0, "colormap", mxcolormap);
-	mxSetField (CPT_struct, 0, "range", mxrange);
 	mxSetField (CPT_struct, 0, "alpha", mxalpha);
+	mxSetField (CPT_struct, 0, "range", mxrange);
+	mxSetField (CPT_struct, 0, "rangeMinMax", mxrangeMinMax);
 	return (CPT_struct);
 }
 
@@ -616,27 +622,30 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 		                          NULL, range, inc, registration, 0, NULL)) == NULL)
 			mexErrMsgTxt ("GMTMEX_grid_init: Failure to alloc GMT source matrix for input\n");
 
-		mx_ptr = mxGetField (ptr, 0, "MinMax");
-		if (mx_ptr != NULL) {	/* Because we sent a NULL instead of the data array, z_min, z_max are not known. Use those from ptr */
+		mx_ptr = mxGetField(ptr, 0, "MinMax");
+		if (mx_ptr != NULL) {
+			/* Because we sent a NULL instead of the data array, z_min, z_max are not known. Use those from ptr */
 			MinMax = mxGetData (mx_ptr);
 			G->header->z_min = MinMax[0];
 			G->header->z_max = MinMax[1];
 		}
 
-		mx_ptr = mxGetField (ptr, 0, "z");
+		mx_ptr = mxGetField(ptr, 0, "z");
 		if (mx_ptr == NULL)
 			mexErrMsgTxt ("GMTMEX_grid_init: Could not find data array for Grid\n");
 
-		f = mxGetData (mx_ptr);
+		f = mxGetData(mx_ptr);
 		for (gmt_ij = row = 0; row < G->header->ny; row++)
 			for (col = 0; col < G->header->nx; col++, gmt_ij++)
-				G->data [gmt_ij] = f[MEXG_IJ(G,row,col)];
+				G->data[gmt_ij] = f[MEXG_IJ(G,row,col)];
 		GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_grid_init: Allocated GMT Grid %lx\n", (long)G);
-		GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_grid_init: Registered GMT Grid array %lx via memory reference from Matlab\n", (long)G->data);
+		GMT_Report (API, GMT_MSG_DEBUG,
+		            "GMTMEX_grid_init: Registered GMT Grid array %lx via memory reference from Matlab\n",
+		            (long)G->data);
 	}
 	else {	/* Just allocate an empty container to hold an output grid (signal this by passing NULLs) */
 		if ((G = GMT_Create_Data (API, GMT_IS_GRID, GMT_IS_SURFACE, GMT_GRID_HEADER_ONLY,
-                        NULL, NULL, NULL, 0, 0, NULL)) == NULL)
+		                          NULL, NULL, NULL, 0, 0, NULL)) == NULL)
 			mexErrMsgTxt ("GMTMEX_grid_init: Failure to alloc GMT blank grid container for holding output grid\n");
 	}
 	return (G);
@@ -671,7 +680,8 @@ struct GMT_IMAGE *GMTMEX_image_init (void *API, unsigned int direction, const mx
 			mexErrMsgTxt ("GMTMEX_image_init: Failure to alloc GMT source image for input\n");
 
 		mx_ptr = mxGetField (ptr, 0, "MinMax");
-		if (mx_ptr != NULL) {	/* Because we sent a NULL instead of the data array, z_min, z_max are not known. Use those from ptr */
+		if (mx_ptr != NULL) {
+			/* Because we sent a NULL instead of the data array, z_min, z_max are not known. Use those from ptr */
 			MinMax = mxGetData (mx_ptr);
 			I->header->z_min = MinMax[0];
 			I->header->z_max = MinMax[1];
@@ -686,11 +696,13 @@ struct GMT_IMAGE *GMTMEX_image_init (void *API, unsigned int direction, const mx
 			for (col = 0; col < I->header->nx; col++, gmt_ij++)
 				I->data [gmt_ij] = f[MEXG_IJ(I,row,col)];
 		GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_image_init: Allocated GMT Image %lx\n", (long)I);
-		GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_image_init: Registered GMT Image array %lx via memory reference from Matlab\n", (long)I->data);
+		GMT_Report (API, GMT_MSG_DEBUG,
+		            "GMTMEX_image_init: Registered GMT Image array %lx via memory reference from Matlab\n",
+		            (long)I->data);
 	}
 	else {	/* Just allocate an empty container to hold an output grid (signal this by passing NULLs) */
 		if ((I = GMT_Create_Data (API, GMT_IS_IMAGE, GMT_IS_SURFACE, GMT_GRID_HEADER_ONLY,
-                        NULL, NULL, NULL, 0, 0, NULL)) == NULL)
+		                          NULL, NULL, NULL, 0, 0, NULL)) == NULL)
 			mexErrMsgTxt ("GMTMEX_image_init: Failure to alloc GMT blank image container for holding output image\n");
 		GMT_set_mem_layout(API, "TCLS");
 	}
@@ -768,7 +780,7 @@ struct GMT_PALETTE *GMTMEX_CPT_init (void *API, unsigned int direction, const mx
 		unsigned int k, j;
 		uint64_t dim[1];
 		mxArray *mx_ptr = NULL;
-		double dz, *colormap = NULL, *range = NULL, *alpha = NULL;
+		double dz, *colormap = NULL, *range = NULL, *rangeMinMax = NULL, *alpha = NULL;
 
 		if (mxIsEmpty (ptr))
 			mexErrMsgTxt ("GMTMEX_CPT_init: The input that was supposed to contain the CPT, is empty\n");
@@ -782,18 +794,29 @@ struct GMT_PALETTE *GMTMEX_CPT_init (void *API, unsigned int direction, const mx
 			mexErrMsgTxt ("GMTMEX_CPT_init: Colormap array has no CPT values\n");
 		dim[0]--;	/* The number of CPT slices is one less since colormap is continuous */
 		colormap = mxGetData (mx_ptr);
+
 		mx_ptr = mxGetField (ptr, 0, "range");
-		if (mx_ptr == NULL)
-			mexErrMsgTxt ("GMTMEX_CPT_init: Could not find range array for CPT range\n");
-		range = mxGetData (mx_ptr);
+		if (mx_ptr == NULL) {	/* OK, we don't have the 'range' member but than we must have the 'rangeMinMax' */
+			mx_ptr = mxGetField(ptr, 0, "rangeMinMax");
+			if (mx_ptr == NULL) {
+				mexErrMsgTxt("GMTMEX_CPT_init: Could not find neither the 'range' nor the 'rangeMinMax' arrays for CPT range\n");
+			}
+			rangeMinMax = mxGetData(mx_ptr);
+		}
+		else
+			range = mxGetData(mx_ptr);
+
 		mx_ptr = mxGetField (ptr, 0, "alpha");
 		if (mx_ptr == NULL)
 			mexErrMsgTxt ("GMTMEX_CPT_init: Could not find alpha array for CPT transparency\n");
 		alpha = mxGetData (mx_ptr);
-		if ((P = GMT_Create_Data (API, GMT_IS_CPT, GMT_IS_NONE, 0,
-		                          dim, NULL, NULL, 0, 0, NULL)) == NULL)
+
+		if ((P = GMT_Create_Data (API, GMT_IS_CPT, GMT_IS_NONE, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
 			mexErrMsgTxt ("GMTMEX_CPT_init: Failure to alloc GMT source CPT for input\n");
-		dz = (range[1] - range[0]) / P->n_colors;
+
+		if (rangeMinMax)	/* Means we didn't get the full range array and need to compute it */
+			dz = (range[1] - range[0]) / P->n_colors;
+
 		for (j = 0; j < P->n_colors; j++) {	/* OK to access j+1'th elemenent since length of colormap is P->n_colors+1 */
 			for (k = 0; k < 3; k++) {
 				P->range[j].rgb_low[k]  = colormap[j+k*dim[0]];
@@ -801,10 +824,16 @@ struct GMT_PALETTE *GMTMEX_CPT_init (void *API, unsigned int direction, const mx
 			}
 			P->range[j].rgb_low[3] = alpha[j];
 			P->range[j].rgb_high[3] = alpha[j+1];
-			P->range[j].z_low = range[0] + j * dz;
-			P->range[j].z_high = P->range[j].z_low + dz;
+			if (range) {
+				P->range[j].z_low  = range[j];
+				P->range[j].z_high = range[j+P->n_colors];
+			}
+			else {
+				P->range[j].z_low = range[0] + j * dz;
+				P->range[j].z_high = P->range[j].z_low + dz;
+			}
 		}
-		P->is_continuous = 1;
+		P->is_continuous = 1;	/* WHY? */
 		GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_CPT_init: Allocated GMT CPT %lx\n", (long)P);
 	}
 	else {	/* Just allocate an empty container to hold an output grid (signal this by passing NULLs) */
