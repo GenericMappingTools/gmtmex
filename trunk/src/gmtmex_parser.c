@@ -595,46 +595,77 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 	unsigned int row, col;
 	uint64_t gmt_ij;
 	struct GMT_GRID *G = NULL;
+
 	if (direction == GMT_IN) {	/* Dimensions are known from the input pointer */
-		mxArray *mx_ptr = NULL;
+		mxArray *mx_ptr = NULL, *mxGrid = NULL, *mxHdr = NULL;
 		double *inc = NULL, *range = NULL, *reg = NULL, *MinMax = NULL;
 		float *f = NULL;
 		unsigned int registration;
 
 		if (mxIsEmpty (ptr))
 			mexErrMsgTxt ("GMTMEX_grid_init: The input that was supposed to contain the Grid, is empty\n");
-		if (!mxIsStruct (ptr))
-			mexErrMsgTxt ("GMTMEX_grid_init: Expected a Grid structure for input\n");
-		mx_ptr = mxGetField (ptr, 0, "inc");
-		if (mx_ptr == NULL)
-			mexErrMsgTxt ("GMTMEX_grid_init: Could not find inc array with Grid increments\n");
-		inc = mxGetData (mx_ptr);
-		mx_ptr = mxGetField (ptr, 0, "range");
-		if (mx_ptr == NULL)
-			mexErrMsgTxt ("GMTMEX_grid_init: Could not find range array for Grid range\n");
-		range = mxGetData (mx_ptr);
-		mx_ptr = mxGetField (ptr, 0, "registration");
-		if (mx_ptr == NULL)
-			mexErrMsgTxt ("GMTMEX_grid_init: Could not find registration array for Grid registration\n");
-		reg = mxGetData (mx_ptr);
-		registration = (unsigned int)lrint (reg[0]);
-		if ((G = GMT_Create_Data (API, GMT_IS_GRID, GMT_IS_SURFACE, GMT_GRID_ALL,
-		                          NULL, range, inc, registration, 0, NULL)) == NULL)
-			mexErrMsgTxt ("GMTMEX_grid_init: Failure to alloc GMT source matrix for input\n");
+		if (!mxIsStruct (ptr)) {
+			if (!mxIsCell (ptr))
+				mexErrMsgTxt ("GMTMEX_grid_init: Expected a Grid structure or Cell array for input\n");
+			else {		/* Test that we have a {MxN,1x9} cell array */
+				if (mxGetM(ptr) != 2 && mxGetN(ptr) != 2)
+					mexErrMsgTxt ("GMTMEX_grid_init: Cell array must contain two elements\n");
+				else {
+					mxGrid = mxGetCell(ptr, 0);
+					mxHdr  = mxGetCell(ptr, 1);
+					if (mxGetM(mxGrid) < 2 || mxGetN(mxGrid) < 2)
+						mexErrMsgTxt ("GMTMEX_grid_init: First element of grid's cell array must contain a decent matrix\n");
+					if (mxGetM(mxHdr) != 1 || mxGetN(mxHdr) != 9)
+						mexErrMsgTxt ("GMTMEX_grid_init: grid's cell array second element must contain a 1x9 vector\n");
 
-		mx_ptr = mxGetField(ptr, 0, "MinMax");
-		if (mx_ptr != NULL) {
-			/* Because we sent a NULL instead of the data array, z_min, z_max are not known. Use those from ptr */
-			MinMax = mxGetData (mx_ptr);
-			G->header->z_min = MinMax[0];
-			G->header->z_max = MinMax[1];
+				}
+			}
 		}
 
-		mx_ptr = mxGetField(ptr, 0, "z");
-		if (mx_ptr == NULL)
-			mexErrMsgTxt ("GMTMEX_grid_init: Could not find data array for Grid\n");
+		if (mxIsStruct(ptr)) {
+			mx_ptr = mxGetField (ptr, 0, "inc");
+			if (mx_ptr == NULL)
+				mexErrMsgTxt ("GMTMEX_grid_init: Could not find inc array with Grid increments\n");
+			inc = mxGetData (mx_ptr);
+			mx_ptr = mxGetField (ptr, 0, "range");
+			if (mx_ptr == NULL)
+				mexErrMsgTxt ("GMTMEX_grid_init: Could not find range array for Grid range\n");
+			range = mxGetData (mx_ptr);
+			mx_ptr = mxGetField (ptr, 0, "registration");
+			if (mx_ptr == NULL)
+				mexErrMsgTxt ("GMTMEX_grid_init: Could not find registration array for Grid registration\n");
+			reg = mxGetData (mx_ptr);
+			registration = (unsigned int)lrint(reg[0]);
+			if ((G = GMT_Create_Data (API, GMT_IS_GRID, GMT_IS_SURFACE, GMT_GRID_ALL,
+			                          NULL, range, inc, registration, 0, NULL)) == NULL)
+				mexErrMsgTxt ("GMTMEX_grid_init: Failure to alloc GMT source matrix for input\n");
 
-		f = mxGetData(mx_ptr);
+			mx_ptr = mxGetField(ptr, 0, "MinMax");
+			if (mx_ptr != NULL) {
+				/* Because we sent a NULL instead of the data array, z_min, z_max are not known. Use those from ptr */
+				MinMax = mxGetData (mx_ptr);
+				G->header->z_min = MinMax[0];
+				G->header->z_max = MinMax[1];
+			}
+
+			mx_ptr = mxGetField(ptr, 0, "z");
+			if (mx_ptr == NULL)
+				mexErrMsgTxt ("GMTMEX_grid_init: Could not find data array for Grid\n");
+
+			f = mxGetData(mx_ptr);
+		}
+		else {
+			double *h;
+			f = mxGetData(mxGrid);
+			h = mxGetData(mxHdr);
+			registration = (unsigned int)lrint(h[6]);
+			if ((G = GMT_Create_Data (API, GMT_IS_GRID, GMT_IS_SURFACE, GMT_GRID_ALL,
+			                          NULL, h, &h[7], registration, 0, NULL)) == NULL)
+				mexErrMsgTxt ("GMTMEX_grid_init: Failure to alloc GMT source matrix for input\n");
+			G->header->z_min = h[4];
+			G->header->z_max = h[5];
+		}
+
 		for (gmt_ij = row = 0; row < G->header->ny; row++)
 			for (col = 0; col < G->header->nx; col++, gmt_ij++)
 				G->data[gmt_ij] = f[MEXG_IJ(G,row,col)];
