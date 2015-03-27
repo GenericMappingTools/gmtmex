@@ -44,13 +44,6 @@
 #	define lrint (int64_t)rint
 #endif
 #endif
-#ifdef NO_MEX
-/* For testing, no data are actually touched and Matlab/Octave is not linked */
-int ID_lhs = 100000;	/* We start output IDs at 100000 for fun */
-int ID_rhs = 0;
-#define mxArray void
-#define mexErrMsgTxt(txt) fprintf (stderr, txt)
-#endif
 
 #ifndef MIN
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))	/* min macro */
@@ -110,9 +103,6 @@ enum MEX_dim {
  *		  + alpha is a N-element array with transparencies
  */
 
-#ifdef NO_MEX
-#define mxstrdup(s) strdup(s)
-#else
 char *mxstrdup (const char *s) {
 	/* A strdup replacement to be used in Mexs to avoid memory leaks since the Matlab
 	   memory management will take care to free the memory allocated by this function */
@@ -572,22 +562,7 @@ void *GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I) {
 	mxSetField (image_struct, 0, "y", mx_y);
 	return (image_struct);
 }
-#endif
 
-#ifdef NO_MEX
-void * GMTMEX_Register_IO (void *API, unsigned int family, unsigned int geometry, unsigned int direction, const mxArray *ptr, int *ID)
-{	/* For testing we do not hook anything up, just increment the fake IDs */
-	if (direction == GMT_IN) {
-		ID_rhs++;	/* Fake IDs */
-		*ID = ID_rhs;
-	}
-	else {
-		ID_lhs++;	/* Fake IDs */
-		*ID = ID_lhs;
-	}
-	return (NULL);
-}
-#else
 struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxArray *ptr)
 {	/* Used to Create an empty Grid container to hold a GMT grid.
  	 * If direction is GMT_IN then we are given a Matlab grid and can determine its size, etc.
@@ -957,4 +932,3 @@ void * GMTMEX_Register_IO (void *API, unsigned int family, unsigned int geometry
 	}
 	return (obj);
 }
-#endif

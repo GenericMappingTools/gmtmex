@@ -31,7 +31,7 @@ uninstall:
 spotless::	clean
 
 clean:	
-		rm -f *.o *% core tags gmt.mex* gmt.oct gmt_mextest
+		rm -f *.o *% core tags gmt.mex* gmt.oct gmt_opttest
 
 #-------------------------------------------------------------------------------
 #	program rules
@@ -43,11 +43,11 @@ gmt5.$(MEX_EXT):	$(PROGS_C) $(LIB_C)
 gmt.$(MEX_EXT):	$(PROGS_C) $(LIB_C)
 		$(MEX_BLD) $(FLAGS) gmt.c $(LIB_C) $(ALLLIB)
 
-gmt_mextest:	gmt_mextest.o $(LIB_O)
-		$(CC) $(LDFLAGS) -DNO_MEX gmt_mextest.o $(LIB_O) $(GMT_LIB) $(LIBS) -o $@
+gmt_opttest:	gmt_opttest.o
+		$(CC) $(LDFLAGS) gmt_opttest.o $(GMT_LIB) $(LIBS) -o $@
 
 $(LIB_O):	$(LIB_C)
 		$(CC) $(FLAGS) $(CFLAGS) $(GMT_INC) -DNO_MEX $(LIB_C) -c -o $@
 
-gmt_mextest.o:	gmt_mextest.c
-		$(CC) $(CFLAGS) $(GMT_INC) -DNO_MEX gmt_mextest.c -c -o $@
+gmt_opttest.o:	gmt_opttest.c
+		$(CC) $(CFLAGS) $(GMT_INC) gmt_opttest.c -c -o $@
