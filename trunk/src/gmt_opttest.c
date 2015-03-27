@@ -16,15 +16,18 @@
  *	Contact info: gmt.soest.hawaii.edu
  *--------------------------------------------------------------------*/
 /*
- * This is a test program for the GMTMEX_pre_process function. No
- * Matlab/Octave libraries or actions are involved 
+ * This is a test program for the testing the completion of the implicit options. 
  *
  * Version:	5.2
  * Created:	9-Feb-2015
  *
  */
 
-#include "gmtmex.h"
+#include "gmt.h"
+#include <string.h>
+
+#define ARG_MARKER	'$'	/* Character that indicates an memory reference to data */
+
 static const char *GMT_family[] = {"Data Table", "Text Table", "GMT Grid", "CPT Table", "GMT Image", "GMT Vector", "GMT Matrix", "GMT Coord"};
 static const char *GMT_geometry[] = {"Not Set", "Point", "Line", "Polygon", "Point|Line|Poly", "Line|Poly", "Surface", "Non-Geographical"};
 static const char *GMT_direction[] = {"Input", "Output"};
@@ -44,13 +47,14 @@ int main (int argc, char *argv[]) {
 	unsigned int g;
 	unsigned int n_items = 0;	/* Number of Matlab arguments (left and right) */
 	unsigned int k;			/* Simulated counts */
-	int start, quotes;
+	int start, quotes, nlhs = 0;
 	size_t str_length;				/* Misc. counters */
 	void *API = NULL;				/* GMT API control structure */
 	struct GMT_OPTION *options = NULL;		/* Linked list of options */
 	struct GMT_RESOURCE *X = NULL;			/* Array of information about Matlab args */
 	char *str = NULL;				/* Pointer used to get Matlab command */
 	char module[BUFSIZ] = {""}, cmd[BUFSIZ] = {""};	/* Name of GMT module to call and the command */
+	char revised_cmd[BUFSIZ];			/* Show revised command when testing only */
 
 	if (argc != 2) {
 		fprintf (stderr, "\ngmt_mextest - Test mex argument parsing\n\n");
@@ -92,7 +96,7 @@ int main (int argc, char *argv[]) {
 		fprintf (stderr, "Failure to parse GMT5 command options\n");
 
 	/* 4. Preprocess and update GMT option lists, and return X info array */
-	if ((X = GMT_Encode_Options (API, module, ARG_MARKER, &options, &n_items)) == NULL)
+	if ((X = GMT_Encode_Options (API, module, ARG_MARKER, nlhs, &options, &n_items)) == NULL)
 		fprintf (stderr, "Failure to encode mex command options\n");
 
 	printf ("Revised command: %s\n", revised_cmd);
