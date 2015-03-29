@@ -501,11 +501,11 @@ void *GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I) {
 	mxSetField (image_struct, 0, (const char *) "z_units", mxtmp);
 
 	if (I->ColorMap != NULL) {	/* Indexed image has a color map */
-		mxcolormap = mxCreateNumericMatrix (256, 3, mxDOUBLE_CLASS, mxREAL);
+		mxcolormap = mxCreateNumericMatrix (I->nIndexedColors, 3, mxDOUBLE_CLASS, mxREAL);
 		mxImg = mxCreateNumericMatrix (I->header->ny, I->header->nx, mxUINT8_CLASS, mxREAL);
 		color = mxGetPr (mxcolormap);
 		u = mxGetData (mxImg);
-		for (n = 0; n < 4 * 256 && I->ColorMap[n] >= 0; n++) color[n] = (uint8_t)I->ColorMap[n];
+		for (n = 0; n < 4 * I->nIndexedColors && I->ColorMap[n] >= 0; n++) color[n] = (uint8_t)I->ColorMap[n];
 		n /= 4;
 		memcpy (u, I->data, I->header->nm * sizeof (uint8_t));
 		mxSetField (image_struct, 0, "colormap", mxcolormap);
