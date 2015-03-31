@@ -47,7 +47,7 @@ int main (int argc, char *argv[]) {
 	unsigned int g;
 	unsigned int n_items = 0;	/* Number of Matlab arguments (left and right) */
 	unsigned int k;			/* Simulated counts */
-	int start, quotes, nlhs = 0;
+	int start, quotes;
 	size_t str_length;				/* Misc. counters */
 	void *API = NULL;				/* GMT API control structure */
 	struct GMT_OPTION *options = NULL;		/* Linked list of options */
@@ -96,7 +96,7 @@ int main (int argc, char *argv[]) {
 		fprintf (stderr, "Failure to parse GMT5 command options\n");
 
 	/* 4. Preprocess and update GMT option lists, and return X info array */
-	if ((X = GMT_Encode_Options (API, module, ARG_MARKER, nlhs, &options, &n_items)) == NULL)
+	if ((X = GMT_Encode_Options (API, module, ARG_MARKER, &options, &n_items)) == NULL)
 		fprintf (stderr, "Failure to encode mex command options\n");
 
 	printf ("Revised command: %s\n", revised_cmd);
