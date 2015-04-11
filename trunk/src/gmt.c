@@ -173,18 +173,28 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		return;
 	}
 
-	/* Here we have a GMT module call */
+	/* Here we have a GMT module call. The documented use is to give the module name separately from
+	 * the module options, but users may forget and combine the two.  So we check both cases. */
 	
-	/* 2. Get mex arguments, if any, and extract the GMT module name */
-	str_length = strlen (cmd);				/* Length of command argument */
+	str_length = strlen (cmd);				/* Length of module (or command) argument */
 	for (k = 0; k < str_length && cmd[k] != ' '; k++);	/* Determine first space in command */
-	if (k >= MODULE_LEN)
-		mexErrMsgTxt ("GMT: Module name in command is too long\n");
-	strncpy (module, cmd, k);				/* Isolate the module name in this string */
+	
+	if (k == str_length) {	/* Case 2a): No spaces found: User gave 'module' separately from 'options' */
+		strcpy (module, cmd);				/* Isolate the module name in this string */
+		if (nrhs > 1) {	/* Got option string */
+			first++;	/* Since we have a 2nd string to skip now */
+			opt_args = mxArrayToString (prhs[first]);
+		}
+	}
+	else {	/* Case b2. Get mex arguments, if any, and extract the GMT module name */
+		if (k >= MODULE_LEN)
+			mexErrMsgTxt ("GMT: Module name in command is too long\n");
+		strncpy (module, cmd, k);				/* Isolate the module name in this string */
 
+		while (cmd[k] == ' ') k++;	/* Skip any spaces between module name and start of options */
+		opt_args = (cmd[k]) ? &cmd[k] : NULL;
+	}
 	/* 3. Convert mex command line arguments to a linked GMT option list */
-	while (cmd[k] == ' ') k++;	/* Skip any spaces between module name and start of options */
-	opt_args = (cmd[k]) ? &cmd[k] : NULL;
 	if (opt_args && (options = GMT_Create_Options (API, 0, opt_args)) == NULL)
 		mexErrMsgTxt ("GMT: Failure to parse GMT5 command options\n");
 
