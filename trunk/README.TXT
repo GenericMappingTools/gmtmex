@@ -25,3 +25,19 @@ To build the gmt mex executable, take the following steps:
 
 To debug the mex please see the wiki for gmt-mex at
 http://gmt.soest.hawaii.edu/projects/gmt-matlab-octave-api/wiki
+
+GMT Setup:
+
+Due to the problematic way matlab maintains its own old shared libraries
+we must for now mess quite a bit to get things to work.  This is OK
+for now:
+
+1. Build and installed the OS X bundle for 5.2.
+2. Run the prep_osxbundle.sh; see instructions in the script.
+3. Make a netcdf-3 version of gshhg usinc nccopy
+4. Change default IO_NC4_CHUNK_SIZE to classic.
+
+With those changes and limitations (cannot read netcdf4 grid) all
+operations in GMT works except psconvert which calls gs and it
+has newer shared libraries than matlab is willing to acknowledge.
+

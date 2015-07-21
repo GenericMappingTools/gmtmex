@@ -116,12 +116,12 @@
 				);
 				"LIBRARY_SEARCH_PATHS[arch=*]" = "";
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
-				MATLABROOT = "$(LOCAL_APPS_DIR)/MATLAB_R2014b.app";
+				MATLABROOT = "$(LOCAL_APPS_DIR)/MATLAB_R2015a.app";
 				ONLY_ACTIVE_ARCH = YES;
-				"OTHER_CFLAGS[arch=*]" = "-I/usr/local/include";
+				"OTHER_CFLAGS[arch=*]" = "-I/opt/local/include";
 				OTHER_LDFLAGS = "";
 				"OTHER_LDFLAGS[arch=*]" = (
-					"-L/usr/local/lib",
+					"-L/opt/local/lib",
 					"-lgmt",
 					"-L$(MATLABROOT)",
 					"-lmex",
@@ -138,13 +138,14 @@
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				"HEADER_SEARCH_PATHS[arch=*]" = /usr/local/include/gmt;
+				"HEADER_SEARCH_PATHS[arch=*]" = /opt/local/include/gmt;
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
-				MATLABROOT = "$(LOCAL_APPS_DIR)/MATLAB_R2014b.app";
-				"OTHER_CFLAGS[arch=*]" = "-I/usr/local/include";
+				MATLABROOT = "$(LOCAL_APPS_DIR)/MATLAB_R2015a.app";
+				OTHER_CFLAGS = "";
+				"OTHER_CFLAGS[arch=*]" = "-I/opt/local/include";
 				OTHER_LDFLAGS = "";
 				"OTHER_LDFLAGS[arch=*]" = (
-					"-L/usr/local/lib",
+					"-L/opt/local/lib",
 					"-lgmt",
 				);
 				SDKROOT = macosx;
@@ -162,10 +163,11 @@
 				HEADER_SEARCH_PATHS = "$(MATLABROOT)/extern/include";
 				LIBRARY_SEARCH_PATHS = "$(MATLABROOT)/bin/maci64";
 				MACH_O_TYPE = mh_bundle;
-				MATLABROOT = "$(LOCAL_APPS_DIR)/MATLAB_R2014b.app";
+				MATLABROOT = "$(LOCAL_APPS_DIR)/MATLAB_R2015a.app";
 				New_Setting = "";
+				OTHER_CFLAGS = "";
 				"OTHER_CFLAGS[arch=*]" = (
-					"-I/usr/local/include/gmt",
+					"-I/opt/local/include/gmt",
 					"-g",
 					"-DGMT_MATLAB",
 				);
@@ -174,12 +176,12 @@
 					"-L$(MATLABROOT)/bin/maci64",
 					"-lmx",
 					"-lmex",
-					"-L/usr/local/lib",
+					"-L/opt/local/lib",
 					"-lgmt",
 				);
-				PRIVATE_HEADERS_FOLDER_PATH = /usr/local/include;
+				PRIVATE_HEADERS_FOLDER_PATH = /opt/local/include;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PUBLIC_HEADERS_FOLDER_PATH = /usr/local/include/gmt;
+				PUBLIC_HEADERS_FOLDER_PATH = /opt/local/include/gmt;
 				SYMROOT = "$(SRCROOT)/build/$(CONFIGURATION)";
 			};
 			name = Debug;
@@ -196,20 +198,21 @@
 					"$(MATLABROOT)/extern/include",
 					"$(MATLABROOT)/extern/include",
 				);
-				"HEADER_SEARCH_PATHS[arch=*]" = /usr/local/include/gmt;
+				"HEADER_SEARCH_PATHS[arch=*]" = /opt/local/include/gmt;
 				LIBRARY_SEARCH_PATHS = "$(MATLABROOT)/bin/maci64";
 				MACH_O_TYPE = mh_bundle;
-				MATLABROOT = "$(LOCAL_APPS_DIR)/MATLAB_R2014b.app";
+				MATLABROOT = "$(LOCAL_APPS_DIR)/MATLAB_R2015a.app";
 				New_Setting = "";
+				OTHER_CFLAGS = "";
 				"OTHER_CFLAGS[arch=*]" = (
-					"-I/usr/local/include/gmt",
+					"-I/opt/local/include/gmt",
 					"-g",
 					"-DGMT_MATLAB",
 				);
 				OTHER_LDFLAGS = "";
-				PRIVATE_HEADERS_FOLDER_PATH = /usr/local/include;
+				PRIVATE_HEADERS_FOLDER_PATH = /opt/local/include;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PUBLIC_HEADERS_FOLDER_PATH = /usr/local/include/gmt;
+				PUBLIC_HEADERS_FOLDER_PATH = /opt/local/include/gmt;
 				SYMROOT = "$(SRCROOT)/build/$(CONFIGURATION)";
 			};
 			name = Release;
