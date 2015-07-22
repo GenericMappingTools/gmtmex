@@ -181,7 +181,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	
 	if (k == str_length) {	/* Case 2a): No spaces found: User gave 'module' separately from 'options' */
 		strcpy (module, cmd);				/* Isolate the module name in this string */
-		if (nrhs > 1) {	/* Got option string */
+		if (nrhs > 1 && mxIsChar (prhs[first+1])) {	/* Got option string */
 			first++;	/* Since we have a 2nd string to skip now */
 			opt_args = mxArrayToString (prhs[first]);
 		}
@@ -192,7 +192,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		strncpy (module, cmd, k);				/* Isolate the module name in this string */
 
 		while (cmd[k] == ' ') k++;	/* Skip any spaces between module name and start of options */
-		opt_args = (cmd[k]) ? &cmd[k] : NULL;
+		if (cmd[k]) opt_args = &cmd[k];
 	}
 	/* 3. Convert mex command line arguments to a linked GMT option list */
 	if (opt_args && (options = GMT_Create_Options (API, 0, opt_args)) == NULL)

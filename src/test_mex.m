@@ -58,11 +58,11 @@ function G = filter1d
 
 function gmtinfo()
 	disp ('Test gmtinfo');
-	gmt('create')
-	t = rand(100,3) * 100;
-	r = gmt('info -C', t);
-	disp(['gmtinfo of random 0-100 is ' num2str(r)])
-	gmt('destroy')
+gmt('create')
+t = rand(100,3) * 100;
+r = gmt('info -C', t);
+disp(['gmtinfo of random 0-100 is ' num2str(r)])
+gmt('destroy')
 
 function gmtmath()
 	disp ('Test gmtmath');
@@ -154,6 +154,13 @@ function psxy()
 	gmt('psxy -Sc0.5c -G191/101/95  -JX10c -R0/10/0/10 -W1,171/43/33  -P -K >  Jlogo.ps', [0.5 1.0])
 	gmt('psxy -Sc0.4c -G158/122/190 -JX10c -R0/10/0/10 -W1,130/83/171 -O -K >> Jlogo.ps', [1.5 1.0])
 	gmt('psxy -Sc0.4c -G128/171/93  -JX10c -R0/10/0/10 -W1,81/143/24  -O    >> Jlogo.ps', [1.0 1.5])
+	gmt('destroy')
+
+function grdcontour()
+	disp ('Test grdcontour after surface');
+	gmt('create')
+	G = gmt('read -Tg lixo.grd');
+	D = gmt('grdcontour -C0.1 -D', G);
 	gmt('destroy')
 
 function G = surface()
