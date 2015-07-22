@@ -76,6 +76,8 @@ enum MEX_dim {
  *   Primary inputs and outputs need to be assigned, and if not explicitly given we will
  *   use the given left- and right-hand side arguments to supply input or accept output.
  *   Secondary inputs means they are only assigned if the option is given.
+ *   A few modules with have Z = x, which means that normally these modules will produce PostScript,
+ *   but if this option is given they will not (e.g., pscoast -M, so it will have >Dx, for instance).
  *
  * E.g., the surface example would have the word LGI.  The data types P|L|D|G|C|T stand for
  * P(olygons), L(ines), D(point data), G(rid), C(PT file), T(ext table). [We originally only had

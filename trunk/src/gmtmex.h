@@ -38,8 +38,50 @@
 
 /* Older Ml versions don't have mwSize */
 #ifndef GMT_OCTMEX
-#ifndef mwSize
-	typedef int mwSize;
+#if !defined(MATLAB_VERSION)
+#if !defined(MWSIZE_MAX)
+#    define MATLAB_VERSION 0x2006a /* R2006a or earlier */
+#elif MX_API_VER < 0x07040000
+#    define MATLAB_VERSION 0x2006b /* R2006b */
+#elif !defined(FMT_PTRDIFF_T)
+#    define MATLAB_VERSION 0x2007a /* R2007a */
+#elif !defined(CUINT64_T)
+#    define MATLAB_VERSION 0x2007b /* R2007b */
+#elif defined(mxSetLogical)
+#    define MATLAB_VERSION 0x2008a /* R2008a */
+#else
+#    if !defined(blas_h)
+#        include "blas.h"
+#    endif
+#    if !defined(lapack_h)
+#        include "lapack.h"
+#    endif
+#    if !defined(MATHWORKS_MATRIX_MATRIX_PUB_FWD_H)
+#        if defined(CHAR16_T)
+#            if !defined(COMPLEX_TYPES)
+#                define MATLAB_VERSION 0x2008b /* R2008b */
+#            elif !defined(cgeqr2p)
+#                define MATLAB_VERSION 0x2010b /* R2010b */
+#            else
+#                define MATLAB_VERSION 0x2011a /* R2011a */
+#            endif
+#        else
+#            include "emlrt.h"
+#            define MATLAB_VERSION EMLRT_VERSION_INFO /* R2011b or later */
+#        endif
+#    else
+#        if !defined(COMPLEX_TYPES)
+#            define MATLAB_VERSION 0x2009a /* R2009a */
+#        elif !defined(cgbequb)
+#            define MATLAB_VERSION 0x2009b /* R2009b */
+#        else
+#            define MATLAB_VERSION 0x2010a /* R2010a */
+#        endif
+#    endif
+#endif
+#endif /* if !defined(MATLAB_VERSION) */
+#if MATLAB_VERSION < 0x2006b
+typedef int mwSize;
 #endif
 #endif
 

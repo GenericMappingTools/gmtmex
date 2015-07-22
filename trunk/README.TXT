@@ -36,6 +36,11 @@ for now:
 2. Run the prep_osxbundle.sh; see instructions in the script.
 3. Make a netcdf-3 version of gshhg usinc nccopy
 4. Change default IO_NC4_CHUNK_SIZE to classic.
+5. Change DIR_GSHHG to the nc3 version
+6. Make sure config.mk lists the -lXgmt and correct path (2 above)
+7. Run make to build gmt.mexmaci64
+8. setenv DYLD_LIBRARY_PATH to the /Application/.../mex dir
+9. Start matlab from command line.
 
 With those changes and limitations (cannot read netcdf4 grid) all
 operations in GMT works except psconvert which calls gs and it
