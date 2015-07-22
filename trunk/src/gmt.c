@@ -216,9 +216,11 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	}
 	
 	/* 6. Run GMT module; give usage message if errors arise during parsing */
-	gtxt = GMT_Create_Cmd (API, options);
-	GMT_Report (API, GMT_MSG_DEBUG, "GMT_Encode_Options: Revised command after memory-substitution: %s\n", gtxt);
-	GMT_Destroy_Cmd (API, &gtxt);	/* Only needed it for the above verbose */
+	if (options) {
+		gtxt = GMT_Create_Cmd (API, options);
+		GMT_Report (API, GMT_MSG_DEBUG, "GMT_Encode_Options: Revised command after memory-substitution: %s\n", gtxt);
+		GMT_Destroy_Cmd (API, &gtxt);	/* Only needed it for the above verbose */
+	}
 	
 	if ((status = GMT_Call_Module (API, module, GMT_MODULE_OPT, options)) != GMT_NOERROR)
 		mexErrMsgTxt ("GMT: Module return with failure\n");
