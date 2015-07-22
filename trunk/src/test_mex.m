@@ -3,7 +3,7 @@ function  test_mex(opt)
 %	Test suite for the GMT-MEX API
 %
 
-all_tests = {'blockmean' 'filter1d' 'gmtinfo' 'gmtmath' 'gmtread' 'gmtsimplify' 'gmtwrite' 'psbasemap' 'pscoast' 'pstext' 'psxy' 'grd2xyz' 'grdinfo' 'grdimage' 'surface'}; 
+all_tests = {'blockmean' 'filter1d' 'gmtinfo' 'gmtmath' 'gmtread' 'gmtsimplify' 'gmtwrite' 'psbasemap' 'pscoast' 'pstext' 'psxy' 'grd2xyz' 'grdinfo' 'grdimage' 'surface', 'coasts'}; 
 
 if (nargin == 0)
 	opt = all_tests;
@@ -29,6 +29,7 @@ try
 			case 'grdinfo',    	grdinfo;
 			case 'grdimage',    grdimage;
 			case 'surface',     surface;
+			case 'coasts',      coasts;
 		end
 	end
 catch
@@ -173,3 +174,18 @@ function G = surface()
 	G = gmt('surface -R0/150/0/100 -I1', t);
 	G = gmt('surface -R0/150/0/100 -I1 -G', t);
 	gmt('destroy')
+
+function coasts()
+	disp ('Test coastlines');
+	opt_res = ' -Di';	opt_N = ' -Na';		opt_I = ' -Ia';	opt_R = ' -R-10/10/30/50';
+	gmt('create')
+	coast = gmt(['pscoast -M -W ' opt_R, opt_res, ' -A1/1/1']);
+	boundaries = gmt(['pscoast -M ' opt_R, opt_N, opt_res]);
+	rivers = gmt(['pscoast -M ', opt_R, opt_I, opt_res]);
+	gmt('destroy')
+	h = figure; hold on
+	plot(coast(:,1), coast(:,2))
+	plot(boundaries(:,1), boundaries(:,2))
+	plot(rivers(:,1), rivers(:,2))
+	hold off
+	%pause(1.0);		delete(h);
