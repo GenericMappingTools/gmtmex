@@ -76,7 +76,7 @@ void *Initiate_Session (unsigned int verbose)
 {	/* Initialize the GMT Session and store the API pointer in a persistent variable */
 	void *API = NULL;
 	/* Initializing new GMT session with zero pad and a Matlab-acceptable replacement for the printf function */
-	if ((API = GMT_Create_Session (MEX_PROG, 0U, (verbose << 2) + GMT_SESSION_NOEXIT + GMT_SESSION_EXTERNAL, GMTMEX_print_func)) == NULL)
+	if ((API = GMT_Create_Session (MEX_PROG, 0U, (verbose << 0) + GMT_SESSION_NOEXIT + GMT_SESSION_EXTERNAL, GMTMEX_print_func)) == NULL)
 		mexErrMsgTxt ("GMT: Failure to create new GMT session\n");
 
 	if (!pPersistent) pPersistent = mxMalloc(sizeof(uintptr_t));
@@ -125,7 +125,8 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 			if (pPersistent)                        /* See if have a GMT API pointer */
 				API = (void *)pPersistent[0];
 			if (API != NULL) {                      /* If another session still exists */
-				mexPrintf ("GMT: A previous GMT session is still active. Ignoring your 'create' request.\n");
+				GMT_Report (API, GMT_MSG_VERBOSE,
+				            "GMT: A previous GMT session is still active. Ignoring your 'create' request.\n");
 				if (nlhs) /* Return nothing */
 					plhs[0] = mxCreateNumericMatrix (1, 0, mxUINT64_CLASS, mxREAL);
 				return;
