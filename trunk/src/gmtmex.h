@@ -106,6 +106,7 @@ typedef int mwSize;
 /* And this on GMT_GRID */
 #define MEXG_IJ(M,row,col) ((col)*M->header->ny + M->header->ny - (row) - 1)
 #endif
+#define GMT_IJP(h,row,col) ((uint64_t)(((int64_t)(row)+(int64_t)h->pad[GMT_YHI])*((int64_t)h->mx)+(int64_t)(col)+(int64_t)h->pad[GMT_XLO]))
 
 #define MODULE_LEN 	32	/* Max length of a GMT module name */
 #define ARG_MARKER	'$'	/* Character that indicates an memory reference to data */

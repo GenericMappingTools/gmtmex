@@ -127,7 +127,8 @@ int GMTMEX_print_func (FILE *fp, const char *message)
 #define N_MEX_FIELDNAMES_GRID	22
 
 void *GMTMEX_Get_Grid (void *API, struct GMT_GRID *G)
-{	/* Given a GMT grid G, build a Matlab structure and assign the output components */
+{	/* Given a GMT grid G, build a Matlab structure and assign the output components.
+ 	 * Note: Incoming GMT grid has standard padding while Matlab grid has none. */
 
 	int item, n;
 	unsigned int row, col;
@@ -240,9 +241,12 @@ void *GMTMEX_Get_Grid (void *API, struct GMT_GRID *G)
 	f = mxGetData (mxGrd);
 	/* Load the real grd array into a double matlab array by transposing
            from unpadded GMT grd format to unpadded matlab format */
-	for (gmt_ij = row = 0; row < G->header->ny; row++)
-		for (col = 0; col < G->header->nx; col++, gmt_ij++)
+	for (row = 0; row < G->header->ny; row++) {
+		for (col = 0; col < G->header->nx; col++, gmt_ij++) {
+			gmt_ij = GMT_IJP (G->header, row, col);
 			f[MEXG_IJ(G,row,col)] = G->data[gmt_ij];
+		}
+	}
 	mxSetField (grid_struct, 0, "z", mxGrd);
 
 	/* Also return the convenient x and y arrays */
@@ -614,7 +618,7 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 			reg = mxGetData (mx_ptr);
 			registration = (unsigned int)lrint(reg[0]);
 			if ((G = GMT_Create_Data (API, GMT_IS_GRID, GMT_IS_SURFACE, GMT_GRID_ALL,
-			                          NULL, range, inc, registration, 0, NULL)) == NULL)
+			                          NULL, range, inc, registration, GMT_NOTSET, NULL)) == NULL)
 				mexErrMsgTxt ("GMTMEX_grid_init: Failure to alloc GMT source matrix for input\n");
 
 			mx_ptr = mxGetField(ptr, 0, "MinMax");
@@ -637,15 +641,18 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 			h = mxGetData(mxHdr);
 			registration = (unsigned int)lrint(h[6]);
 			if ((G = GMT_Create_Data (API, GMT_IS_GRID, GMT_IS_SURFACE, GMT_GRID_ALL,
-			                          NULL, h, &h[7], registration, 0, NULL)) == NULL)
+			                          NULL, h, &h[7], registration, GMT_NOTSET, NULL)) == NULL)
 				mexErrMsgTxt ("GMTMEX_grid_init: Failure to alloc GMT source matrix for input\n");
 			G->header->z_min = h[4];
 			G->header->z_max = h[5];
 		}
 
-		for (gmt_ij = row = 0; row < G->header->ny; row++)
-			for (col = 0; col < G->header->nx; col++, gmt_ij++)
+		for (row = 0; row < G->header->ny; row++) {
+			for (col = 0; col < G->header->nx; col++, gmt_ij++) {
+				gmt_ij = GMT_IJP (G->header, row, col);
 				G->data[gmt_ij] = f[MEXG_IJ(G,row,col)];
+			}
+		}
 		GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_grid_init: Allocated GMT Grid %lx\n", (long)G);
 		GMT_Report (API, GMT_MSG_DEBUG,
 		            "GMTMEX_grid_init: Registered GMT Grid array %lx via memory reference from Matlab\n",
@@ -684,7 +691,7 @@ struct GMT_IMAGE *GMTMEX_image_init (void *API, unsigned int direction, const mx
 			mexErrMsgTxt ("GMTMEX_image_init: Could not find range array for Image range\n");
 		range = mxGetData (mx_ptr);
 		if ((I = GMT_Create_Data (API, GMT_IS_IMAGE, GMT_IS_SURFACE, GMT_GRID_ALL,
-			NULL, range, inc, 0, 0, NULL)) == NULL)
+			NULL, range, inc, 0, GMT_NOTSET, NULL)) == NULL)
 			mexErrMsgTxt ("GMTMEX_image_init: Failure to alloc GMT source image for input\n");
 
 		mx_ptr = mxGetField (ptr, 0, "MinMax");
@@ -700,9 +707,12 @@ struct GMT_IMAGE *GMTMEX_image_init (void *API, unsigned int direction, const mx
 			mexErrMsgTxt ("GMTMEX_image_init: Could not find data array for Grid\n");
 
 		f = mxGetData (mx_ptr);
-		for (gmt_ij = row = 0; row < I->header->ny; row++)
-			for (col = 0; col < I->header->nx; col++, gmt_ij++)
+		for (row = 0; row < I->header->ny; row++) {
+			for (col = 0; col < I->header->nx; col++, gmt_ij++) {
+				gmt_ij = GMT_IJP (I->header, row, col);
 				I->data [gmt_ij] = f[MEXG_IJ(I,row,col)];
+			}
+		}
 		GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_image_init: Allocated GMT Image %lx\n", (long)I);
 		GMT_Report (API, GMT_MSG_DEBUG,
 		            "GMTMEX_image_init: Registered GMT Image array %lx via memory reference from Matlab\n",
