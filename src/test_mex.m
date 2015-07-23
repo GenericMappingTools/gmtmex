@@ -139,6 +139,14 @@ function grdsample()
 	T = gmt('grdsample -I100+/100+', G);
 	gmt('destroy')
 
+function grdtrack()
+	disp ('Test grdtrack');
+	gmt('create')
+	G = gmt('surface -R0/150/0/150 -I1', rand(100,3) * 100);
+	x = 2:45; path = [x' x'];
+	T = gmt('grdtrack -G', G, path);
+	gmt('destroy')
+
 function psbasemap()
 	disp ('Test psbasemap');
 	gmt('create')
