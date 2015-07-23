@@ -3,7 +3,8 @@ function  test_mex(opt)
 %	Test suite for the GMT-MEX API
 %
 
-all_tests = {'blockmean' 'filter1d' 'gmtinfo' 'gmtmath' 'gmtread' 'gmtsimplify' 'gmtwrite' 'psbasemap' 'pscoast' 'pstext' 'psxy' 'grd2xyz' 'grdinfo' 'grdimage' 'surface', 'coasts'}; 
+all_tests = {'blockmean' 'filter1d' 'gmtinfo' 'gmtmath' 'gmtread' 'gmtsimplify' 'gmtwrite' 'psbasemap' ...
+	'pscoast' 'pstext' 'psxy' 'grd2xyz' 'grdinfo' 'grdimage' 'grdsample' 'surface', 'coasts'}; 
 
 if (nargin == 0)
 	opt = all_tests;
@@ -28,6 +29,7 @@ try
 			case 'grd2xyz',     grd2xyz;
 			case 'grdinfo',    	grdinfo;
 			case 'grdimage',    grdimage;
+			case 'grdsample',   grdsample;
 			case 'surface',     surface;
 			case 'coasts',      coasts;
 		end
@@ -119,7 +121,7 @@ function grdinfo()
 	disp ('Test grdinfo');
 	gmt('create')
 	G = gmt('surface -R0/150/0/150 -I1', rand(100,3) * 100);
-	T = gmt('grdinfo', G)
+	T = gmt('grdinfo', G);
 	gmt('destroy')
 
 function grdimage()
@@ -128,6 +130,13 @@ function grdimage()
 	t = rand(100,3) * 100;
 	G = gmt('surface -R0/150/0/100 -I1', t);
 	gmt('grdimage -JX8c -Ba -P -Cblue,red > crap_img.ps', G);
+	gmt('destroy')
+
+function grdsample()
+	disp ('Test grdsample');
+	gmt('create')
+	G = gmt('surface -R0/150/0/150 -I1', rand(100,3) * 100);
+	gmt('grdsample -I100+/100+', G);
 	gmt('destroy')
 
 function psbasemap()
