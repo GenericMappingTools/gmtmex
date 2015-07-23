@@ -33,9 +33,6 @@ REM 	   NOTE: you must make some edits to the setup below.
 REM
 REM --------------------------------------------------------------------------------------
 
-rem call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" amd64
-rem call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" x86
-
 REM ------------- Set the compiler (set to 'icl' to use the Intel compiler) --------------
 SET CC=cl
 REM --------------------------------------------------------------------------------------
@@ -109,7 +106,7 @@ SET LINKFLAGS=/dll /export:mexFunction /LIBPATH:%MATLIB% libmx.lib libmex.lib li
 
 REM -------------------------------------------------------------------------------------------------------
 %CC% /c -DWIN32 %COMPFLAGS% -I%MATINC% -I%GMT_INC% %OPTIMFLAGS% %_MX_COMPAT% -DLIBRARY_EXPORTS -DGMT_MATLAB gmtmex_parser.c gmt.c
-link  /out:"gmt.%MEX_EXT%" %LINKFLAGS% %GMT_LIB% /implib:templib.x gmtmex_parser.obj gmt.obj
+link  /out:"gmtmex.%MEX_EXT%" %LINKFLAGS% %GMT_LIB% /implib:templib.x gmtmex_parser.obj gmt.obj
 
 REM %CC% /c -DWIN32 %COMPFLAGS% -I%GMT_INC% %OPTIMFLAGS% %_MX_COMPAT% -DGMT_MATLAB -DNO_MEX gmtmex_parser.c gmt_mextest.c
 REM link /MACHINE:%arc% /nologo %LDEBUG% %GMT_LIB%  gmtmex_parser.obj gmt_mextest.obj
