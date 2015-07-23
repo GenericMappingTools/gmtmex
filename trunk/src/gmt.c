@@ -203,6 +203,12 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	if ((X = GMT_Encode_Options (API, module, ARG_MARKER, &options, &n_items)) == NULL)
 		mexErrMsgTxt ("GMT: Failure to encode mex command options\n");
 	
+	if (options) {	/* Only for debugging - remove section when stable */
+		gtxt = GMT_Create_Cmd (API, options);
+		GMT_Report (API, GMT_MSG_DEBUG, "GMT_Encode_Options: Revised command after memory-substitution: %s\n", gtxt);
+		GMT_Destroy_Cmd (API, &gtxt);	/* Only needed it for the above verbose */
+	}
+	
 	/* 5. Assign input (from mex) and output (from GMT) resources */
 	
 	for (k = 0; k < n_items; k++) {	/* Number of GMT containers involved in this module call */
@@ -217,12 +223,6 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	}
 	
 	/* 6. Run GMT module; give usage message if errors arise during parsing */
-	if (options) {
-		gtxt = GMT_Create_Cmd (API, options);
-		GMT_Report (API, GMT_MSG_DEBUG, "GMT_Encode_Options: Revised command after memory-substitution: %s\n", gtxt);
-		GMT_Destroy_Cmd (API, &gtxt);	/* Only needed it for the above verbose */
-	}
-	
 	if ((status = GMT_Call_Module (API, module, GMT_MODULE_OPT, options)) != GMT_NOERROR)
 		mexErrMsgTxt ("GMT: Module return with failure\n");
 
@@ -260,7 +260,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		}
 			
 		if (GMT_Destroy_Data (API, &X[k].object) != GMT_NOERROR)
-			mexErrMsgTxt ("GMT: Failed to destroy object used in the interface bewteen GMT and Matlab\n");
+			mexErrMsgTxt ("GMT: Failed to destroy object used in the interface between GMT and Matlab\n");
 	}
 	
 	/* 8. Destroy linked option list */
