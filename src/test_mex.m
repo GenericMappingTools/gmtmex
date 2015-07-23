@@ -136,7 +136,7 @@ function grdsample()
 	disp ('Test grdsample');
 	gmt('create')
 	G = gmt('surface -R0/150/0/150 -I1', rand(100,3) * 100);
-	gmt('grdsample -I100+/100+', G);
+	T = gmt('grdsample -I100+/100+', G);
 	gmt('destroy')
 
 function psbasemap()
