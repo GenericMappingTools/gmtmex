@@ -3,8 +3,8 @@ function  test_mex(opt)
 %	Test suite for the GMT-MEX API
 %
 
-all_tests = {'blockmean' 'filter1d' 'gmtinfo' 'gmtmath' 'gmtread' 'gmtsimplify' 'gmtwrite' 'psbasemap' ...
-	'pscoast' 'pstext' 'psxy' 'grd2xyz' 'grdinfo' 'grdimage' 'grdsample' 'surface', 'coasts'}; 
+all_tests = {'blockmean' 'filter1d' 'gmtinfo' 'gmtmath' 'gmtread' 'gmtsimplify' 'gmtwrite' 'mapproject' 'psbasemap' ...
+	'pscoast' 'pstext' 'psxy' 'grd2xyz' 'grdinfo' 'grdimage' 'grdsample' 'grdtrack' 'surface', 'coasts'}; 
 
 if (nargin == 0)
 	opt = all_tests;
@@ -22,6 +22,7 @@ try
 			case 'gmtread',     gmtread;
 			case 'gmtsimplify',	gmtsimplify;
 			case 'gmtwrite',    gmtwrite;
+			case 'mapproject',   mapproject
 			case 'psbasemap',   psbasemap
 			case 'pscoast',    	pscoast
 			case 'pstext',    	pstext
@@ -30,6 +31,7 @@ try
 			case 'grdinfo',    	grdinfo;
 			case 'grdimage',    grdimage;
 			case 'grdsample',   grdsample;
+			case 'grdtrack',   grdtrack;
 			case 'surface',     surface;
 			case 'coasts',      coasts;
 		end
@@ -145,6 +147,19 @@ function grdtrack()
 	G = gmt('surface -R0/150/0/150 -I1', rand(100,3) * 100);
 	x = 2:45; path = [x' x'];
 	T = gmt('grdtrack -G', G, path);
+	gmt('destroy')
+
+function mapproject()
+	disp ('Test mapproject');
+	gmt('create')
+	t = [NaN NaN
+	1 2
+	2 3
+	NaN NaN
+	3 4
+	4 5
+	];
+	b = gmt('mapproject -JM6i -R0/40/0/40 -o1', t)
 	gmt('destroy')
 
 function psbasemap()
