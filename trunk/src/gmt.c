@@ -203,6 +203,10 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	if (opt_args && (options = GMT_Create_Options (API, 0, opt_args)) == NULL)
 		mexErrMsgTxt ("GMT: Failure to parse GMT5 command options\n");
 
+	if (!options && nlhs == 0 && nrhs == 1) {	/* Just requesting usage message, so add -? to  */
+		options = GMT_Create_Options (API, 0, "-?");
+	}
+	
 	/* 4. Preprocess to update GMT option lists and return info array X */
 	if ((X = GMT_Encode_Options (API, module, ARG_MARKER, &options, &n_items)) == NULL) {
 		if (n_items == UINT_MAX)	/* Just got usage/synopsis option */
