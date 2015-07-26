@@ -203,8 +203,12 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		mexErrMsgTxt ("GMT: Failure to parse GMT5 command options\n");
 
 	/* 4. Preprocess to update GMT option lists and return info array X */
-	if ((X = GMT_Encode_Options (API, module, ARG_MARKER, &options, &n_items)) == NULL)
-		mexErrMsgTxt ("GMT: Failure to encode mex command options\n");
+	if ((X = GMT_Encode_Options (API, module, ARG_MARKER, &options, &n_items)) == NULL) {
+		if (n_items == UINT_MAX)	/* Just got usage/synopsis option */
+			n_items = 0;
+		else
+			mexErrMsgTxt ("GMT: Failure to encode mex command options\n");
+	}
 	
 	if (options) {	/* Only for debugging - remove section when stable */
 		gtxt = GMT_Create_Cmd (API, options);
@@ -226,7 +230,8 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	}
 	
 	/* 6. Run GMT module; give usage message if errors arise during parsing */
-	if ((status = GMT_Call_Module (API, module, GMT_MODULE_OPT, options)) != GMT_NOERROR)
+	status = GMT_Call_Module (API, module, GMT_MODULE_OPT, options);
+	if (!(status == GMT_NOERROR || status == GMT_SYNOPSIS))
 		mexErrMsgTxt ("GMT: Module return with failure\n");
 
 	/* 7. Hook up module GMT outputs to Matlab plhs array */
