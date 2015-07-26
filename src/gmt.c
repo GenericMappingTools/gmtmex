@@ -24,12 +24,13 @@
  * 3) Call any of the GMT modules while passing data in and out of GMT.
  *
  * First argument to the gmt function is the API pointer, but it is optional once created.
- * Next argument is the command string that starts with the module name
+ * Next argument is the module name
+ * Thrid argument is the option string
  * Finally, there are optional comma-separated Matlab array entities required by the command.
  * Information about the options of each program is provided via GMT_Encode_Options.
  *
  * Version:	5.2
- * Created:	20-FEB-2015
+ * Created:	20-JUL-2015
  *
  */
 
@@ -65,7 +66,7 @@ void usage (int nlhs, int nrhs) {
 	}
 	else {
 		mexPrintf("Usage is:\n\tgmt ('create');  %% Create a new GMT/MEX session\n");
-		mexPrintf("\tgmt ('module_name and options'[, <matlab arrays>]); %% Run a GMT module\n");
+		mexPrintf("\tgmt ('module_name', 'options'[, <matlab arrays>]); %% Run a GMT module\n");
 		mexPrintf("\tgmt ('destroy');  %% Destroy the GMT/MEX session\n");
 		if (nlhs != 0)
 			mexErrMsgTxt ("But meanwhile you already made an error by asking help and an output.\n");
@@ -216,7 +217,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		GMT_Destroy_Cmd (API, &gtxt);	/* Only needed it for the above verbose */
 	}
 	
-	/* 5. Assign input (from mex) and output (from GMT) resources */
+	/* 5. Assign input sources (from mex) and output destinations (to GMT) */
 	
 	for (k = 0; k < n_items; k++) {	/* Number of GMT containers involved in this module call */
 		ptr = (X[k].direction == GMT_IN) ? (void *)prhs[X[k].pos+first+1] : (void *)plhs[X[k].pos];
@@ -234,7 +235,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	if (!(status == GMT_NOERROR || status == GMT_SYNOPSIS))
 		mexErrMsgTxt ("GMT: Module return with failure\n");
 
-	/* 7. Hook up module GMT outputs to Matlab plhs array */
+	/* 7. Hook up any GMT outputs to Matlab plhs array */
 	
 	for (k = 0; k < n_items; k++) {	/* Number of GMT containers involved in this module call */
 		if (X[k].direction == GMT_OUT) {	/* Get results from GMT into Matlab arrays */
