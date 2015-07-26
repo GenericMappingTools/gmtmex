@@ -145,10 +145,13 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		}
 
 		/* OK, neither create nor help, must be a single command with no arguments nor the API. So get it: */
-		if (!pPersistent)
-			mexErrMsgTxt ("GMT: You shouldn't have cleared this mex. Now the GMT5 session is lost (mem leaked).\n"); 
-		API = (void *)pPersistent[0];	/* Get the GMT API pointer */
-		if (API == NULL) mexErrMsgTxt ("GMT: This GMT5 session has already been destroyed, or currupted.\n"); 
+		if (!pPersistent) {                     /* No session yet, create one under the hood */
+			API = Initiate_Session(verbose);    /* Initializing a new GMT session */
+			mexAtExit(force_Destroy_Session);   /* Register an exit function. */
+		}
+		else
+			API = (void *)pPersistent[0];       /* Get the GMT API pointer */
+		if (API == NULL) mexErrMsgTxt ("GMT: This GMT5 session has is currupted. Better to start from scratch.\n"); 
 	}
 	else if (mxIsScalar_(prhs[0]) && mxIsUint64(prhs[0])) {
 		/* Here, nrhs > 1 . If first arg is a scalar int, we assume it is the API memory address */
