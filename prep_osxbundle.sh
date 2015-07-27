@@ -3,17 +3,22 @@
 # Rebaptizing of shared libraries for OSX as distributed by
 # the GMT bundle.  We duplicate and rebaptize all the libs
 # so gmtmex can link with the libXgmt library instead.
-# Run from /Applications/GMT-x.x.x/Contents/Resources/lib
+# This script is called from set_osx_libs.sh
 #-----------------------------------------------------------------
+# Make shadow directory mex that will contain rebaptized libs:
 mkdir -p mex/gmt/plugins
+# Find a list of all libs shipped with the OSX bundle:
 ls *.dylib | egrep -v 'libgmt.dylib|libpsl.dylib' > /tmp/l.lis
+# For each, duplicate into mex but add a leading X to each name
 while read lib; do
 	new=`echo $lib | awk '{printf "libX%s\n", substr($1,4)}'`
 	cp $lib mex/$new
 done < /tmp/l.lis
+# Same for the supplement shared plugin
 cp gmt/plugins/supplements.so mex/gmt/plugins/supplements.so
 cd mex
 ls *.dylib > /tmp/l.lis
+# For all libs in mex, change internal references to contain the leading "X"
 while read lib; do
 	echo
 	echo "--> $lib"
@@ -31,10 +36,11 @@ while read lib; do
 		let k=k+1
 	done < /tmp/t.lis
 done < /tmp/l.lis
+# Set links to the new lib
 ln -s libXgmt.5.dylib libXgmt.dylib
 ln -s libXpsl.5.dylib libXpsl.dylib
 
-# Do plugin supplement
+# Do plugin supplement separately since not called lib*
 echo "--> mex/gmt/plugins/supplements.so"
 echo
 cd gmt/plugins
