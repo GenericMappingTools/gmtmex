@@ -993,7 +993,7 @@ struct GMT_PALETTE *GMTMEX_CPT_init (void *API, unsigned int direction, const mx
 				P->range[j].z_high = P->range[j].z_low + dz;
 			}
 		}
-		P->is_continuous = 1;	/* WHY? */
+		P->is_continuous = 1;	/* WHY? Because only kind in Matlab */
 		GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_CPT_init: Allocated GMT CPT %lx\n", (long)P);
 	}
 	else {	/* Just allocate an empty container to hold an output grid (signal this by passing NULLs) */
