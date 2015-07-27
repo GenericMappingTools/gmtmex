@@ -22,16 +22,16 @@ try
 			case 'gmtread',     gmtread;
 			case 'gmtsimplify',	gmtsimplify;
 			case 'gmtwrite',    gmtwrite;
-			case 'mapproject',   mapproject
+			case 'mapproject',  mapproject
 			case 'psbasemap',   psbasemap
 			case 'pscoast',    	pscoast
-			case 'pstext',    	pstext
-			case 'psxy',    	psxy
+			case 'pstext',      pstext
+			case 'psxy',        psxy
 			case 'grd2xyz',     grd2xyz;
 			case 'grdinfo',    	grdinfo;
 			case 'grdimage',    grdimage;
 			case 'grdsample',   grdsample;
-			case 'grdtrack',   grdtrack;
+			case 'grdtrack',    grdtrack;
 			case 'surface',     surface;
 			case 'coasts',      coasts;
 		end
@@ -63,11 +63,11 @@ function G = filter1d
 
 function gmtinfo()
 	disp ('Test gmtinfo');
-gmt('create')
-t = rand(100,3) * 100;
-r = gmt('info -C', t);
-disp(['gmtinfo of random 0-100 is ' num2str(r)])
-gmt('destroy')
+	gmt('create')
+	t = rand(100,3) * 100;
+	r = gmt('info -C', t);
+	disp(['gmtinfo of random 0-100 is ' num2str(r)])
+	gmt('destroy')
 
 function gmtmath()
 	disp ('Test gmtmath');
@@ -99,10 +99,10 @@ function G = gmtread()
 	gmt('destroy')
 
 function gmtsimplify()
-	disp ('Test gmtsimplify');
 	gmt('create')
-	t = rand(50,2);
+	t = rand(500,2);
 	t2 = gmt('simplify -T0.2', t);
+	disp (['Test gmtsimplify. typeof output: ' class(t2)]);
 	gmt('destroy')
 
 function G = gmtwrite()
@@ -113,10 +113,10 @@ function G = gmtwrite()
 	gmt('destroy')
 
 function grd2xyz()
-	disp ('Test grd2xyz');
 	gmt('create')
 	G = gmt('surface -R0/150/0/150 -I1', rand(100,3) * 100);
 	xyz = gmt('grd2xyz', G);
+	disp (['Test grd2xyz. typeof output: ' class(xyz)]);
 	gmt('destroy')
 
 function grdinfo()
@@ -150,7 +150,6 @@ function grdtrack()
 	gmt('destroy')
 
 function mapproject()
-	disp ('Test mapproject');
 	gmt('create')
 	t = [NaN NaN
 	1 2
@@ -159,7 +158,8 @@ function mapproject()
 	3 4
 	4 5
 	];
-	b = gmt('mapproject -JM6i -R0/40/0/40 -o1', t)
+	b = gmt('mapproject -JM6i -R0/40/0/40 -o1', t);
+	disp (['Test mapproject. typeof output: ' class(b)]);
 	gmt('destroy')
 
 function psbasemap()
@@ -220,4 +220,4 @@ function coasts()
 	plot(boundaries(:,1), boundaries(:,2))
 	plot(rivers(:,1), rivers(:,2))
 	hold off
-	%pause(1.0);		delete(h);
+	pause(2.0);		delete(h);
