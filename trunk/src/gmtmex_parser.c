@@ -298,7 +298,7 @@ void *GMTMEX_Get_Dataset (void *API, struct GMT_MATRIX *M)
 	uint8_t *uc1 = NULL;
 	int8_t *sc1 = NULL;
 	double *f8 = NULL;
-	double *f4 = NULL;
+	float *f4 = NULL;
 	mxClassID type = GMTMEX_type (API);	/* Get data type */
 	/* Create a 2-D Matlab matrix of correct size and type */
 	mxArray *P = mxCreateNumericMatrix (M->n_rows, M->n_columns, type, mxREAL);

@@ -60,5 +60,3 @@ while read old; do
 	install_name_tool -change $old @rpath/$new supplements.so
 	let k=k+1
 done < /tmp/t.lis
-
-echo "Done"
