@@ -28,3 +28,5 @@ sudo ln -s $DIR/Contents/Resources/lib/mex/libXpsl.dylib libpsl.dylib
 sudo chmod -h og+r libgmt.dylib libpsl.dylib
 echo "export DYLD_LIBRARY_PATH=$DIR/Contents/Resources/lib/mex"
 echo "set GMT_CUSTOM_LIBS = $DIR/Contents/Resources/lib/mex/gmt/plugins/supplements.so"
+
+echo "Done"
