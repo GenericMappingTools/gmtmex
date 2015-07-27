@@ -105,6 +105,25 @@ enum MEX_dim {
  *		  + alpha is a N-element array with transparencies
  */
 
+mxClassID GMTMEX_type (void *API)
+{	/* Set default export type */
+	char value[8] = {""};
+	GMT_Get_Default (API, "GMT_EXPORT_TYPE", value);
+	if (!strncmp (value, "double", 6U)) return mxDOUBLE_CLASS;
+	if (!strncmp (value, "single", 6U)) return mxSINGLE_CLASS;
+	if (!strncmp (value, "long", 4U))   return mxINT64_CLASS;
+	if (!strncmp (value, "ulong", 5U))  return mxUINT64_CLASS;
+	if (!strncmp (value, "int", 3U))    return mxINT32_CLASS;
+	if (!strncmp (value, "uint", 4U))   return mxUINT32_CLASS;
+	if (!strncmp (value, "short", 5U))  return mxINT16_CLASS;
+	if (!strncmp (value, "ushort", 6U)) return mxUINT16_CLASS;
+	if (!strncmp (value, "char", 4U))   return mxINT8_CLASS;
+	if (!strncmp (value, "uchar", 5U))  return mxUINT8_CLASS;
+	
+	mexPrintf("Unable to interpret GMT_EXPORT_TYPE - Default to double\n");
+	return mxDOUBLE_CLASS;
+}
+
 char *mxstrdup (const char *s) {
 	/* A strdup replacement to be used in Mexs to avoid memory leaks since the Matlab
 	   memory management will take care to free the memory allocated by this function */
@@ -270,20 +289,143 @@ void *GMTMEX_Get_Grid (void *API, struct GMT_GRID *G)
 void *GMTMEX_Get_Dataset (void *API, struct GMT_MATRIX *M)
 {	/* Given a GMT dataset via a matrix, build a Matlab matrix and assign values */
 	unsigned int row, col;
-	uint64_t gmt_ij, mex_ij;
-	/* Create a 2-D Matlab double matrix of correct size */
-	mxArray *P = mxCreateNumericMatrix (M->n_rows, M->n_columns, mxDOUBLE_CLASS, mxREAL);
-	double *d = mxGetData (P);
-	/* Duplicate the double GMT data matrix into the matlab double array */
-	if (M->shape == MEX_COL_ORDER)	/* Easy, just copy */
-		memcpy (d, M->data.f8, M->n_rows * M->n_columns * sizeof (double));
-	else {	/* Must transpose */
-		for (gmt_ij = row = 0; row < M->n_rows; row++) {
-			for (col = 0; col < M->n_columns; col++, gmt_ij++) {
-				mex_ij = MEXM_IJ (M, row, col);
-				d[mex_ij] = M->data.f8[gmt_ij];
+	uint64_t gmt_ij, *ui8 = NULL;
+	int64_t *si8 = NULL;
+	uint32_t *ui4 = NULL;
+	int32_t *si4 = NULL;
+	uint16_t *ui2 = NULL;
+	int16_t *si2 = NULL;
+	uint8_t *uc1 = NULL;
+	int8_t *sc1 = NULL;
+	double *f8 = NULL;
+	double *f4 = NULL;
+	mxClassID type = GMTMEX_type (API);	/* Get data type */
+	/* Create a 2-D Matlab matrix of correct size and type */
+	mxArray *P = mxCreateNumericMatrix (M->n_rows, M->n_columns, type, mxREAL);
+	
+	switch (type) {	/* Handle the different classes */
+		case mxDOUBLE_CLASS:
+			f8 = mxGetData (P);
+			/* Duplicate the double GMT data matrix into the matlab double array */
+			if (M->shape == MEX_COL_ORDER)	/* Easy, just copy */
+				memcpy (f8, M->data.f8, M->n_rows * M->n_columns * sizeof (double));
+			else {	/* Must transpose */
+				for (gmt_ij = row = 0; row < M->n_rows; row++) {
+					for (col = 0; col < M->n_columns; col++, gmt_ij++)
+						f8[MEXM_IJ (M, row, col)] = M->data.f8[gmt_ij];
+				}
 			}
-		}
+			break;
+		case mxSINGLE_CLASS:
+			f4 = mxGetData (P);
+			/* Duplicate the double GMT data matrix into the matlab double array */
+			if (M->shape == MEX_COL_ORDER)	/* Easy, just copy */
+				memcpy (f4, M->data.f4, M->n_rows * M->n_columns * sizeof (float));
+			else {	/* Must transpose */
+				for (gmt_ij = row = 0; row < M->n_rows; row++) {
+					for (col = 0; col < M->n_columns; col++, gmt_ij++)
+						f4[MEXM_IJ (M, row, col)] = M->data.f4[gmt_ij];
+				}
+			}
+			break;
+		case mxUINT64_CLASS:
+			ui8 = mxGetData (P);
+			/* Duplicate the double GMT data matrix into the matlab double array */
+			if (M->shape == MEX_COL_ORDER)	/* Easy, just copy */
+				memcpy (ui8, M->data.ui8, M->n_rows * M->n_columns * sizeof (uint64_t));
+			else {	/* Must transpose */
+				for (gmt_ij = row = 0; row < M->n_rows; row++) {
+					for (col = 0; col < M->n_columns; col++, gmt_ij++)
+						ui8[MEXM_IJ (M, row, col)] = M->data.ui8[gmt_ij];
+				}
+			}
+			break;
+		case mxINT64_CLASS:
+			si8 = mxGetData (P);
+			/* Duplicate the double GMT data matrix into the matlab double array */
+			if (M->shape == MEX_COL_ORDER)	/* Easy, just copy */
+				memcpy (si8, M->data.si8, M->n_rows * M->n_columns * sizeof (int64_t));
+			else {	/* Must transpose */
+				for (gmt_ij = row = 0; row < M->n_rows; row++) {
+					for (col = 0; col < M->n_columns; col++, gmt_ij++)
+						si8[MEXM_IJ (M, row, col)] = M->data.si8[gmt_ij];
+				}
+			}
+			break;
+		case mxUINT32_CLASS:
+			ui4 = mxGetData (P);
+			/* Duplicate the double GMT data matrix into the matlab double array */
+			if (M->shape == MEX_COL_ORDER)	/* Easy, just copy */
+				memcpy (ui4, M->data.ui4, M->n_rows * M->n_columns * sizeof (uint32_t));
+			else {	/* Must transpose */
+				for (gmt_ij = row = 0; row < M->n_rows; row++) {
+					for (col = 0; col < M->n_columns; col++, gmt_ij++)
+						ui4[MEXM_IJ (M, row, col)] = M->data.ui4[gmt_ij];
+				}
+			}
+			break;
+		case mxINT32_CLASS:
+			si4 = mxGetData (P);
+			/* Duplicate the double GMT data matrix into the matlab double array */
+			if (M->shape == MEX_COL_ORDER)	/* Easy, just copy */
+				memcpy (si4, M->data.si4, M->n_rows * M->n_columns * sizeof (int32_t));
+			else {	/* Must transpose */
+				for (gmt_ij = row = 0; row < M->n_rows; row++) {
+					for (col = 0; col < M->n_columns; col++, gmt_ij++)
+						si4[MEXM_IJ (M, row, col)] = M->data.si4[gmt_ij];
+				}
+			}
+			break;
+		case mxUINT16_CLASS:
+			ui2 = mxGetData (P);
+			/* Duplicate the double GMT data matrix into the matlab double array */
+			if (M->shape == MEX_COL_ORDER)	/* Easy, just copy */
+				memcpy (ui2, M->data.ui2, M->n_rows * M->n_columns * sizeof (uint16_t));
+			else {	/* Must transpose */
+				for (gmt_ij = row = 0; row < M->n_rows; row++) {
+					for (col = 0; col < M->n_columns; col++, gmt_ij++)
+						ui2[MEXM_IJ (M, row, col)] = M->data.ui2[gmt_ij];
+				}
+			}
+			break;
+		case mxINT16_CLASS:
+			si2 = mxGetData (P);
+			/* Duplicate the double GMT data matrix into the matlab double array */
+			if (M->shape == MEX_COL_ORDER)	/* Easy, just copy */
+				memcpy (si2, M->data.si2, M->n_rows * M->n_columns * sizeof (int16_t));
+			else {	/* Must transpose */
+				for (gmt_ij = row = 0; row < M->n_rows; row++) {
+					for (col = 0; col < M->n_columns; col++, gmt_ij++)
+						si2[MEXM_IJ (M, row, col)] = M->data.si2[gmt_ij];
+				}
+			}
+			break;
+		case mxUINT8_CLASS:
+			uc1 = mxGetData (P);
+			/* Duplicate the double GMT data matrix into the matlab double array */
+			if (M->shape == MEX_COL_ORDER)	/* Easy, just copy */
+				memcpy (uc1, M->data.uc1, M->n_rows * M->n_columns * sizeof (uint8_t));
+			else {	/* Must transpose */
+				for (gmt_ij = row = 0; row < M->n_rows; row++) {
+					for (col = 0; col < M->n_columns; col++, gmt_ij++)
+						uc1[MEXM_IJ (M, row, col)] = M->data.uc1[gmt_ij];
+				}
+			}
+			break;
+		case mxINT8_CLASS:
+			sc1 = mxGetData (P);
+			/* Duplicate the double GMT data matrix into the matlab double array */
+			if (M->shape == MEX_COL_ORDER)	/* Easy, just copy */
+				memcpy (sc1, M->data.sc1, M->n_rows * M->n_columns * sizeof (int8_t));
+			else {	/* Must transpose */
+				for (gmt_ij = row = 0; row < M->n_rows; row++) {
+					for (col = 0; col < M->n_columns; col++, gmt_ij++)
+						sc1[MEXM_IJ (M, row, col)] = M->data.sc1[gmt_ij];
+				}
+			}
+			break;
+		default:	/* Not implemented */
+			break;
 	}
 	return (P);
 }

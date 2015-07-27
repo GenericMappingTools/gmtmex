@@ -1,11 +1,18 @@
 #!/bin/bash
 #	$Id$
-# Accept name of GMT distro in /Application, then
+#
+# Until/if we are able to get Matlab to not override every
+# single request for a shared library with its own out-of-date
+# version, we have to use this trick under OS X.  It is not
+# perfect as we still are unable to deal with netcdf4 files.
+# 
+# Give name of GMT distro in /Application, then
 # 1) rebaptizes the libs
 # 2) sets up links from /usr/local
 # 3) prints the DYLD_LIBRARY_PATH you need to set
+# For other things you need to do, see README.TXT
 #
-# E.g., (from gmt-mex/trunk): set_osx_libs.sh 
+# E.g., (from gmt-mex/trunk): set_osx_libs.sh GMT-5.2.0_r14605.app
 HERE=`pwd`
 DIR="/Applications/$1"
 cd $DIR/Contents/Resources/lib
