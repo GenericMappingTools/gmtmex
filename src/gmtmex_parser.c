@@ -111,14 +111,14 @@ mxClassID GMTMEX_type (void *API)
 	GMT_Get_Default (API, "GMT_EXPORT_TYPE", value);
 	if (!strncmp (value, "double", 6U)) return mxDOUBLE_CLASS;
 	if (!strncmp (value, "single", 6U)) return mxSINGLE_CLASS;
-	if (!strncmp (value, "long", 4U))   return mxINT64_CLASS;
-	if (!strncmp (value, "ulong", 5U))  return mxUINT64_CLASS;
-	if (!strncmp (value, "int", 3U))    return mxINT32_CLASS;
-	if (!strncmp (value, "uint", 4U))   return mxUINT32_CLASS;
-	if (!strncmp (value, "short", 5U))  return mxINT16_CLASS;
+	if (!strncmp (value, "long",   4U)) return  mxINT64_CLASS;
+	if (!strncmp (value, "ulong",  5U)) return mxUINT64_CLASS;
+	if (!strncmp (value, "int",    3U)) return  mxINT32_CLASS;
+	if (!strncmp (value, "uint",   4U)) return mxUINT32_CLASS;
+	if (!strncmp (value, "short",  5U)) return  mxINT16_CLASS;
 	if (!strncmp (value, "ushort", 6U)) return mxUINT16_CLASS;
-	if (!strncmp (value, "char", 4U))   return mxINT8_CLASS;
-	if (!strncmp (value, "uchar", 5U))  return mxUINT8_CLASS;
+	if (!strncmp (value, "char",   4U)) return   mxINT8_CLASS;
+	if (!strncmp (value, "uchar",  5U)) return  mxUINT8_CLASS;
 	
 	mexPrintf("Unable to interpret GMT_EXPORT_TYPE - Default to double\n");
 	return mxDOUBLE_CLASS;
@@ -150,8 +150,7 @@ void *GMTMEX_Get_Grid (void *API, struct GMT_GRID *G)
  	 * Note: Incoming GMT grid has standard padding while Matlab grid has none. */
 
 	int item, n;
-	unsigned int row, col;
-	uint64_t gmt_ij, mex_ij;
+	uint64_t row, col, gmt_ij;
 	float  *f = NULL;
 	double *d = NULL, *dptr = NULL, *G_x = NULL, *G_y = NULL, *x = NULL, *y = NULL;
 	mxArray *mxGrd = NULL, *mx_x = NULL, *mx_y= NULL;
@@ -259,7 +258,7 @@ void *GMTMEX_Get_Grid (void *API, struct GMT_GRID *G)
 	mxGrd = mxCreateNumericMatrix (G->header->ny, G->header->nx, mxSINGLE_CLASS, mxREAL);
 	f = mxGetData (mxGrd);
 	/* Load the real grd array into a double matlab array by transposing
-           from unpadded GMT grd format to unpadded matlab format */
+           from padded GMT grd format to unpadded matlab format */
 	for (row = 0; row < G->header->ny; row++) {
 		for (col = 0; col < G->header->nx; col++, gmt_ij++) {
 			gmt_ij = GMT_IJP (G->header, row, col);
@@ -286,10 +285,10 @@ void *GMTMEX_Get_Grid (void *API, struct GMT_GRID *G)
 	return (grid_struct);
 }
 
-void *GMTMEX_Get_Dataset (void *API, struct GMT_MATRIX *M)
+void *GMTMEX_Get_Dataset_orig (void *API, struct GMT_MATRIX *M)
 {	/* Given a GMT dataset via a matrix, build a Matlab matrix and assign values */
-	unsigned int row, col;
-	uint64_t gmt_ij, *ui8 = NULL;
+	uint64_t gmt_ij, row, col;
+	uint64_t *ui8 = NULL;
 	int64_t *si8 = NULL;
 	uint32_t *ui4 = NULL;
 	int32_t *si4 = NULL;
@@ -426,6 +425,56 @@ void *GMTMEX_Get_Dataset (void *API, struct GMT_MATRIX *M)
 			break;
 		default:	/* Not implemented */
 			break;
+	}
+	return (P);
+}
+
+void *GMTMEX_Get_Dataset (void *API, struct GMT_VECTOR *V)
+{	/* Given a GMT dataset via vectors, build a Matlab matrix and assign values per column */
+	uint64_t start, row, col;
+	uint64_t *ui8 = NULL;
+	int64_t *si8 = NULL;
+	uint32_t *ui4 = NULL;
+	int32_t *si4 = NULL;
+	uint16_t *ui2 = NULL;
+	int16_t *si2 = NULL;
+	uint8_t *uc1 = NULL;
+	int8_t *sc1 = NULL;
+	double *f8 = NULL;
+	float *f4 = NULL;
+	mxClassID type = GMTMEX_type (API);	/* Get data type */
+	/* Create a 2-D Matlab matrix of correct size and type */
+	mxArray *P = mxCreateNumericMatrix (V->n_rows, V->n_columns, type, mxREAL);
+	
+	switch (type) {	/* Handle the different classes */
+		case mxDOUBLE_CLASS:	f8 = mxGetData  (P); break;
+		case mxSINGLE_CLASS:	f4 = mxGetData  (P); break;
+		case mxUINT64_CLASS:	ui8 = mxGetData (P); break;
+		case mxINT64_CLASS:	si8 = mxGetData (P); break;
+		case mxUINT32_CLASS:	ui4 = mxGetData (P); break;
+		case mxINT32_CLASS:	si4 = mxGetData (P); break;
+		case mxUINT16_CLASS:	ui2 = mxGetData (P); break;
+		case mxINT16_CLASS:	si2 = mxGetData (P); break;
+		case mxUINT8_CLASS:	uc1 = mxGetData (P); break;
+		case mxINT8_CLASS:	sc1 = mxGetData (P); break;
+		default:
+			mexErrMsgTxt ("GMTMEX_Get_Dataset: Unsupported Matlab data type in GMT matrix input.");
+			break;
+	}
+	for (col = start = 0; col < V->n_columns; col++, start += V->n_rows) {
+		switch (type) {
+			case mxDOUBLE_CLASS:	memcpy (&f8[start],  V->data[col].f8,  V->n_rows * sizeof (double));	break;
+			case mxSINGLE_CLASS:	memcpy (&f4[start],  V->data[col].f4,  V->n_rows * sizeof (float));	break;
+			case mxUINT64_CLASS:	memcpy (&ui8[start], V->data[col].ui8, V->n_rows * sizeof (uint64_t));	break;
+			case mxINT64_CLASS:	memcpy (&si8[start], V->data[col].si8, V->n_rows * sizeof (int64_t));	break;
+			case mxUINT32_CLASS:	memcpy (&ui4[start], V->data[col].ui4, V->n_rows * sizeof (uint32_t));	break;
+			case mxINT32_CLASS:	memcpy (&si4[start], V->data[col].si4, V->n_rows * sizeof (int32_t));	break;
+			case mxUINT16_CLASS:	memcpy (&ui2[start], V->data[col].ui2, V->n_rows * sizeof (uint16_t));	break;
+			case mxINT16_CLASS:	memcpy (&si2[start], V->data[col].si2, V->n_rows * sizeof (int16_t));	break;
+			case mxUINT8_CLASS:	memcpy (&uc1[start], V->data[col].uc1, V->n_rows * sizeof (uint8_t));	break;
+			case mxINT8_CLASS:	memcpy (&sc1[start], V->data[col].sc1, V->n_rows * sizeof (int8_t));	break;
+			default: break;	/* Since we just checked this in the first switch */
+		}
 	}
 	return (P);
 }
@@ -778,9 +827,8 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 			f = mxGetData(mx_ptr);
 		}
 		else {
-			double *h;
+			double *h = mxGetData(mxHdr);
 			f = mxGetData(mxGrid);
-			h = mxGetData(mxHdr);
 			registration = (unsigned int)lrint(h[6]);
 			if ((G = GMT_Create_Data (API, GMT_IS_GRID, GMT_IS_SURFACE, GMT_GRID_ALL,
 			                          NULL, h, &h[7], registration, GMT_NOTSET, NULL)) == NULL)
@@ -869,7 +917,7 @@ struct GMT_IMAGE *GMTMEX_image_init (void *API, unsigned int direction, const mx
 	return (I);
 }
 
-struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const mxArray *ptr)
+struct GMT_MATRIX *GMTMEX_matrix_init_old (void *API, unsigned int direction, const mxArray *ptr)
 {	/* Used to Create an empty Matrix container and associate it with a data matrix.
  	 * Note that in GMT these will be considered DATASETs via GMT_MATRIX.
  	 * If direction is GMT_IN then we are given a Matlab matrix and can determine size, etc.
@@ -930,6 +978,60 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
 	}
 #endif
 	return (M);
+}
+
+void *GMTMEX_dataset_init (void *API, unsigned int direction, const mxArray *ptr)
+{	/* Used to create containers to hold or receive data:
+	 * direction == GMT_IN:  Create empty Matrix container, associate it with mex data matrix, and use as GMT input.
+	 * direction == GMT_OUT: Create empty Vector container, let GMT fill it out, and use for Mex output.
+ 	 * Note that in GMT these will be considered DATASETs via GMT_MATRIX or GMT_VECTOR.
+ 	 * If direction is GMT_IN then we are given a Matlab matrix and can determine size, etc.
+	 * If output then we dont know size so all we do is specify data type. */
+	if (direction == GMT_IN) {	/* Dimensions are known, extract them and set dim array for a GMT_MATRIX resource */
+		uint64_t dim[3] = {0, 0, 0};
+		struct GMT_MATRIX *M = NULL;
+		mxClassID type = mxGetClassID (ptr);;
+		if (!mxIsNumeric (ptr)) mexErrMsgTxt ("GMTMEX_dataset_init: Expected a Matrix for input\n");
+		dim[DIM_ROW] = mxGetM (ptr);	/* Number of rows */
+		dim[DIM_COL] = mxGetN (ptr);	/* Number of columns */
+		if ((M = GMT_Create_Data (API, GMT_IS_MATRIX, GMT_IS_PLP, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
+			mexErrMsgTxt ("GMTMEX_dataset_init: Failure to alloc GMT source matrix\n");
+
+		GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_dataset_init: Allocated GMT Matrix %lx\n", (long)M);
+		M->n_rows = dim[DIM_ROW];	M->n_columns = dim[DIM_COL];
+		switch (type) {	/* Assign pointer to corresponding GMT matrix union pointer */
+			case mxDOUBLE_CLASS: M->type = GMT_DOUBLE; M->data.f8  =             mxGetData (ptr); break;
+			case mxSINGLE_CLASS: M->type = GMT_FLOAT;  M->data.f4  =    (float *)mxGetData (ptr); break;
+			case mxUINT64_CLASS: M->type = GMT_ULONG;  M->data.ui8 = (uint64_t *)mxGetData (ptr); break;
+			case mxINT64_CLASS:  M->type = GMT_LONG;   M->data.si8 =  (int64_t *)mxGetData (ptr); break;
+			case mxUINT32_CLASS: M->type = GMT_UINT;   M->data.ui4 = (uint32_t *)mxGetData (ptr); break;
+			case mxINT32_CLASS:  M->type = GMT_INT;    M->data.si4 =  (int32_t *)mxGetData (ptr); break;
+			case mxUINT16_CLASS: M->type = GMT_USHORT; M->data.ui2 = (uint16_t *)mxGetData (ptr); break;
+			case mxINT16_CLASS:  M->type = GMT_SHORT;  M->data.si2 =  (int16_t *)mxGetData (ptr); break;
+			case mxUINT8_CLASS:  M->type = GMT_UCHAR;  M->data.uc1 =  (uint8_t *)mxGetData (ptr); break;
+			case mxINT8_CLASS:   M->type = GMT_CHAR;   M->data.sc1 =   (int8_t *)mxGetData (ptr); break;
+			default:
+				mexErrMsgTxt ("GMTMEX_dataset_init: Unsupported Matlab data type in GMT matrix input.");
+				break;
+		}
+		/* Data from Matlab and Octave(mex) is in col format and data from Octave(oct) is in row format */
+#ifdef GMT_OCTOCT
+		M->dim = M->n_columns;
+#else
+		M->dim = M->n_rows;
+#endif
+		M->alloc_mode = GMT_ALLOC_EXTERNALLY;	/* Since matrix was allocated by Matlab/Octave */
+		M->shape = MEX_COL_ORDER;		/* Either col or row order, depending on Matlab/Octave setting in gmtmex.h */
+		return (M);
+	}
+	else {	/* To receive data from GMT we use a GMT_VECTOR resource instead */
+		struct GMT_VECTOR *V = NULL;
+		/* There are no dimensions and we are just getting an empty container for output */
+		if ((V = GMT_Create_Data (API, GMT_IS_VECTOR, GMT_IS_PLP, 0, NULL, NULL, NULL, 0, 0, NULL)) == NULL)
+			mexErrMsgTxt ("GMTMEX_dataset_init: Failure to alloc GMT source vector\n");
+		GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_dataset_init: Allocated GMT Vector %lx\n", (long)V);
+		return (V);
+	}
 }
 
 struct GMT_PALETTE *GMTMEX_CPT_init (void *API, unsigned int direction, const mxArray *ptr)
@@ -1065,7 +1167,8 @@ void * GMTMEX_Register_IO (void *API, unsigned int family, unsigned int geometry
 			break;
 		case GMT_IS_DATASET:
 			/* Get a matrix container, and if input we associate it with the Matlab pointer */
-			obj = GMTMEX_matrix_init (API, direction, ptr);
+			obj = GMTMEX_dataset_init (API, direction, ptr);
+			//obj = GMTMEX_matrix_init (API, direction, ptr);
 			*ID = GMT_Get_ID (API, GMT_IS_DATASET, direction, obj);
 			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Register_IO: Got Matrix with Object ID %d\n", *ID);
 			break;
