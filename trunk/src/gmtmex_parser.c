@@ -922,12 +922,13 @@ struct GMT_MATRIX *GMTMEX_matrix_init (void *API, unsigned int direction, const 
 		M->alloc_mode = GMT_ALLOC_EXTERNALLY;	/* Since matrix was allocated by Matlab/Octave */
 		M->shape = MEX_COL_ORDER;		/* Either col or row order, depending on Matlab/Octave setting in gmtmex.h */
 	}
-	else {	/* On output we produce double precision */
-		M->type = GMT_DOUBLE;
-		/* Data from GMT must be in row format since we may not know n_rows until later! */
-		M->shape = GMT_IS_ROW_FORMAT;
+#if 0
+	else {	/* On output we produce whatever GMT_EXPORT_TYPE is set to */
+		M->type = GMT_DOUBLE;	/* Does not matter as GMT_EXPORT_TYPE will kick in within GMT */
+		M->shape = GMT_IS_COL_FORMAT;	/* This will be overwritten by GMT for rec-by-rec output.  This is because the dimension
+						 * of the column would need to be known to do col_format, but it isnt in that case */
 	}
-
+#endif
 	return (M);
 }
 
