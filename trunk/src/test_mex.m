@@ -38,40 +38,34 @@ try
 	end
 catch
 	sprintf('Error in test: %s\n%s', opt{k}, lasterr)
-	gmt('destroy')
 end
+
+gmt('destroy')
 
 function G = blockmean()
 	disp ('Test blockmean');
-	gmt('create')
 	t = rand(100,3) * 100;
 	gmt('blockmean -R0/150/0/100 -I10 > ave1.txt', t);
 	B = gmt('blockmean -R0/150/0/100 -I10', t);
 	gmt ('write -Td ave2.txt', B);
-	gmt('destroy')
 
 function G = filter1d
 	disp ('Test filter1d');
-	gmt('create')
 	t = zeros (100,2);
 	t(:,1) = 1:100;
 	t(:,2) = rand(100,1) * 100;
 	gmt('filter1d -Fg10 -E > filt1.txt', t);
 	F = gmt('filter1d -Fg10 -E', t);
 	gmt ('write -Td filt2.txt', F);
-	gmt('destroy')
 
 function gmtinfo()
 	disp ('Test gmtinfo');
-	gmt('create')
 	t = rand(100,3) * 100;
 	r = gmt('info -C', t);
 	disp(['gmtinfo of random 0-100 is ' num2str(r)])
-	gmt('destroy')
 
 function gmtmath()
 	disp ('Test gmtmath');
-	gmt('create');
 	t1 = rand(10,1);
 	t2 = rand(10,1);
 	gmt ('write -Td t1.txt', t1);
@@ -88,71 +82,53 @@ function gmtmath()
 	if (~isempty(C))
 		disp('gmtmath gave something when operating on two input files given as vectors')
 	end
-	gmt('destroy')
 
 function G = gmtread()
 	disp ('Test read');
 	surface;			% Create the lixo.grd grid
-	gmt('create')
 	G = gmt('read -Tg lixo.grd');
 	gmt('grdcontour -JX6i -P -Ba -C0.2 > crap.ps', G);
-	gmt('destroy')
 
 function gmtsimplify()
-	gmt('create')
 	t = rand(1002,2);
 	t(1,:) = NaN;
 	t(502,:) = NaN;
 	t2 = gmt('simplify -T0.2', t);
 	disp (['Test gmtsimplify. typeof output: ' class(t2)]);
-	gmt('destroy')
 
 function G = gmtwrite()
 	disp ('Test write');
-	gmt('create')
 	G = gmt('read -Tg lixo.grd');
 	gmt ('write -Tg crap.grd', G);
-	gmt('destroy')
 
 function grd2xyz()
-	gmt('create')
 	G = gmt('surface -R0/150/0/150 -I1', rand(100,3) * 100);
 	xyz = gmt('grd2xyz', G);
 	disp (['Test grd2xyz. typeof output: ' class(xyz)]);
-	gmt('destroy')
 
 function grdinfo()
 	disp ('Test grdinfo');
-	gmt('create')
 	G = gmt('surface -R0/150/0/150 -I1', rand(100,3) * 100);
 	T = gmt('grdinfo', G);
-	gmt('destroy')
 
 function grdimage()
 	disp ('Test grdimage');
-	gmt('create')
 	t = rand(100,3) * 100;
 	G = gmt('surface -R0/150/0/100 -I1', t);
 	gmt('grdimage -JX8c -Ba -P -Cblue,red > crap_img.ps', G);
-	gmt('destroy')
 
 function grdsample()
 	disp ('Test grdsample');
-	gmt('create')
 	G = gmt('surface -R0/150/0/150 -I1', rand(100,3) * 100);
 	T = gmt('grdsample -I100+/100+', G);
-	gmt('destroy')
 
 function grdtrack()
 	disp ('Test grdtrack');
-	gmt('create')
 	G = gmt('surface -R0/150/0/150 -I1', rand(100,3) * 100);
 	x = 2:45;
 	T = gmt('grdtrack -G', G, [x' x']);
-	gmt('destroy')
 
 function mapproject()
-	gmt('create')
 	t = [NaN NaN
 	1 2
 	2 3
@@ -162,61 +138,46 @@ function mapproject()
 	];
 	b = gmt('mapproject -JM6i -R0/40/0/40 -o1', t);
 	disp (['Test mapproject. typeof output: ' class(b)]);
-	gmt('destroy')
 
 function psbasemap()
 	disp ('Test psbasemap');
-	gmt('create')
 	gmt('psbasemap -R110/140/20/35 -JB125/20/25/45/5i -Bafg -BWSne+ggreen -P > plot.ps')
-	gmt('destroy')
 
 function pscoast()
 	disp ('Test pscoast');
-	gmt('create')
 	gmt('pscoast -R110/140/20/35 -JB125/20/25/45/5i -Bag -Dl -Ggreen -Wthinnest -A250 -P > GMT_albers.ps')
-	gmt('destroy')
 
 function pstext()
 	disp ('Test pstext');
-	gmt('create')
 	lines = {'5 6 Some label', '6 7 Another label'};
 	gmt('pstext -R0/10/0/10 -JM6i -Bafg -F+f18p -P > text.ps', lines)
-	gmt('destroy')
 
 function psxy()
 	disp ('Test psxy');
-	gmt('create')
 	gmt('psxy -Sc0.5c -G191/101/95  -JX10c -R0/10/0/10 -W1,171/43/33  -P -K >  Jlogo.ps', [0.5 1.0])
 	gmt('psxy -Sc0.4c -G158/122/190 -JX10c -R0/10/0/10 -W1,130/83/171 -O -K >> Jlogo.ps', [1.5 1.0])
 	gmt('psxy -Sc0.4c -G128/171/93  -JX10c -R0/10/0/10 -W1,81/143/24  -O    >> Jlogo.ps', [1.0 1.5])
-	gmt('destroy')
 
 function grdcontour()
 	disp ('Test grdcontour after surface');
-	gmt('create')
 	G = gmt('read -Tg lixo.grd');
 	D = gmt('grdcontour -C0.1 -D', G);
-	gmt('destroy')
 
 function G = surface()
 	disp ('Test surface');
-	gmt('create')
 	t = rand(100,3) * 100;
 	% Make a somewhat recognizible grid instead of random numbers
 	t(:,3) = (t(:,1)/150).^2 - (t(:,2)/100).^2 + 1.0;
 	gmt('surface -R0/150/0/100 -I1 -Glixo.grd', t);
 	G = gmt('surface -R0/150/0/100 -I1', t);
 	G = gmt('surface -R0/150/0/100 -I1 -G', t);
-	gmt('destroy')
 
 function coasts()
 	disp ('Test coastlines');
 	opt_res = ' -Di';	opt_N = ' -Na';		opt_I = ' -Ia';	opt_R = ' -R-10/10/30/50';
-	gmt('create')
 	coast = gmt(['pscoast -M -W ' opt_R, opt_res, ' -A1/1/1']);
 	boundaries = gmt(['pscoast -M ' opt_R, opt_N, opt_res]);
 	rivers = gmt(['pscoast -M ', opt_R, opt_I, opt_res]);
-	gmt('destroy')
 	h = figure; hold on
 	plot(coast(:,1), coast(:,2))
 	plot(boundaries(:,1), boundaries(:,2))
