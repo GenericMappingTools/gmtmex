@@ -100,7 +100,9 @@ function G = gmtread()
 
 function gmtsimplify()
 	gmt('create')
-	t = rand(500,2);
+	t = rand(1002,2);
+	t(1,:) = NaN;
+	t(502,:) = NaN;
 	t2 = gmt('simplify -T0.2', t);
 	disp (['Test gmtsimplify. typeof output: ' class(t2)]);
 	gmt('destroy')
@@ -145,8 +147,8 @@ function grdtrack()
 	disp ('Test grdtrack');
 	gmt('create')
 	G = gmt('surface -R0/150/0/150 -I1', rand(100,3) * 100);
-	x = 2:45; path = [x' x'];
-	T = gmt('grdtrack -G', G, path);
+	x = 2:45;
+	T = gmt('grdtrack -G', G, [x' x']);
 	gmt('destroy')
 
 function mapproject()
