@@ -15,7 +15,7 @@
  *
  *      Contact info: www.soest.hawaii.edu/pwessel
  *--------------------------------------------------------------------*/
-/* GMT convenience functions used by MATLAB/OCTAVE mex/oct functions
+/* GMT convenience functions used by MATLAB/OCTAVE mex/oct API
  */
 
 #ifndef GMTMEX_H
@@ -106,6 +106,7 @@ typedef int mwSize;
 /* And this on GMT_GRID */
 #define MEXG_IJ(M,row,col) ((col)*M->header->ny + M->header->ny - (row) - 1)
 #endif
+/* Macro for indecing into a GMT grid [with pad] */
 #define GMT_IJP(h,row,col) ((uint64_t)(((int64_t)(row)+(int64_t)h->pad[GMT_YHI])*((int64_t)h->mx)+(int64_t)(col)+(int64_t)h->pad[GMT_XLO]))
 
 #define MODULE_LEN 	32	/* Max length of a GMT module name */
@@ -113,7 +114,7 @@ typedef int mwSize;
 
 EXTERN_MSC int GMTMEX_print_func (FILE *fp, const char *message);
 EXTERN_MSC void * GMTMEX_Get_Grid    (void *API, struct GMT_GRID *G);
-EXTERN_MSC void * GMTMEX_Get_Dataset (void *API, struct GMT_MATRIX *M);
+EXTERN_MSC void * GMTMEX_Get_Dataset (void *API, struct GMT_VECTOR *V);
 EXTERN_MSC void * GMTMEX_Get_Textset (void *API, struct GMT_TEXTSET *M);
 EXTERN_MSC void * GMTMEX_Get_CPT     (void *API, struct GMT_PALETTE *P);
 EXTERN_MSC void * GMTMEX_Get_Image   (void *API, struct GMT_IMAGE *I);
