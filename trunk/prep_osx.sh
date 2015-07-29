@@ -99,13 +99,13 @@ install_name_tool -change ${PLIB}/libtiff.5.dylib       ${MLIB}/libtiff_mex.5.dy
 install_name_tool -change ${PLIB}/libcrypto.1.0.0.dylib ${MLIB}/libcrypto_mex.1.0.0.dylib libgdal_mex.1.dylib
 install_name_tool -change ${PLIB}/libz.1.dylib		${MLIB}/libz_mex.1.dylib	  libgdal_mex.1.dylib
 # PSL:
-cp ${GLIB}/libpsl.5.2.0.dylib libpsl_mex.5.2.0.dylib
-ln -s libpsl_mex.5.2.0.dylib libpsl_mex.5.dylib
-chmod -h og+r libpsl_mex.5.dylib
-ln -s libpsl_mex.5.dylib     libpsl_mex.dylib
-chmod -h og+r libpsl_mex.dylib
-install_name_tool -id libpsl_mex.dylib libpsl_mex.5.2.0.dylib
-install_name_tool -change ${SLIB}/libz.1.dylib	    ${MLIB}/libz_mex.1.dylib	  libpsl_mex.5.2.0.dylib
+cp ${GLIB}/libpostscriptlight.5.2.0.dylib libpostscriptlight_mex.5.2.0.dylib
+ln -s libpostscriptlight_mex.5.2.0.dylib libpostscriptlight_mex.5.dylib
+chmod -h og+r libpostscriptlight_mex.5.dylib
+ln -s libpostscriptlight_mex.5.dylib     libpostscriptlight_mex.dylib
+chmod -h og+r libpostscriptlight_mex.dylib
+install_name_tool -id libpostscriptlight_mex.dylib libpostscriptlight_mex.5.2.0.dylib
+install_name_tool -change ${SLIB}/libz.1.dylib	    ${MLIB}/libz_mex.1.dylib	  libpostscriptlight_mex.5.2.0.dylib
 # GMT:
 cp ${GLIB}/libgmt.5.2.0.dylib libgmt_mex.5.2.0.dylib
 ln -s libgmt_mex.5.2.0.dylib libgmt_mex.5.dylib
@@ -117,11 +117,11 @@ install_name_tool -change ${PLIB}/libnetcdf.7.dylib ${MLIB}/libnetcdf_mex.7.dyli
 install_name_tool -change ${PLIB}/libgdal.1.dylib   ${MLIB}/libgdal_mex.1.dylib   libgmt_mex.5.2.0.dylib
 install_name_tool -change ${PLIB}/libgdal.1.dylib   ${MLIB}/libgdal_mex.1.dylib   libgmt_mex.5.2.0.dylib
 install_name_tool -change ${SLIB}/libz.1.dylib	    ${MLIB}/libz_mex.1.dylib	  libgmt_mex.5.2.0.dylib
-install_name_tool -change ${GLIB}/libpsl.5.dylib    ${MLIB}/libpsl_mex.5.dylib	  libgmt_mex.5.2.0.dylib
+install_name_tool -change ${GLIB}/libpostscriptlight.5.dylib    ${MLIB}/libpostscriptlight_mex.5.dylib	  libgmt_mex.5.2.0.dylib
 cp ${GLIB}/gmt/plugins/supplements.so ${MLIB}/gmt/plugins
 cd ${MLIB}/gmt/plugins
 install_name_tool -change ${GLIB}/libgmt.5.dylib    ${MLIB}/libgmt_mex.5.dylib    supplements.so
-install_name_tool -change ${GLIB}/libpsl.5.dylib    ${MLIB}/libpsl_mex.5.dylib    supplements.so
+install_name_tool -change ${GLIB}/libpostscriptlight.5.dylib    ${MLIB}/libpostscriptlight_mex.5.dylib    supplements.so
 install_name_tool -change ${PLIB}/libnetcdf.7.dylib ${MLIB}/libnetcdf_mex.7.dylib supplements.so
 install_name_tool -change ${PLIB}/libgdal.1.dylib   ${MLIB}/libgdal_mex.1.dylib   supplements.so
 install_name_tool -change ${SLIB}/libz.1.dylib	    ${MLIB}/libz_mex.1.dylib	  supplements.so

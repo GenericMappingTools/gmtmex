@@ -10,7 +10,7 @@
 # Make shadow directory mex that will contain rebaptized libs:
 mkdir -p mex/gmt/plugins
 # Find a list of all libs shipped with the OSX bundle:
-ls *.dylib | egrep -v 'libgmt.dylib|libpsl.dylib' > /tmp/l.lis
+ls *.dylib | egrep -v 'libgmt.dylib|libpostscriptlight.dylib' > /tmp/l.lis
 # For each, duplicate into mex but add a leading X to each name
 while read lib; do
 	new=`echo $lib | awk '{printf "libX%s\n", substr($1,4)}'`
@@ -40,7 +40,7 @@ while read lib; do
 done < /tmp/l.lis
 # Set links to the new lib
 ln -s libXgmt.5.dylib libXgmt.dylib
-ln -s libXpsl.5.dylib libXpsl.dylib
+ln -s libXpostscriptlight.5.dylib libXpostscriptlight.dylib
 # stuff for gs:
 cp /opt/local/lib/libgs.9.16.dylib libXgs.9.16.dylib 
 cp /opt/local/lib/libfreetype.6.dylib libXfreetype.6.dylib
