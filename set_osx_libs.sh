@@ -22,10 +22,10 @@ sudo rm -rf gmt
 sudo ln -s $DIR/Contents/Resources/include/gmt gmt
 sudo chmod -h og+r gmt
 cd ../lib
-sudo rm -f libgmt.dylib libpsl.dylib
+sudo rm -f libgmt.dylib libpostscriptlight.dylib
 sudo ln -s $DIR/Contents/Resources/lib/mex/libXgmt.dylib libgmt.dylib
-sudo ln -s $DIR/Contents/Resources/lib/mex/libXpsl.dylib libpsl.dylib
-sudo chmod -h og+r libgmt.dylib libpsl.dylib
+sudo ln -s $DIR/Contents/Resources/lib/mex/libXpostscriptlight.dylib libpostscriptlight.dylib
+sudo chmod -h og+r libgmt.dylib libpostscriptlight.dylib
 echo "export DYLD_LIBRARY_PATH=$DIR/Contents/Resources/lib/mex"
 echo "set GMT_CUSTOM_LIBS = $DIR/Contents/Resources/lib/mex/gmt/plugins/supplements.so"
 
