@@ -49,7 +49,7 @@ static void force_Destroy_Session (void) {
 	if (API != NULL) {		/* Otherwise just silently ignore this call */
 		mexPrintf("GMT: Destroying GMT session due to a brute user usage.\n");
 		if (GMT_Destroy_Session (API)) mexErrMsgTxt ("Failure to destroy GMT session\n");
-		mexPrintf("GMT: GMT session destroyed.\n");
+		*pPersistent = 0;	/* Wipe the persistent memory */
 	}
 }
 
@@ -77,7 +77,8 @@ void *Initiate_Session (unsigned int verbose)
 {	/* Initialize the GMT Session and store the API pointer in a persistent variable */
 	void *API = NULL;
 	/* Initializing new GMT session with a Matlab-acceptable replacement for the printf function */
-	if ((API = GMT_Create_Session (MEX_PROG, 2U, (verbose << 0) + GMT_SESSION_NOEXIT + GMT_SESSION_EXTERNAL + GMT_SESSION_COLMAJOR, GMTMEX_print_func)) == NULL)
+	if ((API = GMT_Create_Session (MEX_PROG, 2U, (verbose << 0) + GMT_SESSION_NOEXIT + GMT_SESSION_EXTERNAL +
+	                               GMT_SESSION_COLMAJOR, GMTMEX_print_func)) == NULL)
 		mexErrMsgTxt ("GMT: Failure to create new GMT session\n");
 
 	if (!pPersistent) pPersistent = mxMalloc(sizeof(uintptr_t));
@@ -163,6 +164,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	else {		/* We still don't have the API, so we must get it from the past or initiate a new session */
 		if (!pPersistent || (API = (void *)pPersistent[0]) == NULL)
 			API = Initiate_Session (verbose);	/* Initializing new GMT session */
+			mexAtExit(force_Destroy_Session);	/* Register an exit function. */
 	}
 
 	if (!cmd) 	/* First argument is the command string, e.g., 'blockmean -R0/5/0/5 -I1' or just 'destroy' */
