@@ -47,7 +47,6 @@ static uintptr_t *pPersistent;    /* To store API address back and forth within 
 static void force_Destroy_Session (void) {
 	void *API = (void *)pPersistent[0];	/* Get the GMT API pointer */
 	if (API != NULL) {		/* Otherwise just silently ignore this call */
-		mexPrintf("GMT: Destroying GMT session due to a brute user usage.\n");
 		if (GMT_Destroy_Session (API)) mexErrMsgTxt ("Failure to destroy GMT session\n");
 		*pPersistent = 0;	/* Wipe the persistent memory */
 	}
