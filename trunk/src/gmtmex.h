@@ -24,6 +24,7 @@
 #include "gmt.h"
 #include <string.h>
 #include <ctype.h>
+#include <limits.h>
 
 #ifdef GMT_OCTOCT
 #include <oct.h>
