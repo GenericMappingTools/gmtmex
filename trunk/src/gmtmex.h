@@ -27,12 +27,12 @@
 #include <limits.h>
 
 #ifdef GMT_OCTOCT
-#include <oct.h>
+#	include <oct.h>
 #else
-#include <mex.h>
-#define mxIsScalar_(mx) \
-	( (2 == mxGetNumberOfDimensions(mx)) \
-	&&  (1 == mxGetM(mx))&&  (1 == mxGetN(mx)) )
+#	include <mex.h>
+#	define mxIsScalar_(mx) \
+		( (2 == mxGetNumberOfDimensions(mx)) \
+		&&  (1 == mxGetM(mx))&&  (1 == mxGetN(mx)) )
 #endif	/* Matlab and Octave(mex) */
 
 /* Matlab and Octave (in -mex mode) are identical, oct files are different and not yet tested */
@@ -81,32 +81,34 @@
 #    endif
 #endif
 #endif /* if !defined(MATLAB_VERSION) */
+
 #if MATLAB_VERSION < 0x2006b
 typedef int mwSize;
 #endif
 #endif
 
 #ifdef GMT_OCTOCT	/* Octave oct files only */
-#define MEX_PROG "Octave(oct)"
-#define MEX_COL_ORDER GMT_IS_ROW_FORMAT
-/* Macros for getting the Octave(oct) ij that correspond to (row,col) [no pad involved] */
-/* This one operates on GMT_MATRIX */
-#define MEXM_IJ(M,row,col) ((row)*M->n_columns + (col))
-/* And this on GMT_GRID */
-#define MEXG_IJ(M,row,col) ((row)*M->header->nx + (col))
+#	define MEX_PROG "Octave(oct)"
+#	define MEX_COL_ORDER GMT_IS_ROW_FORMAT
+	/* Macros for getting the Octave(oct) ij that correspond to (row,col) [no pad involved] */
+	/* This one operates on GMT_MATRIX */
+#	define MEXM_IJ(M,row,col) ((row)*M->n_columns + (col))
+	/* And this on GMT_GRID */
+#	define MEXG_IJ(M,row,col) ((row)*M->header->nx + (col))
 #else	/* Here we go for Matlab or Octave(mex) */
-#ifdef GMT_MATLAB
-#define MEX_PROG "Matlab"
-#else
-#define MEX_PROG "Octave(mex)"
+#	ifdef GMT_MATLAB
+#		define MEX_PROG "Matlab"
+#	else
+#		define MEX_PROG "Octave(mex)"
+#	endif
+#	define MEX_COL_ORDER GMT_IS_COL_FORMAT
+	/* Macros for getting the Matlab/Octave(mex) ij that correspond to (row,col) [no pad involved] */
+	/* This one operates on GMT_MATRIX */
+#	define MEXM_IJ(M,row,col) ((col)*M->n_rows + (row))
+	/* And this on GMT_GRID */
+#	define MEXG_IJ(M,row,col) ((col)*M->header->ny + M->header->ny - (row) - 1)
 #endif
-#define MEX_COL_ORDER GMT_IS_COL_FORMAT
-/* Macros for getting the Matlab/Octave(mex) ij that correspond to (row,col) [no pad involved] */
-/* This one operates on GMT_MATRIX */
-#define MEXM_IJ(M,row,col) ((col)*M->n_rows + (row))
-/* And this on GMT_GRID */
-#define MEXG_IJ(M,row,col) ((col)*M->header->ny + M->header->ny - (row) - 1)
-#endif
+
 /* Macro for indecing into a GMT grid [with pad] */
 #define GMT_IJP(h,row,col) ((uint64_t)(((int64_t)(row)+(int64_t)h->pad[GMT_YHI])*((int64_t)h->mx)+(int64_t)(col)+(int64_t)h->pad[GMT_XLO]))
 

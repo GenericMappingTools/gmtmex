@@ -105,8 +105,7 @@ enum MEX_dim {
  *		  + alpha is a N-element array with transparencies
  */
 
-mxClassID GMTMEX_type (void *API)
-{	/* Set default export type */
+mxClassID GMTMEX_type (void *API) {	/* Set default export type */
 	char value[8] = {""};
 	GMT_Get_Default (API, "GMT_EXPORT_TYPE", value);
 	if (!strncmp (value, "double", 6U)) return mxDOUBLE_CLASS;
@@ -133,8 +132,7 @@ char *mxstrdup (const char *s) {
 	return d;
 }
 
-int GMTMEX_print_func (FILE *fp, const char *message)
-{
+int GMTMEX_print_func (FILE *fp, const char *message) {
 	/* Replacement for GMT's gmt_print_func.  It is being used indirectly via
 	 * API->print_func.  Purpose of this is to allow Matlab (which cannot use
 	 * printf) to reset API->print_func to this function via GMT_Create_Session. */
@@ -431,48 +429,48 @@ void *GMTMEX_Get_Dataset_orig (void *API, struct GMT_MATRIX *M)
 
 void *GMTMEX_Get_Dataset (void *API, struct GMT_VECTOR *V)
 {	/* Given a GMT dataset via vectors, build a Matlab matrix and assign values per column */
-	uint64_t start, row, col;
+	uint64_t  start, row, col;
 	uint64_t *ui8 = NULL;
-	int64_t *si8 = NULL;
+	int64_t  *si8 = NULL;
 	uint32_t *ui4 = NULL;
-	int32_t *si4 = NULL;
+	int32_t  *si4 = NULL;
 	uint16_t *ui2 = NULL;
-	int16_t *si2 = NULL;
-	uint8_t *uc1 = NULL;
-	int8_t *sc1 = NULL;
-	double *f8 = NULL;
-	float *f4 = NULL;
+	int16_t  *si2 = NULL;
+	uint8_t  *uc1 = NULL;
+	int8_t   *sc1 = NULL;
+	double   *f8  = NULL;
+	float    *f4  = NULL;
 	mxClassID type = GMTMEX_type (API);	/* Get data type */
 	/* Create a 2-D Matlab matrix of correct size and type */
 	mxArray *P = mxCreateNumericMatrix (V->n_rows, V->n_columns, type, mxREAL);
 	
 	switch (type) {	/* Handle the different classes */
-		case mxDOUBLE_CLASS:	f8 = mxGetData  (P); break;
-		case mxSINGLE_CLASS:	f4 = mxGetData  (P); break;
-		case mxUINT64_CLASS:	ui8 = mxGetData (P); break;
-		case mxINT64_CLASS:	si8 = mxGetData (P); break;
-		case mxUINT32_CLASS:	ui4 = mxGetData (P); break;
-		case mxINT32_CLASS:	si4 = mxGetData (P); break;
-		case mxUINT16_CLASS:	ui2 = mxGetData (P); break;
-		case mxINT16_CLASS:	si2 = mxGetData (P); break;
-		case mxUINT8_CLASS:	uc1 = mxGetData (P); break;
-		case mxINT8_CLASS:	sc1 = mxGetData (P); break;
+		case mxDOUBLE_CLASS:    f8 = mxGetData  (P); break;
+		case mxSINGLE_CLASS:    f4 = mxGetData  (P); break;
+		case mxUINT64_CLASS:    ui8 = mxGetData (P); break;
+		case mxINT64_CLASS:     si8 = mxGetData (P); break;
+		case mxUINT32_CLASS:    ui4 = mxGetData (P); break;
+		case mxINT32_CLASS:     si4 = mxGetData (P); break;
+		case mxUINT16_CLASS:    ui2 = mxGetData (P); break;
+		case mxINT16_CLASS:     si2 = mxGetData (P); break;
+		case mxUINT8_CLASS:     uc1 = mxGetData (P); break;
+		case mxINT8_CLASS:      sc1 = mxGetData (P); break;
 		default:
 			mexErrMsgTxt ("GMTMEX_Get_Dataset: Unsupported Matlab data type in GMT matrix input.");
 			break;
 	}
 	for (col = start = 0; col < V->n_columns; col++, start += V->n_rows) {
 		switch (type) {
-			case mxDOUBLE_CLASS:	memcpy (&f8[start],  V->data[col].f8,  V->n_rows * sizeof (double));	break;
-			case mxSINGLE_CLASS:	memcpy (&f4[start],  V->data[col].f4,  V->n_rows * sizeof (float));	break;
-			case mxUINT64_CLASS:	memcpy (&ui8[start], V->data[col].ui8, V->n_rows * sizeof (uint64_t));	break;
-			case mxINT64_CLASS:	memcpy (&si8[start], V->data[col].si8, V->n_rows * sizeof (int64_t));	break;
-			case mxUINT32_CLASS:	memcpy (&ui4[start], V->data[col].ui4, V->n_rows * sizeof (uint32_t));	break;
-			case mxINT32_CLASS:	memcpy (&si4[start], V->data[col].si4, V->n_rows * sizeof (int32_t));	break;
-			case mxUINT16_CLASS:	memcpy (&ui2[start], V->data[col].ui2, V->n_rows * sizeof (uint16_t));	break;
-			case mxINT16_CLASS:	memcpy (&si2[start], V->data[col].si2, V->n_rows * sizeof (int16_t));	break;
-			case mxUINT8_CLASS:	memcpy (&uc1[start], V->data[col].uc1, V->n_rows * sizeof (uint8_t));	break;
-			case mxINT8_CLASS:	memcpy (&sc1[start], V->data[col].sc1, V->n_rows * sizeof (int8_t));	break;
+			case mxDOUBLE_CLASS:    memcpy (&f8[start],  V->data[col].f8,  V->n_rows * sizeof (double));    break;
+			case mxSINGLE_CLASS:    memcpy (&f4[start],  V->data[col].f4,  V->n_rows * sizeof (float));     break;
+			case mxUINT64_CLASS:    memcpy (&ui8[start], V->data[col].ui8, V->n_rows * sizeof (uint64_t));  break;
+			case mxINT64_CLASS:     memcpy (&si8[start], V->data[col].si8, V->n_rows * sizeof (int64_t));   break;
+			case mxUINT32_CLASS:    memcpy (&ui4[start], V->data[col].ui4, V->n_rows * sizeof (uint32_t));  break;
+			case mxINT32_CLASS:     memcpy (&si4[start], V->data[col].si4, V->n_rows * sizeof (int32_t));   break;
+			case mxUINT16_CLASS:    memcpy (&ui2[start], V->data[col].ui2, V->n_rows * sizeof (uint16_t));  break;
+			case mxINT16_CLASS:     memcpy (&si2[start], V->data[col].si2, V->n_rows * sizeof (int16_t));   break;
+			case mxUINT8_CLASS:     memcpy (&uc1[start], V->data[col].uc1, V->n_rows * sizeof (uint8_t));   break;
+			case mxINT8_CLASS:      memcpy (&sc1[start], V->data[col].sc1, V->n_rows * sizeof (int8_t));    break;
 			default: break;	/* Since we just checked this in the first switch */
 		}
 	}
