@@ -255,10 +255,10 @@ void *GMTMEX_Get_Grid (void *API, struct GMT_GRID *G)
 
 	mxGrd = mxCreateNumericMatrix (G->header->ny, G->header->nx, mxSINGLE_CLASS, mxREAL);
 	f = mxGetData (mxGrd);
-	/* Load the real grd array into a double matlab array by transposing
+	/* Load the real grd array into a single matlab array by transposing
            from padded GMT grd format to unpadded matlab format */
 	for (row = 0; row < G->header->ny; row++) {
-		for (col = 0; col < G->header->nx; col++, gmt_ij++) {
+		for (col = 0; col < G->header->nx; col++) {
 			gmt_ij = GMT_IJP (G->header, row, col);
 			f[MEXG_IJ(G,row,col)] = G->data[gmt_ij];
 		}
