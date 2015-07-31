@@ -836,7 +836,7 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 		}
 
 		for (row = 0; row < G->header->ny; row++) {
-			for (col = 0; col < G->header->nx; col++, gmt_ij++) {
+			for (col = 0; col < G->header->nx; col++) {
 				gmt_ij = GMT_IJP (G->header, row, col);
 				G->data[gmt_ij] = f[MEXG_IJ(G,row,col)];
 			}
