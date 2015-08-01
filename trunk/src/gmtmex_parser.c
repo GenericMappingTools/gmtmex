@@ -915,69 +915,6 @@ struct GMT_IMAGE *GMTMEX_image_init (void *API, unsigned int direction, const mx
 	return (I);
 }
 
-struct GMT_MATRIX *GMTMEX_matrix_init_old (void *API, unsigned int direction, const mxArray *ptr)
-{	/* Used to Create an empty Matrix container and associate it with a data matrix.
- 	 * Note that in GMT these will be considered DATASETs via GMT_MATRIX.
- 	 * If direction is GMT_IN then we are given a Matlab matrix and can determine size, etc.
-	 * If output then we dont know size but we can specify type */
-	uint64_t dim[3] = {0, 0, 0}, *this_dim = NULL;
-	struct GMT_MATRIX *M = NULL;
-	if (direction == GMT_IN) {	/* Dimensions are known, extract them and set this_dim pointer */
-		if (!mxIsNumeric (ptr)) mexErrMsgTxt ("GMTMEX_matrix_init: Expected a Matrix for input\n");
-		dim[DIM_ROW] = mxGetM (ptr);	/* Number of rows */
-		dim[DIM_COL] = mxGetN (ptr);	/* Number of columns */
-		this_dim = dim;
-	}
-	/* Else there are no dimensions yet, this_dim is NULL and we are getting an empty container for output */
-	if ((M = GMT_Create_Data (API, GMT_IS_MATRIX, GMT_IS_PLP, 0, this_dim, NULL, NULL, 0, 0, NULL)) == NULL)
-		mexErrMsgTxt ("GMTMEX_matrix_init: Failure to alloc GMT source matrix\n");
-
-	GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_matrix_init: Allocated GMT Matrix %lx\n", (long)M);
-	M->n_rows    = dim[DIM_ROW];
-	M->n_columns = dim[DIM_COL];
-	if (direction == GMT_IN) {	/* We can inquire about the input */
-		if (mxIsDouble(ptr)) {
-			M->type = GMT_DOUBLE;
-			M->data.f8 = mxGetData (ptr);
-		}
-		else if (mxIsSingle(ptr)) {
-			M->type = GMT_FLOAT;
-			M->data.f4 = (float *)mxGetData (ptr);
-		}
-		else if (mxIsInt32(ptr)) {
-			M->type = GMT_INT;
-			M->data.si4 = (int32_t *)mxGetData (ptr);
-		}
-		else if (mxIsInt16(ptr)) {
-			M->type = GMT_SHORT;
-			M->data.si2 = (int16_t *)mxGetData (ptr);
-		}
-		else if (mxIsInt8(ptr)) {
-			M->type = GMT_CHAR;
-			M->data.sc1 = (int8_t *)mxGetData (ptr);
-		}
-		else
-			mexErrMsgTxt ("GMTMEX_matrix_init: Unsupported Matlab data type in GMT matrix input.");
-		/* Data from Matlab and Octave(mex) is in col format and data from Octave(oct) is in row format */
-#ifdef GMT_OCTOCT
-		M->dim = M->n_columns;
-#else
-		M->dim = M->n_rows;
-#endif
-
-		M->alloc_mode = GMT_ALLOC_EXTERNALLY;	/* Since matrix was allocated by Matlab/Octave */
-		M->shape = MEX_COL_ORDER;		/* Either col or row order, depending on Matlab/Octave setting in gmtmex.h */
-	}
-#if 0
-	else {	/* On output we produce whatever GMT_EXPORT_TYPE is set to */
-		M->type = GMT_DOUBLE;	/* Does not matter as GMT_EXPORT_TYPE will kick in within GMT */
-		M->shape = GMT_IS_COL_FORMAT;	/* This will be overwritten by GMT for rec-by-rec output.  This is because the dimension
-						 * of the column would need to be known to do col_format, but it isnt in that case */
-	}
-#endif
-	return (M);
-}
-
 void *GMTMEX_dataset_init (void *API, unsigned int direction, const mxArray *ptr)
 {	/* Used to create containers to hold or receive data:
 	 * direction == GMT_IN:  Create empty Matrix container, associate it with mex data matrix, and use as GMT input.
