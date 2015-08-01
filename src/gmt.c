@@ -146,7 +146,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		}
 
 		/* OK, neither create nor help, must be a single command with no arguments nor the API. So get it: */
-		if (!pPersistent) {                     /* No session yet, create one under the hood */
+		if (!pPersistent || (API = (void *)pPersistent[0]) == NULL) {	/* No session yet, create one under the hood */
 			API = Initiate_Session(verbose);    /* Initializing a new GMT session */
 			mexAtExit(force_Destroy_Session);   /* Register an exit function. */
 		}
