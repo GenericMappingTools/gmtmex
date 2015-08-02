@@ -768,8 +768,8 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 
 	if (direction == GMT_IN) {	/* Dimensions are known from the input pointer */
 		mxArray *mx_ptr = NULL, *mxGrid = NULL, *mxHdr = NULL;
-		double *inc = NULL, *range = NULL, *reg = NULL, *MinMax = NULL;
-		float *f = NULL;
+		double *inc = NULL, *range = NULL, *reg = NULL, *MinMax = NULL, *f8 = NULL;
+		float *f4 = NULL;
 		unsigned int registration;
 
 		if (mxIsEmpty (ptr))
@@ -787,7 +787,8 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 						mexErrMsgTxt ("GMTMEX_grid_init: First element of grid's cell array must contain a decent matrix\n");
 					if (mxGetM(mxHdr) != 1 || mxGetN(mxHdr) != 9)
 						mexErrMsgTxt ("GMTMEX_grid_init: grid's cell array second element must contain a 1x9 vector\n");
-
+					if (!mxIsSingle(mxGrid) && !mxIsDouble(mxGrid))
+						mexErrMsgTxt ("GMTMEX_grid_init: grid's cell matrix must be either single or double.\n");
 				}
 			}
 		}
@@ -804,6 +805,13 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 			mx_ptr = mxGetField (ptr, 0, "registration");
 			if (mx_ptr == NULL)
 				mexErrMsgTxt ("GMTMEX_grid_init: Could not find registration array for Grid registration\n");
+
+			mxGrid = mxGetField(ptr, 0, "z");
+			if (mxGrid == NULL)
+				mexErrMsgTxt ("GMTMEX_grid_init: Could not find data array for Grid\n");
+			if (!mxIsSingle(mxGrid) && !mxIsDouble(mxGrid))
+				mexErrMsgTxt ("GMTMEX_grid_init: data array must be either single or double.\n");
+
 			reg = mxGetData (mx_ptr);
 			registration = (unsigned int)lrint(reg[0]);
 			if ((G = GMT_Create_Data (API, GMT_IS_GRID, GMT_IS_SURFACE, GMT_GRID_ALL,
@@ -818,15 +826,9 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 				G->header->z_max = MinMax[1];
 			}
 
-			mx_ptr = mxGetField(ptr, 0, "z");
-			if (mx_ptr == NULL)
-				mexErrMsgTxt ("GMTMEX_grid_init: Could not find data array for Grid\n");
-
-			f = mxGetData(mx_ptr);
 		}
 		else {
 			double *h = mxGetData(mxHdr);
-			f = mxGetData(mxGrid);
 			registration = (unsigned int)lrint(h[6]);
 			if ((G = GMT_Create_Data (API, GMT_IS_GRID, GMT_IS_SURFACE, GMT_GRID_ALL,
 			                          NULL, h, &h[7], registration, GMT_NOTSET, NULL)) == NULL)
@@ -835,10 +837,22 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 			G->header->z_max = h[5];
 		}
 
-		for (row = 0; row < G->header->ny; row++) {
-			for (col = 0; col < G->header->nx; col++) {
-				gmt_ij = GMT_IJP (G->header, row, col);
-				G->data[gmt_ij] = f[MEXG_IJ(G,row,col)];
+		if (mxIsSingle(mxGrid)) {
+			f4 = mxGetData(mxGrid);
+			for (row = 0; row < G->header->ny; row++) {
+				for (col = 0; col < G->header->nx; col++) {
+					gmt_ij = GMT_IJP (G->header, row, col);
+					G->data[gmt_ij] = f4[MEXG_IJ(G,row,col)];
+				}
+			}
+		}
+		else {
+			f8 = mxGetData(mxGrid);
+			for (row = 0; row < G->header->ny; row++) {
+				for (col = 0; col < G->header->nx; col++) {
+					gmt_ij = GMT_IJP (G->header, row, col);
+					G->data[gmt_ij] = (float)f8[MEXG_IJ(G,row,col)];
+				}
 			}
 		}
 		GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_grid_init: Allocated GMT Grid %lx\n", (long)G);
