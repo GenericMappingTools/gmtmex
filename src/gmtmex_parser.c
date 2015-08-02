@@ -767,10 +767,8 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 	struct GMT_GRID *G = NULL;
 
 	if (direction == GMT_IN) {	/* Dimensions are known from the input pointer */
-		mxArray *mx_ptr = NULL, *mxGrid = NULL, *mxHdr = NULL;
-		double *inc = NULL, *range = NULL, *reg = NULL, *MinMax = NULL, *f8 = NULL;
-		float *f4 = NULL;
 		unsigned int registration;
+		mxArray *mx_ptr = NULL, *mxGrid = NULL, *mxHdr = NULL;
 
 		if (mxIsEmpty (ptr))
 			mexErrMsgTxt ("GMTMEX_grid_init: The input that was supposed to contain the Grid, is empty\n");
@@ -793,7 +791,8 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 			}
 		}
 
-		if (mxIsStruct(ptr)) {
+		if (mxIsStruct(ptr)) {	/* Passed a regular MEX Grid structure */
+			double *inc = NULL, *range = NULL, *reg = NULL, *MinMax = NULL;
 			mx_ptr = mxGetField (ptr, 0, "inc");
 			if (mx_ptr == NULL)
 				mexErrMsgTxt ("GMTMEX_grid_init: Could not find inc array with Grid increments\n");
@@ -827,7 +826,7 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 			}
 
 		}
-		else {
+		else {	/* Passed header and grid separately */
 			double *h = mxGetData(mxHdr);
 			registration = (unsigned int)lrint(h[6]);
 			if ((G = GMT_Create_Data (API, GMT_IS_GRID, GMT_IS_SURFACE, GMT_GRID_ALL,
@@ -838,7 +837,7 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 		}
 
 		if (mxIsSingle(mxGrid)) {
-			f4 = mxGetData(mxGrid);
+			float *f4 = mxGetData(mxGrid);
 			for (row = 0; row < G->header->ny; row++) {
 				for (col = 0; col < G->header->nx; col++) {
 					gmt_ij = GMT_IJP (G->header, row, col);
@@ -847,7 +846,7 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 			}
 		}
 		else {
-			f8 = mxGetData(mxGrid);
+			double *f8 = mxGetData(mxGrid);
 			for (row = 0; row < G->header->ny; row++) {
 				for (col = 0; col < G->header->nx; col++) {
 					gmt_ij = GMT_IJP (G->header, row, col);
@@ -924,7 +923,7 @@ struct GMT_IMAGE *GMTMEX_image_init (void *API, unsigned int direction, const mx
 		if ((I = GMT_Create_Data (API, GMT_IS_IMAGE, GMT_IS_SURFACE, GMT_GRID_HEADER_ONLY,
 		                          NULL, NULL, NULL, 0, 0, NULL)) == NULL)
 			mexErrMsgTxt ("GMTMEX_image_init: Failure to alloc GMT blank image container for holding output image\n");
-		GMT_set_mem_layout(API, "TCLS");
+		GMT_Set_Default (API, "API_IMAGE_LAYOUT", "TCLS");	/* State how we wish to receive images from GDAL */
 	}
 	return (I);
 }
