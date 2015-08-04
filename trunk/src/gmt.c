@@ -72,8 +72,8 @@ void usage (int nlhs, int nrhs) {
 	}
 }
 
-void *Initiate_Session (unsigned int verbose)
-{	/* Initialize the GMT Session and store the API pointer in a persistent variable */
+void *Initiate_Session (unsigned int verbose) {
+	/* Initialize the GMT Session and store the API pointer in a persistent variable */
 	void *API = NULL;
 	/* Initializing new GMT session with a MATLAB-acceptable replacement for the printf function */
 	if ((API = GMT_Create_Session (MEX_PROG, 2U, (verbose << 0) + GMT_SESSION_NOEXIT + GMT_SESSION_EXTERNAL +
@@ -267,10 +267,6 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 					mexErrMsgTxt ("GMT: Internal Error - unsupported data type\n");
 					break;
 			}
-		}	/* else means we have an object used to pass arrays from MATLAB into GMT */
-		else {	/* Free any memory allocated outside of GMT */
-			if (X[k].family == GMT_IS_TEXTSET)	/* Because Windows cannot stomach another DLL freeing strings */
-				GMTMEX_Free_Textset (API, X[k].object);
 		}
 			
 		if (GMT_Destroy_Data (API, &X[k].object) != GMT_NOERROR)
