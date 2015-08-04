@@ -368,24 +368,6 @@ void *GMTMEX_Get_Textset (void *API, struct GMT_TEXTSET *T)
 	return C;
 }
 
-void GMTMEX_Free_Textset (void *API, struct GMT_TEXTSET *T)
-{
-	/* Because of Windows DLL Hell we have to free those strdup'ed strings
-	 * done in GMTMEX_Text_init here instead of in GMT_Destroy_Data.
-	 */
-	uint64_t seg, row;
-	struct GMT_TEXTSEGMENT *S = NULL;
-
-	if (T == NULL || !T->table)
-		mexErrMsgTxt ("GMTMEX_Free_Textset: programming error, textset T is NULL or empty\n");
-	for (seg = 0; seg < T->table[0]->n_segments; seg++) {
-		S = T->table[0]->segment[seg];
-		for (row = 0; row <S->n_rows; row++) {
-			free (S->record[row]);
-			S->record[row] = NULL;
-		}
-	}
-}
 
 #define N_MEX_FIELDNAMES_CPT	4
 
@@ -944,7 +926,6 @@ struct GMT_TEXTSET *GMTMEX_Text_init (void *API, unsigned int direction, const m
 		for (rec = 0; rec < S->n_rows; rec++) {
 			mx_ptr = mxGetCell (ptr, rec);
 			txt = mxArrayToString (mx_ptr);
-			//S->record[rec] = GMT_Duplicate_String (API, txt);
 			S->record[rec] = txt;
 		}
 		T->n_records = T->table[0]->n_records = S->n_rows;
