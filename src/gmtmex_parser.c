@@ -799,7 +799,7 @@ void *GMTMEX_dataset_init (void *API, unsigned int direction, const mxArray *ptr
 	if (direction == GMT_IN) {	/* Dimensions are known, extract them and set dim array for a GMT_MATRIX resource */
 		uint64_t dim[3] = {0, 0, 0};
 		struct GMT_MATRIX *M = NULL;
-		mxClassID type = mxGetClassID (ptr);;
+		mxClassID type = mxGetClassID (ptr);
 		if (!mxIsNumeric (ptr)) mexErrMsgTxt ("GMTMEX_dataset_init: Expected a Matrix for input\n");
 		dim[DIM_ROW] = mxGetM (ptr);	/* Number of rows */
 		dim[DIM_COL] = mxGetN (ptr);	/* Number of columns */
@@ -940,10 +940,12 @@ struct GMT_TEXTSET *GMTMEX_Text_init (void *API, unsigned int direction, const m
 			mexErrMsgTxt ("GMTMEX_Text_init: Failure to alloc GMT source TEXTSET for input\n");
 		S = T->table[0]->segment[0];	/* Only one segment coming from MATLAB */
 		S->n_rows = dim[GMT_ROW];
+		T->alloc_mode = GMT_ALLOC_EXTERNALLY;
 		for (rec = 0; rec < S->n_rows; rec++) {
 			mx_ptr = mxGetCell (ptr, rec);
 			txt = mxArrayToString (mx_ptr);
-			S->record[rec] = strdup (txt);
+			//S->record[rec] = GMT_Duplicate_String (API, txt);
+			S->record[rec] = txt;
 		}
 		T->n_records = T->table[0]->n_records = S->n_rows;
 		GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Text_init: Allocated GMT TEXTSET %lx\n", (long)T);
