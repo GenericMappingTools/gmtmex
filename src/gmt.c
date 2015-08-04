@@ -16,7 +16,7 @@
  *	Contact info: gmt.soest.hawaii.edu
  *--------------------------------------------------------------------*/
 /*
- * This is the Matlab/Octave(mex) GMT application, which can do the following:
+ * This is the MATLAB/Octave(mex) GMT application, which can do the following:
  * 1) Create a new session and optionally return the API pointer. We provide for
  *    storing the pointer as a global variable (persistent) between calls.
  * 2) Destroy a GMT session, either given the API pointer or by fetching it from
@@ -26,7 +26,7 @@
  * First argument to the gmt function is the API pointer, but it is optional once created.
  * Next argument is the module name
  * Thrid argument is the option string
- * Finally, there are optional comma-separated Matlab array entities required by the command.
+ * Finally, there are optional comma-separated MATLAB array entities required by the command.
  * Information about the options of each program is provided via GMT_Encode_Options.
  *
  * Version:	5.2
@@ -39,7 +39,7 @@
 extern int GMT_get_V (char arg);
 
 /* Being declared external we can access it between MEX calls */
-static uintptr_t *pPersistent;    /* To store API address back and forth within a single Matlab session */
+static uintptr_t *pPersistent;    /* To store API address back and forth within a single MATLAB session */
 
 /* Here is the exit function, which gets run when the MEX-file is
    cleared and when the user exits MATLAB. The mexAtExit function
@@ -75,7 +75,7 @@ void usage (int nlhs, int nrhs) {
 void *Initiate_Session (unsigned int verbose)
 {	/* Initialize the GMT Session and store the API pointer in a persistent variable */
 	void *API = NULL;
-	/* Initializing new GMT session with a Matlab-acceptable replacement for the printf function */
+	/* Initializing new GMT session with a MATLAB-acceptable replacement for the printf function */
 	if ((API = GMT_Create_Session (MEX_PROG, 2U, (verbose << 0) + GMT_SESSION_NOEXIT + GMT_SESSION_EXTERNAL +
 	                               GMT_SESSION_COLMAJOR, GMTMEX_print_func)) == NULL)
 		mexErrMsgTxt ("GMT: Failure to create new GMT session\n");
@@ -87,17 +87,17 @@ void *Initiate_Session (unsigned int verbose)
 	return (API);
 }
 
-/* This is the function that is called when we type gmt in Matlab/Octave */
+/* This is the function that is called when we type gmt in MATLAB/Octave */
 void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	int status = 0;                 /* Status code from GMT API */
 	unsigned int first = 0;         /* Array ID of first command argument (not 0 when API-ID is first) */
 	unsigned int verbose = 0;       /* Default verbose setting */
-	unsigned int n_items = 0, pos = 0; /* Number of Matlab arguments (left and right) */
+	unsigned int n_items = 0, pos = 0; /* Number of MATLAB arguments (left and right) */
 	size_t str_length = 0, k = 0;   /* Misc. counters */
 	void *API = NULL;		/* GMT API control structure */
 	struct GMT_OPTION *options = NULL; /* Linked list of module options */
-	struct GMT_RESOURCE *X = NULL;  /* Array of information about Matlab args */
-	char *cmd = NULL;               /* Pointer used to get the user's Matlab command */
+	struct GMT_RESOURCE *X = NULL;  /* Array of information about MATLAB args */
+	char *cmd = NULL;               /* Pointer used to get the user's MATLAB command */
 	char *gtxt = NULL;              /* For debug printing of revised command */
 	char *opt_args = NULL;		/* Pointer to the user's module options */
 	const char *keys = NULL;	/* This module's option keys */
@@ -222,7 +222,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		GMT_Destroy_Cmd (API, &gtxt);	/* Only needed it for the above verbose */
 	}
 	
-	/* 5. Assign input sources (from mex) and output destinations (to GMT) */
+	/* 5. Assign input sources (from MATLAB to GMT) and output destinations (from GMT to MATLAB) */
 	
 	for (k = 0; k < n_items; k++) {	/* Number of GMT containers involved in this module call */
 		ptr = (X[k].direction == GMT_IN) ? (void *)prhs[X[k].pos+first+1] : (void *)plhs[X[k].pos];
@@ -240,13 +240,13 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	if (!(status == GMT_NOERROR || status == GMT_SYNOPSIS))
 		mexErrMsgTxt ("GMT: Module return with failure\n");
 
-	/* 7. Hook up any GMT outputs to Matlab plhs array */
+	/* 7. Hook up any GMT outputs to MATLAB plhs array */
 	
 	for (k = 0; k < n_items; k++) {	/* Number of GMT containers involved in this module call */
-		if (X[k].direction == GMT_OUT) {	/* Get results from GMT into Matlab arrays */
+		if (X[k].direction == GMT_OUT) {	/* Get results from GMT into MATLAB arrays */
 			if ((X[k].object = GMT_Retrieve_Data (API, X[k].object_ID)) == NULL)
 				mexErrMsgTxt ("GMT: Error retrieving object from GMT\n");
-			pos = X[k].pos;	/* Short-hand for index into the plhs[] array being returned to Matlab */
+			pos = X[k].pos;	/* Short-hand for index into the plhs[] array being returned to MATLAB */
 			switch (X[k].family) {	/* Determine what container we got */
 				case GMT_IS_GRID:	/* A GMT grid; make it the pos'th output item */
 					plhs[pos] = GMTMEX_Get_Grid (API, X[k].object);
@@ -264,17 +264,17 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 					plhs[pos] = GMTMEX_Get_Image (API, X[k].object);
 					break;
 				default:
-					mexErrMsgTxt ("GMT: Unsupported data type\n");
+					mexErrMsgTxt ("GMT: Internal Error - unsupported data type\n");
 					break;
 			}
-		}	/* else means we have an object used to pass arrays from Matlab into GMT */
+		}	/* else means we have an object used to pass arrays from MATLAB into GMT */
 		else {	/* Free any memory allocated outside of GMT */
 			if (X[k].family == GMT_IS_TEXTSET)	/* Because Windows cannot stomach another DLL freeing strings */
 				GMTMEX_Free_Textset (API, X[k].object);
 		}
 			
 		if (GMT_Destroy_Data (API, &X[k].object) != GMT_NOERROR)
-			mexErrMsgTxt ("GMT: Failed to destroy object used in the interface between GMT and Matlab\n");
+			mexErrMsgTxt ("GMT: Failed to destroy object used in the interface between GMT and MATLAB\n");
 	}
 	
 	/* 8. Destroy linked option list */
