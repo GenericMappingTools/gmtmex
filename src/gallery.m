@@ -8,7 +8,7 @@ global g_root_dir out_path;
 g_root_dir = 'C:/progs_cygw/GMTdev/gmt5/branches/5.2.0/';
 out_path = 'V:/';		% Set this if you want to save the PS files in a prticular place
 
-	all_exs = {'ex01' 'ex02' 'ex04' 'ex06' 'ex07' 'ex08' 'ex09' 'ex10' 'ex23' 'ex44'}; 
+	all_exs = {'ex01' 'ex02' 'ex04' 'ex06' 'ex07' 'ex08' 'ex09' 'ex10' 'ex12' 'ex13' 'ex14' 'ex23' 'ex44'}; 
 
 	if (nargin == 0)
 		opt = all_exs;
@@ -27,6 +27,9 @@ out_path = 'V:/';		% Set this if you want to save the PS files in a prticular pl
 				case 'ex08',   ex08
 				case 'ex09',   ex09
 				case 'ex10',   ex10
+				case 'ex12',   ex12
+				case 'ex13',   ex13
+				case 'ex14',   ex14
 				case 'ex23',   ex23
 				case 'ex44',   ex44
 			end
@@ -153,6 +156,7 @@ function ex08()
 
 % -------------------------------------------------------------------------------------------------
 function ex09()
+% THIS EXAMPLE FAILS
 	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex09'];
 	ps = [out_path 'example_09.ps'];
@@ -169,6 +173,7 @@ function ex09()
 
 % -------------------------------------------------------------------------------------------------
 function ex10()
+% THIS EXAMPLE FAILS
 	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex10'];
 	ps = [out_path 'example_10.ps'];
@@ -203,6 +208,103 @@ function ex10()
 	% BUG HERE. NOTHING IS WRITTEN BY THE NEXT COMMAND 
 	gmt(['pslegend -R -J -JZ -DjLB+o0.2i+w1.35i/0+jBL -O --FONT=Helvetica-Bold' ...
 		' -F+glightgrey+pthinner+s-4p/-6p/grey20@40 -p ' d_path '/legend.txt -Vl >> ' ps])
+
+% -------------------------------------------------------------------------------------------------
+function ex12()
+% THIS EXAMPLE FAILS
+	global g_root_dir out_path
+	d_path = [g_root_dir 'doc/examples/ex12'];
+	ps = [out_path 'example_12.ps'];
+
+	net_xy = gmt(['triangulate ' d_path '/table_5.11 -M']);
+	gmt(['psxy -R0/6.5/-0.2/6.5 -JX3.06i/3.15i -B2f1 -BWSNe -Wthinner -P -K -X0.9i -Y4.65i > ' ps], net_xy)
+	gmt(['psxy ' d_path '/table_5.11 -R -J -O -K -Sc0.12i -Gwhite -Wthinnest >> ' ps])
+	t = load([d_path '/table_5.11']);
+	nl = size(t,1);
+	c = cell(nl,1);
+	for (k = 1:nl)
+		c{k} = sprintf('%f %f %d\n', t(k,1:2), k-1);
+	end
+	gmt(['pstext -R -J -F+f6p -O -K >> ' ps], c)
+	%
+	% Then draw network and print the node values
+	%
+	gmt(['psxy -R -J -B2f1 -BeSNw -Wthinner -O -K -X3.25i >> ' ps], net_xy)
+	gmt(['psxy -R -J -O -K ' d_path '/table_5.11 -Sc0.03i -Gblack >> ' ps])
+	gmt(['pstext ' d_path '/table_5.11 -R -J -F+f6p+jLM -O -K -Gwhite -W -C0.01i -D0.08i/0i -N >> ' ps])
+	%
+	% Then contour the data and draw triangles using dashed pen; use "gmt gmtinfo" and "gmt makecpt" to make a
+	% color palette (.cpt) file
+	%
+	T = gmt(['info -T25/2 ' d_path '/table_5.11']);
+	topo_cpt = gmt(['makecpt -Cjet ' T{1}]);
+	gmt(['pscontour -R -J ' d_path '/table_5.11 -B2f1 -BWSne -Wthin -C -Lthinnest,-' ...
+		' -Gd1i -X-3.25i -Y-3.65i -O -K >> ' ps], topo_cpt)
+	%
+	% Finally color the topography
+	% NEX CALL ERRORS with "pscontour: -I option requires constant color between contours!"		BECAUSE
+% in GMT_Read_Data #L4786
+% (void)GMTAPI_split_via_method (API, API->object[item]->method, &via); 
+% sets via = 0, which ends in
+% GMT_init_cpt #L2998
+% P->is_continuous = true;	/* The only kind from the outside (?) */
+	gmt(['pscontour -R -J ' d_path '/table_5.11 -B2f1 -BeSnw -C -I -X3.25i -O -K >> ' ps], topo_cpt)
+	gmt(['pstext -R0/8/0/11 -Jx1i -F+f30p,Helvetica-Bold+jCB -O -X-3.25i >> ' ps], {'3.16 8 Delaunay Triangulation'})
+
+% -------------------------------------------------------------------------------------------------
+function ex13()
+% THIS EXAMPLE FAILS
+	global out_path
+	ps = [out_path 'example_13.ps'];
+
+	Gz = gmt('grdmath -R-2/2/-2/2 -I0.1 X Y R2 NEG EXP X MUL =');
+	Gdzdx = gmt('grdmath $ DDX', Gz);
+	Gdzdy = gmt('grdmath $ DDY', Gz);
+	gmt(['grdcontour -JX3i -B1 -BWSne -C0.1 -A0.5 -K -P -Gd2i -S4 -T+d0.1i/0.03i > ' ps], Gdzdx)
+	gmt(['grdcontour -J -B -C0.05 -A0.2 -O -K -Gd2i -S4 -T+d0.1i/0.03i -Xa3.45i >> ' ps], Gdzdy)
+	gmt(['grdcontour -J -B -C0.05 -A0.1 -O -K -Gd2i -S4 -T+d0.1i/0.03i -Y3.45i >> ' ps], Gz)
+	gmt(['grdcontour -J -B -C0.05 -O -K -Gd2i -S4 -X3.45i >> ' ps], Gz)
+	gmt(['grdvector  $ $ -I0.2 -J -O -K -Q0.1i+e+n0.25i -Gblack -W1p -S5i --MAP_VECTOR_SHAPE=0.5 >> ' ps], Gdzdx, Gdzdy)
+	gmt(['pstext -R0/6/0/4.5 -Jx1i -F+f40p,Times-Italic+jCB -O -X-3.45i >> ' ps], ...
+		{'3.2 3.6 z(x,y) = x@~\327@~exp(-x@+2@+-y@+2@+)'})
+
+% -------------------------------------------------------------------------------------------------
+function ex14()
+% THIS EXAMPLE FAILS
+	global g_root_dir out_path
+	d_path = [g_root_dir 'doc/examples/ex14'];
+	ps = [out_path 'example_14.ps'];
+
+	% First draw network and label the nodes
+	gmt('gmtset MAP_GRID_PEN_PRIMARY thinnest,-')
+	gmt(['psxy ' d_path '/table_5.11 -R0/7/0/7 -JX3.06i/3.15i -B2f1 -BWSNe -Sc0.05i -Gblack -P -K -Y6.45i > ' ps])
+	gmt(['pstext ' d_path '/table_5.11 -R -J -D0.1c/0 -F+f6p+jLM -O -K -N >> ' ps])
+	mean_xyz = gmt(['blockmean ' d_path '/table_5.11 -R0/7/0/7 -I1']);
+
+	% Then draw gmt blockmean cells
+	gmt(['psbasemap -R0.5/7.5/0.5/7.5 -J -O -K -Bg1 -X3.25i >> ' ps])
+	gmt(['psxy -R0/7/0/7 -J -B2f1 -BeSNw -Ss0.05i -Gblack -O -K >> ' ps], mean_xyz)
+	% Reformat to one decimal for annotation purposes
+%	t = gmt('gmtconvert --FORMAT_FLOAT_OUT=%.1f', mean_xyz);							% <---------------- FAILS HERE
+%	gmt(['pstext -R -J -D0.15c/0 -F+f6p+jLM -O -K -Gwhite -W -C0.01i -N >> ' ps], t)
+
+	% Then gmt surface and contour the data
+	Gdata = gmt('surface -R -I1', mean_xyz);
+	gmt(['grdcontour -J -B2f1 -BWSne -C25 -A50 -Gd3i -S4 -O -K -X-3.25i -Y-3.55i >> ' ps], Gdata)
+	gmt(['psxy -R -J -Ss0.05i -Gblack -O -K >> ' ps], mean_xyz)
+
+	% Fit bicubic trend to data and compare to gridded gmt surface
+	Gtrend = gmt('grdtrend -N10 -T', Gdata);		% WHY WE HAVE TO LET THE -T HERE BUT NOT THE -G In surface() ABOVE?
+	track = gmt('project -C0/0 -E7/7 -G0.1 -N');	% <------------------ FAILS HERE
+	gmt(['grdcontour -J -B2f1 -BwSne -C25 -A50 -Glct/cb -S4 -O -K -X3.25i >> ' ps], Gtrend)
+	gmt(['psxy -R -J -Wthick,. -O -K >> ' ps], track)
+
+	% Sample along diagonal
+	data  = gmt('grdtrack -G -o2,3', Gdata, track);
+	trend = gmt('grdtrack track -Gtrend.nc -o2,3', Gtrend, track);
+	t = gmt('info -I0.5/25', data, trend);
+	gmt(['psxy -JX6.3i/1.4i data.d -Wthick -O -K -X-3.25i -Y-1.9i -Bx1 -By50 -BWSne >> ' ps], t)
+	gmt(['psxy -R -J trend.d -Wthinner,- -O >> ' ps])
 
 % -------------------------------------------------------------------------------------------------
 function ex23()
@@ -270,7 +372,7 @@ function ex44()
 	t = load('xx000');		% x0 y0 w h
 	cmd = sprintf('pscoast -Rg -JG120/30S/%f -Da -Gbrown -A5000 -Bg -Wfaint -EAU+gbisque -O -K -X%f -Y%f >> %s', t(3), t(1), t(2), ps);
 	gmt(cmd)
-	gmt(sprintf('psxy -R -J -O -K -T -X-%f -Y-%f >> %s', t(1), t(2), ps),0)
+	gmt(sprintf('psxy -R -J -O -K -T -X-%f -Y-%f >> %s', t(1), t(2), ps))
 	% Determine size of insert map of Europe
 	t = gmt('mapproject -R15W/35E/30N/48N -JM2i -W',0);	% w h
 	gmt(['pscoast -R10W/5E/35N/44N -JM6i -Baf -BWSne -EES+gbisque -Gbrown -Wfaint -N1/1p -Sazure1' ...
@@ -279,5 +381,5 @@ function ex44()
 	t = load('xx000');		% x0 y0 w h
 	cmd = sprintf('pscoast -R15W/35E/30N/48N -JM%f -Da -Gbrown -B0 -EES+gbisque -O -K -X%f -Y%f ', t(3), t(1), t(2));
 	gmt([cmd '--MAP_FRAME_TYPE=plain >> ' ps])
-	gmt(sprintf('psxy -R -J -O -T -X-%f -Y-%f >> %s', t(1), t(2), ps),0)
+	gmt(sprintf('psxy -R -J -O -T -X-%f -Y-%f >> %s', t(1), t(2), ps))
 	builtin('delete','xx000');
