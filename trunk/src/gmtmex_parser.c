@@ -781,7 +781,9 @@ void *GMTMEX_dataset_init (void *API, unsigned int direction, const mxArray *ptr
 	if (direction == GMT_IN) {	/* Dimensions are known, extract them and set dim array for a GMT_MATRIX resource */
 		uint64_t dim[3] = {0, 0, 0};
 		struct GMT_MATRIX *M = NULL;
-		mxClassID type = mxGetClassID (ptr);
+		mxClassID type;
+		if (!ptr) mexErrMsgTxt("GMTMEX_dataset_init: input is empty where it can't be.\n");
+		type  = mxGetClassID(ptr);
 		if (!mxIsNumeric (ptr)) mexErrMsgTxt ("GMTMEX_dataset_init: Expected a Matrix for input\n");
 		dim[DIM_ROW] = mxGetM (ptr);	/* Number of rows */
 		dim[DIM_COL] = mxGetN (ptr);	/* Number of columns */
