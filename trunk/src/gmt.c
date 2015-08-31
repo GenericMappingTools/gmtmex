@@ -116,6 +116,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	
 	if (nrhs == 1) {	/* This may be create or help */
 		cmd = mxArrayToString (prhs[0]);
+		if (!cmd) mexErrMsgTxt("GMT: First input argument must be a string. Maybe a composition of a string and a cell array?\n");
 		if (!strncmp (cmd, "help", 4U) || !strncmp (cmd, "--help", 6U)) {
 			usage (nlhs, 1);
 			return;
