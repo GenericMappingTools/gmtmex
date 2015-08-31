@@ -238,8 +238,10 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	
 	/* 6. Run GMT module; give usage message if errors arise during parsing */
 	status = GMT_Call_Module (API, module, GMT_MODULE_OPT, options);
-	if (!(status == GMT_NOERROR || status == GMT_SYNOPSIS))
-		mexErrMsgTxt ("GMT: Module return with failure\n");
+	if (!(status == GMT_NOERROR || status == GMT_SYNOPSIS)) {
+		mexPrintf("GMT: Module return with failure while executing the command\n%s\n", cmd);
+		mexErrMsgTxt("GMT: exiting\n");
+	}
 
 	/* 7. Hook up any GMT outputs to MATLAB plhs array */
 	
