@@ -8,7 +8,8 @@ global g_root_dir out_path;
 g_root_dir = 'C:/progs_cygw/GMTdev/gmt5/branches/5.2.0/';
 out_path = 'V:/';		% Set this if you want to save the PS files in a prticular place
 
-	all_exs = {'ex01' 'ex02' 'ex04' 'ex06' 'ex07' 'ex08' 'ex09' 'ex10' 'ex12' 'ex13' 'ex14' 'ex15' 'ex23' 'ex44'}; 
+	all_exs = {'ex01' 'ex02' 'ex04' 'ex06' 'ex07' 'ex08' 'ex09' 'ex10' 'ex12' 'ex13' 'ex14' 'ex15' ...
+		'ex23' 'ex34' 'ex35' 'ex40' 'ex44'}; 
 
 	if (nargin == 0)
 		opt = all_exs;
@@ -32,6 +33,9 @@ out_path = 'V:/';		% Set this if you want to save the PS files in a prticular pl
 				case 'ex14',   ex14
 				case 'ex15',   ex15
 				case 'ex23',   ex23
+				case 'ex34',   ex34
+				case 'ex35',   ex35
+				case 'ex40',   ex40
 				case 'ex44',   ex44
 			end
 		end
@@ -295,7 +299,7 @@ function ex14()
 	gmt(['psxy -R -J -Ss0.05i -Gblack -O -K >> ' ps], mean_xyz)
 
 	% Fit bicubic trend to data and compare to gridded gmt surface
-	Gtrend = gmt('grdtrend -N10 -T', Gdata);		% WHY WE HAVE TO LET THE -T HERE BUT NOT THE -G In surface() ABOVE?
+	Gtrend = gmt('grdtrend -N10 -T', Gdata);
 	track  = gmt('project -C0/0 -E7/7 -G0.1 -N');
 	gmt(['grdcontour -J -B2f1 -BwSne -C25 -A50 -Glct/cb -S4 -O -K -X3.25i >> ' ps], Gtrend)
 	gmt(['psxy -R -J -Wthick,. -O -K >> ' ps], track)
@@ -394,6 +398,89 @@ function ex23()
 	builtin('delete','cities.d');
 
 % -------------------------------------------------------------------------------------------------
+function ex34()
+	global g_root_dir out_path
+	d_path = [g_root_dir 'doc/examples/ex34'];
+	ps = [out_path 'example_34.ps'];
+
+	gmt('gmtset FORMAT_GEO_MAP dddF')
+	gmt(['pscoast -JM4.5i -R-6/20/35/52 -EFR,IT+gP300/8 -Glightgray -Baf -BWSne -P -K -X2i > ' ps])
+	% Extract a subset of ETOPO2m for this part of Europe
+	% gmt grdcut etopo2m_grd.nc -R -GFR+IT.nc=ns
+	z_cpt = gmt('makecpt -Cglobe -T-5000/5000/500 -Z');
+	FR_IT_int = gmt(['grdgradient ' d_path '/FR+IT.nc -A15 -Ne0.75 -G']);
+	gmt(['grdimage ' d_path '/FR+IT.nc -I -C -J -O -K -Y4.5i' ...
+		' -Baf -BWsnE+t"Franco-Italian Union, 2042-45" >> ' ps], FR_IT_int, z_cpt)	% Hmmm, how does it know which input is which?
+	gmt(['pscoast -J -R -EFR,IT+gred@60 -O >> ' ps])
+	builtin('delete','gmt.conf');
+
+% -------------------------------------------------------------------------------------------------
+function ex35()
+% THIS EXAMPLE FAILS BECAUSE OF sphtriangulate
+	global g_root_dir out_path
+	d_path = [g_root_dir 'doc/examples/ex35'];
+	ps = [out_path 'example_35.ps'];
+
+	% Get the crude GSHHS data, select GMT format, and decimate to ~20%:
+	% gshhs $GMTHOME/src/coast/gshhs/gshhs_c.b | $AWK '{if ($1 == ">" || NR%5 == 0) print $0}' > gshhs_c.txt
+	% Get Voronoi polygons
+	tt_pol = gmt(['sphtriangulate ' d_path '/gshhs_c.txt -Qv -D']);
+	% Compute distances in km
+	Gtt = gmt('sphdistance -Rg -I1 -Q -G -Lk', tt_pol);
+	t_cpt = gmt('makecpt -Chot -T0/3500/500 -Z');
+	% Make a basic image plot and overlay contours, Voronoi polygons and coastlines
+	gmt(['grdimage -JG-140/30/7i -P -K -C -X0.75i -Y2i > ' ps], Gtt, t_cpt)
+	gmt(['grdcontour -J -O -K -C500 -A1000+f10p,Helvetica,white -L500' ...
+		' -GL0/90/203/-10,175/60/170/-30,-50/30/220/-5 -Wa0.75p,white -Wc0.25p,white >> ' ps], Gtt)
+	gmt(['psxy -R -J -O -K -W0.25p,green,. >> ' ps], tt_pol)
+	gmt(['pscoast -R -J -O -W1p -Gsteelblue -A0/1/1 -B30g30 -B+t"Distances from GSHHG crude coastlines" >> ' ps])
+	builtin('delete','gmt.conf');
+
+% -------------------------------------------------------------------------------------------------
+function ex40()
+% THIS EXAMPLE FAILS BECAUSE CALLS to gmtspatial CRASH ML
+	global g_root_dir out_path
+	d_path = [g_root_dir 'doc/examples/ex40'];
+	ps = [out_path 'example_40.ps'];
+
+	% This call crashes ML because:
+	%centroid = gmt(['gmtspatial ' d_path '/GSHHS_h_Australia.txt -fg -Qk'])
+% GMT_Destroy_Options is called twice. One by gmtspatial and the other at the end of gmt.c (the MEX one).
+% In this second call
+%  		GMT_free (API->GMT, delete);		/* Then free the structure which was allocated by GMT_memory */ 
+% Kabooms because the *head had junk in it. 
+
+	centroid = [133.913549887	-22.9337944115	7592694.55567];
+	gmt(['psbasemap -R112/154/-40/-10 -JM5.5i -P -K -B20 -BWSne+g240/255/240 -Xc > ' ps])
+	gmt(['psxy ' d_path '/GSHHS_h_Australia.txt -R -J -O -Wfaint -G240/240/255 -K >> ' ps])
+	gmt(['psxy ' d_path '/GSHHS_h_Australia.txt -R -J -O -Sc0.01c -Gred -K >> ' ps])
+	T500k = gmt(['gmtsimplify ' d_path '/GSHHS_h_Australia.txt -T500k']);
+	t = gmt(['gmtspatial ' d_path '/GSHHS_h_Australia.txt -fg -Qk']);
+	area = sprintf('Full area = %.0f km@+2@+\n', t(3));
+	%| awk '{printf "Full area = %.0f km@+2@+\n", $3}' > area.txt
+	t = gmt('gmtspatial -fg -Qk', T500k); 
+	area_T500k = sprintf('Reduced area = %.0f km@+2@+\n', t(3));
+	%| awk '{printf "Reduced area = %.0f km@+2@+\n", $3}' > area_T500k.txt
+	gmt(['psxy -R -J -O -K -W1p,blue >> ' ps], T500k)
+	gmt(['psxy -R -J -O -K -Sx0.3i -W3p >> ' ps], centroid)
+	gmt(['pstext -R -J -O -K -Dj0.1i/0.1i -F+jTL+f18p >> ' ps], {'112 -10 T = 500 km'})
+	gmt(['pstext -R -J -O -K -F+14p+cCM >> ' ps], {area})
+	gmt(['pstext -R -J -O -K -F+14p+cLB -Dj0.2i >> ' ps], {area_T500k})
+	gmt(['psbasemap -R -J -O -K -B20+lightgray -BWsne+g240/255/240 -Y4.7i >> ' ps])
+	gmt(['psxy ' d_path '/GSHHS_h_Australia.txt -R -J -O -Wfaint -G240/240/255 -K >> ' ps])
+	gmt(['psxy ' d_path '/GSHHS_h_Australia.txt -R -J -O -Sc0.01c -Gred -K >> ' ps])
+	T100k = gmt(['gmtsimplify ' d_path '/GSHHS_h_Australia.txt -T100k']);
+	t = gmt('gmtspatial -fg -Qk', T100k');
+	area_T100k = sprintf('Reduced area = %.0f km@+2@+\n', t(3));
+	%| awk '{printf "Reduced area = %.0f km@+2@+\n", $3}' > area_T100k.txt
+	gmt(['psxy -R -J -O -K -W1p,blue >> ' ps], T100k)
+	gmt(['psxy -R -J -O -K -Sx0.3i -W3p >> ' ps], centroid)
+	gmt(['pstext -R -J -O -K -Dj0.1i/0.1i -F+jTL+f18p >> ' ps], {'112 -10 T = 100 km'})
+	gmt(['pstext -R -J -O -K -F+14p+cCM >> ' ps], {area})
+	gmt(['pstext -R -J -O -K -F+14p+cLB -Dj0.2i >> ' ps], {area_T100k})
+	gmt(['psxy -R -J -O -T >> ' ps])
+
+% -------------------------------------------------------------------------------------------------
 function ex44()
 	global out_path
 	ps = [out_path 'example_44.ps'];
@@ -407,7 +494,7 @@ function ex44()
 	gmt(cmd)
 	gmt(sprintf('psxy -R -J -O -K -T -X-%f -Y-%f >> %s', t(1), t(2), ps))
 	% Determine size of insert map of Europe
-	t = gmt('mapproject -R15W/35E/30N/48N -JM2i -W',0);	% w h
+	t = gmt('mapproject -R15W/35E/30N/48N -JM2i -W');	% w h
 	gmt(['pscoast -R10W/5E/35N/44N -JM6i -Baf -BWSne -EES+gbisque -Gbrown -Wfaint -N1/1p -Sazure1' ...
 		' -Df -O -K -Y4.5i --FORMAT_GEO_MAP=dddF >> ' ps])
 	gmt(sprintf('psbasemap -R -J -O -K -DjTR+w%f/%f+o0.15i/0.1i+sxx000 -F+gwhite+p1p+c0.1c+s >> %s', t(1), t(2), ps))
