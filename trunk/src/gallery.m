@@ -8,7 +8,7 @@ global g_root_dir out_path;
 g_root_dir = 'C:/progs_cygw/GMTdev/gmt5/branches/5.2.0/';
 out_path = 'V:/';		% Set this if you want to save the PS files in a prticular place
 
-	all_exs = {'ex01' 'ex02' 'ex04' 'ex06' 'ex07' 'ex08' 'ex09' 'ex10' 'ex12' 'ex13' 'ex14' 'ex23' 'ex44'}; 
+	all_exs = {'ex01' 'ex02' 'ex04' 'ex06' 'ex07' 'ex08' 'ex09' 'ex10' 'ex12' 'ex13' 'ex14' 'ex15' 'ex23' 'ex44'}; 
 
 	if (nargin == 0)
 		opt = all_exs;
@@ -30,6 +30,7 @@ out_path = 'V:/';		% Set this if you want to save the PS files in a prticular pl
 				case 'ex12',   ex12
 				case 'ex13',   ex13
 				case 'ex14',   ex14
+				case 'ex15',   ex15
 				case 'ex23',   ex23
 				case 'ex44',   ex44
 			end
@@ -295,16 +296,48 @@ function ex14()
 
 	% Fit bicubic trend to data and compare to gridded gmt surface
 	Gtrend = gmt('grdtrend -N10 -T', Gdata);		% WHY WE HAVE TO LET THE -T HERE BUT NOT THE -G In surface() ABOVE?
-	track = gmt('project -C0/0 -E7/7 -G0.1 -N');	% <------------------ FAILS HERE
+	track  = gmt('project -C0/0 -E7/7 -G0.1 -N');
 	gmt(['grdcontour -J -B2f1 -BwSne -C25 -A50 -Glct/cb -S4 -O -K -X3.25i >> ' ps], Gtrend)
 	gmt(['psxy -R -J -Wthick,. -O -K >> ' ps], track)
 
 	% Sample along diagonal
 	data  = gmt('grdtrack -G -o2,3', Gdata, track);
-	trend = gmt('grdtrack track -Gtrend.nc -o2,3', Gtrend, track);
+	trend = gmt('grdtrack -G -o2,3', Gtrend, track);
 	t = gmt('info -I0.5/25', data, trend);
-	gmt(['psxy -JX6.3i/1.4i data.d -Wthick -O -K -X-3.25i -Y-1.9i -Bx1 -By50 -BWSne >> ' ps], t)
-	gmt(['psxy -R -J trend.d -Wthinner,- -O >> ' ps])
+	gmt(['psxy -JX6.3i/1.4i ' t{1} ' -Wthick -O -K -X-3.25i -Y-1.9i -Bx1 -By50 -BWSne >> ' ps], data)
+	gmt(['psxy -R -J -Wthinner,- -O >> ' ps], trend)
+
+% -------------------------------------------------------------------------------------------------
+function ex15()
+% THIS EXAMPLE FAILS TO PLOT THE STAR AT THE MINIMUM AT UR FIG
+	global g_root_dir out_path
+	d_path = [g_root_dir 'doc/examples/ex15'];
+	ps = [out_path 'example_15.ps'];
+
+	gmt(['gmtconvert ' d_path '/ship.xyz -bo > ship.b'])
+
+	region = gmt('info ship.b -I1 -bi3d');
+	region = region{1};				% We want this to be astring, not a cell
+	Gship  = gmt(['nearneighbor ' region ' -I10m -S40k ship.b -bi']);
+	gmt(['grdcontour -JM3i -P -B2 -BWSne -C250 -A1000 -Gd2i -K > ' ps], Gship)
+
+	ship_10m = gmt(['blockmedian ' region ' -I10m ship.b -b3d']);
+	Gship = gmt(['surface ' region ' -I10m'], ship_10m);
+	gmt(['psmask ' region ' -I10m ship.b -J -O -K -T -Glightgray -bi3d -X3.6i >> ' ps])
+	gmt(['grdcontour -J -B -C250 -L-8000/0 -A1000 -Gd2i -O -K >> ' ps], Gship)
+
+	gmt(['psmask ' region ' -I10m -J -B -O -K -X-3.6i -Y3.75i >> ' ps], ship_10m)
+	gmt(['grdcontour -J -C250 -A1000 -L-8000/0 -Gd2i -O -K >> ' ps], Gship)
+	gmt(['psmask -C -O -K >> ' ps])
+
+	Gship_clipped = gmt('grdclip -Sa-1/NaN -G', Gship);
+	gmt(['grdcontour -J -B -C250 -A1000 -L-8000/0 -Gd2i -O -K -X3.6i >> ' ps], Gship_clipped)
+	gmt(['pscoast ' region ' -J -O -K -Ggray -Wthinnest >> ' ps])
+	info = gmt('grdinfo -C -M', Gship);
+	info = strread(info{1}, '%f', 14);
+	gmt(['psxy -R -J -O -K -Sa0.15i -Wthick >> ' ps], info(11:12))		% <--------- DOES NOT SHOW UP
+	gmt(['pstext -R0/3/0/4 -Jx1i -F+f24p,Helvetica-Bold+jCB -O -N >> ' ps], {'-0.3 3.6 Gridding with missing data'})
+	builtin('delete','ship.b');
 
 % -------------------------------------------------------------------------------------------------
 function ex23()
