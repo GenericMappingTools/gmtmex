@@ -3,13 +3,17 @@ function  gallery(opt)
 %	The examples Gallery in GMT-MEX API
 %
 
+% For small cpts created on line it would be nice to have an alternative to (e.g)
+% 	fid = fopen('gray.cpt','w');	fprintf(fid, '%s\n', '-10000 150 10000 150');	fclose(fid);
+% Perhaps makecpt could accept a cell array as input?
+
 global g_root_dir out_path;
 % Edit those two for your own needs
 g_root_dir = 'C:/progs_cygw/GMTdev/gmt5/branches/5.2.0/';
 out_path = 'V:/';		% Set this if you want to save the PS files in a prticular place
 
-	all_exs = {'ex01' 'ex02' 'ex04' 'ex06' 'ex07' 'ex08' 'ex09' 'ex10' 'ex12' 'ex13' 'ex14' 'ex15' ...
-		'ex23' 'ex34' 'ex35' 'ex36' 'ex38' 'ex39' 'ex40' 'ex41' 'ex44'}; 
+	all_exs = {'ex01' 'ex02' 'ex04' 'ex05' 'ex06' 'ex07' 'ex08' 'ex09' 'ex10' 'ex12' 'ex13' 'ex14' ...
+		'ex15' 'ex16' 'ex17' 'ex20' 'ex23' 'ex34' 'ex35' 'ex36' 'ex38' 'ex39' 'ex40' 'ex41' 'ex44'}; 
 
 	if (nargin == 0)
 		opt = all_exs;
@@ -23,6 +27,7 @@ out_path = 'V:/';		% Set this if you want to save the PS files in a prticular pl
 				case 'ex01',   ex01
 				case 'ex02',   ex02
 				case 'ex04',   ex04
+				case 'ex05',   ex05
 				case 'ex06',   ex06
 				case 'ex07',   ex07
 				case 'ex08',   ex08
@@ -32,6 +37,9 @@ out_path = 'V:/';		% Set this if you want to save the PS files in a prticular pl
 				case 'ex13',   ex13
 				case 'ex14',   ex14
 				case 'ex15',   ex15
+				case 'ex16',   ex16
+				case 'ex17',   ex17
+				case 'ex20',   ex20
 				case 'ex23',   ex23
 				case 'ex34',   ex34
 				case 'ex35',   ex35
@@ -120,6 +128,22 @@ function ex04()
 	gmt([sprintf('grdview %s/HI_topo4.nc', d_path) ' -I -R195/210/18/25/-6/4 -J -C' d_path '/topo.cpt' ...
 		' -JZ3.4i -p60/30 -O -K -N-6+glightgray -Qc100 -B2 -Bz2+l"Topo (km)" -BneswZ -Y2.2i >> ' ps], Gt_intens)
 	gmt(['pstext -R0/10/0/10 -Jx1i -F+f60p,ZapfChancery-MediumItalic+jCB -O >> ' ps], {'3.25 5.75 H@#awaiian@# R@#idge@#'})
+
+% -------------------------------------------------------------------------------------------------
+function ex05()
+	global out_path
+	ps = [out_path 'example_05.ps'];
+
+	Gsombrero = gmt('grdmath -R-15/15/-15/15 -I0.3 X Y HYPOT DUP 2 MUL PI MUL 8 DIV COS EXCH NEG 10 DIV EXP MUL =');
+	fid = fopen('gray.cpt','w');
+	fprintf(fid, '%s\n', '-5 128 5 128');
+	fclose(fid);
+	Gintensity = gmt('grdgradient -A225 -G -Nt0.75', Gsombrero);
+	gmt(['grdview -JX6i -JZ2i -B5 -Bz0.5 -BSEwnZ -N-1+gwhite -Qs -I -X1.5i' ...
+		' -Cgray.cpt -R-15/15/-15/15/-1/1 -K -p120/30 > ' ps], Gintensity, Gsombrero)
+	gmt(['pstext -R0/11/0/8.5 -Jx1i -F+f50p,ZapfChancery-MediumItalic+jBC -O >> ' ps], ...
+		{'4.1 5.5 z(r) = cos (2@~p@~r/8) @~\327@~e@+-r/10@+'})
+	builtin('delete','gray.cpt');
 
 % -------------------------------------------------------------------------------------------------
 function ex06()
@@ -267,7 +291,7 @@ function ex13()
 	ps = [out_path 'example_13.ps'];
 
 	Gz = gmt('grdmath -R-2/2/-2/2 -I0.1 X Y R2 NEG EXP X MUL =');
-	Gdzdx = gmt('grdmath $ DDX', Gz);
+	Gdzdx = gmt('grdmath $ DDX', Gz);		% <------ FAILS HERE
 	Gdzdy = gmt('grdmath $ DDY', Gz);
 	gmt(['grdcontour -JX3i -B1 -BWSne -C0.1 -A0.5 -K -P -Gd2i -S4 -T+d0.1i/0.03i > ' ps], Gdzdx)
 	gmt(['grdcontour -J -B -C0.05 -A0.2 -O -K -Gd2i -S4 -T+d0.1i/0.03i -Xa3.45i >> ' ps], Gdzdy)
@@ -317,7 +341,7 @@ function ex14()
 
 % -------------------------------------------------------------------------------------------------
 function ex15()
-% THIS EXAMPLE FAILS TO PLOT THE STAR AT THE MINIMUM AT UR FIG
+% THIS EXAMPLE FAILS TO PLOT THE STAR AT THE MINIMUM AT UR FIG (grdinfo gives wrong info)
 	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex15'];
 	ps = [out_path 'example_15.ps'];
@@ -341,11 +365,101 @@ function ex15()
 	Gship_clipped = gmt('grdclip -Sa-1/NaN -G', Gship);
 	gmt(['grdcontour -J -B -C250 -A1000 -L-8000/0 -Gd2i -O -K -X3.6i >> ' ps], Gship_clipped)
 	gmt(['pscoast ' region ' -J -O -K -Ggray -Wthinnest >> ' ps])
-	info = gmt('grdinfo -C -M', Gship);
-	info = strread(info{1}, '%f', 14);
-	gmt(['psxy -R -J -O -K -Sa0.15i -Wthick >> ' ps], info(11:12))		% <--------- DOES NOT SHOW UP
+	info = gmt('grdinfo -C -M', Gship);		% <----- GIVES WRONG COORDS DOR THE MINIMUM
+	gmt(['psxy -R -J -O -K -Sa0.15i -Wthick >> ' ps], info(11:12))					% <--------- DOES NOT SHOW UP
 	gmt(['pstext -R0/3/0/4 -Jx1i -F+f24p,Helvetica-Bold+jCB -O -N >> ' ps], {'-0.3 3.6 Gridding with missing data'})
 	builtin('delete','ship.b');
+
+% -------------------------------------------------------------------------------------------------
+function ex16()
+% THIS EXAMPLE FAILS BECAUSE THE CPT EX16.CPT INCLUDES A RAS FILE AND THAT FILE IS NOT FOUND
+% UNLESS THE COMMAND IS EXECUTED IN THE DIR WHERE IT SITS. AS A CONSEQUENCE PSL_EXIT, REALLY EXITS
+	global g_root_dir out_path
+	d_path = [g_root_dir 'doc/examples/ex16'];
+	ps = [out_path 'example_16.ps'];
+
+disp('This example would blow Matlab in a blink. Returning before that happen'),	return
+
+	gmt('gmtset FONT_ANNOT_PRIMARY 9p')
+	gmt(['pscontour -R0/6.5/-0.2/6.5 -Jx0.45i -P -K -Y5.5i -Ba2f1 -BWSne ' d_path '/table_5.11 -C' d_path '/ex16.cpt -I > ' ps])
+	gmt(['pstext -R -J -O -K -N -F+f18p,Times-Roman+jCB >> ' ps], {'3.25 7 pscontour (triangulate)'})
+
+	Graws0 = gmt(['surface ' d_path '/table_5.11 -R -I0.2']);
+	gmt(['grdview -R -J -B -C' d_path '/ex16.cpt -Qs -O -K -X3.5i >> ' ps], Graws0)
+	gmt(['pstext -R -J -O -K -N -F+f18p,Times-Roman+jCB >> ' ps], {'3.25 7 surface (tension = 0)'})
+
+	Graws5 = gmt(['surface ' d_path '/table_5.11 -R -I0.2 -G -T0.5']);
+	gmt(['grdview -R -J -B -C' d_path '/ex16.cpt -Qs -O -K -Y-3.75i -X-3.5i >> ' ps], Graws5)
+	gmt(['pstext -R -J -O -K -N -F+f18p,Times-Roman+jCB >> ' ps], {'3.25 7 surface (tension = 0.5)'})
+
+	Grawt = gmt(['triangulate ' d_path '/table_5.11 -G -R -I0.2']); %%%%
+	Gfiltered = gmt('grdfilter -G -D0 -Fc1', Grawt);
+	gmt(['grdview -R -J -B -C' d_path '/ex16.cpt -Qs -O -K -X3.5i >> ' ps], Gfiltered)
+	gmt(['pstext -R -J -O -K -N -F+f18p,Times-Roman+jCB >> ' ps], {'3.25 7 triangulate @~\256@~ grdfilter'})
+	gmt(['pstext -R0/10/0/10 -Jx1i -O -K -N -F+f32p,Times-Roman+jCB -X-3.5i >> ' ps], {'3.2125 7.5 Gridding of Data'})
+	gmt(['psscale -Dx3.25i/0.35i+jTC+w5i/0.25i+h -C' d_path '/ex16.cpt -O -Y-0.75i >> ' ps])
+	builtin('delete','gmt.conf');
+
+% -------------------------------------------------------------------------------------------------
+function ex17()
+	global g_root_dir out_path
+	d_path = [g_root_dir 'doc/examples/ex17'];
+	ps = [out_path 'example_17.ps'];
+
+	% First generate geoid image w/ shading
+	geoid_cpt = gmt(['grd2cpt ' d_path '/india_geoid.nc -Crainbow']);
+	Gindia_geoid_i = gmt(['grdgradient ' d_path '/india_geoid.nc -Nt1 -A45 -G']);
+	gmt(['grdimage ' d_path '/india_geoid.nc -I -JM6.5i -C -P -K > ' ps], Gindia_geoid_i, geoid_cpt)
+
+	% Then use gmt pscoast to initiate clip path for land
+	gmt(['pscoast -R' d_path '/india_geoid.nc -J -O -K -Dl -Gc >> ' ps])
+
+	% Now generate topography image w/shading
+	fid = fopen('gray.cpt','w');	fprintf(fid, '%s\n', '-10000 150 10000 150');	fclose(fid);
+	Gindia_topo_i = gmt(['grdgradient ' d_path '/india_topo.nc -Nt1 -A45 -G']);
+	gmt(['grdimage ' d_path '/india_topo.nc -I -J -Cgray.cpt -O -K >> ' ps], Gindia_topo_i)
+
+	% Finally undo clipping and overlay basemap
+	gmt(['pscoast -R -J -O -K -Q -B10f5 -B+t"Clipping of Images" >> ' ps])
+
+	%Put a color legend on top of the land mask
+	gmt(['psscale -DjTR+o0.3i/0.1i+w4i/0.2i+h -R -J -C -Bx5f1 -By+lm -I -O -K >> ' ps], geoid_cpt)
+
+	% Add a text paragraph
+	t = {'> 90 -10 12p 3i j' ...
+		'@_@%5%Example 17.@%%@_  We first plot the color geoid image' ...
+		'for the entire region, followed by a gray-shaded @#etopo5@#' ...
+		'image that is clipped so it is only visible inside the coastlines.'};
+	gmt(['pstext -R -J -O -M -Gwhite -Wthinner -TO -D-0.1i/0.1i -F+f12,Times-Roman+jRB >> ' ps], t)
+	builtin('delete','gray.cpt');
+
+
+% -------------------------------------------------------------------------------------------------
+function ex20()
+% THIS EXAMPLE FAILS BECAUSE CUSTOM SYMBOLS CANNOT YET BE GIVEN WITH FULL FILE NAMES
+	global g_root_dir out_path
+	d_path = [g_root_dir 'doc/examples/ex20'];
+	ps = [out_path 'example_20.ps'];
+
+	fogspots = [
+		55.5	-21.0	0.25
+		63.0	-49.0	0.25
+		-12.0	-37.0	0.25
+		-28.5	29.34	0.25
+		48.4	-53.4	0.25
+		155.5	-40.4	0.25
+		-155.5	19.6	0.5
+		-138.1	-50.9	0.25
+		-153.5	-21.0	0.25
+		-116.7	-26.3	0.25
+		-16.5	64.4	0.25];
+
+	gmt(['pscoast -Rg -JR9i -Bx60 -By30 -B+t"Hotspot Islands and Cities" -Gdarkgreen -Slightblue -Dc -A5000 -K > ' ps])
+	gmt(['psxy -R -J -Skvolcano -O -K -Wthinnest -Gred >> ' ps], fogspots)
+
+	% Overlay a few bullseyes at NY, Cairo, and Perth
+	cities = [286 40.45 0.8; 31.15 30.03 0.8; 115.49 -31.58 0.8];
+	gmt(['psxy -R -J -Sk' d_path '/bullseye -O >> ' ps], cities)
 
 % -------------------------------------------------------------------------------------------------
 function ex23()
