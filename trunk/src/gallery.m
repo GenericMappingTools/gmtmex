@@ -9,7 +9,7 @@ g_root_dir = 'C:/progs_cygw/GMTdev/gmt5/branches/5.2.0/';
 out_path = 'V:/';		% Set this if you want to save the PS files in a prticular place
 
 	all_exs = {'ex01' 'ex02' 'ex04' 'ex06' 'ex07' 'ex08' 'ex09' 'ex10' 'ex12' 'ex13' 'ex14' 'ex15' ...
-		'ex23' 'ex34' 'ex35' 'ex40' 'ex44'}; 
+		'ex23' 'ex34' 'ex35' 'ex36' 'ex38' 'ex39' 'ex40' 'ex41' 'ex44'}; 
 
 	if (nargin == 0)
 		opt = all_exs;
@@ -35,7 +35,11 @@ out_path = 'V:/';		% Set this if you want to save the PS files in a prticular pl
 				case 'ex23',   ex23
 				case 'ex34',   ex34
 				case 'ex35',   ex35
+				case 'ex36',   ex36
+				case 'ex38',   ex38
+				case 'ex39',   ex39
 				case 'ex40',   ex40
+				case 'ex41',   ex41
 				case 'ex44',   ex44
 			end
 		end
@@ -437,6 +441,76 @@ function ex35()
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
+function ex36()
+	global g_root_dir out_path
+	d_path = [g_root_dir 'doc/examples/ex36'];
+	ps = [out_path 'example_36.ps'];
+
+	% Interpolate data of Mars radius from Mariner9 and Viking Orbiter spacecrafts
+	tt_cpt = gmt('makecpt -Crainbow -T-7000/15000/1000 -Z');
+	% Piecewise linear interpolation; no tension
+	Gtt = gmt(['sphinterpolate ' d_path '/mars370.txt -Rg -I1 -Q0 -G']);
+	gmt(['grdimage -JH0/6i -Bag -C -P -Xc -Y7.25i -K > ' ps], tt_cpt, Gtt)
+	gmt(['psxy -Rg -J -O -K ' d_path '/mars370.txt -Sc0.05i -G0 -B30g30 -Y-3.25i >> ' ps])
+	% Smoothing
+	Gtt = gmt(['sphinterpolate ' d_path '/mars370.txt -Rg -I1 -Q3 -G']);
+	gmt(['grdimage -J -Bag -C -Y-3.25i -O -K >> ' ps], tt_cpt, Gtt)
+	gmt(['psxy -Rg -J -O -T >> ' ps])
+
+% -------------------------------------------------------------------------------------------------
+function ex38()
+	global g_root_dir out_path
+	d_path = [g_root_dir 'doc/examples/ex38'];
+	ps = [out_path 'example_38.ps'];
+
+	t_cpt = gmt('makecpt -Crainbow -T0/1700/100 -Z');
+	c_cpt = gmt('makecpt -Crainbow -T0/15/1');
+	Gitopo = gmt(['grdgradient ' d_path '/topo.nc -Nt1 -fg -A45 -G']);
+	Gout  = gmt(['grdhisteq ' d_path '/topo.nc -G -C16']);
+	gmt(['grdimage ' d_path '/topo.nc -I -C -JM3i -Y5i -K -P -B5 -BWSne > ' ps], Gitopo, t_cpt)
+	gmt(['pstext -R' d_path '/topo.nc -J -O -K -F+jTR+f14p -T -Gwhite -W1p -Dj0.1i >> ' ps], {'315 -10 Original'})
+	gmt(['grdimage -C -J -X3.5i -K -O -B5 -BWSne >> ' ps], c_cpt, Gout)
+	gmt(['pstext -R -J -O -K -F+jTR+f14p -T -Gwhite -W1p -Dj0.1i >> ' ps], {'315 -10 Equalized'})
+	gmt(['psscale -Dx0i/-0.4i+jTC+w5i/0.15i+h+e+n -O -K -C -Ba500 -By+lm >> ' ps], t_cpt)
+	Gout = gmt(['grdhisteq ' d_path '/topo.nc -G -N']);
+	c_cpt = gmt('makecpt -Crainbow -T-3/3/0.1 -Z');
+	gmt(['grdimage -C -J -X-3.5i -Y-3.3i -K -O -B5 -BWSne >> ' ps], c_cpt, Gout)
+	gmt(['pstext -R -J -O -K -F+jTR+f14p -T -Gwhite -W1p -Dj0.1i >> ' ps], {'315 -10 Normalized'})
+	Gout = gmt(['grdhisteq ' d_path '/topo.nc -G -N']);
+	gmt(['grdimage -C -J -X3.5i -K -O -B5 -BWSne >> ' ps], c_cpt, Gout)
+	gmt(['pstext -R -J -O -K -F+jTR+f14p -T -Gwhite -W1p -Dj0.1i >> ' ps], {'315 -10 Quadratic'})
+	gmt(['psscale -Dx0i/-0.4i+w5i/0.15i+h+jTC+e+n -O -C -Bx1 -By+lz >> ' ps], c_cpt)
+
+% -------------------------------------------------------------------------------------------------
+function ex39()
+	global g_root_dir out_path
+	d_path = [g_root_dir 'doc/examples/ex39'];
+	ps = [out_path 'example_39.ps'];
+
+	% Evaluate the first 180, 90, and 30 order/degrees of Venus spherical
+	% harmonics topography model, skipping the L = 0 term (radial mean).
+	% File truncated from http://www.ipgp.fr/~wieczor/SH/VenusTopo180.txt.zip
+	% Wieczorek, M. A., Gravity and topography of the terrestrial planets,
+	%   Treatise on Geophysics, 10, 165-205, doi:10.1016/B978-044452748-6/00156-5, 2007
+
+	Gv1 = gmt(['sph2grd ' d_path '/VenusTopo180.txt -I1 -Rg -Ng -G -F1/1/25/30']);
+	Gv2 = gmt(['sph2grd ' d_path '/VenusTopo180.txt -I1 -Rg -Ng -G -F1/1/85/90']);
+	Gv3 = gmt(['sph2grd ' d_path '/VenusTopo180.txt -I1 -Rg -Ng -G -F1/1/170/180']);
+	t_cpt = gmt('grd2cpt -Crainbow -E16 -Z', Gv3);
+	Gvint = gmt('grdgradient -Nt0.75 -A45 -G', Gv1);
+	gmt(['grdimage -I -JG90/30/5i -P -K -Bg -C -X3i -Y1.1i > ' ps], Gvint, t_cpt, Gv1)
+	gmt(['pstext -R0/6/0/6 -Jx1i -O -K -Dj0.2i -F+f16p+jLM -N >> ' ps], {'4 4.5 L = 30'})
+	gmt(['psscale --FORMAT_FLOAT_MAP="%''g" -C -O -K -Dx1.25i/-0.2i+jTC+w5.5i/0.1i+h -Bxaf -By+lm >> ' ps], t_cpt)
+	Gvint = gmt('grdgradient -Nt0.75 -A45 -G', Gv2);
+	gmt(['grdimage -I -JG -O -K -Bg -C -X-1.25i -Y1.9i >> ' ps], Gvint, t_cpt, Gv2)
+	gmt(['pstext -R0/6/0/6 -Jx1i -O -K -Dj0.2i -F+f16p+jLM -N >> ' ps], {'4 4.5 L = 90'})
+	Gv3 = gmt(['sph2grd ' d_path '/VenusTopo180.txt -I1 -Rg -Ng -G -F1/1/170/180']);
+	Gvint = gmt('grdgradient -Nt0.75 -A45 -G', Gv3);
+	gmt(['grdimage -I -JG -O -K -Bg -C -X-1.25i -Y1.9i >> ' ps], Gvint, t_cpt, Gv3)
+	gmt(['pstext -R0/6/0/6 -Jx1i -O -K -Dj0.2i -F+f16p+jLM -N >> ' ps], {'4 4.5 L = 180'})
+	gmt(['pstext -R0/6/0/6 -Jx1i -O -F+f24p+jCM -N >> ' ps], {'3.75 5.4 Venus Spherical Harmonic Model'})
+
+% -------------------------------------------------------------------------------------------------
 function ex40()
 % THIS EXAMPLE FAILS BECAUSE CALLS to gmtspatial CRASH ML
 	global g_root_dir out_path
@@ -479,6 +553,21 @@ function ex40()
 	gmt(['pstext -R -J -O -K -F+14p+cCM >> ' ps], {area})
 	gmt(['pstext -R -J -O -K -F+14p+cLB -Dj0.2i >> ' ps], {area_T100k})
 	gmt(['psxy -R -J -O -T >> ' ps])
+
+% -------------------------------------------------------------------------------------------------
+function ex41()
+% THIS EXAMPLE FAILS, LEGEND IS NOT PLOTTED
+	global g_root_dir out_path
+	d_path = [g_root_dir 'doc/examples/ex41'];
+	ps = [out_path 'example_41.ps'];
+
+	gmt('gmtset FONT_ANNOT_PRIMARY 12p FONT_LABEL 12p')
+	gmt(['pscoast -R130W/50W/8N/56N -JM5.6i -B0 -P -K -Glightgray -Sazure1 -A1000 -Wfaint -Xc -Y1.2i --MAP_FRAME_TYPE=plain > ' ps])
+	gmt(['pscoast -R -J -O -K -EUS+glightyellow+pfaint -ECU+glightred+pfaint -EMX+glightgreen+pfaint -ECA+glightblue+pfaint >> ' ps])
+	gmt(['pscoast -R -J -O -K -N1/1p,darkred -A1000/2/2 -Wfaint -Cazure1 >> ' ps])
+	gmt(['psxy -R -J -O -K -Sk' d_path '/my_symbol/0.1i -C' d_path '/my_color.cpt -W0.25p -: ' d_path '/my_data.txt >> ' ps])
+	gmt(['pslegend -R0/6/0/9.1 -Jx1i -Dx3i/4.5i+w5.6i+jBC+l1.2 -C0.05i -F+p+gsnow1 -B0 -O ' d_path '/my_table.txt -X-0.2i -Y-0.2i >> ' ps])
+	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
 function ex44()
