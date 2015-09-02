@@ -13,8 +13,8 @@ g_root_dir = 'C:/progs_cygw/GMTdev/gmt5/branches/5.2.0/';
 out_path = 'V:/';		% Set this if you want to save the PS files in a prticular place
 
 	all_exs = {'ex01' 'ex02' 'ex04' 'ex05' 'ex06' 'ex07' 'ex08' 'ex09' 'ex10' 'ex12' 'ex13' 'ex14' ...
-		'ex15' 'ex16' 'ex17' 'ex20' 'ex23' 'ex24' 'ex28' 'ex29' 'ex34' 'ex35' 'ex36' 'ex38' 'ex39' 'ex40' ...
-		'ex41' 'ex44'}; 
+		'ex15' 'ex16' 'ex17' 'ex18' 'ex20' 'ex23' 'ex24' 'ex26' 'ex27' 'ex28' 'ex29' 'ex30' 'ex32' ...
+		'ex33' 'ex34' 'ex35' 'ex36' 'ex38' 'ex39' 'ex40' 'ex42' 'ex41' 'ex44'}; 
 
 	if (nargin == 0)
 		opt = all_exs;
@@ -32,7 +32,7 @@ out_path = 'V:/';		% Set this if you want to save the PS files in a prticular pl
 				case 'ex06',   ex06
 				case 'ex07',   ex07
 				case 'ex08',   ex08
-				case 'ex09',   ex09		% F
+				case 'ex09',   ex09
 				case 'ex10',   ex10		% F
 				case 'ex12',   ex12		% F
 				case 'ex13',   ex13		% F
@@ -40,11 +40,17 @@ out_path = 'V:/';		% Set this if you want to save the PS files in a prticular pl
 				case 'ex15',   ex15		% F
 				case 'ex16',   ex16		% F
 				case 'ex17',   ex17
+				case 'ex18',   ex18		% F NT
 				case 'ex20',   ex20		% F
 				case 'ex23',   ex23
 				case 'ex24',   ex24
+				case 'ex26',   ex26
+				case 'ex27',   ex27
 				case 'ex28',   ex28
 				case 'ex29',   ex29		% F
+				case 'ex30',   ex30
+				case 'ex32',   ex32		% NT
+				case 'ex33',   ex33		% NT
 				case 'ex34',   ex34
 				case 'ex35',   ex35		% F
 				case 'ex36',   ex36
@@ -52,6 +58,7 @@ out_path = 'V:/';		% Set this if you want to save the PS files in a prticular pl
 				case 'ex39',   ex39
 				case 'ex40',   ex40		% F
 				case 'ex41',   ex41		% F
+				case 'ex42',   ex42		% F
 				case 'ex44',   ex44
 			end
 		end
@@ -193,7 +200,6 @@ function ex08()
 
 % -------------------------------------------------------------------------------------------------
 function ex09()
-% THIS EXAMPLE FAILS
 	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex09'];
 	ps = [out_path 'example_09.ps'];
@@ -203,10 +209,8 @@ function ex09()
 	gmt(['psxy -R -J -O -K ' d_path '/ridge.xy -Wthicker >> ' ps])
 	gmt(['psxy -R -J -O -K ' d_path '/fz.xy    -Wthinner,- >> ' ps])
 	% Take label from segment header and plot near coordinates of last record of each track
-	% BUT THIS CURRENTLY FAILS BECAUSE CODE FLOW GOES TRHOUGH gmt_api #2492 AND 
-	% GMT_IS_REFERENCE_VIA_VECTOR DOESN'T KNOW HOW TO DEAL WITH THE gmtconvert -El OPTION
-	%t = gmt(['gmtconvert -El ' d_path '/tracks.txt']);
-	%gmt(['pstext -R -J -F+f10p,Helvetica-Bold+a50+jRM+h -D-0.05i/-0.05i -O >> ' ps], t)
+	t = gmt(['gmtconvert -El ' d_path '/tracks.txt']);
+	gmt(['pstext -R -J -F+f10p,Helvetica-Bold+a50+jRM+h -D-0.05i/-0.05i -O >> ' ps], t)
 
 % -------------------------------------------------------------------------------------------------
 function ex10()
@@ -437,6 +441,71 @@ function ex17()
 	gmt(['pstext -R -J -O -M -Gwhite -Wthinner -TO -D-0.1i/0.1i -F+f12,Times-Roman+jRB >> ' ps], t)
 	builtin('delete','gray.cpt');
 
+% -------------------------------------------------------------------------------------------------
+function ex18()
+	global g_root_dir out_path
+	d_path = [g_root_dir 'doc/examples/ex18/'];
+	ps = [out_path 'example_18.ps'];
+
+	% Use spherical gmt projection since SS data define on sphere
+	gmt('gmtset PROJ_ELLIPSOID Sphere FORMAT_FLOAT_OUT %g')
+
+	% Define location of Pratt seamount and the 400 km diameter
+	pratt = [-142.65 56.25 400];
+
+	% First generate gravity image w/ shading, label Pratt, and draw a circle
+	% of radius = 200 km centered on Pratt.
+
+	grav_cpt = gmt('makecpt -Crainbow -T-60/60/120 -Z');
+	GAK_gulf_grav_i = gmt(['grdgradient ' d_path 'AK_gulf_grav.nc -Nt1 -A45 -G']);
+	gmt(['grdimage ' d_path 'AK_gulf_grav.nc -I -JM5.5i -Cgrav.cpt -B2f1 -P -K -X1.5i' ...
+		' -Y5.85i > ' ps], GAK_gulf_grav_i, grav_cpt)
+	gmt(['pscoast -R' d_path 'AK_gulf_grav.nc -J -O -K -Di -Ggray -Wthinnest >> ' ps])
+	gmt(['psscale -DJBC+o0/0.4i+w4i/0.15i+h -R -J -C -Bx20f10 -By+l"mGal" -O -K >> ' ps], grav_cpt)
+	gmt(['pstext -R -J -O -K -D0.1i/0.1i -F+f12p,Helvetica-Bold+jLB >> ' ps], sprintf('%f %f Pratt', prat(1), pratt(2)))
+	gmt(['psxy -R -J -O -K -SE- -Wthinnest >> ' ps], pratt)
+
+	% Then draw 10 mGal contours and overlay 50 mGal contour in green
+
+	gmt(['grdcontour ' d_path 'AK_gulf_grav.nc -J -C20 -B2f1 -BWSEn -O -K -Y-4.85i >> ' ps])
+	% Save 50 mGal contours to individual files, then plot them
+	gmt(['grdcontour ' d_path 'AK_gulf_grav.nc -C10 -L49/51 -Dsm_%d_%c.txt'])
+	gmt(['psxy -R -J -O -K -Wthin,green sm_*.txt >> ' ps])
+	gmt(['pscoast -R -J -O -K -Di -Ggray -Wthinnest >> ' ps])
+	gmt(['psxy -R -J -O -K -SE- -Wthinnest >> ' ps], pratt)
+%rm -f sm_*_O.txt	# Only consider the closed contours
+	builtin('delete', 'sm_*_O.txt')
+
+	% Now determine centers of each enclosed seamount > 50 mGal but only plot
+	% the ones within 200 km of Pratt seamount.
+
+	% First determine mean location of each closed contour and add it to the file centers.d
+	gmt('gmtspatial -Q -fg sm_*_C.txt > centers.d')
+
+	% Only plot the ones within 200 km
+	centers = gmt('gmtselect -C200k/$ -fg', pratt);
+	gmt(['psxy -R -J -O -K -SC0.04i -Gred -Wthinnest >> ' ps], centers)
+	gmt(['psxy -R -J -O -K -ST0.1i -Gyellow -Wthinnest >> ' ps], pratt)
+
+	% Then report the volume and area of these seamounts only
+	% by masking out data outside the 200 km-radius circle
+	% and then evaluate area/volume for the 50 mGal contour
+
+	Gmask = gmt(['grdmath -R ' sprintf('%f %f', prat(1), pratt(2)) ' SDIST =']);
+	Gmask = gmt('grdclip -Sa200/NaN -Sb200/1 -G', Gmask);
+	Gtmp = gmt(['grdmath ' d_path 'AK_gulf_grav.nc $ MUL ='], Gmask);
+	area = gmt('grdvolume -C50 -Sk', Gtmp); % | cut -f2`
+	volume = gmt('grdvolume tmp.nc -C50 -Sk', Gtmp); % | cut -f3`
+
+	gmt(['psxy -R -J -A -O -K -L -Wthin -Gwhite >> ' ps], ...
+		[-148.5	52.75
+		-141	52.75
+		-141	53.75
+		-148.5	53.75])
+
+	gmt(['pstext -R -J -O -F+f14p,Helvetica-Bold+jLM >> ' ps], ...
+		{sprintf('-148 53.08 Areas: %f.2 km@+2@+', area)
+		 sprintf('-148 53.42 Volumes: %d mGal\264km@+2@+', volume)})
 
 % -------------------------------------------------------------------------------------------------
 function ex20()
@@ -464,6 +533,14 @@ function ex20()
 	% Overlay a few bullseyes at NY, Cairo, and Perth
 	cities = [286 40.45 0.8; 31.15 30.03 0.8; 115.49 -31.58 0.8];
 	gmt(['psxy -R -J -Sk' d_path '/bullseye -O >> ' ps], cities)
+
+% -------------------------------------------------------------------------------------------------
+function ex21()
+% THIS EXAMPLE FAILS BECAUSE CUSTOM SYMBOLS CANNOT YET BE GIVEN WITH FULL FILE NAMES
+	global g_root_dir out_path
+	d_path = [g_root_dir 'doc/examples/ex21/'];
+	ps = [out_path 'example_21.ps'];
+
 
 % -------------------------------------------------------------------------------------------------
 function ex23()
@@ -545,6 +622,55 @@ function ex24()
 	gmt(['psxy -R -J -O -K point.d -Wfat,white -S+0.2i >> ' ps])
 	gmt(['psxy dateline.d -R -J -O -Wfat,white -A >> ' ps])
 	builtin('delete','point.d', 'dateline.d');
+	builtin('delete','cities.d');
+
+% -------------------------------------------------------------------------------------------------
+function ex26()
+	global out_path
+	ps = [out_path 'example_26.ps'];
+
+	% first do an overhead of the east coast from 160 km altitude point straight down
+	lat = 41.5;	lon = -74;	alt = 160;	tilt = 0;	azim = 0;	twist = 0;	width = 0;	height = 0;
+	PROJ = sprintf('-JG%g/%g/%g/%g/%g/%g/%g/%g/4i', lon, lat, alt, azim, tilt, twist, width, height);
+	gmt(['pscoast -Rg ' PROJ ' -X1i -B5g5 -Glightbrown -Slightblue -W -Dl -N1/1p,red -N2,0.5p -P -K -Y5i > ' ps])
+
+	% Now point from an altitude of 160 km with a specific tilt and azimuth and with a wider restricted
+	% view and a boresight twist of 45 degrees
+	tilt=55;	azim=210;	twist=45;	width=30;	height=30;
+	PROJ = sprintf('-JG%g/%g/%g/%g/%g/%g/%g/%g/5i', lon, lat, alt, azim, tilt, twist, width, height);
+	gmt(['pscoast -Rg ' PROJ ' -B5g5 -Glightbrown -Slightblue -W -Ia/blue -Di -Na -O -X1i -Y-4i >> ' ps])
+
+% -------------------------------------------------------------------------------------------------
+function ex27()
+	global g_root_dir out_path
+	d_path = [g_root_dir 'doc/examples/ex27/'];
+	ps = [out_path 'example_27.ps'];
+
+	% Gravity in tasman_grav.nc is in 0.1 mGal increments and the grid
+	% is already in projected Mercator x/y units. First get gradients.
+	Gtasman_grav_i = gmt(['grdgradient ' d_path 'tasman_grav.nc -Nt1 -A45 -G']);
+
+	% Make a suitable cpt file for mGal
+	grav_cpt = gmt('makecpt -T-120/120/240 -Z -Crainbow');
+
+	% Since this is a Mercator grid we use a linear projection
+	gmt(['grdimage ' d_path 'tasman_grav.nc=ns/0.1 -I -Jx0.25i -C -P -K > ' ps], Gtasman_grav_i, grav_cpt)
+
+	% Then use gmt pscoast to plot land; get original -R from grid remark
+	% and use Mercator gmt projection with same scale as above on a spherical Earth
+
+	R = gmt(['grdinfo ' d_path 'tasman_grav.nc']);
+	% Here we need to fish the last word of the third (the 'Remark') line issued by grdinfo
+	R = R{3};	k = numel(R);
+	while (R(k) ~= ' ')
+		k = k - 1;
+	end
+	R = R(k+1:end);		% The result must be -R145/170/-50.0163575733/-24.9698584055
+	gmt(['pscoast ' R ' -Jm0.25i -Ba10f5 -BWSne -O -K -Gblack --PROJ_ELLIPSOID=Sphere' ...
+		' -Cwhite -Dh+ --FORMAT_GEO_MAP=dddF >> ' ps])
+
+	% Put a color legend in top-left corner of the land mask
+	gmt(['psscale -DjTL+o1c+w2i/0.15i ' R ' -J -C -Bx50f10 -By+lmGal -I -O -F+gwhite+p1p >> ' ps], grav_cpt)
 
 % -------------------------------------------------------------------------------------------------
 function ex28()
@@ -604,6 +730,158 @@ function ex29()
 	gmt(['psxy -Rg -J -O -K -Sc0.045i -Gblack ' d_path 'mars370.in  >> ' ps])
 	gmt(['psscale -C -O -K -R -J -DJBC+o0/0.15i+w6i/0.1i+h -I --FONT_ANNOT_PRIMARY=12p -Bx2f1 -By+lkm >> ' ps], mars_cpt)
 	gmt(['pstext -R -J -O -N -D-3.5i/-0.2i -F+f14p,Helvetica-Bold+jLB >> ' ps], {'0 90 a)'})
+
+% -------------------------------------------------------------------------------------------------
+function ex30()
+	global out_path
+	ps = [out_path 'example_30.ps'];
+
+	gmt(['psbasemap -R0/360/-1.25/1.75 -JX8i/6i -Bx90f30+u"\312" -By1g10 -BWS+t"Two Trigonometric Functions"' ...
+		' -K --MAP_FRAME_TYPE=graph --MAP_VECTOR_SHAPE=0.5 > ' ps])
+
+	%Draw sine an cosine curves
+
+	t = gmt('gmtmath -T0/360/0.1 T COSD =');
+	gmt(['psxy -R -J -O -K -W3p >> ' ps], t)
+	t = gmt('gmtmath -T0/360/0.1 T SIND =');
+	gmt(['psxy -R -J -O -K -W3p,0_6:0 --PS_LINE_CAP=round >> ' ps], t)
+
+	% Indicate the x-angle = 120 degrees
+	gmt(['psxy   -R -J -O -K -W0.5p,- >> ' ps], [120 -1.25; 120 1.25])
+	gmt(['pstext -R -J -O -K -Dj0.2c -N -F+f+j >> ' ps], ...
+		{'360 1 18p,Times-Roman RB x = cos(@%12%a@%%)'
+		 '360 0 18p,Times-Roman RB y = sin(@%12%a@%%)'
+		 '120 -1.25 14p,Times-Roman LB 120\312'
+		 '370 -1.35 24p,Symbol LT a'
+		 '-5 1.85 24p,Times-Roman RT x,y'})
+
+	 % Draw a circle and indicate the 0-70 degree angle
+
+	gmt(['psxy -R-1/1/-1/1 -Jx1.5i -O -K -X3.625i -Y2.75i -Sc2i -W1p -N >> ' ps], [0 0])
+	gmt(['psxy -R-1/1/-1/1 -J -O -K -W1p >> ' ps], ...
+		[
+		nan nan
+% 		> x-gridline  -Wdefault
+		-1 0
+		1 0
+		nan nan
+% 		> y-gridline  -Wdefault
+		0 -1
+		0 1
+		nan nan
+% 		> angle = 0
+		0 0
+		1 0
+		nan nan
+% 		> angle = 120
+		0 0
+		-0.5 0.866025
+		nan nan
+% 		> x-gmt projection -W2p
+		-0.3333	0
+		0	0
+		nan nan
+% 		> y-gmt projection -W2p
+		-0.3333 0.57735
+		-0.3333 0])
+
+	gmt(['pstext -R-1/1/-1/1 -J -O -K -Dj0.05i -F+f+a+j >> ' ps], ...
+		{'-0.16666 0 12p,Times-Roman 0 CT x'
+		 '-0.3333 0.2888675 12p,Times-Roman 0 RM y'
+		 '0.22 0.27 12p,Symbol -30 CB a'
+		 '-0.33333 0.6 12p,Times-Roman 30 LB 120\312'})
+
+	%echo 0 0 0.5i 0 120 | 
+	gmt(['psxy -R -J -O -Sm0.15i+e -W1p -Gblack >> ' ps], [0 0 1.26 0 120])
+
+% -------------------------------------------------------------------------------------------------
+function ex32()
+	global g_root_dir out_path
+	d_path = [g_root_dir 'doc/examples/ex32/'];
+	ps = [out_path 'example_32.ps'];
+
+	% # Here we get and convert the flag of Europe directly from the web through grdconvert using
+	% # GDAL support. We take into account the dimension of the flag (1000x667 pixels)
+	% # for a ratio of 3x2.
+	% # Because GDAL support will not be standard for most users, we have stored
+	% # the result, euflag.nc in this directory.
+
+	Rflag = '-R3/9/50/54';
+	% # gmt grdconvert \
+	% #   http://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Flag_of_Europe.svg/1000px-Flag_of_Europe.svg.png=gd \
+	% #   euflag.nc=ns
+	% # gmt grdedit euflag.nc -fg $Rflag
+
+	% # Now get the topography for the same area from GTOPO30 and store it as topo.nc.
+	% # The DEM file comes from http://eros.usgs.gov/#/Find_Data/Products_and_Data_Available/gtopo30/w020n90
+	% # We make an gradient grid as well, which we will use to "illuminate" the flag.
+
+	% # gmt grdcut W020N90.DEM $Rflag -Gtopo.nc=ns
+	Gillum = gmt(['grdgradient ' d_path 'topo.nc -A0/270 -G -Ne0.6']);
+
+	% # The color map assigns "Reflex Blue" to the lower half of the 0-255 range and
+	% # "Yellow" to the upper half.
+	fid = fopen('euflag.cpt','w');
+	fprintf(fid, '0	0/51/153	127	0/51/153\n');
+	fprintf(fid, '127	255/204/0	255	255/204/0\n');
+	fclose(fid);
+
+	% # The next step is the plotting of the image.
+	% # We use gmt grdview to plot the topography, euflag.nc to give the color, and illum.nc to give
+	% # the shading.
+
+	Rplot = [Rflag '/-10/790'];
+	gmt(['grdview ' d_path 'topo.nc -JM13c ' Rplot ' -Ceuflag.cpt -G' d_path 'euflag.nc' ...
+		' -I -Qc -JZ1c -p157.5/30 -P -K > ' ps], Gillum)
+
+	% # We now add borders. Because we have a 3-D plot, we want them to be plotted "at elevation".
+	% # So we write out the borders, pipe them through grdtack and then plot them with psxyz.
+
+	t = gmt(['pscoast ' Rflag ' -Df -M -N1']);
+	t = gmt(['grdtrack -G' d_path 'topo.nc -sa'], t);
+	gmt(['psxyz ' Rplot ' -J -JZ -p -W1p,white -O -K >> ' ps], t)
+
+	% # Finally, we add dots and names for three cities.
+	% # Again, gmt grdtrack is used to put the dots "at elevation".
+	fid = fopen('cities.txt', 'w');
+	fprintf(fid, '05:41:27 50:51:05 Maastricht\n');
+	fprintf(fid, '04:21:00 50:51:00 Bruxelles\n');
+	fprintf(fid, '07:07:03 50:43:09 Bonn\n');
+	fclose(fid);
+	t = gmt(['grdtrack -G' d_path 'topo.nc -sa cities.txt']); 
+	gmt(['psxyz -i0,1,3 ' Rplot ' -J -JZ -p -Sc7p -W1p,white -Gred -K -O >> ' ps], t)
+	gmt(['pstext ' Rplot ' -J -JZ -p -F+f12p,Helvetica-Bold,red+jRM -Dj0.1i/0.0i -O cities.txt >> ' ps])
+	builtin('delete','cities.txt', 'euflag.cpt');
+
+% -------------------------------------------------------------------------------------------------
+function ex33()
+	global g_root_dir out_path
+	d_path = [g_root_dir 'doc/examples/ex33/'];
+	ps = [out_path 'example_33.ps'];
+
+	% Extract a subset of ETOPO1m for the East Pacific Rise
+	% gmt grdcut etopo1m_grd.nc -R118W/107W/49S/42S -Gspac.nc
+	z_cpt = gmt('makecpt -Crainbow -T-5000/-2000/500 -Z');
+	Gspac_int = gmt(['grdgradient ' d_path 'spac.nc -A15 -Ne0.75 -G']);
+	gmt(['grdimage ' d_path 'spac.nc -I -C -JM6i -P -Baf -K -Xc --FORMAT_GEO_MAP=dddF > ' ps], Gspac_int, z_cpt)
+	% Select two points along the ridge
+	ridge_pts = [-111.6 -43.0; -113.3 -47.5];
+	% Plot ridge segment and end points
+	gmt(['psxy -R' d_path 'spac.nc -J -O -K -W2p,blue ridge.txt >> ' ps])
+	gmt(['psxy -R -J -O -K -Sc0.1i -Gblue >> ' ps], ridge_pts)
+	% Generate cross-profiles 400 km long, spaced 10 km, samped every 2km
+	% and stack these using the median, write stacked profile
+	table = gmt(['grdtrack -G' d_path 'spac.nc -C400k/2k/10k -Sm+sstack.txt'], ridge_pts);
+	gmt(['psxy -R -J -O -K -W0.5p >> ' ps], table)
+	% Show upper/lower values encountered as an envelope
+	env = gmt('gmtconvert stack.txt -o0,5');
+	env = [env; gmt('gmtconvert stack.txt -o0,6 -I -T')];		% Concat the two matrices
+	gmt(['psxy -R-200/200/-3500/-2000 -Bxafg1000+l"Distance from ridge (km)" -Byaf+l"Depth (m)" -BWSne' ...
+		' -JX6i/3i -O -K -Glightgray -Y6.5i >> ' ps], env)
+	gmt(['psxy -R -J -O -K -W3p stack.txt >> ' ps])
+	gmt(['pstext -R -J -O -K -Gwhite -F+jTC+f14p -Dj0.1i >> ' ps], {'0 -2000 MEDIAN STACKED PROFILE'})
+	gmt(['psxy -R -J -O -T >> ' ps])
+	builtin('delete','stack.txt');
 
 % -------------------------------------------------------------------------------------------------
 function ex34()
@@ -772,6 +1050,43 @@ function ex41()
 	gmt(['psxy -R -J -O -K -Sk' d_path '/my_symbol/0.1i -C' d_path '/my_color.cpt -W0.25p -: ' d_path '/my_data.txt >> ' ps])
 	gmt(['pslegend -R0/6/0/9.1 -Jx1i -Dx3i/4.5i+w5.6i+jBC+l1.2 -C0.05i -F+p+gsnow1 -B0 -O ' d_path '/my_table.txt -X-0.2i -Y-0.2i >> ' ps])
 	builtin('delete','gmt.conf');
+
+% -------------------------------------------------------------------------------------------------
+function ex42()
+% THIS EXAMPLE FAILS, LEGEND IS NOT PLOTTED
+	global g_root_dir out_path
+	d_path = [g_root_dir 'doc/examples/ex42/'];
+	ps = [out_path 'example_42.ps'];
+
+	gmt('set FONT_ANNOT_PRIMARY 12p FONT_LABEL 12p PROJ_ELLIPSOID WGS-84 FORMAT_GEO_MAP dddF')
+	% Data obtained via website and converted to netCDF thus:
+	% curl http://www.antarctica.ac.uk//bas_research/data/access/bedmap/download/bedelev.asc.gz
+	% gunzip bedelev.asc.gz
+	% grdreformat bedelev.asc BEDMAP_elevation.nc=ns -V
+	gmt('makecpt -Cbathy -T-7000/0/200 -N -Z > t.cpt')			% How to combine CPT objects?
+	gmt('makecpt -Cdem4 -T0/4000/200 -N -Z >> t.cpt')
+	gmt(['grdimage -Ct.cpt ' d_path 'BEDMAP_elevation.nc -Jx1:60000000 -Q -P -K > ' ps])
+	gmt(['pscoast -R-180/180/-90/-60 -Js0/-90/-71/1:60000000 -Bafg -Di -W0.25p -O -K >> ' ps])
+	gmt(['psscale -Ct.cpt -DjRM+w2.5i/0.2i+o0.5i/0+jLM+mc -R -J -O -K -F+p+i -Bxa1000+lELEVATION -By+lm >> ' ps])
+	% GSHHG
+	gmt(['pscoast -R-180/180/-90/-60 -J -Di -Glightblue -Sroyalblue2 -O -K -X2i -Y4.75i >> ' ps])
+	gmt(['pscoast -R-180/180/-90/-60 -J -Di -Glightbrown -O -K -A+ag -Bafg >> ' ps])
+	gmt(['pslegend -DjLM+w1.7i+jRM+o0.5i/0 -R-180/180/-90/-60 -J -O -K -F+p+i >> ' ps], ...
+		{'H 18 Times-Roman Legend'
+		'D 0.1i 1p'
+		'S 0.15i s 0.2i blue  0.25p 0.3i Ocean'
+		'S 0.15i s 0.2i lightblue  0.25p 0.3i Ice front'
+		'S 0.15i s 0.2i lightbrown  0.25p 0.3i Grounding line'})
+
+	% Fancy line
+	gmt(['psxy -R0/7.5/0/10 -Jx1i -O -K -B0 -W2p -X-2.5i -Y-5.25i >> ' ps], ...
+		[0 5.55
+		2.5 5.55
+		5.0 4.55
+		7.5 4.55])
+
+	gmt(['pstext -R0/7.5/0/10 -J -O -F+f18p+jBL -Dj0.1i/0 >> ' ps], {'0 5.2 BEDMAP' '0 9.65 GSHHG'})
+	builtin('delete','gmt.conf', 't.cpt');
 
 % -------------------------------------------------------------------------------------------------
 function ex44()
