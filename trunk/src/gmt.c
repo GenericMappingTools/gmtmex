@@ -245,38 +245,47 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 
 	/* 7. Hook up any GMT outputs to MATLAB plhs array */
 	
-	for (k = 0; k < n_items; k++) {	/* Number of GMT containers involved in this module call */
-		if (X[k].direction == GMT_OUT) {	/* Get results from GMT into MATLAB arrays */
-			if ((X[k].object = GMT_Retrieve_Data (API, X[k].object_ID)) == NULL)
-				mexErrMsgTxt ("GMT: Error retrieving object from GMT\n");
-			pos = X[k].pos;	/* Short-hand for index into the plhs[] array being returned to MATLAB */
-			switch (X[k].family) {	/* Determine what container we got */
-				case GMT_IS_GRID:	/* A GMT grid; make it the pos'th output item */
-					plhs[pos] = GMTMEX_Get_Grid (API, X[k].object);
-					break;
-				case GMT_IS_DATASET:	/* A GMT table; make it a matrix and the pos'th output item */
-					plhs[pos] = GMTMEX_Get_Dataset (API, X[k].object);
-					break;
-				case GMT_IS_TEXTSET:	/* A GMT textset; make it a cell and the pos'th output item */
-					plhs[pos] = GMTMEX_Get_Textset (API, X[k].object);
-					break;
-				case GMT_IS_CPT:	/* A GMT CPT; make it a colormap and the pos'th output item  */
-					plhs[pos] = GMTMEX_Get_CPT (API, X[k].object);
-					break;
-				case GMT_IS_IMAGE:	/* A GMT Image; make it the pos'th output item  */
-					plhs[pos] = GMTMEX_Get_Image (API, X[k].object);
-					break;
-				default:
-					mexErrMsgTxt ("GMT: Internal Error - unsupported data type\n");
-					break;
-			}
+	for (k = 0; k < n_items; k++) {	/* Get results from GMT into MATLAB arrays */
+		if (X[k].direction == GMT_IN) continue;	/* ONly looking for stuff coming OUT of GMT here */
+		
+		if ((X[k].object = GMT_Retrieve_Data (API, X[k].object_ID)) == NULL)
+			mexErrMsgTxt ("GMT: Error retrieving object from GMT\n");
+		pos = X[k].pos;	/* Short-hand for index into the plhs[] array being returned to MATLAB */
+		switch (X[k].family) {	/* Determine what container we got */
+			case GMT_IS_GRID:	/* A GMT grid; make it the pos'th output item */
+				plhs[pos] = GMTMEX_Get_Grid (API, X[k].object);
+				break;
+			case GMT_IS_DATASET:	/* A GMT table; make it a matrix and the pos'th output item */
+				plhs[pos] = GMTMEX_Get_Dataset (API, X[k].object);
+				break;
+			case GMT_IS_TEXTSET:	/* A GMT textset; make it a cell and the pos'th output item */
+				plhs[pos] = GMTMEX_Get_Textset (API, X[k].object);
+				break;
+			case GMT_IS_CPT:	/* A GMT CPT; make it a colormap and the pos'th output item  */
+				plhs[pos] = GMTMEX_Get_CPT (API, X[k].object);
+				break;
+			case GMT_IS_IMAGE:	/* A GMT Image; make it the pos'th output item  */
+				plhs[pos] = GMTMEX_Get_Image (API, X[k].object);
+				break;
+			default:
+				mexErrMsgTxt ("GMT: Internal Error - unsupported data type\n");
+				break;
 		}
-			
-		if (GMT_Destroy_Data (API, &X[k].object) != GMT_NOERROR)
-			mexErrMsgTxt ("GMT: Failed to destroy object used in the interface between GMT and MATLAB\n");
 	}
 	
-	/* 8. Destroy linked option list */
+	/* 8. Free all GMT containers involved in this module call */
+	
+	for (k = 0; k < n_items; k++) {
+		void *ppp = X[k].object;
+		if (GMT_Destroy_Data (API, &X[k].object) != GMT_NOERROR)
+			mexErrMsgTxt ("GMT: Failed to destroy object used in the interface between GMT and MATLAB\n");
+		else {	/* Success, now make sure we dont destroy the same pointer more than once */
+			for (size_t kk = k+1; kk < n_items; kk++)
+				if (X[kk].object == ppp) X[kk].object = NULL;
+		}
+	}
+
+	/* 9. Destroy linked option list */
 	
 	if (GMT_Destroy_Options (API, &options)) mexErrMsgTxt ("GMT: Failure to destroy GMT5 options\n");
 	return;
