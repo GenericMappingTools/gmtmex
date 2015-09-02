@@ -13,7 +13,8 @@ g_root_dir = 'C:/progs_cygw/GMTdev/gmt5/branches/5.2.0/';
 out_path = 'V:/';		% Set this if you want to save the PS files in a prticular place
 
 	all_exs = {'ex01' 'ex02' 'ex04' 'ex05' 'ex06' 'ex07' 'ex08' 'ex09' 'ex10' 'ex12' 'ex13' 'ex14' ...
-		'ex15' 'ex16' 'ex17' 'ex20' 'ex23' 'ex34' 'ex35' 'ex36' 'ex38' 'ex39' 'ex40' 'ex41' 'ex44'}; 
+		'ex15' 'ex16' 'ex17' 'ex20' 'ex23' 'ex24' 'ex28' 'ex29' 'ex34' 'ex35' 'ex36' 'ex38' 'ex39' 'ex40' ...
+		'ex41' 'ex44'}; 
 
 	if (nargin == 0)
 		opt = all_exs;
@@ -31,23 +32,26 @@ out_path = 'V:/';		% Set this if you want to save the PS files in a prticular pl
 				case 'ex06',   ex06
 				case 'ex07',   ex07
 				case 'ex08',   ex08
-				case 'ex09',   ex09
-				case 'ex10',   ex10
-				case 'ex12',   ex12
-				case 'ex13',   ex13
-				case 'ex14',   ex14
-				case 'ex15',   ex15
-				case 'ex16',   ex16
+				case 'ex09',   ex09		% F
+				case 'ex10',   ex10		% F
+				case 'ex12',   ex12		% F
+				case 'ex13',   ex13		% F
+				case 'ex14',   ex14		% F
+				case 'ex15',   ex15		% F
+				case 'ex16',   ex16		% F
 				case 'ex17',   ex17
-				case 'ex20',   ex20
+				case 'ex20',   ex20		% F
 				case 'ex23',   ex23
+				case 'ex24',   ex24
+				case 'ex28',   ex28
+				case 'ex29',   ex29		% F
 				case 'ex34',   ex34
-				case 'ex35',   ex35
+				case 'ex35',   ex35		% F
 				case 'ex36',   ex36
 				case 'ex38',   ex38
 				case 'ex39',   ex39
-				case 'ex40',   ex40
-				case 'ex41',   ex41
+				case 'ex40',   ex40		% F
+				case 'ex41',   ex41		% F
 				case 'ex44',   ex44
 			end
 		end
@@ -514,6 +518,92 @@ function ex23()
 	end
 	gmt(['pstext -R -J -O -D0/-0.2i -N -Gwhite -W -C0.02i -F+f12p,Helvetica-Bold+jCT >> ' ps], t)
 	builtin('delete','cities.d');
+
+% -------------------------------------------------------------------------------------------------
+function ex24()
+	global g_root_dir out_path
+	d_path = [g_root_dir 'doc/examples/ex24'];
+	ps = [out_path 'example_24.ps'];
+
+	% Currently there is no way of avoiding creating files for this
+	fid = fopen('dateline.d', 'w');
+	fprintf(fid, '> Our proxy for the dateline\n');
+	fprintf(fid, '180 0\n180 -90\n');
+	fclose(fid);
+
+	fid = fopen('point.d', 'w');
+	fprintf(fid, '147:13 -42:48 6000 Hobart');
+	fclose(fid);
+
+	R = gmt(['info -I10 ' d_path '/oz_quakes.d']);
+	gmt(['pscoast ' R{1} ' -JM9i -K -Gtan -Sdarkblue -Wthin,white -Dl -A500 -Ba20f10g10 -BWeSn > ' ps])
+	gmt(['psxy -R -J -O -K ' d_path '/oz_quakes.d -Sc0.05i -Gred >> ' ps])
+	t = gmt(['gmtselect ' d_path '/oz_quakes.d -L1000k/dateline.d -Nk/s -C3000k/point.d -fg -R -Il']);
+	gmt(['psxy -R -JM -O -K -Sc0.05i -Ggreen >> ' ps], t)
+	gmt(['psxy point.d -R -J -O -K -SE- -Wfat,white >> ' ps])
+	gmt(['pstext -R -J -O -K -F+f14p,Helvetica-Bold,white+jLT -D0.1i/-0.1i >> ' ps], {'147:13 -42:48 Hobart'})
+	gmt(['psxy -R -J -O -K point.d -Wfat,white -S+0.2i >> ' ps])
+	gmt(['psxy dateline.d -R -J -O -Wfat,white -A >> ' ps])
+	builtin('delete','point.d', 'dateline.d');
+
+% -------------------------------------------------------------------------------------------------
+function ex28()
+	global g_root_dir out_path
+	d_path = [g_root_dir 'doc/examples/ex28/'];
+	ps = [out_path 'example_28.ps'];
+
+	% Get intensity grid and set up a color table
+	GKilauea.utm_i = gmt(['grdgradient ' d_path 'Kilauea.utm.nc -Nt1 -A45 -G']);
+	Kilauea_cpt = gmt('makecpt -Ccopper -T0/1500/100 -Z');
+	% Lay down the UTM topo grid using a 1:16,000 scale
+	gmt(['grdimage ' d_path 'Kilauea.utm.nc -I -C -Jx1:160000 -P -K' ...
+		' --FORMAT_FLOAT_OUT=%.10g --FONT_ANNOT_PRIMARY=9p > ' ps], GKilauea.utm_i, Kilauea_cpt)
+	% Overlay geographic data and coregister by using correct region and gmt(['projection with the same scale
+	gmt(['pscoast -R' d_path 'Kilauea.utm.nc -Ju5Q/1:160000 -O -K -Df+ -Slightblue -W0.5p -B5mg5m -BNE' ...
+		' --FONT_ANNOT_PRIMARY=12p --FORMAT_GEO_MAP=ddd:mmF >> ' ps])
+	gmt(['pstext -R -J -O -K -F+f12p,Helvetica-Bold+jCB >> ' ps], {'155:16:20W 19:26:20N KILAUEA'})
+	gmt(['psbasemap -R -J -O -K --FONT_ANNOT_PRIMARY=9p -Lg155:07:30W/19:15:40N+c19:23N+jTC+f+w5k+l1:16,000+u' ...
+		' --FONT_LABEL=10p >> ' ps])
+	% Annotate in km but append ,000m to annotations to get customized meter labels
+	gmt(['psbasemap -R' d_path 'Kilauea.utm.nc+Uk -Jx1:160 -B5g5+u"@:8:000m@::" -BWSne -O --FONT_ANNOT_PRIMARY=10p' ...
+		' --MAP_GRID_CROSS_SIZE_PRIMARY=0.1i --FONT_LABEL=10p >> ' ps])
+
+% -------------------------------------------------------------------------------------------------
+function ex29()
+% THIS EXAMPLE FAILS BECAUSE OF grdmath (NOT TESTED AFTER THAT)
+	global g_root_dir out_path
+	d_path = [g_root_dir 'doc/examples/ex29/'];
+	ps = [out_path 'example_29.ps'];
+
+	% This example uses 370 radio occultation data for Mars to grid the topography.
+	% Data and information from Smith, D. E., and M. T. Zuber (1996), The shape of
+	% Mars and the topographic signature of the hemispheric dichotomy, Science, 271, 184-187.
+
+	% Make Mars PROJ_ELLIPSOID given their three best-fitting axes:
+	a = 3399.472;	b = 3394.329;	c = 3376.502;
+
+	Gproj_ellipsoid = gmt(sprintf(['grdmath -Rg -I4 -r X COSD %f DIV DUP MUL X SIND %f DIV DUP MUL ADD' ...
+		' Y COSD DUP MUL MUL Y SIND %f DIV DUP MUL ADD SQRT INV ='], a, b, c));
+	%  Do both Parker and Wessel/Becker solutions (tension = 0.9975)
+	Gmars  = gmt(['greenspline -R ' d_path 'mars370.in -D4 -Sp -G'], Gproj_ellipsoid);
+	Gmars2 = gmt(['greenspline -R ' d_path 'mars370.in -D4 -Sq0.9975 -G'], Gproj_ellipsoid);
+	% Scale to km and remove PROJ_ELLIPSOID
+	Gmars  = gmt('grdmath $ 1000 DIV $ SUB =', Gmars, Gproj_ellipsoid);
+	Gmars2 = gmt('grdmath $ 1000 DIV $ SUB =', Gmars2, Gproj_ellipsoid);
+	mars_cpt = gmt('makecpt -Crainbow -T-7/15/22 -Z');
+	Gmars2_i = gmt('grdgradient -fg -Ne0.75 -A45 -G', Gmars2);
+	gmt(['grdimage -I -C -B30g30 -BWsne -JH0/7i -P -K -E200' ...
+		' --FONT_ANNOT_PRIMARY=12p -X0.75i > ' ps], Gmars2_i, mars_cpt, Gmars2)
+	gmt(['grdcontour mars2.nc -J -O -K -C1 -A5 -Glz+/z- >> ' ps], Gmars2)
+	gmt(['psxy -Rg -J -O -K -Sc0.045i -Gblack ' d_path 'mars370.in  >> ' ps])
+	gmt(['pstext -R -J -O -K -N -D-3.5i/-0.2i -F+f14p,Helvetica-Bold+jLB >> ' ps], {'0 90 b)'})
+	Gmars_i = gmt('grdgradient -fg -Ne0.75 -A45 -G', Gmars);
+	gmt(['grdimage -I -C -B30g30 -BWsne -J -O -K -Y4.2i -E200' ...
+		' --FONT_ANNOT_PRIMARY=12p >> ' ps], Gmars_i, mars_cpt, Gmars)
+	gmt(['grdcontour -J -O -K -C1 -A5 -Glz+/z- >> ' ps], Gmars)
+	gmt(['psxy -Rg -J -O -K -Sc0.045i -Gblack ' d_path 'mars370.in  >> ' ps])
+	gmt(['psscale -C -O -K -R -J -DJBC+o0/0.15i+w6i/0.1i+h -I --FONT_ANNOT_PRIMARY=12p -Bx2f1 -By+lkm >> ' ps], mars_cpt)
+	gmt(['pstext -R -J -O -N -D-3.5i/-0.2i -F+f14p,Helvetica-Bold+jLB >> ' ps], {'0 90 a)'})
 
 % -------------------------------------------------------------------------------------------------
 function ex34()
