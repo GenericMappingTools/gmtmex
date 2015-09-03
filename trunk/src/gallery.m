@@ -4,7 +4,7 @@ function  gallery(opt)
 %
 
 % For small cpts created on line it would be nice to have an alternative to (e.g)
-% 	fid = fopen('gray.cpt','w');	fprintf(fid, '%s\n', '-10000 150 10000 150');	fclose(fid);
+% 	fid = fopen('gray.cpt','w');	fprintf(fid, '-10000 150 10000 150\n');		fclose(fid);
 % Perhaps makecpt could accept a cell array as input?
 
 global g_root_dir out_path;
@@ -13,8 +13,8 @@ g_root_dir = 'C:/progs_cygw/GMTdev/gmt5/branches/5.2.0/';
 out_path = 'V:/';		% Set this if you want to save the PS files in a prticular place
 
 	all_exs = {'ex01' 'ex02' 'ex04' 'ex05' 'ex06' 'ex07' 'ex08' 'ex09' 'ex10' 'ex12' 'ex13' 'ex14' ...
-		'ex15' 'ex16' 'ex17' 'ex18' 'ex20' 'ex23' 'ex24' 'ex26' 'ex27' 'ex28' 'ex29' 'ex30' 'ex32' ...
-		'ex33' 'ex34' 'ex35' 'ex36' 'ex38' 'ex39' 'ex40' 'ex42' 'ex41' 'ex44'}; 
+		'ex15' 'ex16' 'ex17' 'ex18' 'ex19' 'ex20' 'ex23' 'ex24' 'ex25' 'ex26' 'ex27' 'ex28' 'ex29' ...
+		'ex30' 'ex32' 'ex33' 'ex34' 'ex35' 'ex36' 'ex38' 'ex39' 'ex40' 'ex42' 'ex41' 'ex44'}; 
 
 	if (nargin == 0)
 		opt = all_exs;
@@ -35,28 +35,30 @@ out_path = 'V:/';		% Set this if you want to save the PS files in a prticular pl
 				case 'ex09',   ex09
 				case 'ex10',   ex10		% F
 				case 'ex12',   ex12		% F
-				case 'ex13',   ex13		% F
+				case 'ex13',   ex13
 				case 'ex14',   ex14		% F
 				case 'ex15',   ex15		% F
 				case 'ex16',   ex16		% F
 				case 'ex17',   ex17
-				case 'ex18',   ex18		% F NT
+				case 'ex18',   ex18		% F
+				case 'ex19',   ex19
 				case 'ex20',   ex20		% F
 				case 'ex23',   ex23
 				case 'ex24',   ex24
+				case 'ex25',   ex25
 				case 'ex26',   ex26
 				case 'ex27',   ex27
 				case 'ex28',   ex28
 				case 'ex29',   ex29		% F
 				case 'ex30',   ex30
-				case 'ex32',   ex32		% NT
-				case 'ex33',   ex33		% NT
+				case 'ex32',   ex32		% C
+				case 'ex33',   ex33		% C
 				case 'ex34',   ex34
 				case 'ex35',   ex35		% F
 				case 'ex36',   ex36
 				case 'ex38',   ex38
 				case 'ex39',   ex39
-				case 'ex40',   ex40		% F
+				case 'ex40',   ex40		% C
 				case 'ex41',   ex41		% F
 				case 'ex42',   ex42		% F
 				case 'ex44',   ex44
@@ -294,7 +296,6 @@ function ex12()
 
 % -------------------------------------------------------------------------------------------------
 function ex13()
-% THIS EXAMPLE FAILS
 	global out_path
 	ps = [out_path 'example_13.ps'];
 
@@ -326,8 +327,8 @@ function ex14()
 	gmt(['psbasemap -R0.5/7.5/0.5/7.5 -J -O -K -Bg1 -X3.25i >> ' ps])
 	gmt(['psxy -R0/7/0/7 -J -B2f1 -BeSNw -Ss0.05i -Gblack -O -K >> ' ps], mean_xyz)
 	% Reformat to one decimal for annotation purposes
-%	t = gmt('gmtconvert --FORMAT_FLOAT_OUT=%.1f', mean_xyz);							% <---------------- FAILS HERE
-%	gmt(['pstext -R -J -D0.15c/0 -F+f6p+jLM -O -K -Gwhite -W -C0.01i -N >> ' ps], t)
+	t = gmt('gmtconvert --FORMAT_FLOAT_OUT=%.1f', mean_xyz);
+	%gmt(['pstext -R -J -D0.15c/0 -F+f6p+jLM -O -K -Gwhite -W -C0.01i -N >> ' ps], t)	% <--- FAILS HERE BECAUSE T SHOULD BE A CELL
 
 	% Then gmt surface and contour the data
 	Gdata = gmt('surface -R -I1', mean_xyz);
@@ -443,6 +444,7 @@ function ex17()
 
 % -------------------------------------------------------------------------------------------------
 function ex18()
+% THIS EXAMPLE FAILS
 	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex18/'];
 	ps = [out_path 'example_18.ps'];
@@ -458,18 +460,18 @@ function ex18()
 
 	grav_cpt = gmt('makecpt -Crainbow -T-60/60/120 -Z');
 	GAK_gulf_grav_i = gmt(['grdgradient ' d_path 'AK_gulf_grav.nc -Nt1 -A45 -G']);
-	gmt(['grdimage ' d_path 'AK_gulf_grav.nc -I -JM5.5i -Cgrav.cpt -B2f1 -P -K -X1.5i' ...
+	gmt(['grdimage ' d_path 'AK_gulf_grav.nc -I -JM5.5i -C -B2f1 -P -K -X1.5i' ...
 		' -Y5.85i > ' ps], GAK_gulf_grav_i, grav_cpt)
 	gmt(['pscoast -R' d_path 'AK_gulf_grav.nc -J -O -K -Di -Ggray -Wthinnest >> ' ps])
 	gmt(['psscale -DJBC+o0/0.4i+w4i/0.15i+h -R -J -C -Bx20f10 -By+l"mGal" -O -K >> ' ps], grav_cpt)
-	gmt(['pstext -R -J -O -K -D0.1i/0.1i -F+f12p,Helvetica-Bold+jLB >> ' ps], sprintf('%f %f Pratt', prat(1), pratt(2)))
+	gmt(['pstext -R -J -O -K -D0.1i/0.1i -F+f12p,Helvetica-Bold+jLB >> ' ps], {sprintf('%f %f Pratt', pratt(1), pratt(2))})
 	gmt(['psxy -R -J -O -K -SE- -Wthinnest >> ' ps], pratt)
 
 	% Then draw 10 mGal contours and overlay 50 mGal contour in green
 
 	gmt(['grdcontour ' d_path 'AK_gulf_grav.nc -J -C20 -B2f1 -BWSEn -O -K -Y-4.85i >> ' ps])
 	% Save 50 mGal contours to individual files, then plot them
-	gmt(['grdcontour ' d_path 'AK_gulf_grav.nc -C10 -L49/51 -Dsm_%d_%c.txt'])
+	gmt(['grdcontour ' d_path 'AK_gulf_grav.nc -C10 -L49/51 -Dsm_%d_%c.txt'])	%<---- FAILS HERE
 	gmt(['psxy -R -J -O -K -Wthin,green sm_*.txt >> ' ps])
 	gmt(['pscoast -R -J -O -K -Di -Ggray -Wthinnest >> ' ps])
 	gmt(['psxy -R -J -O -K -SE- -Wthinnest >> ' ps], pratt)
@@ -480,18 +482,18 @@ function ex18()
 	% the ones within 200 km of Pratt seamount.
 
 	% First determine mean location of each closed contour and add it to the file centers.d
-	gmt('gmtspatial -Q -fg sm_*_C.txt > centers.d')
+	centers = gmt('gmtspatial -Q -fg sm_*_C.txt');
 
 	% Only plot the ones within 200 km
-	centers = gmt('gmtselect -C200k/$ -fg', pratt);
-	gmt(['psxy -R -J -O -K -SC0.04i -Gred -Wthinnest >> ' ps], centers)
+	t = gmt('gmtselect -C200k/$ -fg', pratt, centers);
+	gmt(['psxy -R -J -O -K -SC0.04i -Gred -Wthinnest >> ' ps], t)
 	gmt(['psxy -R -J -O -K -ST0.1i -Gyellow -Wthinnest >> ' ps], pratt)
 
 	% Then report the volume and area of these seamounts only
 	% by masking out data outside the 200 km-radius circle
 	% and then evaluate area/volume for the 50 mGal contour
 
-	Gmask = gmt(['grdmath -R ' sprintf('%f %f', prat(1), pratt(2)) ' SDIST =']);
+	Gmask = gmt(['grdmath -R ' sprintf('%f %f', pratt(1), pratt(2)) ' SDIST =']);
 	Gmask = gmt('grdclip -Sa200/NaN -Sb200/1 -G', Gmask);
 	Gtmp = gmt(['grdmath ' d_path 'AK_gulf_grav.nc $ MUL ='], Gmask);
 	area = gmt('grdvolume -C50 -Sk', Gtmp); % | cut -f2`
@@ -504,8 +506,46 @@ function ex18()
 		-148.5	53.75])
 
 	gmt(['pstext -R -J -O -F+f14p,Helvetica-Bold+jLM >> ' ps], ...
-		{sprintf('-148 53.08 Areas: %f.2 km@+2@+', area)
-		 sprintf('-148 53.42 Volumes: %d mGal\264km@+2@+', volume)})
+		{sprintf('-148 53.08 Areas: %f.2 km@+2@+', area(3))
+		 sprintf('-148 53.42 Volumes: %d mGal\264km@+2@+', volume(4))})
+
+% -------------------------------------------------------------------------------------------------
+function ex19()
+	global g_root_dir out_path
+	d_path = [g_root_dir 'doc/examples/ex19/'];
+	ps = [out_path 'example_19.ps'];
+
+	% First make a worldmap with graded blue oceans and rainbow continents
+
+	Glat = gmt('grdmath -Rd -I1 -r Y COSD 2 POW =');
+	Glon = gmt('grdmath -Rd -I1 -r X =');
+	fid = fopen('lat.cpt','w');		fprintf(fid, '0 white 1 blue\n');	fclose(fid);
+	lon_cpt = gmt('makecpt -Crainbow -T-180/180/360 -Z');
+	gmt(['grdimage -JI0/6.5i -Clat.cpt -P -K -Y7.5i -B0 -nl > ' ps], Glat)
+	gmt(['pscoast -R -J -O -K -Dc -A5000 -Gc >> ' ps])
+	gmt(['grdimage -J -C -O -K -nl >> ' ps], lon_cpt, Glon)
+	gmt(['pscoast -R -J -O -K -Q >> ' ps])
+	gmt(['pscoast -R -J -O -K -Dc -A5000 -Wthinnest >> ' ps])
+	gmt(['pstext -R -J -O -K -F+f32p,Helvetica-Bold,red=thinner >> ' ps], {'0 20 12TH INTERNATIONAL'})
+	gmt(['pstext -R -J -O -K -F+f32p,Helvetica-Bold,red=thinner >> ' ps], {'0 -10 GMT CONFERENCE'})
+	gmt(['pstext -R -J -O -K -F+f18p,Helvetica-Bold,green=thinnest >> ' ps], {'0 -30 Honolulu, Hawaii, April 1, 2015'})
+
+	% Then show example of color patterns and placing a PostScript image
+	gmt(['pscoast -R -J -O -K -Dc -A5000 -Gp100/86:FredByellow -Sp100/' d_path 'circuit.ras -B0 -Y-3.25i >> ' ps])
+	gmt(['pstext -R -J -O -K -F+f32p,Helvetica-Bold,lightgreen=thinner >> ' ps], {'0 30 SILLY USES OF'})
+	gmt(['pstext -R -J -O -K -F+f32p,Helvetica-Bold,magenta=thinner >> ' ps], {'0 -30 COLOR PATTERNS'})
+	gmt(['psimage -DjCM+w3i -R -J ' d_path 'GMT_covertext.eps -O -K >> ' ps])
+
+	% Finally repeat 1st plot but exchange the patterns
+	gmt(['grdimage -J -C -O -K -Y-3.25i -B0 -nl >> ' ps], lon_cpt, Glon)
+	gmt(['pscoast -R -J -O -K -Dc -A5000 -Gc >> ' ps])
+	gmt(['grdimage -J -Clat.cpt -O -K -nl >> ' ps], Glat)
+	gmt(['pscoast -R -J -O -K -Q >> ' ps])
+	gmt(['pscoast -R -J -O -K -Dc -A5000 -Wthinnest >> ' ps])
+	gmt(['pstext -R -J -O -K -F+f32p,Helvetica-Bold,red=thinner >> ' ps], {'0 20 12TH INTERNATIONAL'})
+	gmt(['pstext -R -J -O -K -F+f32p,Helvetica-Bold,red=thinner >> ' ps], {'0 -10 GMT CONFERENCE'})
+	gmt(['pstext -R -J -O -F+f18p,Helvetica-Bold,green=thinnest >> ' ps], {'0 -30 Honolulu, Hawaii, April 1, 2015'})
+	builtin('delete','lat.cpt');
 
 % -------------------------------------------------------------------------------------------------
 function ex20()
@@ -625,6 +665,46 @@ function ex24()
 	builtin('delete','cities.d');
 
 % -------------------------------------------------------------------------------------------------
+function ex25()
+	global out_path
+	ps = [out_path 'example_25.ps'];
+
+	D = 30;
+	Gwetdry = gmt(['grdlandmask -Rg -I' num2str(D) 'm -Dc -A500 -N-1/1/1/1/1 -r -G']);
+	%Manipulate so -1 means ocean/ocean antipode, +1 = land/land, and 0 elsewhere
+	Gkey = gmt('grdmath -fg $ DUP 180 ROTX FLIPUD ADD 2 DIV =', Gwetdry);
+	%Calculate percentage area of each type of antipode match.
+	Gscale = gmt(['grdmath -Rg -I' num2str(D) 'm -r Y COSD 60 num2str(D) DIV 360 MUL DUP MUL PI DIV DIV 100 MUL =']);
+	Gtmp = gmt('grdmath -fg $ -1 EQ 0 NAN $ MUL =', Gkey, Gscale);
+	key = gmt('grd2xyz -s -ZTLf', Gtmp);
+	ocean = gmt('gmtmath -bi1f -Ca -S $ SUM UPPER RINT =', key);
+	Gtmp = gmt('grdmath -fg $ 1 EQ 0 NAN MUL =', key, Gscale);
+	key = gmt('grd2xyz tmp.nc -s -ZTLf', Gtmp);
+	land = gmt('gmtmath -bi1f -Ca -S SUM UPPER RINT =', key);
+	Gtmp = gmt('grdmath -fg $ 0 EQ 0 NAN $ MUL =', key, Gscale);
+	key = gmt('grd2xyz -s -ZTLf', Gtmp);
+	mixed = gmt('gmtmath -bi1f -Ca -S SUM UPPER RINT =', key);
+ 
+ 	% Generate corresponding color table
+	fid = fopen('key.cp','w');
+	fprintf(fid, '-1.5	blue	-0.5	blue\n');
+	fprintf(fid, '-0.5	gray	0.5	gray\n');
+	fprintf(fid, '0.5	red	1.5	red\n');
+	fclose(fid);
+
+ 	% Create the final plot and overlay coastlines
+	gmt('gmtset FONT_ANNOT_PRIMARY +10p FORMAT_GEO_MAP dddF');
+	gmt(['grdimage -JKs180/9i -Bx60 -By30 -BWsNE+t"Antipodal comparisons" -K -Ckey.cpt -Y1.2i -nn > ' ps], Gkey)
+	gmt(['pscoast -R -J -O -K -Wthinnest -Dc -A500 >> ' ps])
+	% Place an explanatory legend below
+	gmt(['pslegend -R -J -O -DJBC+w6i -Y-0.2i -F+pthick >> ' ps], { ...
+		'N 3'
+		sprintf('S 0.15i s 0.2i red  0.25p 0.3i Terrestrial Antipodes [%d %%]', land)
+		sprintf('S 0.15i s 0.2i blue 0.25p 0.3i Oceanic Antipodes [%d %%]', ocean)
+		sprintf('S 0.15i s 0.2i gray 0.25p 0.3i Mixed Antipodes [%d %%]', mixed)})
+	builtin('delete','gmt.conf');
+
+% -------------------------------------------------------------------------------------------------
 function ex26()
 	global out_path
 	ps = [out_path 'example_26.ps'];
@@ -696,7 +776,7 @@ function ex28()
 
 % -------------------------------------------------------------------------------------------------
 function ex29()
-% THIS EXAMPLE FAILS BECAUSE OF grdmath (NOT TESTED AFTER THAT)
+% THIS EXAMPLE FAILS BECAUSE THE RESULT IS WRONG
 	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex29/'];
 	ps = [out_path 'example_29.ps'];
@@ -711,8 +791,8 @@ function ex29()
 	Gproj_ellipsoid = gmt(sprintf(['grdmath -Rg -I4 -r X COSD %f DIV DUP MUL X SIND %f DIV DUP MUL ADD' ...
 		' Y COSD DUP MUL MUL Y SIND %f DIV DUP MUL ADD SQRT INV ='], a, b, c));
 	%  Do both Parker and Wessel/Becker solutions (tension = 0.9975)
-	Gmars  = gmt(['greenspline -R ' d_path 'mars370.in -D4 -Sp -G'], Gproj_ellipsoid);
-	Gmars2 = gmt(['greenspline -R ' d_path 'mars370.in -D4 -Sq0.9975 -G'], Gproj_ellipsoid);
+	Gmars  = gmt(['greenspline -R$ ' d_path 'mars370.in -D4 -Sp -G'], Gproj_ellipsoid);
+	Gmars2 = gmt(['greenspline -R$ ' d_path 'mars370.in -D4 -Sq0.9975 -G'], Gproj_ellipsoid);
 	% Scale to km and remove PROJ_ELLIPSOID
 	Gmars  = gmt('grdmath $ 1000 DIV $ SUB =', Gmars, Gproj_ellipsoid);
 	Gmars2 = gmt('grdmath $ 1000 DIV $ SUB =', Gmars2, Gproj_ellipsoid);
@@ -720,7 +800,7 @@ function ex29()
 	Gmars2_i = gmt('grdgradient -fg -Ne0.75 -A45 -G', Gmars2);
 	gmt(['grdimage -I -C -B30g30 -BWsne -JH0/7i -P -K -E200' ...
 		' --FONT_ANNOT_PRIMARY=12p -X0.75i > ' ps], Gmars2_i, mars_cpt, Gmars2)
-	gmt(['grdcontour mars2.nc -J -O -K -C1 -A5 -Glz+/z- >> ' ps], Gmars2)
+	gmt(['grdcontour -J -O -K -C1 -A5 -Glz+/z- >> ' ps], Gmars2)
 	gmt(['psxy -Rg -J -O -K -Sc0.045i -Gblack ' d_path 'mars370.in  >> ' ps])
 	gmt(['pstext -R -J -O -K -N -D-3.5i/-0.2i -F+f14p,Helvetica-Bold+jLB >> ' ps], {'0 90 b)'})
 	Gmars_i = gmt('grdgradient -fg -Ne0.75 -A45 -G', Gmars);
@@ -855,6 +935,7 @@ function ex32()
 
 % -------------------------------------------------------------------------------------------------
 function ex33()
+% THIS EXAMPLE FAILS (CRASHES)
 	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex33/'];
 	ps = [out_path 'example_33.ps'];
@@ -867,14 +948,14 @@ function ex33()
 	% Select two points along the ridge
 	ridge_pts = [-111.6 -43.0; -113.3 -47.5];
 	% Plot ridge segment and end points
-	gmt(['psxy -R' d_path 'spac.nc -J -O -K -W2p,blue ridge.txt >> ' ps])
+	gmt(['psxy -R' d_path 'spac.nc -J -O -K -W2p,blue >> ' ps], ridge_pts)
 	gmt(['psxy -R -J -O -K -Sc0.1i -Gblue >> ' ps], ridge_pts)
 	% Generate cross-profiles 400 km long, spaced 10 km, samped every 2km
 	% and stack these using the median, write stacked profile
 	table = gmt(['grdtrack -G' d_path 'spac.nc -C400k/2k/10k -Sm+sstack.txt'], ridge_pts);
 	gmt(['psxy -R -J -O -K -W0.5p >> ' ps], table)
 	% Show upper/lower values encountered as an envelope
-	env = gmt('gmtconvert stack.txt -o0,5');
+	env = gmt('gmtconvert stack.txt -o0,5');				% <--- CRASH HERE
 	env = [env; gmt('gmtconvert stack.txt -o0,6 -I -T')];		% Concat the two matrices
 	gmt(['psxy -R-200/200/-3500/-2000 -Bxafg1000+l"Distance from ridge (km)" -Byaf+l"Depth (m)" -BWSne' ...
 		' -JX6i/3i -O -K -Glightgray -Y6.5i >> ' ps], env)
