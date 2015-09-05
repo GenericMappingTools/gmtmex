@@ -13,8 +13,8 @@ g_root_dir = 'C:/progs_cygw/GMTdev/gmt5/branches/5.2.0/';
 out_path = 'V:/';		% Set this if you want to save the PS files in a prticular place
 
 	all_exs = {'ex01' 'ex02' 'ex04' 'ex05' 'ex06' 'ex07' 'ex08' 'ex09' 'ex10' 'ex12' 'ex13' 'ex14' ...
-		'ex15' 'ex16' 'ex17' 'ex18' 'ex19' 'ex20' 'ex23' 'ex24' 'ex25' 'ex26' 'ex27' 'ex28' 'ex29' ...
-		'ex30' 'ex32' 'ex33' 'ex34' 'ex35' 'ex36' 'ex38' 'ex39' 'ex40' 'ex42' 'ex41' 'ex44'}; 
+		'ex15' 'ex16' 'ex17' 'ex18' 'ex19' 'ex20' 'ex22' 'ex23' 'ex24' 'ex25' 'ex26' 'ex27' 'ex28' ...
+		'ex29' 'ex30' 'ex32' 'ex33' 'ex34' 'ex35' 'ex36' 'ex37' 'ex38' 'ex39' 'ex40' 'ex42' 'ex41' 'ex44'}; 
 
 	if (nargin == 0)
 		opt = all_exs;
@@ -33,29 +33,31 @@ out_path = 'V:/';		% Set this if you want to save the PS files in a prticular pl
 				case 'ex07',   ex07
 				case 'ex08',   ex08
 				case 'ex09',   ex09
-				case 'ex10',   ex10		% F
+				case 'ex10',   ex10
 				case 'ex12',   ex12		% F
 				case 'ex13',   ex13
 				case 'ex14',   ex14		% F
 				case 'ex15',   ex15		% F
 				case 'ex16',   ex16		% F
 				case 'ex17',   ex17
-				case 'ex18',   ex18		% F
+				case 'ex18',   ex18		% C
 				case 'ex19',   ex19
-				case 'ex20',   ex20		% F
+				case 'ex20',   ex20
+				case 'ex22',   ex22
 				case 'ex23',   ex23
 				case 'ex24',   ex24
-				case 'ex25',   ex25
+				case 'ex25',   ex25		% C
 				case 'ex26',   ex26
 				case 'ex27',   ex27
 				case 'ex28',   ex28
 				case 'ex29',   ex29		% F
 				case 'ex30',   ex30
 				case 'ex32',   ex32		% C
-				case 'ex33',   ex33		% C
+				case 'ex33',   ex33
 				case 'ex34',   ex34
 				case 'ex35',   ex35		% F
 				case 'ex36',   ex36
+				case 'ex37',   ex37
 				case 'ex38',   ex38
 				case 'ex39',   ex39
 				case 'ex40',   ex40		% C
@@ -216,7 +218,6 @@ function ex09()
 
 % -------------------------------------------------------------------------------------------------
 function ex10()
-% THIS EXAMPLE FAILS
 	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex10'];
 	ps = [out_path 'example_10.ps'];
@@ -248,9 +249,8 @@ function ex10()
 	gmt(['psxyz -R -J -JZ -So0.3ib -Gdarkgreen -Wthinner -O -K -p >> ' ps], [array(:,1:2) sum(array(:,3:5),2) sum(array(:,3:4),2)])
 	gmt(['psxyz -R -J -JZ -So0.3ib -Gyellow -Wthinner -O -K -p >> ' ps], [array(:,1:2) sum(array(:,3:6),2) sum(array(:,3:5),2)])
 	gmt(['psxyz -R -J -JZ -So0.3ib -Gred -Wthinner -O -K -p >> ' ps], [array(:,1:2) sum(array(:,3:7),2) sum(array(:,3:6),2)])
-	% BUG HERE. NOTHING IS WRITTEN BY THE NEXT COMMAND 
 	gmt(['pslegend -R -J -JZ -DjLB+o0.2i+w1.35i/0+jBL -O --FONT=Helvetica-Bold' ...
-		' -F+glightgrey+pthinner+s-4p/-6p/grey20@40 -p ' d_path '/legend.txt -Vl >> ' ps])
+		' -F+glightgrey+pthinner+s-4p/-6p/grey20@40 -p ' d_path '/legend.txt >> ' ps])
 
 % -------------------------------------------------------------------------------------------------
 function ex12()
@@ -300,7 +300,7 @@ function ex13()
 	ps = [out_path 'example_13.ps'];
 
 	Gz = gmt('grdmath -R-2/2/-2/2 -I0.1 X Y R2 NEG EXP X MUL =');
-	Gdzdx = gmt('grdmath $ DDX', Gz);		% <------ FAILS HERE
+	Gdzdx = gmt('grdmath $ DDX', Gz);
 	Gdzdy = gmt('grdmath $ DDY', Gz);
 	gmt(['grdcontour -JX3i -B1 -BWSne -C0.1 -A0.5 -K -P -Gd2i -S4 -T+d0.1i/0.03i > ' ps], Gdzdx)
 	gmt(['grdcontour -J -B -C0.05 -A0.2 -O -K -Gd2i -S4 -T+d0.1i/0.03i -Xa3.45i >> ' ps], Gdzdy)
@@ -327,8 +327,8 @@ function ex14()
 	gmt(['psbasemap -R0.5/7.5/0.5/7.5 -J -O -K -Bg1 -X3.25i >> ' ps])
 	gmt(['psxy -R0/7/0/7 -J -B2f1 -BeSNw -Ss0.05i -Gblack -O -K >> ' ps], mean_xyz)
 	% Reformat to one decimal for annotation purposes
-	t = gmt('gmtconvert --FORMAT_FLOAT_OUT=%.1f', mean_xyz);
-	%gmt(['pstext -R -J -D0.15c/0 -F+f6p+jLM -O -K -Gwhite -W -C0.01i -N >> ' ps], t)	% <--- FAILS HERE BECAUSE T SHOULD BE A CELL
+	t = cellstr(num2str(mean_xyz,'%g %g %.1f'));	% Round to nearest 0.1 and convert to cells
+	gmt(['pstext -R -J -D0.15c/0 -F+f6p+jLM -O -K -Gwhite -W -C0.01i -N >> ' ps], t)
 
 	% Then gmt surface and contour the data
 	Gdata = gmt('surface -R -I1', mean_xyz);
@@ -389,6 +389,7 @@ function ex16()
 
 disp('This example would blow Matlab in a blink. Returning before that happen'),	return
 
+	setenv('GMT_DATADIR', d_path)			% <----- NOT GOOD ENOUGH
 	gmt('gmtset FONT_ANNOT_PRIMARY 9p')
 	gmt(['pscontour -R0/6.5/-0.2/6.5 -Jx0.45i -P -K -Y5.5i -Ba2f1 -BWSne ' d_path '/table_5.11 -C' d_path '/ex16.cpt -I > ' ps])
 	gmt(['pstext -R -J -O -K -N -F+f18p,Times-Roman+jCB >> ' ps], {'3.25 7 pscontour (triangulate)'})
@@ -471,18 +472,27 @@ function ex18()
 
 	gmt(['grdcontour ' d_path 'AK_gulf_grav.nc -J -C20 -B2f1 -BWSEn -O -K -Y-4.85i >> ' ps])
 	% Save 50 mGal contours to individual files, then plot them
-	gmt(['grdcontour ' d_path 'AK_gulf_grav.nc -C10 -L49/51 -Dsm_%d_%c.txt'])	%<---- FAILS HERE
-	gmt(['psxy -R -J -O -K -Wthin,green sm_*.txt >> ' ps])
+	gmt(['grdcontour ' d_path 'AK_gulf_grav.nc -C10 -L49/51 -Dsm_%d_%c.txt'])
+	%gmt(['psxy -R -J -O -K -Wthin,green sm_*.txt >> ' ps])			%<---- FAILS HERE
+	d = dir('sm_*.txt');
+	for (k = 1:numel(d))
+		gmt(['psxy -R -J -O -K -Wthin,green ' d(k).name ' >> ' ps])
+	end
 	gmt(['pscoast -R -J -O -K -Di -Ggray -Wthinnest >> ' ps])
 	gmt(['psxy -R -J -O -K -SE- -Wthinnest >> ' ps], pratt)
 %rm -f sm_*_O.txt	# Only consider the closed contours
-	builtin('delete', 'sm_*_O.txt')
+	builtin('delete', 'sm_*_O.txt')		% Only consider the closed contours
 
 	% Now determine centers of each enclosed seamount > 50 mGal but only plot
 	% the ones within 200 km of Pratt seamount.
 
 	% First determine mean location of each closed contour and add it to the file centers.d
-	centers = gmt('gmtspatial -Q -fg sm_*_C.txt');
+	%centers = gmt('gmtspatial -Q -fg sm_*_C.txt');
+	d = dir('sm_*_C.txt');
+	centers = zeros(numel(d), 3);
+	for (k = 1:numel(d))
+		centers(k,:) = gmt(['gmtspatial -Q -fg ' d(k).name]);
+	end
 
 	% Only plot the ones within 200 km
 	t = gmt('gmtselect -C200k/$ -fg', pratt, centers);
@@ -549,7 +559,6 @@ function ex19()
 
 % -------------------------------------------------------------------------------------------------
 function ex20()
-% THIS EXAMPLE FAILS BECAUSE CUSTOM SYMBOLS CANNOT YET BE GIVEN WITH FULL FILE NAMES
 	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex20'];
 	ps = [out_path 'example_20.ps'];
@@ -575,12 +584,96 @@ function ex20()
 	gmt(['psxy -R -J -Sk' d_path '/bullseye -O >> ' ps], cities)
 
 % -------------------------------------------------------------------------------------------------
-function ex21()
-% THIS EXAMPLE FAILS BECAUSE CUSTOM SYMBOLS CANNOT YET BE GIVEN WITH FULL FILE NAMES
+function ex22()
+% THIS EXAMPLE ...
 	global g_root_dir out_path
-	d_path = [g_root_dir 'doc/examples/ex21/'];
-	ps = [out_path 'example_21.ps'];
+	d_path = [g_root_dir 'doc/examples/ex22/'];
+	ps = [out_path 'example_22.ps'];
 
+	gmt('gmtset FONT_ANNOT_PRIMARY 10p FONT_TITLE 18p FORMAT_GEO_MAP ddd:mm:ssF')
+
+	% Get the data (-q quietly) from USGS using the wget (comment out in case
+	% your system does not have wget or curl)
+	% 
+	% wget http://neic.usgs.gov/neis/gis/bulletin.asc -q -O neic_quakes.d
+	% curl http://neic.usgs.gov/neis/gis/bulletin.asc -s > neic_quakes.d
+	% 
+	% Count the number of events (to be used in title later. one less due to header)
+
+	% n=`cat neic_quakes.d | wc -l`
+	% n=`expr $n - 1`
+	n = 77;
+	
+	% Pull out the first and last timestamp to use in legend title
+
+	% first=`sed -n 2p neic_quakes.d | awk -F, '{printf "%s %s\n", $1, $2}'`
+	% last=`sed -n '$p' neic_quakes.d | awk -F, '{printf "%s %s\n", $1, $2}'`
+	first = '04/04/19 00:04:33';
+	last  = '04/04/25 11:11:33';
+
+	% Assign a string that contains the current user @ the current computer node.
+	% Note that two @@ is needed to print a single @ in gmt pstext:
+
+	% set me = "$user@@`hostname`"
+	me = 'GMT guru @@ GMTbox';
+
+	% Create standard seismicity color table
+
+	fid = fopen('neis.cpt','w');
+	fprintf(fid, '0	red	100	red\n');
+	fprintf(fid, '100	green	300	green\n');
+	fprintf(fid, '300	blue	10000	blue\n');
+	fclose(fid);
+
+	% Start plotting. First lay down map, then plot quakes with size = magintude/50":
+
+	gmt(['pscoast -Rg -JK180/9i -B45g30 -B+t"World-wide earthquake activity" -Gbrown -Slightblue -Dc -A1000 -K -Y2.75i > ' ps])
+	%gawk -F, "{ print $4, $3, $6, $5*0.02}" neic_quakes.d |
+	t = gmt(['gmtconvert -h ' d_path 'neic_quakes.d -i3,2,5,4']);
+	gmt(['psxy -R -JK -O -K -Cneis.cpt -Sci -Wthin >> ' ps], [t(:,1:3) t(:,4)*0.02])
+
+	% Create legend input file for NEIS quake plot
+	neis_legend = ...
+	{sprintf('H 16 1 %d events during %s to %s', n, first, last)
+	 'D 0 1p'
+	 'N 3'
+	 'V 0 1p'
+	 'S 0.1i c 0.1i red 0.25p 0.2i Shallow depth (0-100 km)'
+	 'S 0.1i c 0.1i green 0.25p 0.2i Intermediate depth (100-300 km)'
+	 'S 0.1i c 0.1i blue 0.25p 0.2i Very deep (> 300 km)'
+	 'D 0 1p'
+	 'V 0 1p'
+	 'N 7'
+	 'V 0 1p'
+	 'S 0.1i c 0.06i - 0.25p 0.3i M 3'
+	 'S 0.1i c 0.08i - 0.25p 0.3i M 4'
+	 'S 0.1i c 0.10i - 0.25p 0.3i M 5'
+	 'S 0.1i c 0.12i - 0.25p 0.3i M 6'
+	 'S 0.1i c 0.14i - 0.25p 0.3i M 7'
+	 'S 0.1i c 0.16i - 0.25p 0.3i M 8'
+	 'S 0.1i c 0.18i - 0.25p 0.3i M 9'
+	 'D 0 1p'
+	 'V 0 1p'
+	 'N 1'
+	 % Put together a reasonable legend text, and add logo and user's name:
+	 'G 0.25l'
+	 'P'
+	 'T USGS/NEIS most recent earthquakes for the last seven days. The data were'
+	 'T obtained automatically from the USGS Earthquake Hazards Program page at'
+	 'T @_http://neic/usgs.gov @_. Interested users may also receive email alerts'
+	 'T from the USGS.'
+	 'T This script can be called daily to update the latest information.'
+	 'G 0.4i'
+	 % Add USGS logo
+	 ['I ' d_path 'USGS.ras 1i RT']
+	 'G -0.3i'
+	 sprintf('L 12 6 LB %s', me)};
+	 
+	% OK, now we can actually run gmt pslegend.  We center the legend below the map.
+	% Trial and error shows that 1.7i is a good legend height:
+
+	gmt(['pslegend -DJBC+o0/0.4i+w7i/1.7i -R -J -O -F+p+glightyellow >> ' ps], neis_legend)
+	builtin('delete','gmt.conf', 'neis.cpt');
 
 % -------------------------------------------------------------------------------------------------
 function ex23()
@@ -666,6 +759,7 @@ function ex24()
 
 % -------------------------------------------------------------------------------------------------
 function ex25()
+% THIS EXAMPLE FAILS BECAUSE OF AN ASSERT FAILURE
 	global out_path
 	ps = [out_path 'example_25.ps'];
 
@@ -674,10 +768,10 @@ function ex25()
 	%Manipulate so -1 means ocean/ocean antipode, +1 = land/land, and 0 elsewhere
 	Gkey = gmt('grdmath -fg $ DUP 180 ROTX FLIPUD ADD 2 DIV =', Gwetdry);
 	%Calculate percentage area of each type of antipode match.
-	Gscale = gmt(['grdmath -Rg -I' num2str(D) 'm -r Y COSD 60 num2str(D) DIV 360 MUL DUP MUL PI DIV DIV 100 MUL =']);
+	Gscale = gmt(['grdmath -Rg -I' num2str(D) 'm -r Y COSD 60 ' num2str(D) ' DIV 360 MUL DUP MUL PI DIV DIV 100 MUL =']);
 	Gtmp = gmt('grdmath -fg $ -1 EQ 0 NAN $ MUL =', Gkey, Gscale);
 	key = gmt('grd2xyz -s -ZTLf', Gtmp);
-	ocean = gmt('gmtmath -bi1f -Ca -S $ SUM UPPER RINT =', key);
+	ocean = gmt('gmtmath -bi1f -Ca -S $ SUM UPPER RINT =', key);	% <----- ASSERT FAILURE HERE
 	Gtmp = gmt('grdmath -fg $ 1 EQ 0 NAN MUL =', key, Gscale);
 	key = gmt('grd2xyz tmp.nc -s -ZTLf', Gtmp);
 	land = gmt('gmtmath -bi1f -Ca -S SUM UPPER RINT =', key);
@@ -935,7 +1029,6 @@ function ex32()
 
 % -------------------------------------------------------------------------------------------------
 function ex33()
-% THIS EXAMPLE FAILS (CRASHES)
 	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex33/'];
 	ps = [out_path 'example_33.ps'];
@@ -955,7 +1048,7 @@ function ex33()
 	table = gmt(['grdtrack -G' d_path 'spac.nc -C400k/2k/10k -Sm+sstack.txt'], ridge_pts);
 	gmt(['psxy -R -J -O -K -W0.5p >> ' ps], table)
 	% Show upper/lower values encountered as an envelope
-	env = gmt('gmtconvert stack.txt -o0,5');				% <--- CRASH HERE
+	env = gmt('gmtconvert stack.txt -o0,5');
 	env = [env; gmt('gmtconvert stack.txt -o0,6 -I -T')];		% Concat the two matrices
 	gmt(['psxy -R-200/200/-3500/-2000 -Bxafg1000+l"Distance from ridge (km)" -Byaf+l"Depth (m)" -BWSne' ...
 		' -JX6i/3i -O -K -Glightgray -Y6.5i >> ' ps], env)
@@ -983,7 +1076,7 @@ function ex34()
 
 % -------------------------------------------------------------------------------------------------
 function ex35()
-% THIS EXAMPLE FAILS BECAUSE OF sphtriangulate
+% THIS EXAMPLE FAILS BECAUSE OF sphdistance
 	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex35'];
 	ps = [out_path 'example_35.ps'];
@@ -991,9 +1084,11 @@ function ex35()
 	% Get the crude GSHHS data, select GMT format, and decimate to ~20%:
 	% gshhs $GMTHOME/src/coast/gshhs/gshhs_c.b | $AWK '{if ($1 == ">" || NR%5 == 0) print $0}' > gshhs_c.txt
 	% Get Voronoi polygons
-	tt_pol = gmt(['sphtriangulate ' d_path '/gshhs_c.txt -Qv -D']);
+%tt_pol = gmt(['sphtriangulate ' d_path '/gshhs_c.txt -Qv -D']);
+	gmt(['sphtriangulate ' d_path '/gshhs_c.txt -Qv -D -Ntt.pol'])
 	% Compute distances in km
-	Gtt = gmt('sphdistance -Rg -I1 -Q -G -Lk', tt_pol);
+%Gtt = gmt('sphdistance -Rg -I1 -Q$ -G -Lk', tt_pol);
+	Gtt = gmt('sphdistance -Rg -I1 -Qtt.pol -G -Lk');
 	t_cpt = gmt('makecpt -Chot -T0/3500/500 -Z');
 	% Make a basic image plot and overlay contours, Voronoi polygons and coastlines
 	gmt(['grdimage -JG-140/30/7i -P -K -C -X0.75i -Y2i > ' ps], Gtt, t_cpt)
@@ -1019,6 +1114,53 @@ function ex36()
 	Gtt = gmt(['sphinterpolate ' d_path '/mars370.txt -Rg -I1 -Q3 -G']);
 	gmt(['grdimage -J -Bag -C -Y-3.25i -O -K >> ' ps], tt_cpt, Gtt)
 	gmt(['psxy -Rg -J -O -T >> ' ps])
+
+% -------------------------------------------------------------------------------------------------
+function ex37()
+% THIS EXAMPLE ...
+% This example has secondary file writing that cannot be catched in a variable -- grdfft -N 
+	global g_root_dir out_path
+	d_path = [g_root_dir 'doc/examples/ex37/'];
+	ps = [out_path 'example_37.ps'];
+
+	% Testing gmt grdfft coherence calculation with Karen Marks example data
+
+	G = [d_path 'grav.V18.par.surf.1km.sq.nc'];
+	T = [d_path 'mb.par.surf.1km.sq.nc'];
+	gmt('gmtset FONT_TITLE 14p')
+
+	z_cpt = gmt('makecpt -Crainbow -T-5000/-3000/100 -Z');
+	g_cpt = gmt('makecpt -Crainbow -T-50/25/5 -Z');
+	bbox = gmt(['grdinfo ' T ' -Ib']);
+	GG_int = gmt(['grdgradient ' G ' -A0 -Nt1 -G']);
+	GT_int = gmt(['grdgradient ' T ' -A0 -Nt1 -G']);
+	scl   = '1.4e-5';
+	sclkm = '1.4e-2';
+	gmt(['grdimage ' T ' -I -Jx' scl 'i -C -P -K -X1.474i -Y1i > ' ps], GT_int, z_cpt)
+	gmt(['psbasemap -R-84/75/-78/81 -Jx' sclkm 'i -O -K -Ba -BWSne+t"Multibeam bathymetry" >> ' ps])
+	gmt(['grdimage ' G ' -I -Jx' scl 'i -C -O -K -X3.25i >> ' ps], GG_int, g_cpt)
+	gmt(['psbasemap -R-84/75/-78/81 -Jx' sclkm 'i -O -K -Ba -BWSne+t"Satellite gravity" >> ' ps])
+
+	cross = gmt(['grdfft ' T ' ' G ' -Ewk -N192/192+d+wtmp']);
+	GG_tmp_int = gmt(['grdgradient ' G(1:end-3) '_tmp.nc -A0 -Nt1 -G']);
+	GT_tmp_int = gmt(['grdgradient ' T(1:end-3) '_tmp.nc -A0 -Nt1 -G']);
+
+	z_cpt = gmt('makecpt -Crainbow -T-1500/1500/100 -Z');
+	g_cpt = gmt('makecpt -Crainbow -T-40/40/5 -Z');
+
+	gmt(['grdimage ' T(1:end-3) '_tmp.nc -I -Jx' scl 'i -C -O -K -X-3.474i -Y3i >> ' ps], GT_tmp_int, z_cpt)
+	gmt(['psxy -R' T(1:end-3) '_tmp.nc -J -O -K -L -W0.5p,- >> ' ps], bbox)
+	gmt(['psbasemap -R-100/91/-94/97 -Jx' sclkm 'i -O -K -Ba -BWSne+t"Detrended and extended" >> ' ps])
+
+	gmt(['grdimage ' G(1:end-3) '_tmp.nc -I -Jx' scl 'i -C -O -K -X3.25i >> ' ps], GG_tmp_int, g_cpt)
+	gmt(['psxy -R' G(1:end-3) '_tmp.nc -J bbox -O -K -L -W0.5p,- >> ' ps])
+	gmt(['psbasemap -R-100/91/-94/97 -Jx' sclkm 'i -O -K -Ba -BWSne+t"Detrended and extended" >> ' ps])
+ 
+ 	gmt('gmtset FONT_TITLE 24p')
+	gmt(['psxy -R2/160/0/1 -JX-6il/2.5i -Bxa2f3g3+u" km" -Byafg0.5+l"Coherency@+2@+"' ...
+		' -BWsNe+t"Coherency between gravity and bathymetry" -O -K -X-3.25i -Y3.3i -i0,15 -W0.5p >> ' ps], cross)
+	gmt(['psxy -R -J -O -K -i0,15,16 -Sc0.075i -Gred -W0.25p -Ey >> ' ps], cross)
+ 	gmt(['psxy -R -J -O -T >> ' ps])
 
 % -------------------------------------------------------------------------------------------------
 function ex38()
