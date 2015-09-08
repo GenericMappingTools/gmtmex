@@ -14,7 +14,8 @@ out_path = 'V:/';		% Set this if you want to save the PS files in a prticular pl
 
 	all_exs = {'ex01' 'ex02' 'ex04' 'ex05' 'ex06' 'ex07' 'ex08' 'ex09' 'ex10' 'ex12' 'ex13' 'ex14' ...
 		'ex15' 'ex16' 'ex17' 'ex18' 'ex19' 'ex20' 'ex22' 'ex23' 'ex24' 'ex25' 'ex26' 'ex27' 'ex28' ...
-		'ex29' 'ex30' 'ex32' 'ex33' 'ex34' 'ex35' 'ex36' 'ex37' 'ex38' 'ex39' 'ex40' 'ex42' 'ex41' 'ex44'}; 
+		'ex29' 'ex30' 'ex32' 'ex33' 'ex34' 'ex35' 'ex36' 'ex37' 'ex38' 'ex39' 'ex40' 'ex42' 'ex41' ...
+		'ex44' 'ex45'}; 
 
 	if (nargin == 0)
 		opt = all_exs;
@@ -43,7 +44,7 @@ out_path = 'V:/';		% Set this if you want to save the PS files in a prticular pl
 				case 'ex18',   ex18		% C
 				case 'ex19',   ex19
 				case 'ex20',   ex20
-				case 'ex22',   ex22
+				case 'ex22',   ex22		% F pslegend fails again. ps is sent to stdout 
 				case 'ex23',   ex23
 				case 'ex24',   ex24
 				case 'ex25',   ex25		% C
@@ -64,6 +65,7 @@ out_path = 'V:/';		% Set this if you want to save the PS files in a prticular pl
 				case 'ex41',   ex41		% F
 				case 'ex42',   ex42		% F
 				case 'ex44',   ex44
+				case 'ex45',   ex45
 			end
 		end
 	catch
@@ -163,13 +165,13 @@ function ex05()
 % -------------------------------------------------------------------------------------------------
 function ex06()
 	global g_root_dir out_path
-	d_path = [g_root_dir 'doc/examples/ex06'];
+	d_path = [g_root_dir 'doc/examples/ex06/'];
 	ps = [out_path 'example_06.ps'];
 
-	gmt(['psrose ' d_path '/fractures.d -: -A10r -S1.8in -P -Gorange -R0/1/0/360 -X2.5i -K -Bx0.2g0.2' ...
+	gmt(['psrose ' d_path 'fractures.d -: -A10r -S1.8in -P -Gorange -R0/1/0/360 -X2.5i -K -Bx0.2g0.2' ...
 		' -By30g30 -B+glightblue -W1p > ' ps])
 	gmt(['pshistogram -Bxa2000f1000+l"Topography (m)" -Bya10f5+l"Frequency"+u" %"' ...
-		' -BWSne+t"Histograms"+glightblue ' d_path '/v3206.t -R-6000/0/0/30 -JX4.8i/2.4i -Gorange -O' ...
+		' -BWSne+t"Histograms"+glightblue ' d_path 'v3206.t -R-6000/0/0/30 -JX4.8i/2.4i -Gorange -O' ...
 		' -Y5.0i -X-0.5i -L1p -Z1 -W250 >> ' ps])
 
 % -------------------------------------------------------------------------------------------------
@@ -445,7 +447,7 @@ function ex17()
 
 % -------------------------------------------------------------------------------------------------
 function ex18()
-% THIS EXAMPLE FAILS
+% THIS EXAMPLE FAILS. IT CRASHES AT THE gmtspatial CALL
 	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex18/'];
 	ps = [out_path 'example_18.ps'];
@@ -469,30 +471,19 @@ function ex18()
 	gmt(['psxy -R -J -O -K -SE- -Wthinnest >> ' ps], pratt)
 
 	% Then draw 10 mGal contours and overlay 50 mGal contour in green
-
 	gmt(['grdcontour ' d_path 'AK_gulf_grav.nc -J -C20 -B2f1 -BWSEn -O -K -Y-4.85i >> ' ps])
 	% Save 50 mGal contours to individual files, then plot them
-	gmt(['grdcontour ' d_path 'AK_gulf_grav.nc -C10 -L49/51 -Dsm_%d_%c.txt'])
-	%gmt(['psxy -R -J -O -K -Wthin,green sm_*.txt >> ' ps])			%<---- FAILS HERE
-	d = dir('sm_*.txt');
-	for (k = 1:numel(d))
-		gmt(['psxy -R -J -O -K -Wthin,green ' d(k).name ' >> ' ps])
-	end
+	gmt(['grdcontour ' d_path 'AK_gulf_grav.nc -C10 -L49/51 -Dsm_%c.txt'])
+	gmt(['psxy -R -J -O -K -Wthin,green sm_C.txt >> ' ps])
+	gmt(['psxy -R -J -O -K -Wthin,green sm_O.txt >> ' ps])
 	gmt(['pscoast -R -J -O -K -Di -Ggray -Wthinnest >> ' ps])
 	gmt(['psxy -R -J -O -K -SE- -Wthinnest >> ' ps], pratt)
-%rm -f sm_*_O.txt	# Only consider the closed contours
-	builtin('delete', 'sm_*_O.txt')		% Only consider the closed contours
 
 	% Now determine centers of each enclosed seamount > 50 mGal but only plot
 	% the ones within 200 km of Pratt seamount.
 
 	% First determine mean location of each closed contour and add it to the file centers.d
-	%centers = gmt('gmtspatial -Q -fg sm_*_C.txt');
-	d = dir('sm_*_C.txt');
-	centers = zeros(numel(d), 3);
-	for (k = 1:numel(d))
-		centers(k,:) = gmt(['gmtspatial -Q -fg ' d(k).name]);
-	end
+	centers = gmt('gmtspatial -Q -fg sm_C.txt');
 
 	% Only plot the ones within 200 km
 	t = gmt('gmtselect -C200k/$ -fg', pratt, centers);
@@ -507,7 +498,7 @@ function ex18()
 	Gmask = gmt('grdclip -Sa200/NaN -Sb200/1 -G', Gmask);
 	Gtmp = gmt(['grdmath ' d_path 'AK_gulf_grav.nc $ MUL ='], Gmask);
 	area = gmt('grdvolume -C50 -Sk', Gtmp); % | cut -f2`
-	volume = gmt('grdvolume tmp.nc -C50 -Sk', Gtmp); % | cut -f3`
+	volume = gmt('grdvolume -C50 -Sk', Gtmp); % | cut -f3`
 
 	gmt(['psxy -R -J -A -O -K -L -Wthin -Gwhite >> ' ps], ...
 		[-148.5	52.75
@@ -518,6 +509,7 @@ function ex18()
 	gmt(['pstext -R -J -O -F+f14p,Helvetica-Bold+jLM >> ' ps], ...
 		{sprintf('-148 53.08 Areas: %f.2 km@+2@+', area(3))
 		 sprintf('-148 53.42 Volumes: %d mGal\264km@+2@+', volume(4))})
+	builtin('delete', 'sm_*.txt')
 
 % -------------------------------------------------------------------------------------------------
 function ex19()
@@ -526,7 +518,6 @@ function ex19()
 	ps = [out_path 'example_19.ps'];
 
 	% First make a worldmap with graded blue oceans and rainbow continents
-
 	Glat = gmt('grdmath -Rd -I1 -r Y COSD 2 POW =');
 	Glon = gmt('grdmath -Rd -I1 -r X =');
 	fid = fopen('lat.cpt','w');		fprintf(fid, '0 white 1 blue\n');	fclose(fid);
@@ -755,7 +746,6 @@ function ex24()
 	gmt(['psxy -R -J -O -K point.d -Wfat,white -S+0.2i >> ' ps])
 	gmt(['psxy dateline.d -R -J -O -Wfat,white -A >> ' ps])
 	builtin('delete','point.d', 'dateline.d');
-	builtin('delete','cities.d');
 
 % -------------------------------------------------------------------------------------------------
 function ex25()
@@ -853,11 +843,11 @@ function ex28()
 	ps = [out_path 'example_28.ps'];
 
 	% Get intensity grid and set up a color table
-	GKilauea.utm_i = gmt(['grdgradient ' d_path 'Kilauea.utm.nc -Nt1 -A45 -G']);
+	GKilauea_utm_i = gmt(['grdgradient ' d_path 'Kilauea.utm.nc -Nt1 -A45 -G']);
 	Kilauea_cpt = gmt('makecpt -Ccopper -T0/1500/100 -Z');
 	% Lay down the UTM topo grid using a 1:16,000 scale
 	gmt(['grdimage ' d_path 'Kilauea.utm.nc -I -C -Jx1:160000 -P -K' ...
-		' --FORMAT_FLOAT_OUT=%.10g --FONT_ANNOT_PRIMARY=9p > ' ps], GKilauea.utm_i, Kilauea_cpt)
+		' --FORMAT_FLOAT_OUT=%.10g --FONT_ANNOT_PRIMARY=9p > ' ps], GKilauea_utm_i, Kilauea_cpt)
 	% Overlay geographic data and coregister by using correct region and gmt(['projection with the same scale
 	gmt(['pscoast -R' d_path 'Kilauea.utm.nc -Ju5Q/1:160000 -O -K -Df+ -Slightblue -W0.5p -B5mg5m -BNE' ...
 		' --FONT_ANNOT_PRIMARY=12p --FORMAT_GEO_MAP=ddd:mmF >> ' ps])
@@ -914,7 +904,6 @@ function ex30()
 		' -K --MAP_FRAME_TYPE=graph --MAP_VECTOR_SHAPE=0.5 > ' ps])
 
 	%Draw sine an cosine curves
-
 	t = gmt('gmtmath -T0/360/0.1 T COSD =');
 	gmt(['psxy -R -J -O -K -W3p >> ' ps], t)
 	t = gmt('gmtmath -T0/360/0.1 T SIND =');
@@ -930,7 +919,6 @@ function ex30()
 		 '-5 1.85 24p,Times-Roman RT x,y'})
 
 	 % Draw a circle and indicate the 0-70 degree angle
-
 	gmt(['psxy -R-1/1/-1/1 -Jx1.5i -O -K -X3.625i -Y2.75i -Sc2i -W1p -N >> ' ps], [0 0])
 	gmt(['psxy -R-1/1/-1/1 -J -O -K -W1p >> ' ps], ...
 		[
@@ -965,7 +953,6 @@ function ex30()
 		 '0.22 0.27 12p,Symbol -30 CB a'
 		 '-0.33333 0.6 12p,Times-Roman 30 LB 120\312'})
 
-	%echo 0 0 0.5i 0 120 | 
 	gmt(['psxy -R -J -O -Sm0.15i+e -W1p -Gblack >> ' ps], [0 0 1.26 0 120])
 
 % -------------------------------------------------------------------------------------------------
@@ -974,49 +961,49 @@ function ex32()
 	d_path = [g_root_dir 'doc/examples/ex32/'];
 	ps = [out_path 'example_32.ps'];
 
-	% # Here we get and convert the flag of Europe directly from the web through grdconvert using
-	% # GDAL support. We take into account the dimension of the flag (1000x667 pixels)
-	% # for a ratio of 3x2.
-	% # Because GDAL support will not be standard for most users, we have stored
-	% # the result, euflag.nc in this directory.
+	% Here we get and convert the flag of Europe directly from the web through grdconvert using
+	% GDAL support. We take into account the dimension of the flag (1000x667 pixels)
+	% for a ratio of 3x2.
+	% Because GDAL support will not be standard for most users, we have stored
+	% the result, euflag.nc in this directory.
 
 	Rflag = '-R3/9/50/54';
-	% # gmt grdconvert \
-	% #   http://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Flag_of_Europe.svg/1000px-Flag_of_Europe.svg.png=gd \
-	% #   euflag.nc=ns
-	% # gmt grdedit euflag.nc -fg $Rflag
+	% gmt grdconvert \
+	%   http://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Flag_of_Europe.svg/1000px-Flag_of_Europe.svg.png=gd \
+	%   euflag.nc=ns
+	% gmt grdedit euflag.nc -fg $Rflag
 
-	% # Now get the topography for the same area from GTOPO30 and store it as topo.nc.
-	% # The DEM file comes from http://eros.usgs.gov/#/Find_Data/Products_and_Data_Available/gtopo30/w020n90
-	% # We make an gradient grid as well, which we will use to "illuminate" the flag.
+	% Now get the topography for the same area from GTOPO30 and store it as topo.nc.
+	% The DEM file comes from http://eros.usgs.gov/#/Find_Data/Products_and_Data_Available/gtopo30/w020n90
+	% We make an gradient grid as well, which we will use to "illuminate" the flag.
 
-	% # gmt grdcut W020N90.DEM $Rflag -Gtopo.nc=ns
+	% gmt grdcut W020N90.DEM $Rflag -Gtopo.nc=ns
 	Gillum = gmt(['grdgradient ' d_path 'topo.nc -A0/270 -G -Ne0.6']);
 
-	% # The color map assigns "Reflex Blue" to the lower half of the 0-255 range and
-	% # "Yellow" to the upper half.
+	% The color map assigns "Reflex Blue" to the lower half of the 0-255 range and
+	% "Yellow" to the upper half.
 	fid = fopen('euflag.cpt','w');
 	fprintf(fid, '0	0/51/153	127	0/51/153\n');
 	fprintf(fid, '127	255/204/0	255	255/204/0\n');
 	fclose(fid);
 
-	% # The next step is the plotting of the image.
-	% # We use gmt grdview to plot the topography, euflag.nc to give the color, and illum.nc to give
-	% # the shading.
+	% The next step is the plotting of the image.
+	% We use gmt grdview to plot the topography, euflag.nc to give the color, and illum.nc to give
+	% the shading.
 
 	Rplot = [Rflag '/-10/790'];
 	gmt(['grdview ' d_path 'topo.nc -JM13c ' Rplot ' -Ceuflag.cpt -G' d_path 'euflag.nc' ...
 		' -I -Qc -JZ1c -p157.5/30 -P -K > ' ps], Gillum)
 
-	% # We now add borders. Because we have a 3-D plot, we want them to be plotted "at elevation".
-	% # So we write out the borders, pipe them through grdtack and then plot them with psxyz.
+	% We now add borders. Because we have a 3-D plot, we want them to be plotted "at elevation".
+	% So we write out the borders, pipe them through grdtack and then plot them with psxyz.
 
 	t = gmt(['pscoast ' Rflag ' -Df -M -N1']);
 	t = gmt(['grdtrack -G' d_path 'topo.nc -sa'], t);
 	gmt(['psxyz ' Rplot ' -J -JZ -p -W1p,white -O -K >> ' ps], t)
 
-	% # Finally, we add dots and names for three cities.
-	% # Again, gmt grdtrack is used to put the dots "at elevation".
+	% Finally, we add dots and names for three cities.
+	% Again, gmt grdtrack is used to put the dots "at elevation".
 	fid = fopen('cities.txt', 'w');
 	fprintf(fid, '05:41:27 50:51:05 Maastricht\n');
 	fprintf(fid, '04:21:00 50:51:00 Bruxelles\n');
@@ -1070,7 +1057,7 @@ function ex34()
 	z_cpt = gmt('makecpt -Cglobe -T-5000/5000/500 -Z');
 	FR_IT_int = gmt(['grdgradient ' d_path '/FR+IT.nc -A15 -Ne0.75 -G']);
 	gmt(['grdimage ' d_path '/FR+IT.nc -I -C -J -O -K -Y4.5i' ...
-		' -Baf -BWsnE+t"Franco-Italian Union, 2042-45" >> ' ps], FR_IT_int, z_cpt)	% Hmmm, how does it know which input is which?
+		' -Baf -BWsnE+t"Franco-Italian Union, 2042-45" >> ' ps], FR_IT_int, z_cpt)
 	gmt(['pscoast -J -R -EFR,IT+gred@60 -O >> ' ps])
 	builtin('delete','gmt.conf');
 
@@ -1085,18 +1072,18 @@ function ex35()
 	% gshhs $GMTHOME/src/coast/gshhs/gshhs_c.b | $AWK '{if ($1 == ">" || NR%5 == 0) print $0}' > gshhs_c.txt
 	% Get Voronoi polygons
 %tt_pol = gmt(['sphtriangulate ' d_path '/gshhs_c.txt -Qv -D']);
-	gmt(['sphtriangulate ' d_path '/gshhs_c.txt -Qv -D -Ntt.pol'])
+	tt_pol = gmt(['sphtriangulate ' d_path '/gshhs_c.txt -Qv -D -Ntt.pol']);
 	% Compute distances in km
 %Gtt = gmt('sphdistance -Rg -I1 -Q$ -G -Lk', tt_pol);
-	Gtt = gmt('sphdistance -Rg -I1 -Qtt.pol -G -Lk');
+	Gtt = gmt('sphdistance -Rg -I1 -Q$ -Ntt.pol -G -Lk', tt_pol);
 	t_cpt = gmt('makecpt -Chot -T0/3500/500 -Z');
 	% Make a basic image plot and overlay contours, Voronoi polygons and coastlines
-	gmt(['grdimage -JG-140/30/7i -P -K -C -X0.75i -Y2i > ' ps], Gtt, t_cpt)
+	gmt(['grdimage -JG-140/30/7i -P -K -C -X0.75i -Y2i > ' ps], t_cpt, Gtt)
 	gmt(['grdcontour -J -O -K -C500 -A1000+f10p,Helvetica,white -L500' ...
 		' -GL0/90/203/-10,175/60/170/-30,-50/30/220/-5 -Wa0.75p,white -Wc0.25p,white >> ' ps], Gtt)
 	gmt(['psxy -R -J -O -K -W0.25p,green,. >> ' ps], tt_pol)
 	gmt(['pscoast -R -J -O -W1p -Gsteelblue -A0/1/1 -B30g30 -B+t"Distances from GSHHG crude coastlines" >> ' ps])
-	builtin('delete','gmt.conf');
+	builtin('delete', 'tt.pol');
 
 % -------------------------------------------------------------------------------------------------
 function ex36()
@@ -1124,7 +1111,6 @@ function ex37()
 	ps = [out_path 'example_37.ps'];
 
 	% Testing gmt grdfft coherence calculation with Karen Marks example data
-
 	G = [d_path 'grav.V18.par.surf.1km.sq.nc'];
 	T = [d_path 'mb.par.surf.1km.sq.nc'];
 	gmt('gmtset FONT_TITLE 14p')
@@ -1249,7 +1235,7 @@ function ex40()
 	gmt(['psxy ' d_path '/GSHHS_h_Australia.txt -R -J -O -Wfaint -G240/240/255 -K >> ' ps])
 	gmt(['psxy ' d_path '/GSHHS_h_Australia.txt -R -J -O -Sc0.01c -Gred -K >> ' ps])
 	T100k = gmt(['gmtsimplify ' d_path '/GSHHS_h_Australia.txt -T100k']);
-	t = gmt('gmtspatial -fg -Qk', T100k');
+	t = gmt('gmtspatial -fg -Qk', T100k);
 	area_T100k = sprintf('Reduced area = %.0f km@+2@+\n', t(3));
 	%| awk '{printf "Reduced area = %.0f km@+2@+\n", $3}' > area_T100k.txt
 	gmt(['psxy -R -J -O -K -W1p,blue >> ' ps], T100k)
@@ -1312,6 +1298,19 @@ function ex42()
 	builtin('delete','gmt.conf', 't.cpt');
 
 % -------------------------------------------------------------------------------------------------
+function ex43()
+% THIS EXAMPLE ...
+	global g_root_dir out_path
+	d_path = [g_root_dir 'doc/examples/ex43/'];
+	ps = [out_path 'example_43.ps'];
+
+	model    = gmt(['regress -Ey -Nw -i0:1l ' d_path 'bb_weights.asc']);
+	rls_line = gmt(['regress -Ey -Nw -i0:1l ' d_path 'bb_weights.asc -Fxmc -T-2/6/0.1']);
+	ls_line  = gmt(['regress -Ey -N2 -i0:1l ' d_path 'bb_weights.asc -Fxm -T-2/6/8']);
+% 	grep -v '^>' model.txt > A.txt
+% 	grep -v '^#' bb_weights.asc > B.txt
+% 
+% -------------------------------------------------------------------------------------------------
 function ex44()
 	global out_path
 	ps = [out_path 'example_44.ps'];
@@ -1334,3 +1333,30 @@ function ex44()
 	gmt([cmd '--MAP_FRAME_TYPE=plain >> ' ps])
 	gmt(sprintf('psxy -R -J -O -T -X-%f -Y-%f >> %s', t(1), t(2), ps))
 	builtin('delete','xx000');
+
+% -------------------------------------------------------------------------------------------------
+function ex45()
+	global g_root_dir out_path
+	d_path = [g_root_dir 'doc/examples/ex45/'];
+	ps = [out_path 'example_45.ps'];
+
+	% Basic LS line y = a + bx
+	model = gmt(['trend1d -Fxm ' d_path 'CO2.txt -Np1']);
+	gmt(['psxy -R1958/2016/310/410 -JX6i/1.9i -P -Bxaf -Byaf+u" ppm" -BWSne+gazure1 -Sc0.05c -Gred -K ' d_path 'CO2.txt -X1.5i > ' ps])
+	gmt(['psxy -R -J -O -K -W0.5p,blue >> ' ps], model)
+	gmt(['pstext -R -J -O -K -F+f12p+cTL -Dj0.1i -Glightyellow >> ' ps], {'m@-2@-(t) = a + b\264t'})
+	% Basic LS line y = a + bx + cx^2
+	model = gmt(['trend1d -Fxm ' d_path 'CO2.txt -Np2']);
+	gmt(['psxy -R -J -O -Bxaf -Byaf+u" ppm" -BWSne+gazure1 -Sc0.05c -Gred -K ' d_path 'CO2.txt -Y2.3i >> ' ps])
+	gmt(['psxy -R -J -O -K -W0.5p,blue >> ' ps], model)
+	gmt(['pstext -R -J -O -K -F+f12p+cTL -Dj0.1i -Glightyellow >> ' ps], {'m@-3@-(t) = a + b\264t + c\264t@+2@+'})
+	% Basic LS line y = a + bx + cx^2 + seasonal change
+	model = gmt(['trend1d -Fxmr ' d_path 'CO2.txt -Np2,f1+o1958+l1']);
+	gmt(['psxy -R -J -O -Bxaf -Byaf+u" ppm" -BWSne+gazure1 -Sc0.05c -Gred -K ' d_path 'CO2.txt -Y2.3i >> ' ps])
+	gmt(['psxy -R -J -O -K -W0.25p,blue >> ' ps], model)
+	gmt(['pstext -R -J -O -K -F+f12p+cTL -Dj0.1i -Glightyellow >> ' ps], ...
+		{'m@-5@-(t) = a + b\264t + c\264t@+2@+ + d\264cos(2@~p@~t) + e\264sin(2@~p@~t)'})
+	% Plot residuals of last model
+	gmt(['psxy -R1958/2016/-4/4 -J -Bxaf -Byafg10+u" ppm" -BWSne+t"The Keeling Curve [CO@-2@- at Mauna Loa]"+gazure1' ...
+		' -Sc0.05c -Gred -O -K -i0,2 -Y2.3i >> ' ps], model)
+	gmt(['pstext -R -J -O -F+f12p+cTL -Dj0.1i -Glightyellow >> ' ps], {'@~e@~(t) = y(t) - m@-5@-(t)'})
