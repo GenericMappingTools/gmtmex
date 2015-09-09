@@ -833,8 +833,8 @@ struct GMT_PALETTE *GMTMEX_CPT_init (void *API, unsigned int direction, const mx
 	 * If direction is GMT_OUT then we allocate an empty GMT CPT as a destination. */
 	struct GMT_PALETTE *P = NULL;
 	if (direction == GMT_IN) {	/* Dimensions are known from the input pointer */
-		unsigned int k, j;
-		uint64_t dim[1];
+		unsigned int k, j, one = 1;
+		uint64_t dim[2];
 		mxArray *mx_ptr = NULL;
 		double dz, *colormap = NULL, *range = NULL, *rangeMinMax = NULL, *alpha = NULL;
 
@@ -845,10 +845,9 @@ struct GMT_PALETTE *GMTMEX_CPT_init (void *API, unsigned int direction, const mx
 		mx_ptr = mxGetField (ptr, 0, "colormap");
 		if (mx_ptr == NULL)
 			mexErrMsgTxt ("GMTMEX_CPT_init: Could not find colormap array with CPT values\n");
-		dim[0] = mxGetM (mx_ptr);	/* Number of rows minus one since continous CPT */
+		dim[0] = mxGetM (mx_ptr);	/* Number of rows in colormap */
 		if (dim[0] < 1)
 			mexErrMsgTxt ("GMTMEX_CPT_init: Colormap array has no CPT values\n");
-		dim[0]--;	/* The number of CPT slices is one less since colormap is continuous */
 		colormap = mxGetData (mx_ptr);
 
 		mx_ptr = mxGetField (ptr, 0, "range");
@@ -858,10 +857,18 @@ struct GMT_PALETTE *GMTMEX_CPT_init (void *API, unsigned int direction, const mx
 				mexErrMsgTxt("GMTMEX_CPT_init: Could not find neither the 'range' nor the 'rangeMinMax' arrays for CPT range\n");
 			}
 			rangeMinMax = mxGetData(mx_ptr);
+			dim[1] = dim[0];	/* This means discrete CPT */
 		}
-		else
-			range = mxGetData(mx_ptr);
-
+		else {	/* With range we can determine if continuous or discrete */
+			range  = mxGetData(mx_ptr);
+			dim[1] = mxGetM (mx_ptr);	/* Length of range array */
+		}
+		if (dim[0] > dim[1]) {	/* This only happens when we have a continuous color table */
+			dim[1] = dim[0];	/* Actual length of colormap array */
+			dim[0]--;		/* Number of CPT slices */
+		}
+		else	/* Discrete, so the one offset needs to be zero */
+			one = 0;
 		mx_ptr = mxGetField (ptr, 0, "alpha");
 		if (mx_ptr == NULL)
 			mexErrMsgTxt ("GMTMEX_CPT_init: Could not find alpha array for CPT transparency\n");
@@ -875,11 +882,11 @@ struct GMT_PALETTE *GMTMEX_CPT_init (void *API, unsigned int direction, const mx
 
 		for (j = 0; j < P->n_colors; j++) {	/* OK to access j+1'th elemenent since length of colormap is P->n_colors+1 */
 			for (k = 0; k < 3; k++) {
-				P->range[j].rgb_low[k]  = colormap[j+k*dim[0]];
-				P->range[j].rgb_high[k] = colormap[(j+1)+k*dim[0]];
+				P->range[j].rgb_low[k]  = colormap[j+k*dim[1]];
+				P->range[j].rgb_high[k] = colormap[(j+one)+k*dim[1]];
 			}
-			P->range[j].rgb_low[3] = alpha[j];
-			P->range[j].rgb_high[3] = alpha[j+1];
+			P->range[j].rgb_low[3]  = alpha[j];
+			P->range[j].rgb_high[3] = alpha[j+one];
 			if (range) {
 				P->range[j].z_low  = range[j];
 				P->range[j].z_high = range[j+P->n_colors];
@@ -889,7 +896,7 @@ struct GMT_PALETTE *GMTMEX_CPT_init (void *API, unsigned int direction, const mx
 				P->range[j].z_high = P->range[j].z_low + dz;
 			}
 		}
-		P->is_continuous = 1;	/* WHY? Because only kind in MATLAB? */
+		P->is_continuous = one;
 		GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_CPT_init: Allocated GMT CPT %lx\n", (long)P);
 	}
 	else {	/* Just allocate an empty container to hold an output grid (signal this by passing NULLs) */
