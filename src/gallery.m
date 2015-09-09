@@ -1,4 +1,4 @@
-function  gallery(opt)
+function  [ps_, t_path_] = gallery(opt)
 %	$Id$
 %	The examples Gallery in GMT-MEX API
 %
@@ -11,6 +11,8 @@ global g_root_dir out_path;
 % Edit those two for your own needs
 g_root_dir = 'C:/progs_cygw/GMTdev/gmt5/branches/5.2.0/';
 out_path = 'V:/';		% Set this if you want to save the PS files in a prticular place
+
+	ps = [];	t_path = [];	% Defaults for the case we have an error
 
 	all_exs = {'ex01' 'ex02' 'ex04' 'ex05' 'ex06' 'ex07' 'ex08' 'ex09' 'ex10' 'ex12' 'ex13' 'ex14' ...
 		'ex15' 'ex16' 'ex17' 'ex18' 'ex19' 'ex20' 'ex22' 'ex23' 'ex24' 'ex25' 'ex26' 'ex27' 'ex28' ...
@@ -26,78 +28,82 @@ out_path = 'V:/';		% Set this if you want to save the PS files in a prticular pl
 	try
 		for (k = 1: numel(opt))
 			switch opt{k}
-				case 'ex01',   ex01
-				case 'ex02',   ex02
-				case 'ex04',   ex04
-				case 'ex05',   ex05
-				case 'ex06',   ex06
-				case 'ex07',   ex07
-				case 'ex08',   ex08
-				case 'ex09',   ex09
-				case 'ex10',   ex10
-				case 'ex12',   ex12		% F
-				case 'ex13',   ex13
-				case 'ex14',   ex14		% F
-				case 'ex15',   ex15		% F
-				case 'ex16',   ex16		% F
-				case 'ex17',   ex17
-				case 'ex18',   ex18		% C
-				case 'ex19',   ex19
-				case 'ex20',   ex20
-				case 'ex22',   ex22		% F pslegend fails again. ps is sent to stdout 
-				case 'ex23',   ex23
-				case 'ex24',   ex24
-				case 'ex25',   ex25		% C
-				case 'ex26',   ex26
-				case 'ex27',   ex27
-				case 'ex28',   ex28
-				case 'ex29',   ex29		% F
-				case 'ex30',   ex30
-				case 'ex32',   ex32		% C
-				case 'ex33',   ex33
-				case 'ex34',   ex34
-				case 'ex35',   ex35		% F
-				case 'ex36',   ex36
-				case 'ex37',   ex37
-				case 'ex38',   ex38
-				case 'ex39',   ex39
-				case 'ex40',   ex40		% C
-				case 'ex41',   ex41		% F
-				case 'ex42',   ex42		% F
-				case 'ex44',   ex44
-				case 'ex45',   ex45
+				case 'ex01',   [ps, t_path] = ex01();
+				case 'ex02',   [ps, t_path] = ex02();
+				case 'ex04',   [ps, t_path] = ex04();
+				case 'ex05',   [ps, t_path] = ex05();
+				case 'ex06',   [ps, t_path] = ex06();
+				case 'ex07',   [ps, t_path] = ex07();
+				case 'ex08',   [ps, t_path] = ex08();
+				case 'ex09',   [ps, t_path] = ex09();
+				case 'ex10',   [ps, t_path] = ex10();
+				case 'ex12',   [ps, t_path] = ex12();		% F
+				case 'ex13',   [ps, t_path] = ex13();
+				case 'ex14',   [ps, t_path] = ex14();		% F
+				case 'ex15',   [ps, t_path] = ex15();		% F
+				case 'ex16',   [ps, t_path] = ex16();		% F
+				case 'ex17',   [ps, t_path] = ex17();
+				case 'ex18',   [ps, t_path] = ex18();		% C
+				case 'ex19',   [ps, t_path] = ex19();
+				case 'ex20',   [ps, t_path] = ex20();
+				case 'ex22',   [ps, t_path] = ex22();		% F pslegend fails again. ps is sent to stdout 
+				case 'ex23',   [ps, t_path] = ex23();
+				case 'ex24',   [ps, t_path] = ex24();
+				case 'ex25',   [ps, t_path] = ex25();		% C
+				case 'ex26',   [ps, t_path] = ex26();
+				case 'ex27',   [ps, t_path] = ex27();
+				case 'ex28',   [ps, t_path] = ex28();
+				case 'ex29',   [ps, t_path] = ex29();		% F
+				case 'ex30',   [ps, t_path] = ex30();
+				case 'ex32',   [ps, t_path] = ex32();		% C
+				case 'ex33',   [ps, t_path] = ex33();
+				case 'ex34',   [ps, t_path] = ex34();
+				case 'ex35',   [ps, t_path] = ex35();		% F
+				case 'ex36',   [ps, t_path] = ex36();
+				case 'ex37',   [ps, t_path] = ex37();
+				case 'ex38',   [ps, t_path] = ex38();
+				case 'ex39',   [ps, t_path] = ex39();
+				case 'ex40',   [ps, t_path] = ex40();		% C
+				case 'ex41',   [ps, t_path] = ex41();		% F
+				case 'ex42',   [ps, t_path] = ex42();		% F
+				case 'ex44',   [ps, t_path] = ex44();
+				case 'ex45',   [ps, t_path] = ex45();
 			end
 		end
 	catch
 		sprintf('Error in test: %s\n%s', opt{k}, lasterr)
 	end
 
+	if (nargout)
+		ps_ = ps;	t_path_ = t_path;
+	end
+
 	gmt('destroy')
 
 % -------------------------------------------------------------------------------------------------
-function ex01()
+function [ps, d_path] = ex01()
 	global g_root_dir out_path
-	d_path = [g_root_dir 'doc/examples/ex01'];
+	d_path = [g_root_dir 'doc/examples/ex01/'];
 	ps = [out_path 'example_01.ps'];
 
-	gmt('gmtset MAP_GRID_CROSS_SIZE_PRIMARY 0 FONT_ANNOT_PRIMARY 10p')
+	gmt('gmtset MAP_GRID_CROSS_SIZE_PRIMARY 0 FONT_ANNOT_PRIMARY 10p PROJ_LENGTH_UNIT inch PS_CHAR_ENCODING Standard+ PS_MEDIA letter')
 	gmt(['psbasemap -R0/6.5/0/7.5 -Jx1i -B0 -P -K > ' ps])
 	gmt(['pscoast -Rg -JH0/6i -X0.25i -Y0.2i -O -K -Bg30 -Dc -Glightbrown -Slightblue >> ' ps])
-	cmd = sprintf('grdcontour %s/osu91a1f_16.nc', d_path);
+	cmd = ['grdcontour ' d_path 'osu91a1f_16.nc'];
 	gmt([cmd ' -J -C10 -A50+f7p -Gd4i -L-1000/-1 -Wcthinnest,- -Wathin,- -O -K -T+d0.1i/0.02i >> ' ps])
 	gmt([cmd ' -J -C10 -A50+f7p -Gd4i -L-1/1000 -O -K -T+d0.1i/0.02i >> ' ps])
 	gmt(['pscoast -Rg -JH6i -Y3.4i -O -K -B+t"Low Order Geoid" -Bg30 -Dc -Glightbrown -Slightblue >> ' ps])
 	gmt([cmd ' -J -C10 -A50+f7p -Gd4i -L-1000/-1 -Wcthinnest,- -Wathin,- -O -K -T+d0.1i/0.02i+l >> ' ps])
 	gmt([cmd ' -J -C10 -A50+f7p -Gd4i -L-1/1000 -O -T+d0.1i/0.02i+l >> ' ps])
-	builtin('delete','gmt.conf');
+	%builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function ex02()
+function [ps, d_path] = ex02()
 	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex02/'];
 	ps = [out_path 'example_02.ps'];
 
-	gmt('gmtset FONT_TITLE 30p MAP_ANNOT_OBLIQUE 0')
+	gmt('gmtset FONT_TITLE 30p MAP_ANNOT_OBLIQUE 0 PROJ_LENGTH_UNIT inch PS_CHAR_ENCODING Standard+ PS_MEDIA letter')
 	g_cpt = gmt('makecpt -Crainbow -T-2/14/2');
 	gmt(['grdimage ' d_path 'HI_geoid2.nc -R160/20/220/30r -JOc190/25.5/292/69/4.5i -C' ...
 		' -E50 -K -P -B10 -X1.5i -Y1.25i > '  ps], g_cpt)
@@ -111,9 +117,9 @@ function ex02()
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function ex04()
+function [ps, d_path] = ex04()
 	global g_root_dir out_path
-	d_path = [g_root_dir 'doc/examples/ex04'];
+	d_path = [g_root_dir 'doc/examples/ex04/'];
 	ps = [out_path 'example_04.ps'];
 
 	fid = fopen('zero.cpt','w');
@@ -121,7 +127,7 @@ function ex04()
 	fprintf(fid, '%s\n', '  0  100  10  100');
 	fclose(fid);
 
-	cmd = sprintf('grdcontour %s/HI_geoid4.nc', d_path);
+	cmd = sprintf('grdcontour %sHI_geoid4.nc', d_path);
 	gmt([cmd ' -R195/210/18/25 -Jm0.45i -p60/30 -C1 -A5+o -Gd4i -K -P -X1.25i -Y1.25i > ' ps])
 	gmt(['pscoast -R -J -p -B2 -BNEsw -Gblack -O -K -TdjBR+o0.1i+w1i+l >> ' ps])
 	gmt([sprintf('grdview %s/HI_topo4.nc', d_path) ' -R195/210/18/25/-6/4 -J -Jz0.34i -p -Czero.cpt -O -K ' ...
@@ -130,21 +136,22 @@ function ex04()
 	builtin('delete','zero.cpt');
 
 	ps = [out_path 'example_04c.ps'];
-	Gg_intens = gmt([sprintf('grdgradient %s/HI_geoid4.nc', d_path) ' -A0 -Nt0.75 -fg']);
-	Gt_intens = gmt([sprintf('grdgradient %s/HI_topo4.nc', d_path)  ' -A0 -Nt0.75 -fg']);
-	gmt([sprintf('grdimage %s/HI_geoid4.nc', d_path) ...
-		' -I -R195/210/18/25 -JM6.75i -p60/30 -C' d_path '/geoid.cpt -E100 -K -P -X1.25i -Y1.25i > ' ps], Gg_intens)
+	Gg_intens = gmt(['grdgradient ' d_path 'HI_geoid4.nc -A0 -Nt0.75 -fg']);
+	Gt_intens = gmt(['grdgradient ' d_path 'HI_topo4.nc -A0 -Nt0.75 -fg']);
+	gmt(['grdimage ' d_path 'HI_geoid4.nc -I -R195/210/18/25 -JM6.75i' ...
+		' -p60/30 -C' d_path 'geoid.cpt -E100 -K -P -X1.25i -Y1.25i > ' ps], Gg_intens)
 	gmt(['pscoast -R -J -p -B2 -BNEsw -Gblack -O -K >> ' ps])
 	gmt(['psbasemap -R -J -p -O -K -TdjBR+o0.1i+w1i+l --COLOR_BACKGROUND=red --FONT=red' ...
 		' --MAP_TICK_PEN_PRIMARY=thinner,red >> ' ps])
-	gmt(['psscale -R -J -p240/30 -DJBC+o0/0.5i+w5i/0.3i+h -C' d_path '/geoid.cpt -I -O -K -Bx2+l"Geoid (m)" >> ' ps])
-	gmt([sprintf('grdview %s/HI_topo4.nc', d_path) ' -I -R195/210/18/25/-6/4 -J -C' d_path '/topo.cpt' ...
+	gmt(['psscale -R -J -p240/30 -DJBC+o0/0.5i+w5i/0.3i+h -C' d_path 'geoid.cpt -I -O -K -Bx2+l"Geoid (m)" >> ' ps])
+	gmt(['grdview ' d_path 'HI_topo4.nc -I -R195/210/18/25/-6/4 -J -C' d_path 'topo.cpt' ...
 		' -JZ3.4i -p60/30 -O -K -N-6+glightgray -Qc100 -B2 -Bz2+l"Topo (km)" -BneswZ -Y2.2i >> ' ps], Gt_intens)
 	gmt(['pstext -R0/10/0/10 -Jx1i -F+f60p,ZapfChancery-MediumItalic+jCB -O >> ' ps], {'3.25 5.75 H@#awaiian@# R@#idge@#'})
 
 % -------------------------------------------------------------------------------------------------
-function ex05()
-	global out_path
+function [ps, d_path] = ex05()
+	global g_root_dir out_path
+	d_path = [g_root_dir 'doc/examples/ex05/'];
 	ps = [out_path 'example_05.ps'];
 
 	Gsombrero = gmt('grdmath -R-15/15/-15/15 -I0.3 X Y HYPOT DUP 2 MUL PI MUL 8 DIV COS EXCH NEG 10 DIV EXP MUL =');
@@ -159,7 +166,7 @@ function ex05()
 	builtin('delete','gray.cpt');
 
 % -------------------------------------------------------------------------------------------------
-function ex06()
+function [ps, d_path] = ex06()
 	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex06/'];
 	ps = [out_path 'example_06.ps'];
@@ -171,7 +178,7 @@ function ex06()
 		' -Y5.0i -X-0.5i -L1p -Z1 -W250 >> ' ps])
 
 % -------------------------------------------------------------------------------------------------
-function ex07()
+function [ps, d_path] = ex07()
 	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex07'];
 	ps = [out_path 'example_07.ps'];
@@ -189,7 +196,7 @@ function ex07()
 	gmt(['pstext -R -J -O -F+f30,Helvetica-Bold,white=thin >> ' ps], {'-43 -5 SOUTH' '-43 -8 AMERICA' '-7 11 AFRICA'})
 
 % -------------------------------------------------------------------------------------------------
-function ex08()
+function [ps, d_path] = ex08()
 	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex08'];
 	ps = [out_path 'example_08.ps'];
@@ -201,7 +208,7 @@ function ex08()
 	gmt(['pstext -R -J -JZ -Z0 -F+f24p,Helvetica-Bold+jTL -p -O >> ' ps], {'0.1 4.9 This is the surface of cube'})
 
 % -------------------------------------------------------------------------------------------------
-function ex09()
+function [ps, d_path] = ex09()
 	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex09'];
 	ps = [out_path 'example_09.ps'];
@@ -215,7 +222,7 @@ function ex09()
 	gmt(['pstext -R -J -F+f10p,Helvetica-Bold+a50+jRM+h -D-0.05i/-0.05i -O >> ' ps], t)
 
 % -------------------------------------------------------------------------------------------------
-function ex10()
+function [ps, d_path] = ex10()
 	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex10'];
 	ps = [out_path 'example_10.ps'];
@@ -251,7 +258,7 @@ function ex10()
 		' -F+glightgrey+pthinner+s-4p/-6p/grey20@40 -p ' d_path '/legend.txt >> ' ps])
 
 % -------------------------------------------------------------------------------------------------
-function ex12()
+function [ps, d_path] = ex12()
 % THIS EXAMPLE FAILS
 	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex12'];
@@ -293,8 +300,9 @@ function ex12()
 	gmt(['pstext -R0/8/0/11 -Jx1i -F+f30p,Helvetica-Bold+jCB -O -X-3.25i >> ' ps], {'3.16 8 Delaunay Triangulation'})
 
 % -------------------------------------------------------------------------------------------------
-function ex13()
-	global out_path
+function [ps, d_path] = ex13()
+	global g_root_dir out_path
+	d_path = [g_root_dir 'doc/examples/ex13/'];
 	ps = [out_path 'example_13.ps'];
 
 	Gz = gmt('grdmath -R-2/2/-2/2 -I0.1 X Y R2 NEG EXP X MUL =');
@@ -309,7 +317,7 @@ function ex13()
 		{'3.2 3.6 z(x,y) = x@~\327@~exp(-x@+2@+-y@+2@+)'})
 
 % -------------------------------------------------------------------------------------------------
-function ex14()
+function [ps, d_path] = ex14()
 % THIS EXAMPLE FAILS
 	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex14'];
@@ -347,7 +355,7 @@ function ex14()
 	gmt(['psxy -R -J -Wthinner,- -O >> ' ps], trend)
 
 % -------------------------------------------------------------------------------------------------
-function ex15()
+function [ps, d_path] = ex15()
 % THIS EXAMPLE FAILS TO PLOT THE STAR AT THE MINIMUM AT UR FIG (grdinfo gives wrong info)
 	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex15'];
@@ -378,11 +386,11 @@ function ex15()
 	builtin('delete','ship.b');
 
 % -------------------------------------------------------------------------------------------------
-function ex16()
+function [ps, d_path] = ex16()
 % THIS EXAMPLE FAILS BECAUSE THE CPT EX16.CPT INCLUDES A RAS FILE AND THAT FILE IS NOT FOUND
 % UNLESS THE COMMAND IS EXECUTED IN THE DIR WHERE IT SITS. AS A CONSEQUENCE PSL_EXIT, REALLY EXITS
 	global g_root_dir out_path
-	d_path = [g_root_dir 'doc/examples/ex16'];
+	d_path = [g_root_dir 'doc/examples/ex16/'];
 	ps = [out_path 'example_16.ps'];
 
 disp('This example would blow Matlab in a blink. Returning before that happen'),	return
@@ -409,23 +417,23 @@ disp('This example would blow Matlab in a blink. Returning before that happen'),
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function ex17()
+function [ps, d_path] = ex17()
 	global g_root_dir out_path
-	d_path = [g_root_dir 'doc/examples/ex17'];
+	d_path = [g_root_dir 'doc/examples/ex17/'];
 	ps = [out_path 'example_17.ps'];
 
 	% First generate geoid image w/ shading
-	geoid_cpt = gmt(['grd2cpt ' d_path '/india_geoid.nc -Crainbow']);
-	Gindia_geoid_i = gmt(['grdgradient ' d_path '/india_geoid.nc -Nt1 -A45 -G']);
+	geoid_cpt = gmt(['grd2cpt ' d_path 'india_geoid.nc -Crainbow']);
+	Gindia_geoid_i = gmt(['grdgradient ' d_path 'india_geoid.nc -Nt1 -A45 -G']);
 	gmt(['grdimage ' d_path '/india_geoid.nc -I -JM6.5i -C -P -K > ' ps], Gindia_geoid_i, geoid_cpt)
 
 	% Then use gmt pscoast to initiate clip path for land
-	gmt(['pscoast -R' d_path '/india_geoid.nc -J -O -K -Dl -Gc >> ' ps])
+	gmt(['pscoast -R' d_path 'india_geoid.nc -J -O -K -Dl -Gc >> ' ps])
 
 	% Now generate topography image w/shading
 	fid = fopen('gray.cpt','w');	fprintf(fid, '%s\n', '-10000 150 10000 150');	fclose(fid);
-	Gindia_topo_i = gmt(['grdgradient ' d_path '/india_topo.nc -Nt1 -A45 -G']);
-	gmt(['grdimage ' d_path '/india_topo.nc -I -J -Cgray.cpt -O -K >> ' ps], Gindia_topo_i)
+	Gindia_topo_i = gmt(['grdgradient ' d_path 'india_topo.nc -Nt1 -A45 -G']);
+	gmt(['grdimage ' d_path 'india_topo.nc -I -J -Cgray.cpt -O -K >> ' ps], Gindia_topo_i)
 
 	% Finally undo clipping and overlay basemap
 	gmt(['pscoast -R -J -O -K -Q -B10f5 -B+t"Clipping of Images" >> ' ps])
@@ -442,7 +450,7 @@ function ex17()
 	builtin('delete','gray.cpt');
 
 % -------------------------------------------------------------------------------------------------
-function ex18()
+function [ps, d_path] = ex18()
 % THIS EXAMPLE FAILS. IT CRASHES AT THE gmtspatial CALL
 	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex18/'];
@@ -508,7 +516,7 @@ function ex18()
 	builtin('delete', 'sm_*.txt')
 
 % -------------------------------------------------------------------------------------------------
-function ex19()
+function [ps, d_path] = ex19()
 	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex19/'];
 	ps = [out_path 'example_19.ps'];
@@ -545,9 +553,9 @@ function ex19()
 	builtin('delete','lat.cpt');
 
 % -------------------------------------------------------------------------------------------------
-function ex20()
+function [ps, d_path] = ex20()
 	global g_root_dir out_path
-	d_path = [g_root_dir 'doc/examples/ex20'];
+	d_path = [g_root_dir 'doc/examples/ex20/'];
 	ps = [out_path 'example_20.ps'];
 
 	fogspots = [
@@ -568,10 +576,10 @@ function ex20()
 
 	% Overlay a few bullseyes at NY, Cairo, and Perth
 	cities = [286 40.45 0.8; 31.15 30.03 0.8; 115.49 -31.58 0.8];
-	gmt(['psxy -R -J -Sk' d_path '/bullseye -O >> ' ps], cities)
+	gmt(['psxy -R -J -Sk' d_path 'bullseye -O >> ' ps], cities)
 
 % -------------------------------------------------------------------------------------------------
-function ex22()
+function [ps, d_path] = ex22()
 % THIS EXAMPLE ...
 	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex22/'];
@@ -663,8 +671,9 @@ function ex22()
 	builtin('delete','gmt.conf', 'neis.cpt');
 
 % -------------------------------------------------------------------------------------------------
-function ex23()
-	global out_path
+function [ps, d_path] = ex23()
+	global g_root_dir out_path
+	d_path = [g_root_dir 'doc/examples/ex23/'];
 	ps = [out_path 'example_23.ps'];
 
 	% Position and name of central point:
@@ -717,9 +726,9 @@ function ex23()
 	builtin('delete','cities.d');
 
 % -------------------------------------------------------------------------------------------------
-function ex24()
+function [ps, d_path] = ex24()
 	global g_root_dir out_path
-	d_path = [g_root_dir 'doc/examples/ex24'];
+	d_path = [g_root_dir 'doc/examples/ex24/'];
 	ps = [out_path 'example_24.ps'];
 
 	% Currently there is no way of avoiding creating files for this
@@ -732,10 +741,10 @@ function ex24()
 	fprintf(fid, '147:13 -42:48 6000 Hobart');
 	fclose(fid);
 
-	R = gmt(['info -I10 ' d_path '/oz_quakes.d']);
+	R = gmt(['info -I10 ' d_path 'oz_quakes.d']);
 	gmt(['pscoast ' R{1} ' -JM9i -K -Gtan -Sdarkblue -Wthin,white -Dl -A500 -Ba20f10g10 -BWeSn > ' ps])
-	gmt(['psxy -R -J -O -K ' d_path '/oz_quakes.d -Sc0.05i -Gred >> ' ps])
-	t = gmt(['gmtselect ' d_path '/oz_quakes.d -L1000k/dateline.d -Nk/s -C3000k/point.d -fg -R -Il']);
+	gmt(['psxy -R -J -O -K ' d_path 'oz_quakes.d -Sc0.05i -Gred >> ' ps])
+	t = gmt(['gmtselect ' d_path 'oz_quakes.d -L1000k/dateline.d -Nk/s -C3000k/point.d -fg -R -Il']);
 	gmt(['psxy -R -JM -O -K -Sc0.05i -Ggreen >> ' ps], t)
 	gmt(['psxy point.d -R -J -O -K -SE- -Wfat,white >> ' ps])
 	gmt(['pstext -R -J -O -K -F+f14p,Helvetica-Bold,white+jLT -D0.1i/-0.1i >> ' ps], {'147:13 -42:48 Hobart'})
@@ -744,9 +753,10 @@ function ex24()
 	builtin('delete','point.d', 'dateline.d');
 
 % -------------------------------------------------------------------------------------------------
-function ex25()
+function [ps, d_path] = ex25()
 % THIS EXAMPLE FAILS BECAUSE OF AN ASSERT FAILURE
-	global out_path
+	global g_root_dir out_path
+	d_path = [g_root_dir 'doc/examples/ex25/'];
 	ps = [out_path 'example_25.ps'];
 
 	D = 30;
@@ -785,8 +795,9 @@ function ex25()
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function ex26()
-	global out_path
+function [ps, d_path] = ex26()
+	global g_root_dir out_path
+	d_path = [g_root_dir 'doc/examples/ex26/'];
 	ps = [out_path 'example_26.ps'];
 
 	% first do an overhead of the east coast from 160 km altitude point straight down
@@ -801,7 +812,7 @@ function ex26()
 	gmt(['pscoast -Rg ' PROJ ' -B5g5 -Glightbrown -Slightblue -W -Ia/blue -Di -Na -O -X1i -Y-4i >> ' ps])
 
 % -------------------------------------------------------------------------------------------------
-function ex27()
+function [ps, d_path] = ex27()
 	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex27/'];
 	ps = [out_path 'example_27.ps'];
@@ -833,7 +844,7 @@ function ex27()
 	gmt(['psscale -DjTL+o1c+w2i/0.15i ' R ' -J -C -Bx50f10 -By+lmGal -I -O -F+gwhite+p1p >> ' ps], grav_cpt)
 
 % -------------------------------------------------------------------------------------------------
-function ex28()
+function [ps, d_path] = ex28()
 	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex28/'];
 	ps = [out_path 'example_28.ps'];
@@ -855,7 +866,7 @@ function ex28()
 		' --MAP_GRID_CROSS_SIZE_PRIMARY=0.1i --FONT_LABEL=10p >> ' ps])
 
 % -------------------------------------------------------------------------------------------------
-function ex29()
+function [ps, d_path] = ex29()
 % THIS EXAMPLE FAILS BECAUSE THE RESULT IS WRONG
 	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex29/'];
@@ -892,8 +903,9 @@ function ex29()
 	gmt(['pstext -R -J -O -N -D-3.5i/-0.2i -F+f14p,Helvetica-Bold+jLB >> ' ps], {'0 90 a)'})
 
 % -------------------------------------------------------------------------------------------------
-function ex30()
-	global out_path
+function [ps, d_path] = ex30()
+	global g_root_dir out_path
+	d_path = [g_root_dir 'doc/examples/ex30/'];
 	ps = [out_path 'example_30.ps'];
 
 	gmt(['psbasemap -R0/360/-1.25/1.75 -JX8i/6i -Bx90f30+u"\312" -By1g10 -BWS+t"Two Trigonometric Functions"' ...
@@ -952,7 +964,7 @@ function ex30()
 	gmt(['psxy -R -J -O -Sm0.15i+e -W1p -Gblack >> ' ps], [0 0 1.26 0 120])
 
 % -------------------------------------------------------------------------------------------------
-function ex32()
+function [ps, d_path] = ex32()
 	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex32/'];
 	ps = [out_path 'example_32.ps'];
@@ -1011,7 +1023,7 @@ function ex32()
 	builtin('delete','cities.txt', 'euflag.cpt');
 
 % -------------------------------------------------------------------------------------------------
-function ex33()
+function [ps, d_path] = ex33()
 	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex33/'];
 	ps = [out_path 'example_33.ps'];
@@ -1041,9 +1053,9 @@ function ex33()
 	builtin('delete','stack.txt');
 
 % -------------------------------------------------------------------------------------------------
-function ex34()
+function [ps, d_path] = ex34()
 	global g_root_dir out_path
-	d_path = [g_root_dir 'doc/examples/ex34'];
+	d_path = [g_root_dir 'doc/examples/ex34/'];
 	ps = [out_path 'example_34.ps'];
 
 	gmt('gmtset FORMAT_GEO_MAP dddF')
@@ -1051,24 +1063,24 @@ function ex34()
 	% Extract a subset of ETOPO2m for this part of Europe
 	% gmt grdcut etopo2m_grd.nc -R -GFR+IT.nc=ns
 	z_cpt = gmt('makecpt -Cglobe -T-5000/5000/500 -Z');
-	FR_IT_int = gmt(['grdgradient ' d_path '/FR+IT.nc -A15 -Ne0.75 -G']);
-	gmt(['grdimage ' d_path '/FR+IT.nc -I -C -J -O -K -Y4.5i' ...
+	FR_IT_int = gmt(['grdgradient ' d_path 'FR+IT.nc -A15 -Ne0.75 -G']);
+	gmt(['grdimage ' d_path 'FR+IT.nc -I -C -J -O -K -Y4.5i' ...
 		' -Baf -BWsnE+t"Franco-Italian Union, 2042-45" >> ' ps], FR_IT_int, z_cpt)
 	gmt(['pscoast -J -R -EFR,IT+gred@60 -O >> ' ps])
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function ex35()
+function [ps, d_path] = ex35()
 % THIS EXAMPLE FAILS BECAUSE OF sphdistance
 	global g_root_dir out_path
-	d_path = [g_root_dir 'doc/examples/ex35'];
+	d_path = [g_root_dir 'doc/examples/ex35/'];
 	ps = [out_path 'example_35.ps'];
 
 	% Get the crude GSHHS data, select GMT format, and decimate to ~20%:
 	% gshhs $GMTHOME/src/coast/gshhs/gshhs_c.b | $AWK '{if ($1 == ">" || NR%5 == 0) print $0}' > gshhs_c.txt
 	% Get Voronoi polygons
-%tt_pol = gmt(['sphtriangulate ' d_path '/gshhs_c.txt -Qv -D']);
-	tt_pol = gmt(['sphtriangulate ' d_path '/gshhs_c.txt -Qv -D -Ntt.pol']);
+%tt_pol = gmt(['sphtriangulate ' d_path 'gshhs_c.txt -Qv -D']);
+	tt_pol = gmt(['sphtriangulate ' d_path 'gshhs_c.txt -Qv -D -Ntt.pol']);
 	% Compute distances in km
 %Gtt = gmt('sphdistance -Rg -I1 -Q$ -G -Lk', tt_pol);
 	Gtt = gmt('sphdistance -Rg -I1 -Q$ -Ntt.pol -G -Lk', tt_pol);
@@ -1082,24 +1094,24 @@ function ex35()
 	builtin('delete', 'tt.pol');
 
 % -------------------------------------------------------------------------------------------------
-function ex36()
+function [ps, d_path] = ex36()
 	global g_root_dir out_path
-	d_path = [g_root_dir 'doc/examples/ex36'];
+	d_path = [g_root_dir 'doc/examples/ex36/'];
 	ps = [out_path 'example_36.ps'];
 
 	% Interpolate data of Mars radius from Mariner9 and Viking Orbiter spacecrafts
 	tt_cpt = gmt('makecpt -Crainbow -T-7000/15000/1000 -Z');
 	% Piecewise linear interpolation; no tension
-	Gtt = gmt(['sphinterpolate ' d_path '/mars370.txt -Rg -I1 -Q0 -G']);
+	Gtt = gmt(['sphinterpolate ' d_path 'mars370.txt -Rg -I1 -Q0 -G']);
 	gmt(['grdimage -JH0/6i -Bag -C -P -Xc -Y7.25i -K > ' ps], tt_cpt, Gtt)
-	gmt(['psxy -Rg -J -O -K ' d_path '/mars370.txt -Sc0.05i -G0 -B30g30 -Y-3.25i >> ' ps])
+	gmt(['psxy -Rg -J -O -K ' d_path 'mars370.txt -Sc0.05i -G0 -B30g30 -Y-3.25i >> ' ps])
 	% Smoothing
-	Gtt = gmt(['sphinterpolate ' d_path '/mars370.txt -Rg -I1 -Q3 -G']);
+	Gtt = gmt(['sphinterpolate ' d_path 'mars370.txt -Rg -I1 -Q3 -G']);
 	gmt(['grdimage -J -Bag -C -Y-3.25i -O -K >> ' ps], tt_cpt, Gtt)
 	gmt(['psxy -Rg -J -O -T >> ' ps])
 
 % -------------------------------------------------------------------------------------------------
-function ex37()
+function [ps, d_path] = ex37()
 % THIS EXAMPLE ...
 % This example has secondary file writing that cannot be catched in a variable -- grdfft -N 
 	global g_root_dir out_path
@@ -1145,33 +1157,33 @@ function ex37()
  	gmt(['psxy -R -J -O -T >> ' ps])
 
 % -------------------------------------------------------------------------------------------------
-function ex38()
+function [ps, d_path] = ex38()
 	global g_root_dir out_path
-	d_path = [g_root_dir 'doc/examples/ex38'];
+	d_path = [g_root_dir 'doc/examples/ex38/'];
 	ps = [out_path 'example_38.ps'];
 
 	t_cpt = gmt('makecpt -Crainbow -T0/1700/100 -Z');
 	c_cpt = gmt('makecpt -Crainbow -T0/15/1');
-	Gitopo = gmt(['grdgradient ' d_path '/topo.nc -Nt1 -fg -A45 -G']);
-	Gout  = gmt(['grdhisteq ' d_path '/topo.nc -G -C16']);
-	gmt(['grdimage ' d_path '/topo.nc -I -C -JM3i -Y5i -K -P -B5 -BWSne > ' ps], Gitopo, t_cpt)
-	gmt(['pstext -R' d_path '/topo.nc -J -O -K -F+jTR+f14p -T -Gwhite -W1p -Dj0.1i >> ' ps], {'315 -10 Original'})
+	Gitopo = gmt(['grdgradient ' d_path 'topo.nc -Nt1 -fg -A45 -G']);
+	Gout  = gmt(['grdhisteq ' d_path 'topo.nc -G -C16']);
+	gmt(['grdimage ' d_path 'topo.nc -I -C -JM3i -Y5i -K -P -B5 -BWSne > ' ps], Gitopo, t_cpt)
+	gmt(['pstext -R' d_path 'topo.nc -J -O -K -F+jTR+f14p -T -Gwhite -W1p -Dj0.1i >> ' ps], {'315 -10 Original'})
 	gmt(['grdimage -C -J -X3.5i -K -O -B5 -BWSne >> ' ps], c_cpt, Gout)
 	gmt(['pstext -R -J -O -K -F+jTR+f14p -T -Gwhite -W1p -Dj0.1i >> ' ps], {'315 -10 Equalized'})
 	gmt(['psscale -Dx0i/-0.4i+jTC+w5i/0.15i+h+e+n -O -K -C -Ba500 -By+lm >> ' ps], t_cpt)
-	Gout = gmt(['grdhisteq ' d_path '/topo.nc -G -N']);
+	Gout = gmt(['grdhisteq ' d_path 'topo.nc -G -N']);
 	c_cpt = gmt('makecpt -Crainbow -T-3/3/0.1 -Z');
 	gmt(['grdimage -C -J -X-3.5i -Y-3.3i -K -O -B5 -BWSne >> ' ps], c_cpt, Gout)
 	gmt(['pstext -R -J -O -K -F+jTR+f14p -T -Gwhite -W1p -Dj0.1i >> ' ps], {'315 -10 Normalized'})
-	Gout = gmt(['grdhisteq ' d_path '/topo.nc -G -N']);
+	Gout = gmt(['grdhisteq ' d_path 'topo.nc -G -N']);
 	gmt(['grdimage -C -J -X3.5i -K -O -B5 -BWSne >> ' ps], c_cpt, Gout)
 	gmt(['pstext -R -J -O -K -F+jTR+f14p -T -Gwhite -W1p -Dj0.1i >> ' ps], {'315 -10 Quadratic'})
 	gmt(['psscale -Dx0i/-0.4i+w5i/0.15i+h+jTC+e+n -O -C -Bx1 -By+lz >> ' ps], c_cpt)
 
 % -------------------------------------------------------------------------------------------------
-function ex39()
+function [ps, d_path] = ex39()
 	global g_root_dir out_path
-	d_path = [g_root_dir 'doc/examples/ex39'];
+	d_path = [g_root_dir 'doc/examples/ex39/'];
 	ps = [out_path 'example_39.ps'];
 
 	% Evaluate the first 180, 90, and 30 order/degrees of Venus spherical
@@ -1180,9 +1192,9 @@ function ex39()
 	% Wieczorek, M. A., Gravity and topography of the terrestrial planets,
 	%   Treatise on Geophysics, 10, 165-205, doi:10.1016/B978-044452748-6/00156-5, 2007
 
-	Gv1 = gmt(['sph2grd ' d_path '/VenusTopo180.txt -I1 -Rg -Ng -G -F1/1/25/30']);
-	Gv2 = gmt(['sph2grd ' d_path '/VenusTopo180.txt -I1 -Rg -Ng -G -F1/1/85/90']);
-	Gv3 = gmt(['sph2grd ' d_path '/VenusTopo180.txt -I1 -Rg -Ng -G -F1/1/170/180']);
+	Gv1 = gmt(['sph2grd ' d_path 'VenusTopo180.txt -I1 -Rg -Ng -G -F1/1/25/30']);
+	Gv2 = gmt(['sph2grd ' d_path 'VenusTopo180.txt -I1 -Rg -Ng -G -F1/1/85/90']);
+	Gv3 = gmt(['sph2grd ' d_path 'VenusTopo180.txt -I1 -Rg -Ng -G -F1/1/170/180']);
 	t_cpt = gmt('grd2cpt -Crainbow -E16 -Z', Gv3);
 	Gvint = gmt('grdgradient -Nt0.75 -A45 -G', Gv1);
 	gmt(['grdimage -I -JG90/30/5i -P -K -Bg -C -X3i -Y1.1i > ' ps], Gvint, t_cpt, Gv1)
@@ -1191,17 +1203,17 @@ function ex39()
 	Gvint = gmt('grdgradient -Nt0.75 -A45 -G', Gv2);
 	gmt(['grdimage -I -JG -O -K -Bg -C -X-1.25i -Y1.9i >> ' ps], Gvint, t_cpt, Gv2)
 	gmt(['pstext -R0/6/0/6 -Jx1i -O -K -Dj0.2i -F+f16p+jLM -N >> ' ps], {'4 4.5 L = 90'})
-	Gv3 = gmt(['sph2grd ' d_path '/VenusTopo180.txt -I1 -Rg -Ng -G -F1/1/170/180']);
+	Gv3 = gmt(['sph2grd ' d_path 'VenusTopo180.txt -I1 -Rg -Ng -G -F1/1/170/180']);
 	Gvint = gmt('grdgradient -Nt0.75 -A45 -G', Gv3);
 	gmt(['grdimage -I -JG -O -K -Bg -C -X-1.25i -Y1.9i >> ' ps], Gvint, t_cpt, Gv3)
 	gmt(['pstext -R0/6/0/6 -Jx1i -O -K -Dj0.2i -F+f16p+jLM -N >> ' ps], {'4 4.5 L = 180'})
 	gmt(['pstext -R0/6/0/6 -Jx1i -O -F+f24p+jCM -N >> ' ps], {'3.75 5.4 Venus Spherical Harmonic Model'})
 
 % -------------------------------------------------------------------------------------------------
-function ex40()
+function [ps, d_path] = ex40()
 % THIS EXAMPLE FAILS BECAUSE CALLS to gmtspatial CRASH ML
 	global g_root_dir out_path
-	d_path = [g_root_dir 'doc/examples/ex40'];
+	d_path = [g_root_dir 'doc/examples/ex40/'];
 	ps = [out_path 'example_40.ps'];
 
 	% This call crashes ML because:
@@ -1213,10 +1225,10 @@ function ex40()
 
 	centroid = [133.913549887	-22.9337944115	7592694.55567];
 	gmt(['psbasemap -R112/154/-40/-10 -JM5.5i -P -K -B20 -BWSne+g240/255/240 -Xc > ' ps])
-	gmt(['psxy ' d_path '/GSHHS_h_Australia.txt -R -J -O -Wfaint -G240/240/255 -K >> ' ps])
-	gmt(['psxy ' d_path '/GSHHS_h_Australia.txt -R -J -O -Sc0.01c -Gred -K >> ' ps])
-	T500k = gmt(['gmtsimplify ' d_path '/GSHHS_h_Australia.txt -T500k']);
-	t = gmt(['gmtspatial ' d_path '/GSHHS_h_Australia.txt -fg -Qk']);
+	gmt(['psxy ' d_path 'GSHHS_h_Australia.txt -R -J -O -Wfaint -G240/240/255 -K >> ' ps])
+	gmt(['psxy ' d_path 'GSHHS_h_Australia.txt -R -J -O -Sc0.01c -Gred -K >> ' ps])
+	T500k = gmt(['gmtsimplify ' d_path 'GSHHS_h_Australia.txt -T500k']);
+	t = gmt(['gmtspatial ' d_path 'GSHHS_h_Australia.txt -fg -Qk']);
 	area = sprintf('Full area = %.0f km@+2@+\n', t(3));
 	%| awk '{printf "Full area = %.0f km@+2@+\n", $3}' > area.txt
 	t = gmt('gmtspatial -fg -Qk', T500k); 
@@ -1228,9 +1240,9 @@ function ex40()
 	gmt(['pstext -R -J -O -K -F+14p+cCM >> ' ps], {area})
 	gmt(['pstext -R -J -O -K -F+14p+cLB -Dj0.2i >> ' ps], {area_T500k})
 	gmt(['psbasemap -R -J -O -K -B20+lightgray -BWsne+g240/255/240 -Y4.7i >> ' ps])
-	gmt(['psxy ' d_path '/GSHHS_h_Australia.txt -R -J -O -Wfaint -G240/240/255 -K >> ' ps])
-	gmt(['psxy ' d_path '/GSHHS_h_Australia.txt -R -J -O -Sc0.01c -Gred -K >> ' ps])
-	T100k = gmt(['gmtsimplify ' d_path '/GSHHS_h_Australia.txt -T100k']);
+	gmt(['psxy ' d_path 'GSHHS_h_Australia.txt -R -J -O -Wfaint -G240/240/255 -K >> ' ps])
+	gmt(['psxy ' d_path 'GSHHS_h_Australia.txt -R -J -O -Sc0.01c -Gred -K >> ' ps])
+	T100k = gmt(['gmtsimplify ' d_path 'GSHHS_h_Australia.txt -T100k']);
 	t = gmt('gmtspatial -fg -Qk', T100k);
 	area_T100k = sprintf('Reduced area = %.0f km@+2@+\n', t(3));
 	%| awk '{printf "Reduced area = %.0f km@+2@+\n", $3}' > area_T100k.txt
@@ -1242,22 +1254,22 @@ function ex40()
 	gmt(['psxy -R -J -O -T >> ' ps])
 
 % -------------------------------------------------------------------------------------------------
-function ex41()
+function [ps, d_path] = ex41()
 % THIS EXAMPLE FAILS, LEGEND IS NOT PLOTTED
 	global g_root_dir out_path
-	d_path = [g_root_dir 'doc/examples/ex41'];
+	d_path = [g_root_dir 'doc/examples/ex41/'];
 	ps = [out_path 'example_41.ps'];
 
 	gmt('gmtset FONT_ANNOT_PRIMARY 12p FONT_LABEL 12p')
 	gmt(['pscoast -R130W/50W/8N/56N -JM5.6i -B0 -P -K -Glightgray -Sazure1 -A1000 -Wfaint -Xc -Y1.2i --MAP_FRAME_TYPE=plain > ' ps])
 	gmt(['pscoast -R -J -O -K -EUS+glightyellow+pfaint -ECU+glightred+pfaint -EMX+glightgreen+pfaint -ECA+glightblue+pfaint >> ' ps])
 	gmt(['pscoast -R -J -O -K -N1/1p,darkred -A1000/2/2 -Wfaint -Cazure1 >> ' ps])
-	gmt(['psxy -R -J -O -K -Sk' d_path '/my_symbol/0.1i -C' d_path '/my_color.cpt -W0.25p -: ' d_path '/my_data.txt >> ' ps])
-	gmt(['pslegend -R0/6/0/9.1 -Jx1i -Dx3i/4.5i+w5.6i+jBC+l1.2 -C0.05i -F+p+gsnow1 -B0 -O ' d_path '/my_table.txt -X-0.2i -Y-0.2i >> ' ps])
+	gmt(['psxy -R -J -O -K -Sk' d_path 'my_symbol/0.1i -C' d_path 'my_color.cpt -W0.25p -: ' d_path 'my_data.txt >> ' ps])
+	gmt(['pslegend -R0/6/0/9.1 -Jx1i -Dx3i/4.5i+w5.6i+jBC+l1.2 -C0.05i -F+p+gsnow1 -B0 -O ' d_path 'my_table.txt -X-0.2i -Y-0.2i >> ' ps])
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function ex42()
+function [ps, d_path] = ex42()
 % THIS EXAMPLE FAILS, LEGEND IS NOT PLOTTED
 	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex42/'];
@@ -1294,7 +1306,7 @@ function ex42()
 	builtin('delete','gmt.conf', 't.cpt');
 
 % -------------------------------------------------------------------------------------------------
-function ex43()
+function [ps, d_path] = ex43()
 % THIS EXAMPLE ...
 	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex43/'];
@@ -1307,8 +1319,9 @@ function ex43()
 % 	grep -v '^#' bb_weights.asc > B.txt
 % 
 % -------------------------------------------------------------------------------------------------
-function ex44()
-	global out_path
+function [ps, d_path] = ex44()
+	global g_root_dir out_path
+	d_path = [g_root_dir 'doc/examples/ex44/'];
 	ps = [out_path 'example_44.ps'];
 
 	% Bottom map of Australia
@@ -1331,7 +1344,7 @@ function ex44()
 	builtin('delete','xx000');
 
 % -------------------------------------------------------------------------------------------------
-function ex45()
+function [ps, d_path] = ex45()
 	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex45/'];
 	ps = [out_path 'example_45.ps'];
