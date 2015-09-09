@@ -1,7 +1,4 @@
 function out = gmtest(test)
-%	$Id$
-%	Minimal mimic of the gmtest bash script
-
 	GRAPHICSMAGICK = 'C:/programs/GraphicsMagick/gm.exe';
 
 	[ps, t_path] = gallery(test);
@@ -19,18 +16,18 @@ function out = gmtest(test)
 		' assign -metric rmse -file ' png_name ' ' ps_orig ' ' ps];
 	[status, cmdout] = system(cmd);
 	
-	if (status == 1)
+% 	if (status == 1)
 		n_lines = find(cmdout == sprintf('\n'));
-		if (numel(n_lines == 8))
+		if (numel(n_lines) == 8)
 			t = cmdout(n_lines(end-1)+1:end-1);		% Last line containing the failing info
 			ind = strfind(t, 'image');
 			disp(['Test ' test ' FAIL with: ' t(ind:end)])
 		else
 			disp(['Test ' test ' PASS'])
 		end
-	else
-		disp(['GRAPHICSMAGICK failed to run test: ' test])
-	end
+% 	else
+% 		disp(['GRAPHICSMAGICK failed to run test: ' test])
+% 	end
 	
 	if (nargout)
 		out = cmdout;
