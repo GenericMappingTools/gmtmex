@@ -37,35 +37,35 @@ out_path = 'V:/';		% Set this if you want to save the PS files in a prticular pl
 				case 'ex08',   [ps, t_path] = ex08();
 				case 'ex09',   [ps, t_path] = ex09();
 				case 'ex10',   [ps, t_path] = ex10();
-				case 'ex12',   [ps, t_path] = ex12();		% F
+				case 'ex12',   [ps, t_path] = ex12();
 				case 'ex13',   [ps, t_path] = ex13();
-				case 'ex14',   [ps, t_path] = ex14();		% F
-				case 'ex15',   [ps, t_path] = ex15();		% F
-				case 'ex16',   [ps, t_path] = ex16();		% F
+				case 'ex14',   [ps, t_path] = ex14();
+				case 'ex15',   [ps, t_path] = ex15();
+				case 'ex16',   [ps, t_path] = ex16();
 				case 'ex17',   [ps, t_path] = ex17();
-				case 'ex18',   [ps, t_path] = ex18();		% C
+				case 'ex18',   [ps, t_path] = ex18();
 				case 'ex19',   [ps, t_path] = ex19();
 				case 'ex20',   [ps, t_path] = ex20();
-				case 'ex22',   [ps, t_path] = ex22();		% F pslegend fails again. ps is sent to stdout 
+				case 'ex22',   [ps, t_path] = ex22();
 				case 'ex23',   [ps, t_path] = ex23();
 				case 'ex24',   [ps, t_path] = ex24();
-				case 'ex25',   [ps, t_path] = ex25();		% C
+				case 'ex25',   [ps, t_path] = ex25();		% CRASH
 				case 'ex26',   [ps, t_path] = ex26();
 				case 'ex27',   [ps, t_path] = ex27();
 				case 'ex28',   [ps, t_path] = ex28();
-				case 'ex29',   [ps, t_path] = ex29();		% F
+				case 'ex29',   [ps, t_path] = ex29();
 				case 'ex30',   [ps, t_path] = ex30();
-				case 'ex32',   [ps, t_path] = ex32();		% C
+				case 'ex32',   [ps, t_path] = ex32();		% CRASH
 				case 'ex33',   [ps, t_path] = ex33();
 				case 'ex34',   [ps, t_path] = ex34();
-				case 'ex35',   [ps, t_path] = ex35();		% F
+				case 'ex35',   [ps, t_path] = ex35();
 				case 'ex36',   [ps, t_path] = ex36();
 				case 'ex37',   [ps, t_path] = ex37();
 				case 'ex38',   [ps, t_path] = ex38();
 				case 'ex39',   [ps, t_path] = ex39();
-				case 'ex40',   [ps, t_path] = ex40();		% C
-				case 'ex41',   [ps, t_path] = ex41();		% F
-				case 'ex42',   [ps, t_path] = ex42();		% F
+				case 'ex40',   [ps, t_path] = ex40();
+				case 'ex41',   [ps, t_path] = ex41();
+				case 'ex42',   [ps, t_path] = ex42();
 				case 'ex44',   [ps, t_path] = ex44();
 				case 'ex45',   [ps, t_path] = ex45();
 			end
@@ -290,28 +290,20 @@ function [ps, d_path] = ex12()
 		c{k} = sprintf('%f %f %d\n', t(k,1:2), k-1);
 	end
 	gmt(['pstext -R -J -F+f6p -O -K >> ' ps], c)
-	%
+
 	% Then draw network and print the node values
-	%
 	gmt(['psxy -R -J -B2f1 -BeSNw -Wthinner -O -K -X3.25i >> ' ps], net_xy)
 	gmt(['psxy -R -J -O -K ' d_path 'table_5.11 -Sc0.03i -Gblack >> ' ps])
 	gmt(['pstext ' d_path 'table_5.11 -R -J -F+f6p+jLM -O -K -Gwhite -W -C0.01i -D0.08i/0i -N >> ' ps])
-	%
+
 	% Then contour the data and draw triangles using dashed pen; use "gmt gmtinfo" and "gmt makecpt" to make a
 	% color palette (.cpt) file
-	%
 	T = gmt(['info -T25/2 ' d_path 'table_5.11']);
 	topo_cpt = gmt(['makecpt -Cjet ' T{1}]);
 	gmt(['pscontour -R -J ' d_path 'table_5.11 -B2f1 -BWSne -Wthin -C -Lthinnest,-' ...
 		' -Gd1i -X-3.25i -Y-3.65i -O -K >> ' ps], topo_cpt)
-	%
+
 	% Finally color the topography
-	% NEX CALL ERRORS with "pscontour: -I option requires constant color between contours!"		BECAUSE
-% in GMT_Read_Data #L4786
-% (void)GMTAPI_split_via_method (API, API->object[item]->method, &via); 
-% sets via = 0, which ends in
-% GMT_init_cpt #L2998
-% P->is_continuous = true;	/* The only kind from the outside (?) */
 	gmt(['pscontour -R -J ' d_path 'table_5.11 -B2f1 -BeSnw -C -I -X3.25i -O -K >> ' ps], topo_cpt)
 	gmt(['pstext -R0/8/0/11 -Jx1i -F+f30p,Helvetica-Bold+jCB -O -X-3.25i >> ' ps], {'3.16 8 Delaunay Triangulation'})
 	builtin('delete','gmt.conf');
@@ -520,9 +512,8 @@ function [ps, d_path] = ex18()
 	gmt(['psxy -R -J -O -K -SC0.04i -Gred -Wthinnest >> ' ps], t)
 	gmt(['psxy -R -J -O -K -ST0.1i -Gyellow -Wthinnest >> ' ps], pratt)
 
-	% Then report the volume and area of these seamounts only
-	% by masking out data outside the 200 km-radius circle
-	% and then evaluate area/volume for the 50 mGal contour
+	% Then report the volume and area of these seamounts only by masking out data outside
+	% the 200 km-radius circle and then evaluate area/volume for the 50 mGal contour
 
 	Gmask = gmt(['grdmath -R ' sprintf('%f %f', pratt(1), pratt(2)) ' SDIST =']);
 	Gmask = gmt('grdclip -Sa200/NaN -Sb200/1 -G', Gmask);
@@ -1016,6 +1007,7 @@ function [ps, d_path] = ex30()
 
 % -------------------------------------------------------------------------------------------------
 function [ps, d_path] = ex32()
+% THIS EXAMPLE STILL CRASHES
 	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex32/'];
 	ps = [out_path 'example_32.ps'];
@@ -1284,19 +1276,11 @@ function [ps, d_path] = ex39()
 
 % -------------------------------------------------------------------------------------------------
 function [ps, d_path] = ex40()
-% THIS EXAMPLE ...
 	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex40/'];
 	ps = [out_path 'example_40.ps'];
 
 	gmt('gmtset -Du');		gmt('destroy')
-
-	% This call crashes ML because:
-	%centroid = gmt(['gmtspatial ' d_path '/GSHHS_h_Australia.txt -fg -Qk'])
-% GMT_Destroy_Options is called twice. One by gmtspatial and the other at the end of gmt.c (the MEX one).
-% In this second call
-%  		GMT_free (API->GMT, delete);		/* Then free the structure which was allocated by GMT_memory */ 
-% Kabooms because the *head had junk in it. 
 
 	centroid = [133.913549887	-22.9337944115	7592694.55567];
 	gmt(['psbasemap -R112/154/-40/-10 -JM5.5i -P -K -B20 -BWSne+g240/255/240 -Xc > ' ps])
