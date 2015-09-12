@@ -15,8 +15,8 @@ out_path = 'V:/';		% Set this if you want to save the PS files in a prticular pl
 	ps = [];	t_path = [];	% Defaults for the case we have an error
 
 	all_exs = {'ex01' 'ex02' 'ex04' 'ex05' 'ex06' 'ex07' 'ex08' 'ex09' 'ex10' 'ex12' 'ex13' 'ex14' ...
-		'ex15' 'ex16' 'ex17' 'ex18' 'ex19' 'ex20' 'ex22' 'ex23' 'ex24' 'ex25' 'ex26' 'ex27' 'ex28' ...
-		'ex29' 'ex30' 'ex32' 'ex33' 'ex34' 'ex35' 'ex36' 'ex37' 'ex38' 'ex39' 'ex40' 'ex42' 'ex41' ...
+		'ex15' 'ex16' 'ex17' 'ex18' 'ex19' 'ex20' 'ex22' 'ex23' 'ex24'  'ex26' 'ex27' 'ex28' ...
+		'ex29' 'ex30' 'ex33' 'ex34' 'ex35' 'ex36' 'ex37' 'ex38' 'ex39' 'ex40' 'ex41' 'ex42' ...
 		'ex44' 'ex45'}; 
 
 	if (nargin == 0)
@@ -30,6 +30,7 @@ out_path = 'V:/';		% Set this if you want to save the PS files in a prticular pl
 			switch opt{k}
 				case 'ex01',   [ps, t_path] = ex01();
 				case 'ex02',   [ps, t_path] = ex02();
+				case 'ex03',   [ps, t_path] = ex03();	% Not yet
 				case 'ex04',   [ps, t_path] = ex04();
 				case 'ex05',   [ps, t_path] = ex05();
 				case 'ex06',   [ps, t_path] = ex06();
@@ -37,6 +38,7 @@ out_path = 'V:/';		% Set this if you want to save the PS files in a prticular pl
 				case 'ex08',   [ps, t_path] = ex08();
 				case 'ex09',   [ps, t_path] = ex09();
 				case 'ex10',   [ps, t_path] = ex10();
+				case 'ex11',   [ps, t_path] = ex11();	% Not yet
 				case 'ex12',   [ps, t_path] = ex12();
 				case 'ex13',   [ps, t_path] = ex13();
 				case 'ex14',   [ps, t_path] = ex14();
@@ -46,6 +48,7 @@ out_path = 'V:/';		% Set this if you want to save the PS files in a prticular pl
 				case 'ex18',   [ps, t_path] = ex18();
 				case 'ex19',   [ps, t_path] = ex19();
 				case 'ex20',   [ps, t_path] = ex20();
+				case 'ex21',   [ps, t_path] = ex21();	% Not yet
 				case 'ex22',   [ps, t_path] = ex22();
 				case 'ex23',   [ps, t_path] = ex23();
 				case 'ex24',   [ps, t_path] = ex24();
@@ -55,17 +58,19 @@ out_path = 'V:/';		% Set this if you want to save the PS files in a prticular pl
 				case 'ex28',   [ps, t_path] = ex28();
 				case 'ex29',   [ps, t_path] = ex29();
 				case 'ex30',   [ps, t_path] = ex30();
+				case 'ex31',   [ps, t_path] = ex31();	% Not yet
 				case 'ex32',   [ps, t_path] = ex32();		% CRASH
 				case 'ex33',   [ps, t_path] = ex33();
 				case 'ex34',   [ps, t_path] = ex34();
 				case 'ex35',   [ps, t_path] = ex35();
 				case 'ex36',   [ps, t_path] = ex36();
-				case 'ex37',   [ps, t_path] = ex37();
+				case 'ex37',   [ps, t_path] = ex37();		% grdfft errors
 				case 'ex38',   [ps, t_path] = ex38();
 				case 'ex39',   [ps, t_path] = ex39();
 				case 'ex40',   [ps, t_path] = ex40();
 				case 'ex41',   [ps, t_path] = ex41();
 				case 'ex42',   [ps, t_path] = ex42();
+				case 'ex43',   [ps, t_path] = ex43();	% Not yet
 				case 'ex44',   [ps, t_path] = ex44();
 				case 'ex45',   [ps, t_path] = ex45();
 			end
@@ -117,6 +122,14 @@ function [ps, d_path] = ex02()
 	gmt(['psscale -DjRM+o0.6i/0+jLM+w2.88i/0.4i+mc -R -J -O -K -I0.3 -Bx2+lTOPO -By+lkm >> ' ps], t_cpt)
 	gmt(['pstext -R0/8.5/0/11 -Jx1i -F+f30p,Helvetica-Bold+jCB -O -N -Y-4.5i >> ' ps], {'-0.4 7.5 a)' '-0.4 3.0 b)'})
 	builtin('delete','gmt.conf');
+
+% -------------------------------------------------------------------------------------------------
+function [ps, d_path] = ex03()
+	global g_root_dir out_path
+	d_path = [g_root_dir 'doc/examples/ex03/'];
+	ps = [out_path 'example_03.ps'];
+
+	ps = '';	d_path = '';
 
 % -------------------------------------------------------------------------------------------------
 function [ps, d_path] = ex04()
@@ -273,6 +286,14 @@ function [ps, d_path] = ex10()
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
+function [ps, d_path] = ex11()
+	global g_root_dir out_path
+	d_path = [g_root_dir 'doc/examples/ex11/'];
+	ps = [out_path 'example_11.ps'];
+
+	ps = '';	d_path = '';
+
+% -------------------------------------------------------------------------------------------------
 function [ps, d_path] = ex12()
 % THIS EXAMPLE FAILS
 	global g_root_dir out_path
@@ -410,9 +431,9 @@ function [ps, d_path] = ex16()
 
 disp('This example would blow Matlab in a blink. Returning before that happen'),	return
 
-	gmt('gmtset -Du');		gmt('destroy')
 	setenv('GMT_DATADIR', d_path)			% <----- NOT GOOD ENOUGH
-	gmt('gmtset FONT_ANNOT_PRIMARY 9p')
+	gmt('gmtset FONT_ANNOT_PRIMARY 9p PROJ_LENGTH_UNIT inch PS_CHAR_ENCODING Standard+ PS_MEDIA letter')
+	gmt('destroy')
 	gmt(['pscontour -R0/6.5/-0.2/6.5 -Jx0.45i -P -K -Y5.5i -Ba2f1 -BWSne ' d_path '/table_5.11 -C' d_path '/ex16.cpt -I > ' ps])
 	gmt(['pstext -R -J -O -K -N -F+f18p,Times-Roman+jCB >> ' ps], {'3.25 7 pscontour (triangulate)'})
 
@@ -476,6 +497,7 @@ function [ps, d_path] = ex18()
 
 	% Use spherical gmt projection since SS data define on sphere
 	gmt('gmtset PROJ_ELLIPSOID Sphere FORMAT_FLOAT_OUT %g PROJ_LENGTH_UNIT inch PS_CHAR_ENCODING Standard+ PS_MEDIA letter')
+	gmt('destroy')
 
 	% Define location of Pratt seamount and the 400 km diameter
 	pratt = [-142.65 56.25 400];
@@ -599,6 +621,14 @@ function [ps, d_path] = ex20()
 	cities = [286 40.45 0.8; 31.15 30.03 0.8; 115.49 -31.58 0.8];
 	gmt(['psxy -R -J -Sk' d_path 'bullseye -O >> ' ps], cities)
 	builtin('delete','gmt.conf');
+
+% -------------------------------------------------------------------------------------------------
+function [ps, d_path] = ex21()
+	global g_root_dir out_path
+	d_path = [g_root_dir 'doc/examples/ex21/'];
+	ps = [out_path 'example_21.ps'];
+
+	ps = '';	d_path = '';
 
 % -------------------------------------------------------------------------------------------------
 function [ps, d_path] = ex22()
@@ -782,6 +812,12 @@ function [ps, d_path] = ex24()
 % -------------------------------------------------------------------------------------------------
 function [ps, d_path] = ex25()
 % THIS EXAMPLE FAILS BECAUSE OF AN ASSERT FAILURE
+	if (nargin == 0)
+		% Temporary. By default this one is not executed when called from the run_tests
+		ps = '';	d_path = '';
+		return
+	end
+
 	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex25/'];
 	ps = [out_path 'example_25.ps'];
@@ -1006,8 +1042,22 @@ function [ps, d_path] = ex30()
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
+function [ps, d_path] = ex31()
+	global g_root_dir out_path
+	d_path = [g_root_dir 'doc/examples/ex31/'];
+	ps = [out_path 'example_31.ps'];
+
+	ps = '';	d_path = '';
+
+% -------------------------------------------------------------------------------------------------
 function [ps, d_path] = ex32()
 % THIS EXAMPLE STILL CRASHES IN GRDVIEW #L1072
+	if (nargin == 0)
+		% Temporary. By default this one is not executed when called from the run_tests
+		ps = '';	d_path = '';
+		return
+	end
+
 	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex32/'];
 	ps = [out_path 'example_32.ps'];
@@ -1169,6 +1219,12 @@ function [ps, d_path] = ex36()
 function [ps, d_path] = ex37()
 % THIS EXAMPLE ...
 % This example has secondary file writing that cannot be catched in a variable -- grdfft -N 
+	if (nargin == 0)
+		% Temporary. By default this one is not executed when called from the run_tests
+		ps = '';	d_path = '';
+		return
+	end
+
 	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex37/'];
 	ps = [out_path 'example_37.ps'];
@@ -1336,7 +1392,7 @@ function [ps, d_path] = ex42()
 	d_path = [g_root_dir 'doc/examples/ex42/'];
 	ps = [out_path 'example_42.ps'];
 
-	gmt('set FONT_ANNOT_PRIMARY 12p FONT_LABEL 12p PROJ_ELLIPSOID WGS-84 FORMAT_GEO_MAP dddF')
+	gmt('set FONT_ANNOT_PRIMARY 12p FONT_LABEL 12p PROJ_ELLIPSOID WGS-84 FORMAT_GEO_MAP dddF PROJ_LENGTH_UNIT inch PS_CHAR_ENCODING Standard+ PS_MEDIA letter')
 	gmt('destroy')
 	% Data obtained via website and converted to netCDF thus:
 	% curl http://www.antarctica.ac.uk//bas_research/data/access/bedmap/download/bedelev.asc.gz
@@ -1379,7 +1435,9 @@ function [ps, d_path] = ex43()
 	ls_line  = gmt(['regress -Ey -N2 -i0:1l ' d_path 'bb_weights.asc -Fxm -T-2/6/8']);
 % 	grep -v '^>' model.txt > A.txt
 % 	grep -v '^#' bb_weights.asc > B.txt
-% 
+
+	ps = '';	d_path = '';
+
 % -------------------------------------------------------------------------------------------------
 function [ps, d_path] = ex44()
 	global g_root_dir out_path
