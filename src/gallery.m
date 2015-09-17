@@ -38,7 +38,7 @@ out_path = 'V:/';		% Set this if you want to save the PS files in a prticular pl
 				case 'ex08',   [ps, t_path] = ex08();
 				case 'ex09',   [ps, t_path] = ex09();
 				case 'ex10',   [ps, t_path] = ex10();
-				case 'ex11',   [ps, t_path] = ex11();	% Not yet
+				case 'ex11',   [ps, t_path] = ex11();
 				case 'ex12',   [ps, t_path] = ex12();
 				case 'ex13',   [ps, t_path] = ex13();
 				case 'ex14',   [ps, t_path] = ex14();
@@ -48,7 +48,7 @@ out_path = 'V:/';		% Set this if you want to save the PS files in a prticular pl
 				case 'ex18',   [ps, t_path] = ex18();
 				case 'ex19',   [ps, t_path] = ex19();
 				case 'ex20',   [ps, t_path] = ex20();
-				case 'ex21',   [ps, t_path] = ex21();	% Not yfinished
+				case 'ex21',   [ps, t_path] = ex21();
 				case 'ex22',   [ps, t_path] = ex22();
 				case 'ex23',   [ps, t_path] = ex23();
 				case 'ex24',   [ps, t_path] = ex24();
@@ -412,7 +412,85 @@ function [ps, d_path] = ex11()
 	d_path = [g_root_dir 'doc/examples/ex11/'];
 	ps = [out_path 'example_11.ps'];
 
-	ps = '';	d_path = '';
+	% Use gmt psxy to plot "cut-along-the-dotted" lines.
+
+	gmt('gmtset MAP_TICK_LENGTH_PRIMARY 0 FONT_ANNOT_PRIMARY 12p,Helvetica-Bold PROJ_LENGTH_UNIT inch PS_CHAR_ENCODING Standard+ PS_MEDIA letter')
+	gmt('destroy')
+
+	gmt(['psxy ' d_path 'cut-here.dat -Wthinnest,. -R-51/306/0/1071 -JX3.5i/10.5i -X2.5i -Y0.5i -P -K > ' ps])
+
+	% First, create grids of ascending X and Y and constant 0.
+	% These are to be used to represent R, G and B values of the darker 3 faces of the cube.
+	x_nc = gmt('grdmath -I1 -R0/255/0/255 X =');
+	y_nc = gmt('grdmath -I1 -R Y =');
+	c_nc = gmt('grdmath -I1 -R 0 =');
+
+	gmt(['grdimage -JX2.5i/-2.5i -R -K -O -X0.5i >> ' ps], x_nc, y_nc, c_nc)
+	gmt(['psxy -Wthinner,white,- ' d_path 'rays.dat -J -R -K -O >> ' ps])
+	gmt(['pstext --FONT=white -J -R -K -O -F+f+a >> ' ps], ...
+		{'128 128 12p -45 60\217'
+		 '102  26 12p -90 0.4'
+		 '204  26 12p -90 0.8'
+		 '10  140 16p 180 G'})
+	gmt(['psxy -N -Sv0.15i+s+e -Gwhite -W2p,white -J -R -K -O >> ' ps], [0 0 0 128])
+
+	gmt(['grdimage -JX2.5i/2.5i -R -K -O -Y2.5i >> ' ps], x_nc, c_nc, y_nc)
+	gmt(['psxy -Wthinner,white,- ' d_path 'rays.dat -J -R -K -O >> ' ps])
+	gmt(['pstext --FONT=white -J -R -K -O -F+f+a >> ' ps], ...
+		{'128 128 12p  45 300\217'
+		 '26  102 12p   0 0.4'
+		 '26  204 12p   0 0.8'
+		 '140  10 16p -90 R'
+		 '100 100 16p -45 V'})
+
+	gmt(['psxy -N -Sv0.15i+s+e -Gwhite -W2p,white -J -R -K -O >> ' ps], [0 0 128 0])
+	gmt(['psxy -N -Sv0.15i+s+e -Gwhite -W2p,white -J -R -K -O >> ' ps], [0 0 90 90])
+
+	gmt(['grdimage -JX-2.5i/2.5i -R -K -O -X-2.5i >> ' ps], c_nc, x_nc, y_nc)
+	gmt(['psxy -Wthinner,white,- ' d_path 'rays.dat -J -R -K -O >> ' ps])
+	gmt(['pstext --FONT=white -J -R -K -O -F+f+a >> ' ps], ...
+		{'128 128 12p 135 180\217'
+		 '102  26 12p  90 0.4'
+		 '204  26 12p  90 0.8'
+		 '10  140 16p   0 B'})
+
+	gmt(['psxy -N -Sv0.15i+s+e -Gwhite -W2p,white -J -R -K -O >> ' ps], [0 0 0 128])
+	gmt(['psxy -N -Sv0.15i+s+e -Gwhite -W2p,white -J -R -K -O >> ' ps], [0 0 128 0])
+
+	% Second, create grids of descending X and Y and constant 255.
+	% These are to be used to represent R, G and B values of the lighter 3 faces of the cube.
+
+	x_nc = gmt('grdmath -I1 -R 255 X SUB =');
+	y_nc = gmt('grdmath -I1 -R 255 Y SUB =');
+	c_nc = gmt('grdmath -I1 -R 255       =');
+
+	gmt(['grdimage -JX-2.5i/-2.5i -R -K -O -X2.5i -Y2.5i >> ' ps], x_nc, y_nc, c_nc)
+	gmt(['psxy -Wthinner,black,- ' d_path 'rays.dat -J -R -K -O >> ' ps])
+	gmt(['pstext -J -R -K -O -F+f+a >> ' ps], ...
+		{'128 128 12p 225 240\217'
+		 '102  26 12p 270 0.4'
+		 '204  26 12p 270 0.8'})
+
+	gmt(['grdimage -JX2.5i/-2.5i -R -K -O -X2.5i >> ' ps], c_nc, y_nc, x_nc)
+	gmt(['psxy -Wthinner,black,- ' d_path 'rays.dat -J -R -K -O >> ' ps])
+	gmt(['pstext -J -R -K -O -F+f+a >> ' ps], ...
+		{'128 128 12p -45 0\217'
+		 '26  102 12p   0 0.4'
+		 '26  204 12p   0 0.8'
+		 '100 100 16p  45 S'
+		 '204  66 16p  90 H'})
+
+	gmt(['psxy -N -Sv0.15i+s+e -Gblack -W2p -J -R -K -O >> ' ps], [0 0 90 90])
+	gmt(['psxy -N -Sv0.15i+s+e -Gblack -W2p -J -R -K -O >> ' ps], [204 204 204 76])
+
+	gmt(['grdimage -JX-2.5i/2.5i -R -K -O -X-2.5i -Y2.5i >> ' ps], x_nc, c_nc, y_nc)
+	gmt(['psxy -Wthinner,black,- ' d_path 'rays.dat -J -R -K -O >> ' ps])
+	gmt(['pstext -J -R -O -F+f+a >> ' ps], ...
+		{'128 128 12p 135 120\217'
+		 '26  102 12p 180 0.4'
+		 '26  204 12p 180 0.8'
+		 '200 200 16p 225 GMT 5'})
+	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
 function [ps, d_path] = ex12()
