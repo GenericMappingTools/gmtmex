@@ -15,7 +15,7 @@ out_path = 'V:/';		% Set this if you want to save the PS files in a prticular pl
 	ps = [];	t_path = [];	% Defaults for the case we have an error
 
 	all_exs = {'ex01' 'ex02' 'ex04' 'ex05' 'ex06' 'ex07' 'ex08' 'ex09' 'ex10' 'ex12' 'ex13' 'ex14' ...
-		'ex15' 'ex16' 'ex17' 'ex18' 'ex19' 'ex20' 'ex22' 'ex23' 'ex24'  'ex26' 'ex27' 'ex28' ...
+		'ex15' 'ex16' 'ex17' 'ex18' 'ex19' 'ex20' 'ex21' 'ex22' 'ex23' 'ex24' 'ex26' 'ex27' 'ex28' ...
 		'ex29' 'ex30' 'ex33' 'ex34' 'ex35' 'ex36' 'ex37' 'ex38' 'ex39' 'ex40' 'ex41' 'ex42' ...
 		'ex44' 'ex45'}; 
 
@@ -30,7 +30,7 @@ out_path = 'V:/';		% Set this if you want to save the PS files in a prticular pl
 			switch opt{k}
 				case 'ex01',   [ps, t_path] = ex01();
 				case 'ex02',   [ps, t_path] = ex02();
-				case 'ex03',   [ps, t_path] = ex03();	% Not yet
+				case 'ex03',   [ps, t_path] = ex03();	% CRASH
 				case 'ex04',   [ps, t_path] = ex04();
 				case 'ex05',   [ps, t_path] = ex05();
 				case 'ex06',   [ps, t_path] = ex06();
@@ -48,7 +48,7 @@ out_path = 'V:/';		% Set this if you want to save the PS files in a prticular pl
 				case 'ex18',   [ps, t_path] = ex18();
 				case 'ex19',   [ps, t_path] = ex19();
 				case 'ex20',   [ps, t_path] = ex20();
-				case 'ex21',   [ps, t_path] = ex21();	% Not yet
+				case 'ex21',   [ps, t_path] = ex21();	% Not yfinished
 				case 'ex22',   [ps, t_path] = ex22();
 				case 'ex23',   [ps, t_path] = ex23();
 				case 'ex24',   [ps, t_path] = ex24();
@@ -125,11 +125,132 @@ function [ps, d_path] = ex02()
 
 % -------------------------------------------------------------------------------------------------
 function [ps, d_path] = ex03()
+% THIS EXAMPLE CRASH IN THE project CALL
+% It crashes in project/#L1013 because pdata.z, when pure_ascii == true, was never initialized 
 	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex03/'];
-	ps = [out_path 'example_03.ps'];
+	ps = [out_path 'example_03a.ps'];
 
 	ps = '';	d_path = '';
+	return
+	% First, we use "gmt fitcircle" to find the parameters of a great circle
+	% most closely fitting the x,y points in "sat.xyg":
+
+	report = gmt(['fitcircle ' d_path 'sat.xyg -L2']);
+	[cposx,cposy] = strread(report{2}, '%s %s', 1);		cposx = cposx{1};	cposy = cposy{1};
+	[pposx,pposy] = strread(report{3}, '%s %s', 1);		pposx = pposx{1};	pposy = pposy{1};
+
+	% Now we use "gmt project" to gmt project the data in both sat.xyg and ship.xyg
+	% into data.pg, where g is the same and p is the oblique longitude around
+	% the great circle.  We use -Q to get the p distance in kilometers, and -S
+	% to sort the output into increasing p values.
+
+	sat_pg  = gmt(['project  ' d_path 'sat.xyg -C' cposx '/' cposy ' -T' pposx '/' pposy ' -S -Fpz -Q']);	% <-- CRASH HERE
+	ship_pg = gmt(['project ' d_path 'ship.xyg -C' cposx '/' cposy ' -T' pposx '/' pposy ' -S -Fpz -Q']);
+
+	% The gmtinfo utility will report the minimum and maximum values for all columns. 
+	% We use this information first with a large -I value to find the appropriate -R
+	% to use to plot the .pg data. 
+	R = gmt('info -I100/25', [sat.pg ship.pg]);
+	gmt(['psxy ' R ' -UL/-1.75i/-1.25i/"Example 3a in Cookbook" -BWeSn' ...
+		' -Bxa500f100+l"Distance along great circle" -Bya100f25+l"Gravity anomaly (mGal)"' ...
+		' -JX8i/5i -X2i -Y1.5i -K -Wthick > ' ps], sat_pg)
+	gmt(['psxy -R -JX -O -Sp0.03i ' ps], ship_pg)
+
+	% From this plot we see that the ship data have some "spikes" and also greatly
+	% differ from the satellite data at a point about p ~= +250 km, where both of
+	% them show a very large anomaly.
+
+	% To facilitate comparison of the two with a cross-spectral analysis using "gmt spectrum1d",
+	% we resample both data sets at intervals of 1 km.  First we find out how the data are
+	% typically spaced using $AWK to get the delta-p between points and view it with 
+	% "gmt pshistogram".
+
+	ps = [out_path 'example_03b.ps'];
+
+	gmt(['pshistogram -W0.1 -Gblack  -JX3i -K -X2i -Y1.5i -B0 -B+t"Ship" -UL/-1.75i/-1.25i/"Example 3b in Cookbook"' ...
+		' > ' ps], diff(ship_pg))
+	gmt(['pshistogram  -W0.1 -Gblack -JX3i -O -X5i -B0 -B+t"Sat" >>' ps], diff(sat_pg))
+
+	% This experience shows that the satellite values are spaced fairly evenly, with
+	% delta-p between 3.222 and 3.418.  The ship values are spaced quite unevenly, with
+	% delta-p between 0.095 and 9.017.  This means that when we want 1 km even sampling,
+	% we can use "gmt sample1d" to interpolate the sat data, but the same procedure applied
+	% to the ship data could alias information at shorter wavelengths.  So we have to use
+	% "gmt filter1d" to resample the ship data.  Also, since we observed spikes in the ship
+	% data, we use a median filter to clean up the ship values.  We will want to use "paste"
+	% to put the two sampled data sets together, so they must start and end at the same
+	% point, without NaNs.  So we want to get a starting and ending point which works for
+	% both of them.  This is a job for gmt gmtmath UPPER/LOWER.
+
+	sampr1 = gmt('gmtmath $ -Ca -Sf -o0 UPPER CEIL =', [ship_pg(1,:); sat_pg(1,:)]);
+	sampr2 = gmt('gmtmath $ -Ca -Sf -o0 LOWER FLOOR =', [ship_pg(end,:); sat_pg(end,:)]);
+	
+	% Now we can use sampr1|2 in gmt gmtmath to make a sampling points file for gmt sample1d:
+	samp_x = gmt('gmtmath -T$/$/1 -N1/0 T =', sampr1, sampr2);
+
+	% Now we can resample the gmt projected satellite data:
+	samp_sat_pg = gmt('sample1d -N', samp_x, sat_pg);
+
+	% For reasons above, we use gmt filter1d to pre-treat the ship data.  We also need to sample
+	% it because of the gaps > 1 km we found.  So we use gmt filter1d | gmt sample1d.  We also
+	% use the -E on gmt filter1d to use the data all the way out to sampr1/sampr2 :
+	t = gmt('filter1d -Fm1 -T$/$/1 -E', sampr1, sampr2, ship_pg); 
+	samp_ship_pg = gmt('sample1d -N', samp_x, t);
+
+	ps = [out_path 'example_03c.ps'];
+
+	% Now we plot them again to see if we have done the right thing:
+	gmt(['psxy ' R ' -JX8i/5i -X2i -Y1.5i -K -Wthick' ...
+		' -Bxa500f100+l"Distance along great circle" -Bya100f25+l"Gravity anomaly (mGal)"' ...
+		' -BWeSn -UL/-1.75i/-1.25i/"Example 3c in Cookbook" > ' ps], samp_sat_pg)
+	gmt(['psxy -R -JX -O -Sp0.03i >> ' ps], samp_ship_pg)
+
+	% Now to do the cross-spectra, assuming that the ship is the input and the sat is the output 
+	% data, we do this:
+	t = gmt('gmtconvert -A -o1,3', samp_ship_pg, samp_sat_pg);
+	gmt('spectrum1d -S256 -D1 -W -C', t)		% WAS '> /dev/null'
+ 
+	% Now we want to plot the spectra. The following commands will plot the ship and sat 
+	% power in one diagram and the coherency on another diagram, both on the same page.  
+	% Note the extended use of gmt pstext and gmt psxy to put labels and legends directly on the
+	% plots. For that purpose we often use -Jx1i and specify positions in inches directly:
+
+	ps = [out_path 'example_03.ps'];
+
+	gmt(['psxy spectrum.coh -Bxa1f3p+l"Wavelength (km)" -Bya0.25f0.05+l"Coherency@+2@+"' ...
+		' -BWeSn+g240/255/240 -JX-4il/3.75i -R1/1000/0/1 -P -K -X2.5i -Sc0.07i -Gpurple' ...
+		' -Ey/0.5p -Y1.5i > ' ps])
+	gmt(['pstext -R0/4/0/3.75 -Jx1i -F+f18p,Helvetica-Bold+jTR -O -K >> ' ps], {'3.85 3.6 Coherency@+2@+'})
+	gmt(['psxy spectrum.xpower -Bxa1f3p -Bya1f3p+l"Power (mGal@+2@+km)"' ...
+		' -BWeSn+t"Ship and Satellite Gravity"+g240/255/240' ...
+		' -Gred -ST0.07i -O -R1/1000/0.1/10000 -JX-4il/3.75il -Y4.2i -K -Ey/0.5p >> ' ps])
+	gmt(['psxy spectrum.ypower -R -JX -O -K -Gblue -Sc0.07i -Ey/0.5p >> ' ps])
+	gmt(['pstext -R0/4/0/3.75 -Jx -F+f18p,Helvetica-Bold+jTR -O -K >> ' ps], {'3.9 3.6 Input Power'})
+	gmt(['psxy -R -Jx -O -K -Gwhite -L -Wthicker >> ' ps], ...
+		[0.25 0.25
+		1.4  0.25
+		1.4  0.9
+		0.25 0.9])
+	gmt(['psxy -R -Jx -O -K -ST0.07i -Gred >> ' ps], {'0.4 0.7'})
+	gmt(['pstext -R -Jx -F+f14p,Helvetica-Bold+jLM -O -K >> ' ps], {'0.5 0.7 Ship'})
+	gmt(['psxy -R -Jx -O -K -Sc0.07i -Gblue >> ' ps], {'0.4 0.4'})
+	gmt(['pstext -R -Jx -F+f14p,Helvetica-Bold+jLM -O >> ' ps], {'0.5 0.4 Satellite'})
+
+	% Now we wonder if removing that large feature at 250 km would make any difference.
+	% We could throw away a section of data with $AWK or sed or head and tail, but we
+	% demonstrate the use of "gmt trend1d" to identify outliers instead.  We will fit a
+	% straight line to the samp_ship.pg data by an iteratively-reweighted method and
+	% save the weights on output.  Then we will plot the weights and see how things look:
+
+	ps = [out_path 'example_03d.ps'];
+
+	samp_ship_xw = gmt('trend1d -Fxw -Np2+r', samp_ship_pg);
+	gmt(['psxy ' R ' -JX8i/4i -X2i -Y1.5i -K -Sp0.03i' ...
+		' -Bxa500f100+l"Distance along great circle" -Bya100f25+l"Gravity anomaly (mGal)"' ...
+		' -BWeSn -UL/-1.75i/-1.25i/"Example 3d in Cookbook" > ' ps], samp_ship_pg)
+	R = gmt('gmtinfo samp_ship.xw -I100/1.1', samp_ship_xw);
+	gmt(['psxy ' R ' -JX8i/1.1i -O -Y4.25i -Bxf100 -Bya0.5f0.1+l"Weight" -BWesn -Sp0.03i >> ' ps], samp_ship_xw)
 
 % -------------------------------------------------------------------------------------------------
 function [ps, d_path] = ex04()
@@ -624,11 +745,101 @@ function [ps, d_path] = ex20()
 
 % -------------------------------------------------------------------------------------------------
 function [ps, d_path] = ex21()
+% THIS EXAMPLE ORIGINALY WOULD FAILS BECAUSE gmtinfo -C -fT returns a double and not a string
 	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex21/'];
 	ps = [out_path 'example_21.ps'];
 
-	ps = '';	d_path = '';
+	%ps = '';	d_path = '';	%return
+
+	% File has time stored as dd-Mon-yy so set input format to match it
+	gmt(['gmtset FORMAT_DATE_IN dd-o-yy FORMAT_DATE_MAP o FONT_ANNOT_PRIMARY +10p' ...
+		' FORMAT_TIME_PRIMARY_MAP abbreviated PS_CHAR_ENCODING ISOLatin1+ PROJ_LENGTH_UNIT inch PS_MEDIA letter'])
+	gmt('destroy')
+
+	% Pull out a suitable region string in yyy-mm-dd format
+	R = gmt(['info -fT -I50 ' d_path 'RHAT_price.csv']);		% The output is a cell
+	R = R{1};
+	%R = sprintf('-R%f/%f/%f/%f', RHAT_info(1:4));
+	ind = strfind(R, '/');
+	wT = R(3:ind(1)-1);				% West and East in T time coordinates (to be used later)
+	eT = R(ind(1)+1:ind(2)-1);
+	sF = R(ind(2)+1:ind(3)-1);
+
+	% Lay down the basemap:
+	gmt(['psbasemap ' R ' -JX9i/6i -K -Bsx1Y -Bpxa3Of1o -Bpy50+p"D "' ...
+		' -BWSen+t"RedHat (RHT) Stock Price Trend since IPO"+glightgreen > ' ps])
+
+	% Plot main window with open price as red line over yellow envelope of low/highs
+
+	gmt('destroy')
+	gmt('gmtset FORMAT_DATE_OUT dd-o-yy'),		gmt('destroy')
+	RHAT1_env = gmt(['gmtconvert -o0,2 -f0T ' d_path 'RHAT_price.csv']);
+	RHAT2_env = gmt(['gmtconvert -o0,3 -f0T -I -T ' d_path 'RHAT_price.csv']);
+	RHAT_env = [RHAT1_env; RHAT2_env];
+	gmt(['psxy -R -J -Gyellow -O -K >> ' ps], RHAT_env)
+	gmt(['psxy -R -J ' d_path 'RHAT_price.csv -Wthin,red -O -K >> ' ps])
+
+	% Draw P Wessel's purchase price as line and label it.  Note we temporary switch
+	% back to default yyyy-mm-dd format since that is what gmt info gave us.
+	fid = fopen('RHAT.pw','w');
+	fprintf(fid, '05-May-00	0\n');
+	fprintf(fid, '05-May-00	300\n');
+	fclose(fid);
+	gmt(['psxy -R -J RHAT.pw -Wthinner,- -O -K >> ' ps])
+	fid = fopen('RHAT.pw','w');
+	fprintf(fid, '01-Jan-99	25\n');
+	fprintf(fid, '01-Jan-02	25\n');
+	fclose(fid);
+	gmt(['psxy -R -J RHAT.pw -Wthick,- -O -K >> ' ps])
+	gmt('destroy')
+	gmt('gmtset FORMAT_DATE_IN yyyy-mm-dd'),	gmt('destroy')
+	gmt(['pstext -R -J -O -K -D1.5i/0.05i -N -F+f12p,Bookman-Demi+jLB >> ' ps], {[wT ' 25 PW buy']})
+	gmt('destroy')
+	gmt('gmtset FORMAT_DATE_IN dd-o-yy'),		gmt('destroy')
+
+	% Draw P Wessel's sales price as line and label it.
+	fid = fopen('RHAT.pw','w');
+	fprintf(fid, '25-Jun-07	0\n');
+	fprintf(fid, '25-Jun-07	300\n');
+	fclose(fid);
+	gmt(['psxy -R -J RHAT.pw -Wthinner,- -O -K >> ' ps])
+	fid = fopen('RHAT.pw','w');
+	fprintf(fid, '01-Aug-06	23.8852\n');
+	fprintf(fid, '01-Jan-08	23.8852\n');
+	fclose(fid);
+	gmt(['psxy -R -J RHAT.pw -Wthick,- -O -K >> ' ps])
+	gmt('destroy')
+	gmt('gmtset FORMAT_DATE_IN yyyy-mm-dd'),	gmt('destroy')
+	gmt(['pstext -R -J -O -K -Dj0.8i/0.05i -N -F+f12p,Bookman-Demi+jRB >> ' ps], {[eT ' 23.8852 PW sell']})
+	gmt('destroy')
+	gmt('gmtset FORMAT_DATE_IN dd-o-yy'),		gmt('destroy')
+
+	% Get smaller region for insert for trend since 2004
+	%R = sprintf('-R2004T/%s/%s/40', eT, sF);				% <------------ WITH THIS IT ERRORS FOR -R IN NEXT COMMAND
+	R = sprintf('-R01-Jan-04T00:00:00/%s/%s/40', eT, sF);
+
+	% Lay down the basemap, using Finnish annotations and place the insert in the upper right
+	gmt(['psbasemap --GMT_LANGUAGE=fi ' R ' -JX6i/3i -Bpxa3Of3o -Bpy10+p"D " -BESw+glightblue -Bsx1Y' ...
+		' -O -K -X3i -Y3i >> ' ps])
+
+	% Again, plot close price as red line over yellow envelope of low/highs
+
+	gmt(['psxy -R -J -Gyellow -O -K >> ' ps], RHAT_env)
+	gmt(['psxy -R -J ' d_path 'RHAT_price.csv -Wthin,red -O -K >> ' ps])
+
+	% Draw P Wessel's sales price as dashed line
+	gmt(['psxy -R -J RHAT.pw -Wthick,- -O -K >> ' ps])
+
+	% Mark sales date
+	fid = fopen('RHAT.pw','w');
+	fprintf(fid, '25-Jun-07	0\n');
+	fprintf(fid, '25-Jun-07	300\n');
+	fclose(fid);
+	gmt(['psxy -R -J RHAT.pw -Wthinner,- -O >> ' ps])
+
+	builtin('delete','RHAT.pw');
+	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
 function [ps, d_path] = ex22()
@@ -637,7 +848,8 @@ function [ps, d_path] = ex22()
 	d_path = [g_root_dir 'doc/examples/ex22/'];
 	ps = [out_path 'example_22.ps'];
 
-	gmt('gmtset FONT_ANNOT_PRIMARY 10p FONT_TITLE 18p FORMAT_GEO_MAP ddd:mm:ssF PROJ_LENGTH_UNIT inch PS_CHAR_ENCODING Standard+ PS_MEDIA letter')
+	gmt(['gmtset FONT_ANNOT_PRIMARY 10p FONT_TITLE 18p FORMAT_GEO_MAP ddd:mm:ssF' ...
+		' PROJ_LENGTH_UNIT inch PS_CHAR_ENCODING Standard+ PS_MEDIA letter'])
 	gmt('destroy')
 
 	% Get the data (-q quietly) from USGS using the wget (comment out in case
@@ -763,9 +975,8 @@ function [ps, d_path] = ex23()
 	gmt(['psxy -R -J -O -K -Wthickest,red >> ' ps], [lon lat; 28.20 -25.75])
 
 	% Plot red squares at cities and plot names:
-	for (k = 1:5)
-		gmt(['pstext -R -J -O -K -Dj0.15/0 -F+f12p,Courier-Bold,red+j -N >> ' ps], cities(k))	% It should accept a plain string as well
-	end
+	gmt(['psxy -R -J -O -K -Ss0.2 -Gred -Wthinnest cities.d >> ' ps])
+	gmt(['pstext -R -J -O -K -Dj0.15/0 -F+f12p,Courier-Bold,red+j -N >> ' ps], cities)
 
 	% Place a yellow star at Rome
 	gmt(['psxy -R -J -O -K -Sa0.2i -Gyellow -Wthin >> ' ps], [12.5 41.99])
@@ -1392,7 +1603,7 @@ function [ps, d_path] = ex42()
 	d_path = [g_root_dir 'doc/examples/ex42/'];
 	ps = [out_path 'example_42.ps'];
 
-	gmt('set FONT_ANNOT_PRIMARY 12p FONT_LABEL 12p PROJ_ELLIPSOID WGS-84 FORMAT_GEO_MAP dddF PROJ_LENGTH_UNIT inch PS_CHAR_ENCODING Standard+ PS_MEDIA letter')
+	gmt('gmtset FONT_ANNOT_PRIMARY 12p FONT_LABEL 12p PROJ_ELLIPSOID WGS-84 FORMAT_GEO_MAP dddF PROJ_LENGTH_UNIT inch PS_CHAR_ENCODING Standard+ PS_MEDIA letter')
 	gmt('destroy')
 	% Data obtained via website and converted to netCDF thus:
 	% curl http://www.antarctica.ac.uk//bas_research/data/access/bedmap/download/bedelev.asc.gz
