@@ -18,7 +18,14 @@ function do_tests()
 		'poldecimate','gmtspatial'
 		'measure','gmtspatial'
 		'readwrite_withgdal','grdimage'
-		'vectors','gmtvector'
+		'vectors','grdvector'
+		'gspline_5','greenspline'
+		'select','ogr'
+		'spotter_6','spotter'
+		'map_JE','psbasemap'
+		'mapscales','psbasemap'
+		'oblique','psbasemap'		% THIS ONE CRASHES gmt(['psbasemap -R-100/100/-60/60 -JOa1/0/45/5.5i -B30g30 -P -K -Xc > lixo.ps'])
+		'oblsuite','pscoast'
 		};
 	
 	for (k = 1:size(tests,1))
