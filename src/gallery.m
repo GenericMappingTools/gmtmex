@@ -1,16 +1,34 @@
-function  [ps_, t_path_] = gallery(opt)
-%	$Id$
+function  [ps_, t_path_] = gallery(opt, r_dir, o_path)
 %	The examples Gallery in GMT-MEX API
 %
+% If R_DIR and O_PATH are not transmitted, they must be manually set in this function
+% R_DIR is a string with the path to the root of your GMT installation. E.g.
+%	R_DIR = 'C:/progs_cygw/GMTdev/gmt5/branches/5.2.0/'
+%
+% O_PATH is a string with the output path where the new PS files will be writen
+%
+% If both R_DIR & O_PATH are not transmitted, they must be manually set in this function
+% If only R_DIR is set than O_PATH will default to current directory
+
+%	$Id$
 
 % For small cpts created on line it would be nice to have an alternative to (e.g)
 % 	fid = fopen('gray.cpt','w');	fprintf(fid, '-10000 150 10000 150\n');		fclose(fid);
 % Perhaps makecpt could accept a cell array as input?
 
-global g_root_dir out_path;
-% Edit those two for your own needs
-g_root_dir = 'C:/progs_cygw/GMTdev/gmt5/branches/5.2.0/';
-out_path = 'V:/';		% Set this if you want to save the PS files in a prticular place
+	% 
+	global g_root_dir out_path;
+
+	if (nargin >= 2)
+		g_root_dir = r_dir;
+		if (nargin == 3),	out_path = o_path;
+		else				out_path = './';		% Current dir
+		end
+	else
+		% Edit those two for your own needs
+		g_root_dir = 'C:/progs_cygw/GMTdev/gmt5/branches/5.2.0/';
+		out_path = 'V:/';		% Set this if you want to save the PS files in a prticular place
+	end
 
 	ps = [];	t_path = [];	% Defaults for the case we have an error
 
@@ -28,51 +46,51 @@ out_path = 'V:/';		% Set this if you want to save the PS files in a prticular pl
 	try
 		for (k = 1: numel(opt))
 			switch opt{k}
-				case 'ex01',   [ps, t_path] = ex01();
-				case 'ex02',   [ps, t_path] = ex02();
-				case 'ex03',   [ps, t_path] = ex03();	% CRASH
-				case 'ex04',   [ps, t_path] = ex04();
-				case 'ex05',   [ps, t_path] = ex05();
-				case 'ex06',   [ps, t_path] = ex06();
-				case 'ex07',   [ps, t_path] = ex07();
-				case 'ex08',   [ps, t_path] = ex08();
-				case 'ex09',   [ps, t_path] = ex09();
-				case 'ex10',   [ps, t_path] = ex10();
-				case 'ex11',   [ps, t_path] = ex11();
-				case 'ex12',   [ps, t_path] = ex12();
-				case 'ex13',   [ps, t_path] = ex13();
-				case 'ex14',   [ps, t_path] = ex14();
-				case 'ex15',   [ps, t_path] = ex15();
-				case 'ex16',   [ps, t_path] = ex16();
-				case 'ex17',   [ps, t_path] = ex17();
-				case 'ex18',   [ps, t_path] = ex18();
-				case 'ex19',   [ps, t_path] = ex19();
-				case 'ex20',   [ps, t_path] = ex20();
-				case 'ex21',   [ps, t_path] = ex21();
-				case 'ex22',   [ps, t_path] = ex22();
-				case 'ex23',   [ps, t_path] = ex23();
-				case 'ex24',   [ps, t_path] = ex24();
-				case 'ex25',   [ps, t_path] = ex25();		% CRASH
-				case 'ex26',   [ps, t_path] = ex26();
-				case 'ex27',   [ps, t_path] = ex27();
-				case 'ex28',   [ps, t_path] = ex28();
-				case 'ex29',   [ps, t_path] = ex29();
-				case 'ex30',   [ps, t_path] = ex30();
-				case 'ex31',   [ps, t_path] = ex31();	% Not yet
-				case 'ex32',   [ps, t_path] = ex32();		% CRASH
-				case 'ex33',   [ps, t_path] = ex33();
-				case 'ex34',   [ps, t_path] = ex34();
-				case 'ex35',   [ps, t_path] = ex35();
-				case 'ex36',   [ps, t_path] = ex36();
-				case 'ex37',   [ps, t_path] = ex37();		% grdfft errors
-				case 'ex38',   [ps, t_path] = ex38();
-				case 'ex39',   [ps, t_path] = ex39();
-				case 'ex40',   [ps, t_path] = ex40();
-				case 'ex41',   [ps, t_path] = ex41();
-				case 'ex42',   [ps, t_path] = ex42();
-				case 'ex43',   [ps, t_path] = ex43();	% Not yet
-				case 'ex44',   [ps, t_path] = ex44();
-				case 'ex45',   [ps, t_path] = ex45();
+				case 'ex01',   [ps, t_path] = ex01(g_root_dir, out_path);
+				case 'ex02',   [ps, t_path] = ex02(g_root_dir, out_path);
+				case 'ex03',   [ps, t_path] = ex03(g_root_dir, out_path);	% CRASH
+				case 'ex04',   [ps, t_path] = ex04(g_root_dir, out_path);
+				case 'ex05',   [ps, t_path] = ex05(g_root_dir, out_path);
+				case 'ex06',   [ps, t_path] = ex06(g_root_dir, out_path);
+				case 'ex07',   [ps, t_path] = ex07(g_root_dir, out_path);
+				case 'ex08',   [ps, t_path] = ex08(g_root_dir, out_path);
+				case 'ex09',   [ps, t_path] = ex09(g_root_dir, out_path);
+				case 'ex10',   [ps, t_path] = ex10(g_root_dir, out_path);
+				case 'ex11',   [ps, t_path] = ex11(g_root_dir, out_path);
+				case 'ex12',   [ps, t_path] = ex12(g_root_dir, out_path);
+				case 'ex13',   [ps, t_path] = ex13(g_root_dir, out_path);
+				case 'ex14',   [ps, t_path] = ex14(g_root_dir, out_path);
+				case 'ex15',   [ps, t_path] = ex15(g_root_dir, out_path);
+				case 'ex16',   [ps, t_path] = ex16(g_root_dir, out_path);
+				case 'ex17',   [ps, t_path] = ex17(g_root_dir, out_path);
+				case 'ex18',   [ps, t_path] = ex18(g_root_dir, out_path);
+				case 'ex19',   [ps, t_path] = ex19(g_root_dir, out_path);
+				case 'ex20',   [ps, t_path] = ex20(g_root_dir, out_path);
+				case 'ex21',   [ps, t_path] = ex21(g_root_dir, out_path);
+				case 'ex22',   [ps, t_path] = ex22(g_root_dir, out_path);
+				case 'ex23',   [ps, t_path] = ex23(g_root_dir, out_path);
+				case 'ex24',   [ps, t_path] = ex24(g_root_dir, out_path);
+				case 'ex25',   [ps, t_path] = ex25(g_root_dir, out_path);		% CRASH
+				case 'ex26',   [ps, t_path] = ex26(g_root_dir, out_path);
+				case 'ex27',   [ps, t_path] = ex27(g_root_dir, out_path);
+				case 'ex28',   [ps, t_path] = ex28(g_root_dir, out_path);
+				case 'ex29',   [ps, t_path] = ex29(g_root_dir, out_path);
+				case 'ex30',   [ps, t_path] = ex30(g_root_dir, out_path);
+				case 'ex31',   [ps, t_path] = ex31(g_root_dir, out_path);	% Not yet
+				case 'ex32',   [ps, t_path] = ex32(g_root_dir, out_path);		% CRASH
+				case 'ex33',   [ps, t_path] = ex33(g_root_dir, out_path);
+				case 'ex34',   [ps, t_path] = ex34(g_root_dir, out_path);
+				case 'ex35',   [ps, t_path] = ex35(g_root_dir, out_path);
+				case 'ex36',   [ps, t_path] = ex36(g_root_dir, out_path);
+				case 'ex37',   [ps, t_path] = ex37(g_root_dir, out_path);		% grdfft errors
+				case 'ex38',   [ps, t_path] = ex38(g_root_dir, out_path);
+				case 'ex39',   [ps, t_path] = ex39(g_root_dir, out_path);
+				case 'ex40',   [ps, t_path] = ex40(g_root_dir, out_path);
+				case 'ex41',   [ps, t_path] = ex41(g_root_dir, out_path);
+				case 'ex42',   [ps, t_path] = ex42(g_root_dir, out_path);
+				case 'ex43',   [ps, t_path] = ex43(g_root_dir, out_path);	% Not yet
+				case 'ex44',   [ps, t_path] = ex44(g_root_dir, out_path);
+				case 'ex45',   [ps, t_path] = ex45(g_root_dir, out_path);
 			end
 		end
 	catch
@@ -86,8 +104,7 @@ out_path = 'V:/';		% Set this if you want to save the PS files in a prticular pl
 	gmt('destroy')
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex01()
-	global g_root_dir out_path
+function [ps, d_path] = ex01(g_root_dir, out_path)
 	d_path = [g_root_dir 'doc/examples/ex01/'];
 	ps = [out_path 'example_01.ps'];
 
@@ -104,8 +121,7 @@ function [ps, d_path] = ex01()
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex02()
-	global g_root_dir out_path
+function [ps, d_path] = ex02(g_root_dir, out_path)
 	d_path = [g_root_dir 'doc/examples/ex02/'];
 	ps = [out_path 'example_02.ps'];
 
@@ -124,10 +140,9 @@ function [ps, d_path] = ex02()
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex03()
+function [ps, d_path] = ex03(g_root_dir, out_path)
 % THIS EXAMPLE CRASH IN THE project CALL
 % It crashes in project/#L1013 because pdata.z, when pure_ascii == true, was never initialized 
-	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex03/'];
 	ps = [out_path 'example_03a.ps'];
 
@@ -253,8 +268,7 @@ function [ps, d_path] = ex03()
 	gmt(['psxy ' R ' -JX8i/1.1i -O -Y4.25i -Bxf100 -Bya0.5f0.1+l"Weight" -BWesn -Sp0.03i >> ' ps], samp_ship_xw)
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex04()
-	global g_root_dir out_path
+function [ps, d_path] = ex04(g_root_dir, out_path)
 	d_path = [g_root_dir 'doc/examples/ex04/'];
 	ps = [out_path 'example_04.ps'];
 
@@ -287,8 +301,7 @@ function [ps, d_path] = ex04()
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex05()
-	global g_root_dir out_path
+function [ps, d_path] = ex05(g_root_dir, out_path)
 	d_path = [g_root_dir 'doc/examples/ex05/'];
 	ps = [out_path 'example_05.ps'];
 
@@ -306,8 +319,7 @@ function [ps, d_path] = ex05()
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex06()
-	global g_root_dir out_path
+function [ps, d_path] = ex06(g_root_dir, out_path)
 	d_path = [g_root_dir 'doc/examples/ex06/'];
 	ps = [out_path 'example_06.ps'];
 
@@ -320,8 +332,7 @@ function [ps, d_path] = ex06()
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex07()
-	global g_root_dir out_path
+function [ps, d_path] = ex07(g_root_dir, out_path)
 	d_path = [g_root_dir 'doc/examples/ex07'];
 	ps = [out_path 'example_07.ps'];
 
@@ -340,8 +351,7 @@ function [ps, d_path] = ex07()
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex08()
-	global g_root_dir out_path
+function [ps, d_path] = ex08(g_root_dir, out_path)
 	d_path = [g_root_dir 'doc/examples/ex08'];
 	ps = [out_path 'example_08.ps'];
 
@@ -353,8 +363,7 @@ function [ps, d_path] = ex08()
 	gmt(['pstext -R -J -JZ -Z0 -F+f24p,Helvetica-Bold+jTL -p -O >> ' ps], {'0.1 4.9 This is the surface of cube'})
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex09()
-	global g_root_dir out_path
+function [ps, d_path] = ex09(g_root_dir, out_path)
 	d_path = [g_root_dir 'doc/examples/ex09/'];
 	ps = [out_path 'example_09.ps'];
 
@@ -369,8 +378,7 @@ function [ps, d_path] = ex09()
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex10()
-	global g_root_dir out_path
+function [ps, d_path] = ex10(g_root_dir, out_path)
 	d_path = [g_root_dir 'doc/examples/ex10/'];
 	ps = [out_path 'example_10.ps'];
 
@@ -407,8 +415,7 @@ function [ps, d_path] = ex10()
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex11()
-	global g_root_dir out_path
+function [ps, d_path] = ex11(g_root_dir, out_path)
 	d_path = [g_root_dir 'doc/examples/ex11/'];
 	ps = [out_path 'example_11.ps'];
 
@@ -493,9 +500,8 @@ function [ps, d_path] = ex11()
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex12()
+function [ps, d_path] = ex12(g_root_dir, out_path)
 % THIS EXAMPLE FAILS
-	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex12/'];
 	ps = [out_path 'example_12.ps'];
 
@@ -529,8 +535,7 @@ function [ps, d_path] = ex12()
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex13()
-	global g_root_dir out_path
+function [ps, d_path] = ex13(g_root_dir, out_path)
 	d_path = [g_root_dir 'doc/examples/ex13/'];
 	ps = [out_path 'example_13.ps'];
 
@@ -548,9 +553,8 @@ function [ps, d_path] = ex13()
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex14()
+function [ps, d_path] = ex14(g_root_dir, out_path)
 % THIS EXAMPLE FAILS
-	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex14/'];
 	ps = [out_path 'example_14.ps'];
 
@@ -588,9 +592,8 @@ function [ps, d_path] = ex14()
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex15()
+function [ps, d_path] = ex15(g_root_dir, out_path)
 % THIS EXAMPLE FAILS TO PLOT THE STAR AT THE MINIMUM AT UR FIG (grdinfo gives wrong info)
-	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex15/'];
 	ps = [out_path 'example_15.ps'];
 
@@ -621,10 +624,9 @@ function [ps, d_path] = ex15()
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex16()
+function [ps, d_path] = ex16(g_root_dir, out_path)
 % THIS EXAMPLE FAILS BECAUSE THE CPT EX16.CPT INCLUDES A RAS FILE AND THAT FILE IS NOT FOUND
 % UNLESS THE COMMAND IS EXECUTED IN THE DIR WHERE IT SITS. AS A CONSEQUENCE PSL_EXIT, REALLY EXITS
-	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex16/'];
 	ps = [out_path 'example_16.ps'];
 
@@ -653,8 +655,7 @@ disp('This example would blow Matlab in a blink. Returning before that happen'),
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex17()
-	global g_root_dir out_path
+function [ps, d_path] = ex17(g_root_dir, out_path)
 	d_path = [g_root_dir 'doc/examples/ex17/'];
 	ps = [out_path 'example_17.ps'];
 
@@ -688,9 +689,8 @@ function [ps, d_path] = ex17()
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex18()
+function [ps, d_path] = ex18(g_root_dir, out_path)
 % THIS EXAMPLE ...
-	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex18/'];
 	ps = [out_path 'example_18.ps'];
 
@@ -755,8 +755,7 @@ function [ps, d_path] = ex18()
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex19()
-	global g_root_dir out_path
+function [ps, d_path] = ex19(g_root_dir, out_path)
 	d_path = [g_root_dir 'doc/examples/ex19/'];
 	ps = [out_path 'example_19.ps'];
 
@@ -794,8 +793,7 @@ function [ps, d_path] = ex19()
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex20()
-	global g_root_dir out_path
+function [ps, d_path] = ex20(g_root_dir, out_path)
 	d_path = [g_root_dir 'doc/examples/ex20/'];
 	ps = [out_path 'example_20.ps'];
 
@@ -822,9 +820,8 @@ function [ps, d_path] = ex20()
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex21()
+function [ps, d_path] = ex21(g_root_dir, out_path)
 % THIS EXAMPLE ORIGINALY WOULD FAILS BECAUSE gmtinfo -C -fT returns a double and not a string
-	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex21/'];
 	ps = [out_path 'example_21.ps'];
 
@@ -920,9 +917,8 @@ function [ps, d_path] = ex21()
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex22()
+function [ps, d_path] = ex22(g_root_dir, out_path)
 % THIS EXAMPLE ...
-	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex22/'];
 	ps = [out_path 'example_22.ps'];
 
@@ -1014,8 +1010,7 @@ function [ps, d_path] = ex22()
 	builtin('delete','gmt.conf', 'neis.cpt');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex23()
-	global g_root_dir out_path
+function [ps, d_path] = ex23(g_root_dir, out_path)
 	d_path = [g_root_dir 'doc/examples/ex23/'];
 	ps = [out_path 'example_23.ps'];
 
@@ -1070,8 +1065,7 @@ function [ps, d_path] = ex23()
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex24()
-	global g_root_dir out_path
+function [ps, d_path] = ex24(g_root_dir, out_path)
 	d_path = [g_root_dir 'doc/examples/ex24/'];
 	ps = [out_path 'example_24.ps'];
 
@@ -1099,7 +1093,7 @@ function [ps, d_path] = ex24()
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex25()
+function [ps, d_path] = ex25(g_root_dir, out_path)
 % THIS EXAMPLE FAILS BECAUSE OF AN ASSERT FAILURE
 	if (nargin == 0)
 		% Temporary. By default this one is not executed when called from the run_tests
@@ -1107,7 +1101,6 @@ function [ps, d_path] = ex25()
 		return
 	end
 
-	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex25/'];
 	ps = [out_path 'example_25.ps'];
 
@@ -1149,8 +1142,7 @@ function [ps, d_path] = ex25()
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex26()
-	global g_root_dir out_path
+function [ps, d_path] = ex26(g_root_dir, out_path)
 	d_path = [g_root_dir 'doc/examples/ex26/'];
 	ps = [out_path 'example_26.ps'];
 
@@ -1168,8 +1160,7 @@ function [ps, d_path] = ex26()
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex27()
-	global g_root_dir out_path
+function [ps, d_path] = ex27(g_root_dir, out_path)
 	d_path = [g_root_dir 'doc/examples/ex27/'];
 	ps = [out_path 'example_27.ps'];
 
@@ -1203,8 +1194,7 @@ function [ps, d_path] = ex27()
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex28()
-	global g_root_dir out_path
+function [ps, d_path] = ex28(g_root_dir, out_path)
 	d_path = [g_root_dir 'doc/examples/ex28/'];
 	ps = [out_path 'example_28.ps'];
 
@@ -1228,9 +1218,8 @@ function [ps, d_path] = ex28()
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex29()
+function [ps, d_path] = ex29(g_root_dir, out_path)
 % THIS EXAMPLE FAILS BECAUSE THE RESULT IS WRONG
-	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex29/'];
 	ps = [out_path 'example_29.ps'];
 	
@@ -1268,8 +1257,7 @@ function [ps, d_path] = ex29()
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex30()
-	global g_root_dir out_path
+function [ps, d_path] = ex30(g_root_dir, out_path)
 	d_path = [g_root_dir 'doc/examples/ex30/'];
 	ps = [out_path 'example_30.ps'];
 
@@ -1331,15 +1319,14 @@ function [ps, d_path] = ex30()
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex31()
-	global g_root_dir out_path
+function [ps, d_path] = ex31(g_root_dir, out_path)
 	d_path = [g_root_dir 'doc/examples/ex31/'];
 	ps = [out_path 'example_31.ps'];
 
 	ps = '';	d_path = '';
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex32()
+function [ps, d_path] = ex32(g_root_dir, out_path)
 % THIS EXAMPLE STILL CRASHES IN GRDVIEW #L1072
 	if (nargin == 0)
 		% Temporary. By default this one is not executed when called from the run_tests
@@ -1347,7 +1334,6 @@ function [ps, d_path] = ex32()
 		return
 	end
 
-	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex32/'];
 	ps = [out_path 'example_32.ps'];
 
@@ -1408,8 +1394,7 @@ function [ps, d_path] = ex32()
 	rm('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex33()
-	global g_root_dir out_path
+function [ps, d_path] = ex33(g_root_dir, out_path)
 	d_path = [g_root_dir 'doc/examples/ex33/'];
 	ps = [out_path 'example_33.ps'];
 
@@ -1441,8 +1426,7 @@ function [ps, d_path] = ex33()
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex34()
-	global g_root_dir out_path
+function [ps, d_path] = ex34(g_root_dir, out_path)
 	d_path = [g_root_dir 'doc/examples/ex34/'];
 	ps = [out_path 'example_34.ps'];
 
@@ -1459,9 +1443,8 @@ function [ps, d_path] = ex34()
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex35()
+function [ps, d_path] = ex35(g_root_dir, out_path)
 % THIS EXAMPLE FAILS BECAUSE OF sphdistance
-	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex35/'];
 	ps = [out_path 'example_35.ps'];
 
@@ -1486,8 +1469,7 @@ function [ps, d_path] = ex35()
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex36()
-	global g_root_dir out_path
+function [ps, d_path] = ex36(g_root_dir, out_path)
 	d_path = [g_root_dir 'doc/examples/ex36/'];
 	ps = [out_path 'example_36.ps'];
 
@@ -1505,7 +1487,7 @@ function [ps, d_path] = ex36()
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex37()
+function [ps, d_path] = ex37(g_root_dir, out_path)
 % THIS EXAMPLE ...
 % This example has secondary file writing that cannot be catched in a variable -- grdfft -N 
 	if (nargin == 0)
@@ -1514,7 +1496,6 @@ function [ps, d_path] = ex37()
 		return
 	end
 
-	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex37/'];
 	ps = [out_path 'example_37.ps'];
 
@@ -1562,8 +1543,7 @@ function [ps, d_path] = ex37()
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex38()
-	global g_root_dir out_path
+function [ps, d_path] = ex38(g_root_dir, out_path)
 	d_path = [g_root_dir 'doc/examples/ex38/'];
 	ps = [out_path 'example_38.ps'];
 
@@ -1588,8 +1568,7 @@ function [ps, d_path] = ex38()
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex39()
-	global g_root_dir out_path
+function [ps, d_path] = ex39(g_root_dir, out_path)
 	d_path = [g_root_dir 'doc/examples/ex39/'];
 	ps = [out_path 'example_39.ps'];
 
@@ -1620,8 +1599,7 @@ function [ps, d_path] = ex39()
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex40()
-	global g_root_dir out_path
+function [ps, d_path] = ex40(g_root_dir, out_path)
 	d_path = [g_root_dir 'doc/examples/ex40/'];
 	ps = [out_path 'example_40.ps'];
 
@@ -1659,9 +1637,8 @@ function [ps, d_path] = ex40()
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex41()
+function [ps, d_path] = ex41(g_root_dir, out_path)
 % THIS EXAMPLE FAILS, LEGEND IS NOT PLOTTED
-	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex41/'];
 	ps = [out_path 'example_41.ps'];
 
@@ -1675,9 +1652,8 @@ function [ps, d_path] = ex41()
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex42()
+function [ps, d_path] = ex42(g_root_dir, out_path)
 % THIS EXAMPLE FAILS, LEGEND IS NOT PLOTTED
-	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex42/'];
 	ps = [out_path 'example_42.ps'];
 
@@ -1713,9 +1689,8 @@ function [ps, d_path] = ex42()
 	builtin('delete','gmt.conf', 't.cpt');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex43()
+function [ps, d_path] = ex43(g_root_dir, out_path)
 % THIS EXAMPLE ...
-	global g_root_dir out_path
 	d_path = [g_root_dir 'doc/examples/ex43/'];
 	ps = [out_path 'example_43.ps'];
 
@@ -1728,8 +1703,7 @@ function [ps, d_path] = ex43()
 	ps = '';	d_path = '';
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex44()
-	global g_root_dir out_path
+function [ps, d_path] = ex44(g_root_dir, out_path)
 	d_path = [g_root_dir 'doc/examples/ex44/'];
 	ps = [out_path 'example_44.ps'];
 
@@ -1755,8 +1729,7 @@ function [ps, d_path] = ex44()
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex45()
-	global g_root_dir out_path
+function [ps, d_path] = ex45(g_root_dir, out_path)
 	d_path = [g_root_dir 'doc/examples/ex45/'];
 	ps = [out_path 'example_45.ps'];
 
