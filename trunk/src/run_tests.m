@@ -26,6 +26,13 @@ function do_tests()
 		'mapscales','psbasemap'
 		'oblique','psbasemap'		% THIS ONE CRASHES gmt(['psbasemap -R-100/100/-60/60 -JOa1/0/45/5.5i -B30g30 -P -K -Xc > lixo.ps'])
 		'oblsuite','pscoast'
+		'trimvector','psxy'
+		'sph_5','sph'
+		%'flexure_e','potential'	% See test. We dont' have syntax to run it
+		'clipping6','psxy'
+		%'clipping5','psxy'			% See test. We dont' have syntax to run it
+		'clipping4','psxy'
+		'geosegmentize','psxy'
 		};
 	
 	for (k = 1:size(tests,1))
