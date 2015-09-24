@@ -1327,12 +1327,7 @@ function [ps, d_path] = ex31(g_root_dir, out_path)
 
 % -------------------------------------------------------------------------------------------------
 function [ps, d_path] = ex32(g_root_dir, out_path)
-% THIS EXAMPLE STILL CRASHES IN GRDVIEW #L1072
-	if (nargin == 0)
-		% Temporary. By default this one is not executed when called from the run_tests
-		ps = '';	d_path = '';
-		return
-	end
+% THIS EXAMPLE STILL CRASHES IN gmt_api #L5522 V_obj is NULL, apparently called by the grdtrack command below
 
 	d_path = [g_root_dir 'doc/examples/ex32/'];
 	ps = [out_path 'example_32.ps'];
