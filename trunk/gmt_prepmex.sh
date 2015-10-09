@@ -10,7 +10,7 @@
 # Link the gmt.mex executable with these libraries.
 #
 # To prepare your system to run the gmt.mex application, run
-# /Application/GMT-5.2.x_r#####.app/Contents/Resources/share/tools/gmt_prepmex.sh
+# /Application/GMT-5.2.x[_r#####.app]/Contents/Resources/share/tools/gmt_prepmex.sh
 #
 # First get a reliable absolute path to the bundle's top directory
 pushd `dirname $0` > /dev/null
@@ -23,7 +23,7 @@ MEXLIBDIR=$MEXGM5TDIR/lib
 MEXINCDIR=$MEXGM5TDIR/include
 MEXBINDIR=$MEXGM5TDIR/bin
 MEXSUPDIR=$MEXLIBDIR/gmt/plugins
-# Create these directories [remove first if exist]
+# Create install directory [remove first if exist]
 sudo rm -rf $MEXGM5TDIR
 sudo mkdir -p $MEXBINDIR $MEXSUPDIR $MEXINCDIR
 # Find user's group and use that to set ownership
