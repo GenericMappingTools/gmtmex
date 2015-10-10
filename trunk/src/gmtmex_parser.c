@@ -914,16 +914,19 @@ struct GMT_TEXTSET *GMTMEX_Text_init (void *API, unsigned int direction, const m
 	struct GMT_TEXTSET *T = NULL;
 	if (direction == GMT_IN) {	/* Dimensions are known from the MATLAB input pointer */
 		uint64_t rec, dim[3] = {1, 1, 0};
+		bool got_text = false;
 		mxArray *mx_ptr = NULL;
 		char *txt = NULL;
 		struct GMT_TEXTSEGMENT *S = NULL;	/* Shorthand for current segment */
 
 		if (mxIsEmpty (ptr))
 			mexErrMsgTxt ("GMTMEX_Text_init: The input that was supposed to contain the Cell array is empty\n");
-		if (!mxIsCell (ptr))
-			mexErrMsgTxt ("GMTMEX_Text_init: Expected a Cell array for input\n");
 		dim[GMT_ROW] = mxGetM (ptr);	/* Number of records */
-		if (dim[GMT_ROW] == 1) {	/* Check if we got a transpose arrangement or just one record */
+		if (mxIsChar (ptr) && dim[GMT_ROW] == 1)	/* Special case: Got a single text record */
+			got_text = true;
+		else if (!mxIsCell (ptr))
+			mexErrMsgTxt ("GMTMEX_Text_init: Expected a Cell array for input\n");
+		if (dim[GMT_ROW] == 1 && !got_text) {	/* Check if we got a transpose arrangement or just one record */
 			rec = mxGetN (ptr);	/* Also possibly number of records */
 			if (rec > 1) dim[GMT_ROW] = rec;	/* User gave row-vector of cells */
 		}
@@ -932,10 +935,14 @@ struct GMT_TEXTSET *GMTMEX_Text_init (void *API, unsigned int direction, const m
 		S = T->table[0]->segment[0];	/* Only one segment coming from MATLAB */
 		S->n_rows = dim[GMT_ROW];
 		T->alloc_mode = GMT_ALLOC_EXTERNALLY;
-		for (rec = 0; rec < S->n_rows; rec++) {
-			mx_ptr = mxGetCell (ptr, rec);
-			txt = mxArrayToString (mx_ptr);
-			S->record[rec] = txt;
+		if (got_text)	/* Just got that single record */
+			S->record[0] = mxArrayToString (ptr);
+		else {	/* Must get strings out of the cell array */
+			for (rec = 0; rec < S->n_rows; rec++) {
+				mx_ptr = mxGetCell (ptr, rec);
+				txt = mxArrayToString (mx_ptr);
+				S->record[rec] = txt;
+			}
 		}
 		T->n_records = T->table[0]->n_records = S->n_rows;
 		GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Text_init: Allocated GMT TEXTSET %lx\n", (long)T);

@@ -168,7 +168,7 @@
 				New_Setting = "";
 				OTHER_CFLAGS = "";
 				"OTHER_CFLAGS[arch=*]" = (
-					"-I/usr/local/include/gmt",
+					"-I/opt/gmt/include/gmt",
 					"-g",
 					"-DGMT_MATLAB",
 				);
@@ -177,7 +177,7 @@
 					"-L$(MATLABROOT)/bin/maci64",
 					"-lmx",
 					"-lmex",
-					"-L/usr/local/lib",
+					"-L/opt/gmt/lib",
 					"-lgmt",
 				);
 				PRIVATE_HEADERS_FOLDER_PATH = /opt/local/include;
@@ -206,7 +206,7 @@
 				New_Setting = "";
 				OTHER_CFLAGS = "";
 				"OTHER_CFLAGS[arch=*]" = (
-					"-I/usr/local/include/gmt",
+					"-I/opt/gmt/include/gmt",
 					"-g",
 					"-DGMT_MATLAB",
 				);
