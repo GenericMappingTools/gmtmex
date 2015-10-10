@@ -27,7 +27,9 @@ function  [ps_, t_path_] = gallery(opt, r_dir, o_path)
 	else
 		% Edit those two for your own needs
 		g_root_dir = 'C:/progs_cygw/GMTdev/gmt5/branches/5.2.0/';
+        	%g_root_dir = '/Users/pwessel/GMTdev/gmt5-dev/branches/5.2.0/';
 		out_path = 'V:/';		% Set this if you want to save the PS files in a prticular place
+        	%out_path = './';		% Current dir
 	end
 
 	ps = [];	t_path = [];	% Defaults for the case we have an error
