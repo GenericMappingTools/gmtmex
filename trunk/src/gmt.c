@@ -180,6 +180,8 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		return;
 	}
 
+	/* 2. Get module name and separate out args */
+	
 	/* Here we have a GMT module call. The documented use is to give the module name separately from
 	 * the module options, but users may forget and combine the two.  So we check both cases. */
 	
@@ -201,6 +203,17 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		while (cmd[k] == ' ') k++;	/* Skip any spaces between module name and start of options */
 		if (cmd[k]) opt_args = &cmd[k];
 	}
+	/* Make sure this is a valid module */
+	if ((status = GMT_Call_Module (API, module, GMT_MODULE_EXIST, NULL))) {
+		char gmt_module[MODULE_LEN] = "gmt";	/* Alternate module name that starts with "gmt" */
+		/* module does not contain a valid module name; try prepending gmt: */
+		strncat (gmt_module, module, MODULE_LEN-4U);
+		status = GMT_Call_Module (API, gmt_module, GMT_MODULE_EXIST, NULL); /* either GMT_NOERROR or GMT_NOT_A_VALID_MODULE */
+		if (status)
+			mexErrMsgTxt ("GMT: No module by that name was found.\n"); 
+		strcpy (module, gmt_module);	/* Use the prepended module name since that worked */
+	}
+	
 	/* 3. Convert mex command line arguments to a linked GMT option list */
 	if (opt_args && (options = GMT_Create_Options (API, 0, opt_args)) == NULL)
 		mexErrMsgTxt ("GMT: Failure to parse GMT5 command options\n");
