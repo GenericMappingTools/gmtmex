@@ -27,9 +27,7 @@ function  [ps_, t_path_] = gallery(opt, r_dir, o_path)
 	else
 		% Edit those two for your own needs
 		g_root_dir = 'C:/progs_cygw/GMTdev/gmt5/branches/5.2.0/';
-        	%g_root_dir = '/Users/pwessel/GMTdev/gmt5-dev/branches/5.2.0/';
 		out_path = 'V:/';		% Set this if you want to save the PS files in a prticular place
-        	%out_path = './';		% Current dir
 	end
 
 	ps = [];	t_path = [];	% Defaults for the case we have an error
@@ -632,7 +630,9 @@ function [ps, d_path] = ex16(g_root_dir, out_path)
 	d_path = [g_root_dir 'doc/examples/ex16/'];
 	ps = [out_path 'example_16.ps'];
 
-disp('This example would blow Matlab in a blink. Returning before that happen'),	return
+disp('This example would blow Matlab in a blink. Returning before that happen')
+	ps = '';	d_path = '';
+	return
 
 	setenv('GMT_DATADIR', d_path)			% <----- NOT GOOD ENOUGH
 	gmt('gmtset FONT_ANNOT_PRIMARY 9p PROJ_LENGTH_UNIT inch PS_CHAR_ENCODING Standard+ PS_MEDIA letter')
@@ -1097,14 +1097,10 @@ function [ps, d_path] = ex24(g_root_dir, out_path)
 % -------------------------------------------------------------------------------------------------
 function [ps, d_path] = ex25(g_root_dir, out_path)
 % THIS EXAMPLE FAILS BECAUSE OF AN ASSERT FAILURE
-	if (nargin == 0)
-		% Temporary. By default this one is not executed when called from the run_tests
-		ps = '';	d_path = '';
-		return
-	end
-
 	d_path = [g_root_dir 'doc/examples/ex25/'];
 	ps = [out_path 'example_25.ps'];
+
+	ps = '';	d_path = '';	return
 
 	D = 30;
 	gmt('gmtset -Du');		gmt('destroy')
@@ -1334,6 +1330,8 @@ function [ps, d_path] = ex32(g_root_dir, out_path)
 	d_path = [g_root_dir 'doc/examples/ex32/'];
 	ps = [out_path 'example_32.ps'];
 
+	ps = '';	d_path = '';	return
+
 	gmt('gmtset -Du');		gmt('destroy')
 
 	% Here we get and convert the flag of Europe directly from the web through grdconvert using
@@ -1487,11 +1485,6 @@ function [ps, d_path] = ex36(g_root_dir, out_path)
 function [ps, d_path] = ex37(g_root_dir, out_path)
 % THIS EXAMPLE ...
 % This example has secondary file writing that cannot be catched in a variable -- grdfft -N 
-	if (nargin == 0)
-		% Temporary. By default this one is not executed when called from the run_tests
-		ps = '';	d_path = '';
-		return
-	end
 
 	d_path = [g_root_dir 'doc/examples/ex37/'];
 	ps = [out_path 'example_37.ps'];
@@ -1505,7 +1498,11 @@ function [ps, d_path] = ex37(g_root_dir, out_path)
 
 	z_cpt = gmt('makecpt -Crainbow -T-5000/-3000/100 -Z');
 	g_cpt = gmt('makecpt -Crainbow -T-50/25/5 -Z');
-	bbox = gmt(['grdinfo ' T ' -Ib']);
+	bbox_t = gmt(['grdinfo ' T ' -Ib']);			% Trouble here bbox_t is a cell array of text and we need it to be a matrix
+	bbox = zeros(4,2);
+	for (k = 1:4)
+		bbox(k,:) = str2num(bbox_t{k+1});
+	end
 	GG_int = gmt(['grdgradient ' G ' -A0 -Nt1 -G']);
 	GT_int = gmt(['grdgradient ' T ' -A0 -Nt1 -G']);
 	scl   = '1.4e-5';
@@ -1516,18 +1513,19 @@ function [ps, d_path] = ex37(g_root_dir, out_path)
 	gmt(['psbasemap -R-84/75/-78/81 -Jx' sclkm 'i -O -K -Ba -BWSne+t"Satellite gravity" >> ' ps])
 
 	cross = gmt(['grdfft ' T ' ' G ' -Ewk -N192/192+d+wtmp']);
-	GG_tmp_int = gmt(['grdgradient ' G(1:end-3) '_tmp.nc -A0 -Nt1 -G']);
-	GT_tmp_int = gmt(['grdgradient ' T(1:end-3) '_tmp.nc -A0 -Nt1 -G']);
+	% grav.V18.par.surf.1km.sq_tmp.nc and mb.par.surf.1km.sq_tmp.nc are created by the '+wtmp' above
+	GG_tmp_int = gmt('grdgradient grav.V18.par.surf.1km.sq_tmp.nc -A0 -Nt1 -G');
+	GT_tmp_int = gmt('grdgradient mb.par.surf.1km.sq_tmp.nc -A0 -Nt1 -G');
 
 	z_cpt = gmt('makecpt -Crainbow -T-1500/1500/100 -Z');
 	g_cpt = gmt('makecpt -Crainbow -T-40/40/5 -Z');
 
-	gmt(['grdimage ' T(1:end-3) '_tmp.nc -I -Jx' scl 'i -C -O -K -X-3.474i -Y3i >> ' ps], GT_tmp_int, z_cpt)
-	gmt(['psxy -R' T(1:end-3) '_tmp.nc -J -O -K -L -W0.5p,- >> ' ps], bbox)
+	gmt(['grdimage mb.par.surf.1km.sq_tmp.nc -I -Jx' scl 'i -C -O -K -X-3.474i -Y3i >> ' ps], GT_tmp_int, z_cpt)
+	gmt(['psxy -Rmb.par.surf.1km.sq_tmp.nc -J -O -K -L -W0.5p,- >> ' ps], bbox)
 	gmt(['psbasemap -R-100/91/-94/97 -Jx' sclkm 'i -O -K -Ba -BWSne+t"Detrended and extended" >> ' ps])
 
-	gmt(['grdimage ' G(1:end-3) '_tmp.nc -I -Jx' scl 'i -C -O -K -X3.25i >> ' ps], GG_tmp_int, g_cpt)
-	gmt(['psxy -R' G(1:end-3) '_tmp.nc -J bbox -O -K -L -W0.5p,- >> ' ps])
+	gmt(['grdimage grav.V18.par.surf.1km.sq_tmp.nc -I -Jx' scl 'i -C -O -K -X3.25i >> ' ps], GG_tmp_int, g_cpt)
+	gmt(['psxy -Rgrav.V18.par.surf.1km.sq_tmp.nc -J -O -K -L -W0.5p,- >> ' ps], bbox)
 	gmt(['psbasemap -R-100/91/-94/97 -Jx' sclkm 'i -O -K -Ba -BWSne+t"Detrended and extended" >> ' ps])
  
 	gmt('destroy')
@@ -1537,7 +1535,7 @@ function [ps, d_path] = ex37(g_root_dir, out_path)
 		' -BWsNe+t"Coherency between gravity and bathymetry" -O -K -X-3.25i -Y3.3i -i0,15 -W0.5p >> ' ps], cross)
 	gmt(['psxy -R -J -O -K -i0,15,16 -Sc0.075i -Gred -W0.25p -Ey >> ' ps], cross)
  	gmt(['psxy -R -J -O -T >> ' ps])
-	builtin('delete','gmt.conf');
+	builtin('delete','gmt.conf', 'grav.V18.par.surf.1km.sq_tmp.nc', 'mb.par.surf.1km.sq_tmp.nc');
 
 % -------------------------------------------------------------------------------------------------
 function [ps, d_path] = ex38(g_root_dir, out_path)
@@ -1635,7 +1633,6 @@ function [ps, d_path] = ex40(g_root_dir, out_path)
 
 % -------------------------------------------------------------------------------------------------
 function [ps, d_path] = ex41(g_root_dir, out_path)
-% THIS EXAMPLE FAILS, LEGEND IS NOT PLOTTED
 	d_path = [g_root_dir 'doc/examples/ex41/'];
 	ps = [out_path 'example_41.ps'];
 
@@ -1650,7 +1647,6 @@ function [ps, d_path] = ex41(g_root_dir, out_path)
 
 % -------------------------------------------------------------------------------------------------
 function [ps, d_path] = ex42(g_root_dir, out_path)
-% THIS EXAMPLE FAILS, LEGEND IS NOT PLOTTED
 	d_path = [g_root_dir 'doc/examples/ex42/'];
 	ps = [out_path 'example_42.ps'];
 
