@@ -146,8 +146,8 @@ function [ps, d_path] = ex03(g_root_dir, out_path)
 	d_path = [g_root_dir 'doc/examples/ex03/'];
 	ps = [out_path 'example_03a.ps'];
 
-	ps = '';	d_path = '';
-	return
+	%ps = '';	d_path = '';
+	%return
 	% First, we use "gmt fitcircle" to find the parameters of a great circle
 	% most closely fitting the x,y points in "sat.xyg":
 
@@ -166,11 +166,11 @@ function [ps, d_path] = ex03(g_root_dir, out_path)
 	% The gmtinfo utility will report the minimum and maximum values for all columns. 
 	% We use this information first with a large -I value to find the appropriate -R
 	% to use to plot the .pg data. 
-	R = gmt('info -I100/25', [sat.pg ship.pg]);
-	gmt(['psxy ' R ' -UL/-1.75i/-1.25i/"Example 3a in Cookbook" -BWeSn' ...
+	R = gmt('info -I100/25', [sat_pg; ship_pg]);
+	gmt(['psxy ' R{1} ' -UL/-1.75i/-1.25i/"Example 3a in Cookbook" -BWeSn' ...
 		' -Bxa500f100+l"Distance along great circle" -Bya100f25+l"Gravity anomaly (mGal)"' ...
 		' -JX8i/5i -X2i -Y1.5i -K -Wthick > ' ps], sat_pg)
-	gmt(['psxy -R -JX -O -Sp0.03i ' ps], ship_pg)
+	gmt(['psxy -R -JX -O -Sp0.03i >> ' ps], ship_pg)
 
 	% From this plot we see that the ship data have some "spikes" and also greatly
 	% differ from the satellite data at a point about p ~= +250 km, where both of
@@ -185,7 +185,7 @@ function [ps, d_path] = ex03(g_root_dir, out_path)
 
 	gmt(['pshistogram -W0.1 -Gblack  -JX3i -K -X2i -Y1.5i -B0 -B+t"Ship" -UL/-1.75i/-1.25i/"Example 3b in Cookbook"' ...
 		' > ' ps], diff(ship_pg))
-	gmt(['pshistogram  -W0.1 -Gblack -JX3i -O -X5i -B0 -B+t"Sat" >>' ps], diff(sat_pg))
+	gmt(['pshistogram  -W0.1 -Gblack -JX3i -O -X5i -B0 -B+t"Sat" >> ' ps], diff(sat_pg))
 
 	% This experience shows that the satellite values are spaced fairly evenly, with
 	% delta-p between 3.222 and 3.418.  The ship values are spaced quite unevenly, with
@@ -202,7 +202,7 @@ function [ps, d_path] = ex03(g_root_dir, out_path)
 	sampr2 = gmt('gmtmath $ -Ca -Sf -o0 LOWER FLOOR =', [ship_pg(end,:); sat_pg(end,:)]);
 	
 	% Now we can use sampr1|2 in gmt gmtmath to make a sampling points file for gmt sample1d:
-	samp_x = gmt('gmtmath -T$/$/1 -N1/0 T =', sampr1, sampr2);
+	samp_x = gmt(['gmtmath ' sprintf('-T%d/%d/1', sampr1, sampr2) ' -N1/0 T =']);
 
 	% Now we can resample the gmt projected satellite data:
 	samp_sat_pg = gmt('sample1d -N', samp_x, sat_pg);
@@ -210,7 +210,7 @@ function [ps, d_path] = ex03(g_root_dir, out_path)
 	% For reasons above, we use gmt filter1d to pre-treat the ship data.  We also need to sample
 	% it because of the gaps > 1 km we found.  So we use gmt filter1d | gmt sample1d.  We also
 	% use the -E on gmt filter1d to use the data all the way out to sampr1/sampr2 :
-	t = gmt('filter1d -Fm1 -T$/$/1 -E', sampr1, sampr2, ship_pg); 
+	t = gmt(['filter1d -Fm1 ' sprintf('-T%d/%d/1', sampr1, sampr2) ' -E'], ship_pg); 
 	samp_ship_pg = gmt('sample1d -N', samp_x, t);
 
 	ps = [out_path 'example_03c.ps'];
