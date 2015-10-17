@@ -167,8 +167,10 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 			mexAtExit(force_Destroy_Session);	/* Register an exit function. */
 	}
 
-	if (!cmd) 	/* First argument is the command string, e.g., 'blockmean -R0/5/0/5 -I1' or just 'destroy' */
-		cmd = mxArrayToString (prhs[first]);
+	if (!cmd) {	/* First argument is the command string, e.g., 'blockmean -R0/5/0/5 -I1' or just 'destroy' */
+		cmd = mxArrayToString(prhs[first]);
+		if (!cmd) mexErrMsgTxt("GMT: First input argument must be a string but is probably a cell array of strings.\n");
+	}
 
 	if (!strncmp (cmd, "destroy", 7U)) {	/* Destroy the session */
 		if (nlhs != 0)
