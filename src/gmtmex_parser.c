@@ -601,7 +601,7 @@ void *GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I) {
 	return (image_struct);
 }
 
-struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxArray *ptr)
+struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, bool module_input, const mxArray *ptr)
 {	/* Used to Create an empty Grid container to hold a GMT grid.
  	 * If direction is GMT_IN then we are given a MATLAB grid and can determine its size, etc.
 	 * If direction is GMT_OUT then we allocate an empty GMT grid as a destination. */
@@ -611,6 +611,7 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 
 	if (direction == GMT_IN) {	/* Dimensions are known from the input pointer */
 		unsigned int registration;
+		unsigned int family = (module_input) ? GMT_IS_GRID|GMT_VIA_MODULE_INPUT : GMT_IS_GRID;
 		mxArray *mx_ptr = NULL, *mxGrid = NULL, *mxHdr = NULL;
 
 		if (mxIsEmpty (ptr))
@@ -656,7 +657,7 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 
 			reg = mxGetData (mx_ptr);
 			registration = (unsigned int)lrint(reg[0]);
-			if ((G = GMT_Create_Data (API, GMT_IS_GRID, GMT_IS_SURFACE, GMT_GRID_ALL,
+			if ((G = GMT_Create_Data (API, family, GMT_IS_SURFACE, GMT_GRID_ALL,
 			                          NULL, range, inc, registration, GMT_NOTSET, NULL)) == NULL)
 				mexErrMsgTxt ("GMTMEX_grid_init: Failure to alloc GMT source matrix for input\n");
 
@@ -672,7 +673,7 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 		else {	/* Passed header and grid separately */
 			double *h = mxGetData(mxHdr);
 			registration = (unsigned int)lrint(h[6]);
-			if ((G = GMT_Create_Data (API, GMT_IS_GRID, GMT_IS_SURFACE, GMT_GRID_ALL,
+			if ((G = GMT_Create_Data (API, family, GMT_IS_SURFACE, GMT_GRID_ALL,
 			                          NULL, h, &h[7], registration, GMT_NOTSET, NULL)) == NULL)
 				mexErrMsgTxt ("GMTMEX_grid_init: Failure to alloc GMT source matrix for input\n");
 			G->header->z_min = h[4];
@@ -710,7 +711,7 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, const mxAr
 	return (G);
 }
 
-struct GMT_IMAGE *GMTMEX_image_init (void *API, unsigned int direction, const mxArray *ptr)
+struct GMT_IMAGE *GMTMEX_image_init (void *API, unsigned int direction, bool module_input, const mxArray *ptr)
 {	/* Used to Create an empty Image container to hold a GMT image.
  	 * If direction is GMT_IN then we are given a MATLAB image and can determine its size, etc.
 	 * If direction is GMT_OUT then we allocate an empty GMT image as a destination. */
@@ -718,6 +719,7 @@ struct GMT_IMAGE *GMTMEX_image_init (void *API, unsigned int direction, const mx
 	uint64_t gmt_ij;
 	struct GMT_IMAGE *I = NULL;
 	if (direction == GMT_IN) {	/* Dimensions are known from the input pointer */
+		unsigned int family = (module_input) ? GMT_IS_IMAGE|GMT_VIA_MODULE_INPUT : GMT_IS_IMAGE;
 		mxArray *mx_ptr = NULL;
 		double *inc = NULL, *range = NULL, *reg = NULL, *MinMax = NULL;
 		float *f = NULL;
@@ -734,7 +736,7 @@ struct GMT_IMAGE *GMTMEX_image_init (void *API, unsigned int direction, const mx
 		if (mx_ptr == NULL)
 			mexErrMsgTxt ("GMTMEX_image_init: Could not find range array for Image range\n");
 		range = mxGetData (mx_ptr);
-		if ((I = GMT_Create_Data (API, GMT_IS_IMAGE, GMT_IS_SURFACE, GMT_GRID_ALL,
+		if ((I = GMT_Create_Data (API, family, GMT_IS_SURFACE, GMT_GRID_ALL,
 			NULL, range, inc, 0, GMT_NOTSET, NULL)) == NULL)
 			mexErrMsgTxt ("GMTMEX_image_init: Failure to alloc GMT source image for input\n");
 
@@ -771,7 +773,7 @@ struct GMT_IMAGE *GMTMEX_image_init (void *API, unsigned int direction, const mx
 	return (I);
 }
 
-void *GMTMEX_dataset_init (void *API, unsigned int direction, const mxArray *ptr)
+void *GMTMEX_dataset_init (void *API, unsigned int direction, bool module_input, const mxArray *ptr)
 {	/* Used to create containers to hold or receive data:
 	 * direction == GMT_IN:  Create empty Matrix container, associate it with mex data matrix, and use as GMT input.
 	 * direction == GMT_OUT: Create empty Vector container, let GMT fill it out, and use for Mex output.
@@ -781,13 +783,14 @@ void *GMTMEX_dataset_init (void *API, unsigned int direction, const mxArray *ptr
 	if (direction == GMT_IN) {	/* Dimensions are known, extract them and set dim array for a GMT_MATRIX resource */
 		uint64_t dim[3] = {0, 0, 0};
 		struct GMT_MATRIX *M = NULL;
+		unsigned int family = (module_input) ? GMT_IS_MATRIX|GMT_VIA_MODULE_INPUT : GMT_IS_MATRIX;
 		mxClassID type;
 		if (!ptr) mexErrMsgTxt("GMTMEX_dataset_init: input is empty where it can't be.\n");
 		type  = mxGetClassID(ptr);
 		if (!mxIsNumeric (ptr)) mexErrMsgTxt ("GMTMEX_dataset_init: Expected a Matrix for input\n");
 		dim[DIM_ROW] = mxGetM (ptr);	/* Number of rows */
 		dim[DIM_COL] = mxGetN (ptr);	/* Number of columns */
-		if ((M = GMT_Create_Data (API, GMT_IS_MATRIX, GMT_IS_PLP, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
+		if ((M = GMT_Create_Data (API, family, GMT_IS_PLP, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
 			mexErrMsgTxt ("GMTMEX_dataset_init: Failure to alloc GMT source matrix\n");
 
 		GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_dataset_init: Allocated GMT Matrix %lx\n", (long)M);
@@ -827,7 +830,7 @@ void *GMTMEX_dataset_init (void *API, unsigned int direction, const mxArray *ptr
 	}
 }
 
-struct GMT_PALETTE *GMTMEX_CPT_init (void *API, unsigned int direction, const mxArray *ptr)
+struct GMT_PALETTE *GMTMEX_CPT_init (void *API, unsigned int direction, bool module_input, const mxArray *ptr)
 {	/* Used to Create an empty CPT container to hold a GMT CPT.
  	 * If direction is GMT_IN then we are given a MATLAB CPT and can determine its size, etc.
 	 * If direction is GMT_OUT then we allocate an empty GMT CPT as a destination. */
@@ -835,6 +838,7 @@ struct GMT_PALETTE *GMTMEX_CPT_init (void *API, unsigned int direction, const mx
 	if (direction == GMT_IN) {	/* Dimensions are known from the input pointer */
 		unsigned int k, j, one = 1;
 		uint64_t dim[2];
+		unsigned int family = (module_input) ? GMT_IS_CPT|GMT_VIA_MODULE_INPUT : GMT_IS_CPT;
 		mxArray *mx_ptr = NULL;
 		double dz, *colormap = NULL, *range = NULL, *rangeMinMax = NULL, *alpha = NULL;
 
@@ -874,7 +878,7 @@ struct GMT_PALETTE *GMTMEX_CPT_init (void *API, unsigned int direction, const mx
 			mexErrMsgTxt ("GMTMEX_CPT_init: Could not find alpha array for CPT transparency\n");
 		alpha = mxGetData (mx_ptr);
 
-		if ((P = GMT_Create_Data (API, GMT_IS_CPT, GMT_IS_NONE, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
+		if ((P = GMT_Create_Data (API, family, GMT_IS_NONE, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
 			mexErrMsgTxt ("GMTMEX_CPT_init: Failure to alloc GMT source CPT for input\n");
 
 		if (rangeMinMax)	/* Means we didn't get the full range array and need to compute it */
@@ -907,13 +911,14 @@ struct GMT_PALETTE *GMTMEX_CPT_init (void *API, unsigned int direction, const mx
 	return (P);
 }
 
-struct GMT_TEXTSET *GMTMEX_Text_init (void *API, unsigned int direction, const mxArray *ptr)
+struct GMT_TEXTSET *GMTMEX_Text_init (void *API, unsigned int direction, bool module_input, const mxArray *ptr)
 {	/* Used to Create an empty Textset container to hold a GMT TEXTSET.
  	 * If direction is GMT_IN then we are given a MATLAB cell array and can determine its size, etc.
 	 * If direction is GMT_OUT then we allocate an empty GMT TEXTSET as a destination. */
 	struct GMT_TEXTSET *T = NULL;
 	if (direction == GMT_IN) {	/* Dimensions are known from the MATLAB input pointer */
 		uint64_t rec, dim[3] = {1, 1, 0};
+		unsigned int family = (module_input) ? GMT_IS_TEXTSET|GMT_VIA_MODULE_INPUT : GMT_IS_TEXTSET;
 		bool got_text = false;
 		mxArray *mx_ptr = NULL;
 		char *txt = NULL;
@@ -930,7 +935,7 @@ struct GMT_TEXTSET *GMTMEX_Text_init (void *API, unsigned int direction, const m
 			rec = mxGetN (ptr);	/* Also possibly number of records */
 			if (rec > 1) dim[GMT_ROW] = rec;	/* User gave row-vector of cells */
 		}
-		if ((T = GMT_Create_Data (API, GMT_IS_TEXTSET, GMT_IS_NONE, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
+		if ((T = GMT_Create_Data (API, family, GMT_IS_NONE, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
 			mexErrMsgTxt ("GMTMEX_Text_init: Failure to alloc GMT source TEXTSET for input\n");
 		S = T->table[0]->segment[0];	/* Only one segment coming from MATLAB */
 		S->n_rows = dim[GMT_ROW];
@@ -954,45 +959,47 @@ struct GMT_TEXTSET *GMTMEX_Text_init (void *API, unsigned int direction, const m
 	}
 	return (T);
 }
+// (void *API, unsigned int family, unsigned int geometry, unsigned int direction, const mxArray *ptr, int *ID)
 
-void * GMTMEX_Register_IO (void *API, unsigned int family, unsigned int geometry, unsigned int direction, const mxArray *ptr, int *ID)
+void * GMTMEX_Register_IO (void *API, struct GMT_RESOURCE *X, const mxArray *ptr)
 {	/* Create the grid or matrix container, register it, and return the ID */
 	void *obj = NULL;		/* Pointer to the container we created */
-	*ID = GMT_NOTSET;
+	bool module_input = (X->option->option == GMT_OPT_INFILE);
+	X->object_ID = GMT_NOTSET;
 
-	switch (family) {
+	switch (X->family) {
 		case GMT_IS_GRID:
 			/* Get an empty grid, and if input we associate it with the MATLAB grid pointer */
-			obj = GMTMEX_grid_init (API, direction, ptr);
-			*ID = GMT_Get_ID (API, GMT_IS_GRID, direction, obj);
-			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Register_IO: Got Grid with Object ID %d\n", *ID);
+			obj = GMTMEX_grid_init (API, X->direction, module_input, ptr);
+			X->object_ID = GMT_Get_ID (API, GMT_IS_GRID, X->direction, obj);
+			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Register_IO: Got Grid with Object ID %d\n", X->object_ID);
 			break;
 		case GMT_IS_IMAGE:
 			/* Get an empty image, and if input we associate it with the MATLAB image pointer */
-			obj = GMTMEX_image_init (API, direction, ptr);
-			*ID = GMT_Get_ID (API, GMT_IS_IMAGE, direction, obj);
-			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Register_IO: Got Image with Object ID %d\n", *ID);
+			obj = GMTMEX_image_init (API, X->direction, module_input, ptr);
+			X->object_ID = GMT_Get_ID (API, GMT_IS_IMAGE, X->direction, obj);
+			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Register_IO: Got Image with Object ID %d\n", X->object_ID);
 			break;
 		case GMT_IS_DATASET:
 			/* Get a matrix container, and if input we associate it with the MATLAB pointer */
-			obj = GMTMEX_dataset_init (API, direction, ptr);
-			*ID = GMT_Get_ID (API, GMT_IS_DATASET, direction, obj);
-			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Register_IO: Got Matrix with Object ID %d\n", *ID);
+			obj = GMTMEX_dataset_init (API, X->direction, module_input, ptr);
+			X->object_ID = GMT_Get_ID (API, GMT_IS_DATASET, X->direction, obj);
+			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Register_IO: Got Matrix with Object ID %d\n", X->object_ID);
 			break;
 		case GMT_IS_TEXTSET:
 			/* Get a TEXTSET container, and if input we associate it with the MATLAB pointer */
-			obj = GMTMEX_Text_init (API, direction, ptr);
-			*ID = GMT_Get_ID (API, GMT_IS_TEXTSET, direction, obj);
-			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Register_IO: Got TEXTSET with Object ID %d\n", *ID);
+			obj = GMTMEX_Text_init (API, X->direction, module_input, ptr);
+			X->object_ID = GMT_Get_ID (API, GMT_IS_TEXTSET, X->direction, obj);
+			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Register_IO: Got TEXTSET with Object ID %d\n", X->object_ID);
 			break;
 		case GMT_IS_CPT:
 			/* Get a CPT container, and if input we associate it with the MATLAB CPT pointer */
-			obj = GMTMEX_CPT_init (API, direction, ptr);
-			*ID = GMT_Get_ID (API, GMT_IS_CPT, direction, obj);
-			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Register_IO: Got CPT with Object ID %d\n", *ID);
+			obj = GMTMEX_CPT_init (API, X->direction, module_input, ptr);
+			X->object_ID = GMT_Get_ID (API, GMT_IS_CPT, X->direction, obj);
+			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Register_IO: Got CPT with Object ID %d\n", X->object_ID);
 			break;
 		default:
-			GMT_Report (API, GMT_MSG_NORMAL, "GMTMEX_Register_IO: Bad data type (%d)\n", family);
+			GMT_Report (API, GMT_MSG_NORMAL, "GMTMEX_Register_IO: Bad data type (%d)\n", X->family);
 			break;
 	}
 	return (obj);

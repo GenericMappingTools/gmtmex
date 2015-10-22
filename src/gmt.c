@@ -242,7 +242,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	
 	for (k = 0; k < n_items; k++) {	/* Number of GMT containers involved in this module call */
 		ptr = (X[k].direction == GMT_IN) ? (void *)prhs[X[k].pos+first+1] : (void *)plhs[X[k].pos];
-		X[k].object = GMTMEX_Register_IO (API, X[k].family, X[k].geometry, X[k].direction, ptr, &X[k].object_ID);
+		X[k].object = GMTMEX_Register_IO (API, &X[k], ptr);	/* Get object pointer */
 		if (X[k].object == NULL || X[k].object_ID == GMT_NOTSET)
 			mexErrMsgTxt("GMT: Failure to register the resource\n");
 		if (GMT_Encode_ID (API, name, X[k].object_ID) != GMT_NOERROR) 	/* Make filename with embedded object ID */
