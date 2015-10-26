@@ -146,28 +146,31 @@ function [ps, d_path] = ex03(g_root_dir, out_path)
 	d_path = [g_root_dir 'doc/examples/ex03/'];
 	ps = [out_path 'example_03a.ps'];
 
-	%ps = '';	d_path = '';
-	%return
+	gmt('destroy');		gmt('gmtset -Du');		gmt('destroy')
+
 	% First, we use "gmt fitcircle" to find the parameters of a great circle
 	% most closely fitting the x,y points in "sat.xyg":
 
 	report = gmt(['fitcircle ' d_path 'sat.xyg -L2']);
-	[cposx,cposy] = strread(report{2}, '%s %s', 1);		cposx = cposx{1};	cposy = cposy{1};
-	[pposx,pposy] = strread(report{3}, '%s %s', 1);		pposx = pposx{1};	pposy = pposy{1};
+	[cposx,cposy] = strread(report{2}, '%s %s', 1);
+	cposx = cposx{1};	cposy = cposy{1};
+	[pposx,pposy] = strread(report{3}, '%s %s', 1);
+	pposx = pposx{1};	pposy = pposy{1};
 
 	% Now we use "gmt project" to gmt project the data in both sat.xyg and ship.xyg
 	% into data.pg, where g is the same and p is the oblique longitude around
 	% the great circle.  We use -Q to get the p distance in kilometers, and -S
 	% to sort the output into increasing p values.
 
-	sat_pg  = gmt(['project  ' d_path 'sat.xyg -C' cposx '/' cposy ' -T' pposx '/' pposy ' -S -Fpz -Q']);	% <-- CRASH HERE
+	sat_pg  = gmt(['project  ' d_path 'sat.xyg -C' cposx '/' cposy ' -T' pposx '/' pposy ' -S -Fpz -Q']);
 	ship_pg = gmt(['project ' d_path 'ship.xyg -C' cposx '/' cposy ' -T' pposx '/' pposy ' -S -Fpz -Q']);
 
 	% The gmtinfo utility will report the minimum and maximum values for all columns. 
 	% We use this information first with a large -I value to find the appropriate -R
 	% to use to plot the .pg data. 
-	R = gmt('info -I100/25', [sat_pg; ship_pg]);
-	gmt(['psxy ' R{1} ' -UL/-1.75i/-1.25i/"Example 3a in Cookbook" -BWeSn' ...
+	R = gmt('gmtinfo -I100/25', [sat_pg; ship_pg]);
+	R = R{1}(1:end-1);		% It's now coming with a \n
+	gmt(['psxy ' R ' -UL/-1.75i/-1.25i/"Example 3a in Cookbook" -BWeSn' ...
 		' -Bxa500f100+l"Distance along great circle" -Bya100f25+l"Gravity anomaly (mGal)"' ...
 		' -JX8i/5i -X2i -Y1.5i -K -Wthick > ' ps], sat_pg)
 	gmt(['psxy -R -JX -O -Sp0.03i >> ' ps], ship_pg)
@@ -198,7 +201,7 @@ function [ps, d_path] = ex03(g_root_dir, out_path)
 	% point, without NaNs.  So we want to get a starting and ending point which works for
 	% both of them.  This is a job for gmt gmtmath UPPER/LOWER.
 
-	sampr1 = gmt('gmtmath $ -Ca -Sf -o0 UPPER CEIL =', [ship_pg(1,:); sat_pg(1,:)]);
+	sampr1 = gmt('gmtmath $ -Ca -Sf -o0 UPPER CEIL =',  [ship_pg(1,:); sat_pg(1,:)]);
 	sampr2 = gmt('gmtmath $ -Ca -Sf -o0 LOWER FLOOR =', [ship_pg(end,:); sat_pg(end,:)]);
 	
 	% Now we can use sampr1|2 in gmt gmtmath to make a sampling points file for gmt sample1d:
@@ -223,33 +226,31 @@ function [ps, d_path] = ex03(g_root_dir, out_path)
 
 	% Now to do the cross-spectra, assuming that the ship is the input and the sat is the output 
 	% data, we do this:
-	t = gmt('gmtconvert -A -o1,3', samp_ship_pg, samp_sat_pg);
-	gmt('spectrum1d -S256 -D1 -W -C', t)		% WAS '> /dev/null'
+	t = [samp_ship_pg(:,2) samp_sat_pg(:,2)];
+	spects = gmt('spectrum1d -S256 -D1 -W -C -N', t);
  
 	% Now we want to plot the spectra. The following commands will plot the ship and sat 
 	% power in one diagram and the coherency on another diagram, both on the same page.  
 	% Note the extended use of gmt pstext and gmt psxy to put labels and legends directly on the
 	% plots. For that purpose we often use -Jx1i and specify positions in inches directly:
 
-	ps = [out_path 'example_03.ps'];
+	ps = [out_path 'example_03.ps'];	ps_out = ps;
+	gmt(['psxy -Bxa1f3p+l"Wavelength (km)" -Bya0.25f0.05+l"Coherency@+2@+" -BWeSn+g240/255/240' ...
+		' -JX-4il/3.75i -R1/1000/0/1 -P -K -X2.5i -Sc0.07i -Gpurple -Ey/0.5p -Y1.5i > ' ps], spects(:,[1 16 17]))
 
-	gmt(['psxy spectrum.coh -Bxa1f3p+l"Wavelength (km)" -Bya0.25f0.05+l"Coherency@+2@+"' ...
-		' -BWeSn+g240/255/240 -JX-4il/3.75i -R1/1000/0/1 -P -K -X2.5i -Sc0.07i -Gpurple' ...
-		' -Ey/0.5p -Y1.5i > ' ps])
 	gmt(['pstext -R0/4/0/3.75 -Jx1i -F+f18p,Helvetica-Bold+jTR -O -K >> ' ps], {'3.85 3.6 Coherency@+2@+'})
-	gmt(['psxy spectrum.xpower -Bxa1f3p -Bya1f3p+l"Power (mGal@+2@+km)"' ...
-		' -BWeSn+t"Ship and Satellite Gravity"+g240/255/240' ...
-		' -Gred -ST0.07i -O -R1/1000/0.1/10000 -JX-4il/3.75il -Y4.2i -K -Ey/0.5p >> ' ps])
-	gmt(['psxy spectrum.ypower -R -JX -O -K -Gblue -Sc0.07i -Ey/0.5p >> ' ps])
+	gmt(['psxy -Bxa1f3p -Bya1f3p+l"Power (mGal@+2@+km)" -BWeSn+t"Ship and Satellite Gravity"+g240/255/240' ...
+		' -Gred -ST0.07i -O -R1/1000/0.1/10000 -JX-4il/3.75il -Y4.2i -K -Ey/0.5p >> ' ps], spects(:,1:3))
+	gmt(['psxy -R -JX -O -K -Gblue -Sc0.07i -Ey/0.5p >> ' ps], spects(:,[1 4 5]))
 	gmt(['pstext -R0/4/0/3.75 -Jx -F+f18p,Helvetica-Bold+jTR -O -K >> ' ps], {'3.9 3.6 Input Power'})
 	gmt(['psxy -R -Jx -O -K -Gwhite -L -Wthicker >> ' ps], ...
 		[0.25 0.25
 		1.4  0.25
 		1.4  0.9
 		0.25 0.9])
-	gmt(['psxy -R -Jx -O -K -ST0.07i -Gred >> ' ps], {'0.4 0.7'})
+	gmt(['psxy   -R -Jx -O -K -ST0.07i -Gred >> ' ps], [0.4 0.7])
 	gmt(['pstext -R -Jx -F+f14p,Helvetica-Bold+jLM -O -K >> ' ps], {'0.5 0.7 Ship'})
-	gmt(['psxy -R -Jx -O -K -Sc0.07i -Gblue >> ' ps], {'0.4 0.4'})
+	gmt(['psxy   -R -Jx -O -K -Sc0.07i -Gblue >> ' ps], [0.4 0.4])
 	gmt(['pstext -R -Jx -F+f14p,Helvetica-Bold+jLM -O >> ' ps], {'0.5 0.4 Satellite'})
 
 	% Now we wonder if removing that large feature at 250 km would make any difference.
@@ -264,15 +265,18 @@ function [ps, d_path] = ex03(g_root_dir, out_path)
 	gmt(['psxy ' R ' -JX8i/4i -X2i -Y1.5i -K -Sp0.03i' ...
 		' -Bxa500f100+l"Distance along great circle" -Bya100f25+l"Gravity anomaly (mGal)"' ...
 		' -BWeSn -UL/-1.75i/-1.25i/"Example 3d in Cookbook" > ' ps], samp_ship_pg)
-	R = gmt('gmtinfo samp_ship.xw -I100/1.1', samp_ship_xw);
+	R = gmt('gmtinfo -I100/1.1', samp_ship_xw);
+	R = R{1}(1:end-1);		% It's now coming with a \n
 	gmt(['psxy ' R ' -JX8i/1.1i -O -Y4.25i -Bxf100 -Bya0.5f0.1+l"Weight" -BWesn -Sp0.03i >> ' ps], samp_ship_xw)
+
+	ps = ps_out;	% This the one we want to return
 
 % -------------------------------------------------------------------------------------------------
 function [ps, d_path] = ex04(g_root_dir, out_path)
 	d_path = [g_root_dir 'doc/examples/ex04/'];
 	ps = [out_path 'example_04.ps'];
 
-	gmt('gmtset -Du');		gmt('destroy')
+	gmt('destroy');		gmt('gmtset -Du');		gmt('destroy')
 	fid = fopen('zero.cpt','w');
 	fprintf(fid, '%s\n', '-10  255   0  255');
 	fprintf(fid, '%s\n', '  0  100  10  100');
@@ -305,7 +309,7 @@ function [ps, d_path] = ex05(g_root_dir, out_path)
 	d_path = [g_root_dir 'doc/examples/ex05/'];
 	ps = [out_path 'example_05.ps'];
 
-	gmt('gmtset -Du');		gmt('destroy')
+	gmt('destroy');		gmt('gmtset -Du');		gmt('destroy')
 	Gsombrero = gmt('grdmath -R-15/15/-15/15 -I0.3 X Y HYPOT DUP 2 MUL PI MUL 8 DIV COS EXCH NEG 10 DIV EXP MUL =');
 	fid = fopen('gray.cpt','w');
 	fprintf(fid, '%s\n', '-5 128 5 128');
