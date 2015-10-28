@@ -48,7 +48,7 @@ function  [ps_, t_path_] = gallery(opt, r_dir, o_path)
 			switch opt{k}
 				case 'ex01',   [ps, t_path] = ex01(g_root_dir, out_path);
 				case 'ex02',   [ps, t_path] = ex02(g_root_dir, out_path);
-				case 'ex03',   [ps, t_path] = ex03(g_root_dir, out_path);	% CRASH
+				case 'ex03',   [ps, t_path] = ex03(g_root_dir, out_path);
 				case 'ex04',   [ps, t_path] = ex04(g_root_dir, out_path);
 				case 'ex05',   [ps, t_path] = ex05(g_root_dir, out_path);
 				case 'ex06',   [ps, t_path] = ex06(g_root_dir, out_path);
@@ -70,7 +70,7 @@ function  [ps_, t_path_] = gallery(opt, r_dir, o_path)
 				case 'ex22',   [ps, t_path] = ex22(g_root_dir, out_path);
 				case 'ex23',   [ps, t_path] = ex23(g_root_dir, out_path);
 				case 'ex24',   [ps, t_path] = ex24(g_root_dir, out_path);
-				case 'ex25',   [ps, t_path] = ex25(g_root_dir, out_path);		% CRASH
+				case 'ex25',   [ps, t_path] = ex25(g_root_dir, out_path);
 				case 'ex26',   [ps, t_path] = ex26(g_root_dir, out_path);
 				case 'ex27',   [ps, t_path] = ex27(g_root_dir, out_path);
 				case 'ex28',   [ps, t_path] = ex28(g_root_dir, out_path);
@@ -1104,8 +1104,6 @@ function [ps, d_path] = ex25(g_root_dir, out_path)
 	d_path = [g_root_dir 'doc/examples/ex25/'];
 	ps = [out_path 'example_25.ps'];
 
-	ps = '';	d_path = '';	return
-
 	D = 30;
 	gmt('gmtset -Du');		gmt('destroy')
 	Gwetdry = gmt(['grdlandmask -Rg -I' num2str(D) 'm -Dc -A500 -N-1/1/1/1/1 -r -G']);
@@ -1115,22 +1113,23 @@ function [ps, d_path] = ex25(g_root_dir, out_path)
 	Gscale = gmt(['grdmath -Rg -I' num2str(D) 'm -r Y COSD 60 ' num2str(D) ' DIV 360 MUL DUP MUL PI DIV DIV 100 MUL =']);
 	Gtmp = gmt('grdmath -fg $ -1 EQ 0 NAN $ MUL =', Gkey, Gscale);
 	key = gmt('grd2xyz -s -ZTLf', Gtmp);
-	ocean = gmt('gmtmath -bi1f -Ca -S $ SUM UPPER RINT =', key);	% <----- ASSERT FAILURE HERE
-	Gtmp = gmt('grdmath -fg $ 1 EQ 0 NAN MUL =', key, Gscale);
-	key = gmt('grd2xyz tmp.nc -s -ZTLf', Gtmp);
-	land = gmt('gmtmath -bi1f -Ca -S SUM UPPER RINT =', key);
-	Gtmp = gmt('grdmath -fg $ 0 EQ 0 NAN $ MUL =', key, Gscale);
+	ocean = gmt('gmtmath -bi1f -Ca -S $ SUM UPPER RINT =', key);
+	Gtmp = gmt('grdmath -fg $ 1 EQ 0 NAN $ MUL =', Gkey, Gscale);
 	key = gmt('grd2xyz -s -ZTLf', Gtmp);
-	mixed = gmt('gmtmath -bi1f -Ca -S SUM UPPER RINT =', key);
+	land = gmt('gmtmath -bi1f -Ca -S $ SUM UPPER RINT =', key);
+	Gtmp = gmt('grdmath -fg $ 0 EQ 0 NAN $ MUL =', Gkey, Gscale);
+	key = gmt('grd2xyz -s -ZTLf', Gtmp);
+	mixed = gmt('gmtmath -bi1f -Ca -S $ SUM UPPER RINT =', key);
  
  	% Generate corresponding color table
-	fid = fopen('key.cp','w');
+	fid = fopen('key.cpt','w');
 	fprintf(fid, '-1.5	blue	-0.5	blue\n');
 	fprintf(fid, '-0.5	gray	0.5	gray\n');
 	fprintf(fid, '0.5	red	1.5	red\n');
 	fclose(fid);
 
  	% Create the final plot and overlay coastlines
+	gmt('destroy')
 	gmt('gmtset FONT_ANNOT_PRIMARY +10p FORMAT_GEO_MAP dddF PROJ_LENGTH_UNIT inch PS_CHAR_ENCODING Standard+ PS_MEDIA letter');
 	gmt('destroy')
 	gmt(['grdimage -JKs180/9i -Bx60 -By30 -BWsNE+t"Antipodal comparisons" -K -Ckey.cpt -Y1.2i -nn > ' ps], Gkey)
@@ -1141,7 +1140,7 @@ function [ps, d_path] = ex25(g_root_dir, out_path)
 		sprintf('S 0.15i s 0.2i red  0.25p 0.3i Terrestrial Antipodes [%d %%]', land)
 		sprintf('S 0.15i s 0.2i blue 0.25p 0.3i Oceanic Antipodes [%d %%]', ocean)
 		sprintf('S 0.15i s 0.2i gray 0.25p 0.3i Mixed Antipodes [%d %%]', mixed)})
-	builtin('delete','gmt.conf');
+	builtin('delete','gmt.conf', 'key.cpt');
 
 % -------------------------------------------------------------------------------------------------
 function [ps, d_path] = ex26(g_root_dir, out_path)
