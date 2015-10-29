@@ -1663,11 +1663,12 @@ function [ps, d_path] = ex42(g_root_dir, out_path)
 	% curl http://www.antarctica.ac.uk//bas_research/data/access/bedmap/download/bedelev.asc.gz
 	% gunzip bedelev.asc.gz
 	% grdreformat bedelev.asc BEDMAP_elevation.nc=ns -V
-	gmt('makecpt -Cbathy -T-7000/0/200 -N -Z > t.cpt')			% How to combine CPT objects?
-	gmt('makecpt -Cdem4 -T0/4000/200 -N -Z >> t.cpt')
-	gmt(['grdimage -Ct.cpt ' d_path 'BEDMAP_elevation.nc -Jx1:60000000 -Q -P -K > ' ps])
+	cpt1 = gmt('makecpt -Cbathy -T-7000/0/200 -N -Z');
+	cpt2 = gmt('makecpt -Cdem4 -T0/4000/200 -N -Z');
+	t_cpt = cptjoin(cpt1, cpt2);
+	gmt(['grdimage -C ' d_path 'BEDMAP_elevation.nc -Jx1:60000000 -Q -P -K > ' ps], t_cpt)
 	gmt(['pscoast -R-180/180/-90/-60 -Js0/-90/-71/1:60000000 -Bafg -Di -W0.25p -O -K >> ' ps])
-	gmt(['psscale -Ct.cpt -DjRM+w2.5i/0.2i+o0.5i/0+jLM+mc -R -J -O -K -F+p+i -Bxa1000+lELEVATION -By+lm >> ' ps])
+	gmt(['psscale -C -DjRM+w2.5i/0.2i+o0.5i/0+jLM+mc -R -J -O -K -F+p+i -Bxa1000+lELEVATION -By+lm >> ' ps], t_cpt)
 	% GSHHG
 	gmt(['pscoast -R-180/180/-90/-60 -J -Di -Glightblue -Sroyalblue2 -O -K -X2i -Y4.75i >> ' ps])
 	gmt(['pscoast -R-180/180/-90/-60 -J -Di -Glightbrown -O -K -A+ag -Bafg >> ' ps])
@@ -1686,7 +1687,7 @@ function [ps, d_path] = ex42(g_root_dir, out_path)
 		7.5 4.55])
 
 	gmt(['pstext -R0/7.5/0/10 -J -O -F+f18p+jBL -Dj0.1i/0 >> ' ps], {'0 5.2 BEDMAP' '0 9.65 GSHHG'})
-	builtin('delete','gmt.conf', 't.cpt');
+	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
 function [ps, d_path] = ex43(g_root_dir, out_path)
@@ -1755,3 +1756,14 @@ function [ps, d_path] = ex45(g_root_dir, out_path)
 		' -Sc0.05c -Gred -O -K -i0,2 -Y2.3i >> ' ps], model)
 	gmt(['pstext -R -J -O -F+f12p+cTL -Dj0.1i -Glightyellow >> ' ps], {'@~e@~(t) = y(t) - m@-5@-(t)'})
 	builtin('delete','gmt.conf');
+
+% -------------------------------------------------------------------------------------------------
+function cpt = cptjoin(cpt1, cpt2)
+% Join two CPT1 and CPT2 color palette structures. 
+% Note, the two palettes should be continuous across its common border. No testing on that is donne here
+
+	cpt.colormap = [cpt1.colormap; cpt2.colormap];
+	cpt.alpha    = [cpt1.alpha;    cpt2.alpha];
+	cpt.range    = [cpt1.range;    cpt2.range];
+	cpt.rangeMinMax = [cpt1.rangeMinMax(1) cpt2.rangeMinMax(2)];
+
