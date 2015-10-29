@@ -216,6 +216,11 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		strcpy (module, gmt_module);	/* Use the prepended module name since that worked */
 	}
 	
+	/* 2+ Add -F to psconvert if user requested a return image but did not give -F */
+	
+	if (!strcmp (module, "psconvert") && nlhs == 1 && !strstr ("-F", opt_args))	/* OK, add -F */
+		strcat (opt_args, " -F");
+
 	/* 3. Convert mex command line arguments to a linked GMT option list */
 	if (opt_args && (options = GMT_Create_Options (API, 0, opt_args)) == NULL)
 		mexErrMsgTxt ("GMT: Failure to parse GMT5 command options\n");
@@ -226,7 +231,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	
 	/* 4. Preprocess to update GMT option lists and return info array X */
 	if ((X = GMT_Encode_Options (API, module, ARG_MARKER, &options, &n_items)) == NULL) {
-		if (n_items == UINT_MAX)	/* Just got usage/synopsis option */
+		if (n_items == UINT_MAX)	/* Just gotusage/synopsis option */
 			n_items = 0;
 		else
 			mexErrMsgTxt ("GMT: Failure to encode mex command options\n");

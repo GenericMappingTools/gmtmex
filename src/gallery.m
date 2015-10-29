@@ -1358,7 +1358,7 @@ function [ps, d_path] = ex32(g_root_dir, out_path)
 
 	% The color map assigns "Reflex Blue" to the lower half of the 0-255 range and
 	% "Yellow" to the upper half.
-	fid = fopen('euflag.cpt','w');
+	fid = fopen('euflag.cpt','w');/usr/local/bin/gs
 	fprintf(fid, '0	0/51/153	127	0/51/153\n');
 	fprintf(fid, '127	255/204/0	255	255/204/0\n');
 	fclose(fid);
