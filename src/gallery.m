@@ -716,7 +716,7 @@ function [ps, d_path] = ex18(g_root_dir, out_path)
 	% First generate gravity image w/ shading, label Pratt, and draw a circle
 	% of radius = 200 km centered on Pratt.
 
-	grav_cpt = gmt('makecpt -Crainbow -T-60/60/120 -Z');
+	grav_cpt = gmt('makecpt -Crainbow -T-60/60/0.2 -Z');
 	GAK_gulf_grav_i = gmt(['grdgradient ' d_path 'AK_gulf_grav.nc -Nt1 -A45 -G']);
 	gmt(['grdimage ' d_path 'AK_gulf_grav.nc -I -JM5.5i -C -B2f1 -P -K -X1.5i' ...
 		' -Y5.85i > ' ps], GAK_gulf_grav_i, grav_cpt)
@@ -761,8 +761,8 @@ function [ps, d_path] = ex18(g_root_dir, out_path)
 		-148.5	53.75])
 
 	gmt(['pstext -R -J -O -F+f14p,Helvetica-Bold+jLM >> ' ps], ...
-		{sprintf('-148 53.08 Areas: %f.2 km@+2@+', area(3))
-		 sprintf('-148 53.42 Volumes: %d mGal\264km@+2@+', volume(4))})
+		{sprintf('-148 53.08 Areas: %.2f km@+2@+', area(2))
+		 sprintf('-148 53.42 Volumes: %.0f mGal\264km@+2@+', volume(3))})
 	builtin('delete', 'sm_*.txt')
 	builtin('delete','gmt.conf');
 
@@ -776,7 +776,7 @@ function [ps, d_path] = ex19(g_root_dir, out_path)
 	Glat = gmt('grdmath -Rd -I1 -r Y COSD 2 POW =');
 	Glon = gmt('grdmath -Rd -I1 -r X =');
 	fid = fopen('lat.cpt','w');		fprintf(fid, '0 white 1 blue\n');	fclose(fid);
-	lon_cpt = gmt('makecpt -Crainbow -T-180/180/360 -Z');
+	lon_cpt = gmt('makecpt -Crainbow -T-180/180/2 -Z');
 	gmt(['grdimage -JI0/6.5i -Clat.cpt -P -K -Y7.5i -B0 -nl > ' ps], Glat)
 	gmt(['pscoast -R -J -O -K -Dc -A5000 -Gc >> ' ps])
 	gmt(['grdimage -J -C -O -K -nl >> ' ps], lon_cpt, Glon)
@@ -994,7 +994,6 @@ function [ps, d_path] = ex22(g_root_dir, out_path)
 	 'D 0 1p'
 	 'V 0 1p'
 	 'N 1'
-	 % Put together a reasonable legend text, and add logo and user's name:
 	 'G 0.25l'
 	 'P'
 	 'T USGS/NEIS most recent earthquakes for the last seven days. The data were'
@@ -1171,7 +1170,7 @@ function [ps, d_path] = ex27(g_root_dir, out_path)
 	Gtasman_grav_i = gmt(['grdgradient ' d_path 'tasman_grav.nc -Nt1 -A45 -G']);
 
 	% Make a suitable cpt file for mGal
-	grav_cpt = gmt('makecpt -T-120/120/240 -Z -Crainbow');
+	grav_cpt = gmt('makecpt -T-120/120/1 -Z -Crainbow');
 
 	% Since this is a Mercator grid we use a linear projection
 	gmt(['grdimage ' d_path 'tasman_grav.nc=ns/0.1 -I -Jx0.25i -C -P -K > ' ps], Gtasman_grav_i, grav_cpt)
@@ -1240,7 +1239,7 @@ function [ps, d_path] = ex29(g_root_dir, out_path)
 	% Scale to km and remove PROJ_ELLIPSOID
 	Gmars  = gmt('grdmath $ 1000 DIV $ SUB =', Gmars, Gproj_ellipsoid);
 	Gmars2 = gmt('grdmath $ 1000 DIV $ SUB =', Gmars2, Gproj_ellipsoid);
-	mars_cpt = gmt('makecpt -Crainbow -T-7/15/22 -Z');
+	mars_cpt = gmt('makecpt -Crainbow -T-7/15/0.1 -Z');
 	Gmars2_i = gmt('grdgradient -fg -Ne0.75 -A45 -G', Gmars2);
 	gmt(['grdimage -I -C -B30g30 -BWsne -JH0/7i -P -K -E200' ...
 		' --FONT_ANNOT_PRIMARY=12p -X0.75i > ' ps], Gmars2_i, mars_cpt, Gmars2)
@@ -1432,7 +1431,7 @@ function [ps, d_path] = ex34(g_root_dir, out_path)
 	gmt(['pscoast -JM4.5i -R-6/20/35/52 -EFR,IT+gP300/8 -Glightgray -Baf -BWSne -P -K -X2i > ' ps])
 	% Extract a subset of ETOPO2m for this part of Europe
 	% gmt grdcut etopo2m_grd.nc -R -GFR+IT.nc=ns
-	z_cpt = gmt('makecpt -Cglobe -T-5000/5000/500 -Z');
+	z_cpt = gmt('makecpt -Cglobe -T-5000/5000/50 -Z');
 	FR_IT_int = gmt(['grdgradient ' d_path 'FR+IT.nc -A15 -Ne0.75 -G']);
 	gmt(['grdimage ' d_path 'FR+IT.nc -I -C -J -O -K -Y4.5i' ...
 		' -Baf -BWsnE+t"Franco-Italian Union, 2042-45" >> ' ps], FR_IT_int, z_cpt)
