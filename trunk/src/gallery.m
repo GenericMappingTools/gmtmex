@@ -1449,19 +1449,16 @@ function [ps, d_path] = ex35(g_root_dir, out_path)
 	% Get the crude GSHHS data, select GMT format, and decimate to ~20%:
 	% gshhs $GMTHOME/src/coast/gshhs/gshhs_c.b | $AWK '{if ($1 == ">" || NR%5 == 0) print $0}' > gshhs_c.txt
 	% Get Voronoi polygons
-%tt_pol = gmt(['sphtriangulate ' d_path 'gshhs_c.txt -Qv -D']);
-	tt_pol = gmt(['sphtriangulate ' d_path 'gshhs_c.txt -Qv -D -Ntt.pol']);
+	[nodes, pol] = gmt(['sphtriangulate ' d_path 'gshhs_c.txt -Qv -D -N']);
 	% Compute distances in km
-%Gtt = gmt('sphdistance -Rg -I1 -Q$ -G -Lk', tt_pol);
-	Gtt = gmt('sphdistance -Rg -I1 -Q$ -Ntt.pol -G -Lk', tt_pol);
+	Gtt = gmt('sphdistance -Rg -I1 -Q -N -G -Lk -Vd', pol, nodes);
 	t_cpt = gmt('makecpt -Chot -T0/3500/500 -Z');
 	% Make a basic image plot and overlay contours, Voronoi polygons and coastlines
 	gmt(['grdimage -JG-140/30/7i -P -K -C -X0.75i -Y2i > ' ps], t_cpt, Gtt)
 	gmt(['grdcontour -J -O -K -C500 -A1000+f10p,Helvetica,white -L500' ...
 		' -GL0/90/203/-10,175/60/170/-30,-50/30/220/-5 -Wa0.75p,white -Wc0.25p,white >> ' ps], Gtt)
-	gmt(['psxy -R -J -O -K -W0.25p,green,. >> ' ps], tt_pol)
+	gmt(['psxy -R -J -O -K -W0.25p,green,. >> ' ps], pol)
 	gmt(['pscoast -R -J -O -W1p -Gsteelblue -A0/1/1 -B30g30 -B+t"Distances from GSHHG crude coastlines" >> ' ps])
-	builtin('delete', 'tt.pol');
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
