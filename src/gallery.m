@@ -1385,7 +1385,7 @@ function [ps, d_path] = ex32(g_root_dir, out_path)
 	fprintf(fid, '04:21:00 50:51:00 Bruxelles\n');
 	fprintf(fid, '07:07:03 50:43:09 Bonn\n');
 	fclose(fid);
-	t = gmt(['grdtrack -G' d_path 'topo.nc -sa cities.txt']); 
+	t = gmt(['grdtrack -G' d_path 'topo.nc cities.txt']); 
 	gmt(['psxyz -i0,1,3 ' Rplot ' -J -JZ -p -Sc7p -W1p,white -Gred -K -O >> ' ps], t)
 	gmt(['pstext ' Rplot ' -J -JZ -p -F+f12p,Helvetica-Bold,red+jRM -Dj0.1i/0.0i -O cities.txt >> ' ps])
 	builtin('delete','cities.txt', 'euflag.cpt');
