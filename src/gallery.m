@@ -77,7 +77,7 @@ function  [ps_, t_path_] = gallery(opt, r_dir, o_path)
 				case 'ex29',   [ps, t_path] = ex29(g_root_dir, out_path);
 				case 'ex30',   [ps, t_path] = ex30(g_root_dir, out_path);
 				case 'ex31',   [ps, t_path] = ex31(g_root_dir, out_path);	% Not yet
-				case 'ex32',   [ps, t_path] = ex32(g_root_dir, out_path);		% CRASH
+				case 'ex32',   [ps, t_path] = ex32(g_root_dir, out_path);
 				case 'ex33',   [ps, t_path] = ex33(g_root_dir, out_path);
 				case 'ex34',   [ps, t_path] = ex34(g_root_dir, out_path);
 				case 'ex35',   [ps, t_path] = ex35(g_root_dir, out_path);
@@ -837,9 +837,8 @@ function [ps, d_path] = ex21(g_root_dir, out_path)
 	d_path = [g_root_dir 'doc/examples/ex21/'];
 	ps = [out_path 'example_21.ps'];
 
-	%ps = '';	d_path = '';	%return
-
 	% File has time stored as dd-Mon-yy so set input format to match it
+	gmt('destroy')
 	gmt(['gmtset FORMAT_DATE_IN dd-o-yy FORMAT_DATE_MAP o FONT_ANNOT_PRIMARY +10p' ...
 		' FORMAT_TIME_PRIMARY_MAP abbreviated PS_CHAR_ENCODING ISOLatin1+ PROJ_LENGTH_UNIT inch PS_MEDIA letter'])
 	gmt('destroy')
@@ -899,7 +898,8 @@ function [ps, d_path] = ex21(g_root_dir, out_path)
 
 	% Get smaller region for insert for trend since 2004
 	%R = sprintf('-R2004T/%s/%s/40', eT, sF);				% <------------ WITH THIS IT ERRORS FOR -R IN NEXT COMMAND
-	R = sprintf('-R01-Jan-04T00:00:00/%s/%s/40', eT, sF);
+	%R = sprintf('-R01-Jan-04T00:00:00/%s/%s/40', eT, sF);
+	R = sprintf('-R2004-01-01T00:00:00/%s/%s/40', eT, sF);
 
 	% Lay down the basemap, using Finnish annotations and place the insert in the upper right
 	gmt(['psbasemap --GMT_LANGUAGE=fi ' R ' -JX6i/3i -Bpxa3Of3o -Bpy10+p"D " -BESw+glightblue -Bsx1Y' ...
@@ -1334,7 +1334,7 @@ function [ps, d_path] = ex32(g_root_dir, out_path)
 	d_path = [g_root_dir 'doc/examples/ex32/'];
 	ps = [out_path 'example_32.ps'];
 
-	ps = '';	d_path = '';	return
+	%ps = '';	d_path = '';	return
 	gmt('destroy'),		gmt('gmtset -Du'),		gmt('destroy') 
 
 	% Here we get and convert the flag of Europe directly from the web through grdconvert using
