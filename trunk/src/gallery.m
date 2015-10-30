@@ -853,7 +853,7 @@ function [ps, d_path] = ex21(g_root_dir, out_path)
 	sF = R(ind(2)+1:ind(3)-1);
 
 	% Lay down the basemap:
-	gmt(['psbasemap ' R ' -JX9i/6i -K -Bsx1Y -Bpxa3Of1o -Bpy50+p"D "' ...
+	gmt(['psbasemap ' R ' -JX9i/6i -K -Bsx1Y -Bpxa3Of1o -Bpy50+p"\044 "' ...
 		' -BWSen+t"RedHat (RHT) Stock Price Trend since IPO"+glightgreen > ' ps])
 
 	% Plot main window with open price as red line over yellow envelope of low/highs
@@ -897,12 +897,10 @@ function [ps, d_path] = ex21(g_root_dir, out_path)
 	gmt('destroy'),		gmt('gmtset FORMAT_DATE_IN dd-o-yy'),	gmt('destroy')
 
 	% Get smaller region for insert for trend since 2004
-	%R = sprintf('-R2004T/%s/%s/40', eT, sF);				% <------------ WITH THIS IT ERRORS FOR -R IN NEXT COMMAND
-	%R = sprintf('-R01-Jan-04T00:00:00/%s/%s/40', eT, sF);
-	R = sprintf('-R2004-01-01T00:00:00/%s/%s/40', eT, sF);
+	R = sprintf('-R2004T/%s/%s/40', eT, sF);
 
 	% Lay down the basemap, using Finnish annotations and place the insert in the upper right
-	gmt(['psbasemap --GMT_LANGUAGE=fi ' R ' -JX6i/3i -Bpxa3Of3o -Bpy10+p"D " -BESw+glightblue -Bsx1Y' ...
+	gmt(['psbasemap --GMT_LANGUAGE=fi ' R ' -JX6i/3i -Bpxa3Of3o -Bpy10+p"\044 " -BESw+glightblue -Bsx1Y' ...
 		' -O -K -X3i -Y3i >> ' ps])
 
 	% Again, plot close price as red line over yellow envelope of low/highs
