@@ -90,6 +90,7 @@ void *Initiate_Session (unsigned int verbose) {
 /* This is the function that is called when we type gmt in MATLAB/Octave */
 void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	int status = 0;                 /* Status code from GMT API */
+	int n_in_objects = 0;		/* Number of input objects passed to module */
 	unsigned int first = 0;         /* Array ID of first command argument (not 0 when API-ID is first) */
 	unsigned int verbose = 0;       /* Default verbose setting */
 	unsigned int n_items = 0, pos = 0; /* Number of MATLAB arguments (left and right) */
@@ -187,6 +188,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	/* Here we have a GMT module call. The documented use is to give the module name separately from
 	 * the module options, but users may forget and combine the two.  So we check both cases. */
 	
+	n_in_objects = nrhs - 1;
 	str_length = strlen (cmd);				/* Length of module (or command) argument */
 	for (k = 0; k < str_length && cmd[k] != ' '; k++);	/* Determine first space in command */
 	
@@ -196,6 +198,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 			first++;	/* Since we have a 2nd string to skip now */
 			opt_args = mxArrayToString (prhs[first]);
 		}
+		n_in_objects--;
 	}
 	else {	/* Case b2. Get mex arguments, if any, and extract the GMT module name */
 		if (k >= MODULE_LEN)
@@ -230,8 +233,8 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	}
 	
 	/* 4. Preprocess to update GMT option lists and return info array X */
-	if ((X = GMT_Encode_Options (API, module, ARG_MARKER, &options, &n_items)) == NULL) {
-		if (n_items == UINT_MAX)	/* Just gotusage/synopsis option */
+	if ((X = GMT_Encode_Options (API, module, ARG_MARKER, n_in_objects, &options, &n_items)) == NULL) {
+		if (n_items == UINT_MAX)	/* Just got usage/synopsis option */
 			n_items = 0;
 		else
 			mexErrMsgTxt ("GMT: Failure to encode mex command options\n");
