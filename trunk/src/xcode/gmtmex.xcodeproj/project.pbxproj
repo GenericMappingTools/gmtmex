@@ -7,14 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		3F2ADA5D17827E2500E2675F /* gmt.c in Sources */ = {isa = PBXBuildFile; fileRef = 3F2ADA5617827E2500E2675F /* gmt.c */; };
+		3F22ED681BE6BDC7002725BD /* gmtmex.c in Sources */ = {isa = PBXBuildFile; fileRef = 3F22ED671BE6BDC7002725BD /* gmtmex.c */; };
 		3F2ADA5E17827E2500E2675F /* gmtmex_parser.c in Sources */ = {isa = PBXBuildFile; fileRef = 3F2ADA5A17827E2500E2675F /* gmtmex_parser.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		3F2ADA4D17827DCB00E2675F /* gmt.mexmaci64 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = gmt.mexmaci64; sourceTree = BUILT_PRODUCTS_DIR; };
+		3F22ED671BE6BDC7002725BD /* gmtmex.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = gmtmex.c; path = ../../gmtmex.c; sourceTree = "<group>"; };
+		3F2ADA4D17827DCB00E2675F /* gmtmex.mexmaci64 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = gmtmex.mexmaci64; sourceTree = BUILT_PRODUCTS_DIR; };
 		3F2ADA5017827DCB00E2675F /* mex.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = mex.xcconfig; sourceTree = "<group>"; };
-		3F2ADA5617827E2500E2675F /* gmt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = gmt.c; path = ../../gmt.c; sourceTree = "<group>"; };
 		3F2ADA5A17827E2500E2675F /* gmtmex_parser.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = gmtmex_parser.c; path = ../../gmtmex_parser.c; sourceTree = "<group>"; };
 		3F2ADA5C17827E2500E2675F /* gmtmex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = gmtmex.h; path = ../../gmtmex.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -31,7 +31,7 @@
 		3F2ADA4E17827DCB00E2675F /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				3F2ADA4D17827DCB00E2675F /* gmt.mexmaci64 */,
+				3F2ADA4D17827DCB00E2675F /* gmtmex.mexmaci64 */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -39,7 +39,7 @@
 		3F2ADA4F17827DCB00E2675F /* gmt */ = {
 			isa = PBXGroup;
 			children = (
-				3F2ADA5617827E2500E2675F /* gmt.c */,
+				3F22ED671BE6BDC7002725BD /* gmtmex.c */,
 				3F2ADA5A17827E2500E2675F /* gmtmex_parser.c */,
 				3F2ADA5C17827E2500E2675F /* gmtmex.h */,
 				3F2ADA5017827DCB00E2675F /* mex.xcconfig */,
@@ -62,7 +62,7 @@
 			);
 			name = gmt;
 			productName = gmt;
-			productReference = 3F2ADA4D17827DCB00E2675F /* gmt.mexmaci64 */;
+			productReference = 3F2ADA4D17827DCB00E2675F /* gmtmex.mexmaci64 */;
 			productType = "com.apple.product-type.library.dynamic";
 		};
 /* End PBXNativeTarget section */
@@ -73,7 +73,7 @@
 			attributes = {
 				LastUpgradeCheck = 0510;
 			};
-			buildConfigurationList = 3F2ADA4A17827DCB00E2675F /* Build configuration list for PBXProject "gmt" */;
+			buildConfigurationList = 3F2ADA4A17827DCB00E2675F /* Build configuration list for PBXProject "gmtmex" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -95,7 +95,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3F2ADA5D17827E2500E2675F /* gmt.c in Sources */,
+				3F22ED681BE6BDC7002725BD /* gmtmex.c in Sources */,
 				3F2ADA5E17827E2500E2675F /* gmtmex_parser.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -221,7 +221,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		3F2ADA4A17827DCB00E2675F /* Build configuration list for PBXProject "gmt" */ = {
+		3F2ADA4A17827DCB00E2675F /* Build configuration list for PBXProject "gmtmex" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				3F2ADA5117827DCB00E2675F /* Debug */,
