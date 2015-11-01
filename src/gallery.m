@@ -1314,7 +1314,7 @@ function [ps, d_path] = ex30(g_root_dir, out_path)
 		 '0.22 0.27 12p,Symbol -30 CB a'
 		 '-0.33333 0.6 12p,Times-Roman 30 LB 120\312'})
 
-	gmt(['psxy -R -J -O -Sm0.15i+e -W1p -Gblack >> ' ps], [0 0 1.26 0 120])
+	gmt(['psxy -R -J -O -Sm0.15i+e -W1p -Gblack --PROJ_LENGTH_UNIT=cm >> ' ps], [0 0 1.26 0 120])
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------

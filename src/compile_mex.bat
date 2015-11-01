@@ -105,8 +105,8 @@ IF %BITS%==32 SET arc=X86
 SET LINKFLAGS=/dll /export:mexFunction /LIBPATH:%MATLIB% libmx.lib libmex.lib libmat.lib /MACHINE:%arc% kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /incremental:NO %LDEBUG%
 
 REM -------------------------------------------------------------------------------------------------------
-%CC% /c -DWIN32 %COMPFLAGS% -I%MATINC% -I%GMT_INC% %OPTIMFLAGS% %_MX_COMPAT% -DLIBRARY_EXPORTS -DGMT_MATLAB gmtmex_parser.c gmt.c
-link  /out:"gmtmex.%MEX_EXT%" %LINKFLAGS% %GMT_LIB% /implib:templib.x gmtmex_parser.obj gmt.obj
+%CC% /c -DWIN32 %COMPFLAGS% -I%MATINC% -I%GMT_INC% %OPTIMFLAGS% %_MX_COMPAT% -DLIBRARY_EXPORTS -DGMT_MATLAB gmtmex_parser.c gmtmex.c
+link  /out:"gmtmex.%MEX_EXT%" %LINKFLAGS% %GMT_LIB% /implib:templib.x gmtmex_parser.obj gmtmex.obj
 
 REM %CC% /c -DWIN32 %COMPFLAGS% -I%GMT_INC% %OPTIMFLAGS% %_MX_COMPAT% -DGMT_MATLAB -DNO_MEX gmtmex_parser.c gmt_mextest.c
 REM link /MACHINE:%arc% /nologo %LDEBUG% %GMT_LIB%  gmtmex_parser.obj gmt_mextest.obj
