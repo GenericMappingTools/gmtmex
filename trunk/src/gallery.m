@@ -1756,8 +1756,15 @@ function cpt = cptjoin(cpt1, cpt2)
 % Join two CPT1 and CPT2 color palette structures. 
 % Note, the two palettes should be continuous across its common border. No testing on that is donne here
 
-	cpt.colormap = [cpt1.colormap; cpt2.colormap];
-	cpt.alpha    = [cpt1.alpha;    cpt2.alpha];
-	cpt.range    = [cpt1.range;    cpt2.range];
+	if (size(cpt1.colormap,1) ~= size(cpt1.range))
+		% A continuous palette so the join would have one color in excess. We could average
+		% the top cpt1 color and bottom cpt2 but that would blur the transition. 
+		%cpt.colormap = [cpt1.colormap(1:end-1,:); (cpt1.colormap(end,:)+cpt2.colormap(1,:))/2; cpt2.colormap(2:end,:)];
+		cpt.colormap = [cpt1.colormap(1:end-1,:); cpt2.colormap];
+		cpt.alpha    = [cpt1.alpha(1:end-1,:);    cpt2.alpha];
+	else
+		cpt.colormap = [cpt1.colormap; cpt2.colormap];
+		cpt.alpha    = [cpt1.alpha;    cpt2.alpha];
+	end
+	cpt.range       = [cpt1.range;    cpt2.range];
 	cpt.rangeMinMax = [cpt1.rangeMinMax(1) cpt2.rangeMinMax(2)];
-
