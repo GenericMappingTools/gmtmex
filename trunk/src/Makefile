@@ -9,7 +9,7 @@ include ../config.mk
 FLAGS		= $(GMT_INC) $(MEX_INC)
 ALLLIB     	= $(GMT_LIB) $(MEX_LIB)
 
-PROGS_C		= gmt.c
+PROGS_C		= gmtmex.c
 PROGS           = $(PROGS_C:.c=.$(MEX_EXT))
 PROGS_H		= gmtmex.h
 LIB_C		= gmtmex_parser.c
@@ -31,7 +31,7 @@ uninstall:
 spotless::	clean
 
 clean:	
-		rm -f *.o *% core tags gmt.mex* gmt.oct gmt_opttest
+		rm -f *.o *% core tags gmtmex.mex* gmtmex.oct gmt_opttest
 
 #-------------------------------------------------------------------------------
 #	program rules
@@ -40,8 +40,8 @@ clean:
 gmt5.$(MEX_EXT):	$(PROGS_C) $(LIB_C)
 		$(MEX_BLD) $(FLAGS) gmt5.c $(LIB_C) $(ALLLIB)
 
-gmt.$(MEX_EXT):	$(PROGS_C) $(LIB_C)
-		$(MEX_BLD) $(FLAGS) gmt.c $(LIB_C) $(ALLLIB)
+gmtmex.$(MEX_EXT):	$(PROGS_C) $(LIB_C)
+		$(MEX_BLD) $(FLAGS) gmtmex.c $(LIB_C) $(ALLLIB)
 
 gmt_opttest:	gmt_opttest.o
 		$(CC) $(LDFLAGS) gmt_opttest.o $(GMT_LIB) $(LIBS) -o $@
