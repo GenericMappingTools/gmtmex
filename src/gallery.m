@@ -606,16 +606,16 @@ function [ps, d_path] = ex15(g_root_dir, out_path)
 	ps = [out_path 'example_15.ps'];
 
 	gmt('destroy'),		gmt('gmtset -Du'),		gmt('destroy') 
-	gmt(['gmtconvert ' d_path 'ship.xyz -bo > ship.b'])
+	ship_d = gmt(['read -Td ' d_path '/ship.xyz']);
 
-	region = gmt('info ship.b -I1 -bi3d');
+	region = gmt('info -I1', ship_d);
 	region = region{1};				% We want this to be astring, not a cell
-	Gship  = gmt(['nearneighbor ' region ' -I10m -S40k ship.b -bi']);
+	Gship  = gmt(['nearneighbor ' region ' -I10m -S40k'], ship_d);
 	gmt(['grdcontour -JM3i -P -B2 -BWSne -C250 -A1000 -Gd2i -K > ' ps], Gship)
 
-	ship_10m = gmt(['blockmedian ' region ' -I10m ship.b -b3d']);
+	ship_10m = gmt(['blockmedian ' region ' -I10m'], ship_d);
 	Gship = gmt(['surface ' region ' -I10m'], ship_10m);
-	gmt(['psmask ' region ' -I10m ship.b -J -O -K -T -Glightgray -bi3d -X3.6i >> ' ps])
+	gmt(['psmask ' region ' -I10m -J -O -K -T -Glightgray -X3.6i >> ' ps], ship_d)
 	gmt(['grdcontour -J -B -C250 -L-8000/0 -A1000 -Gd2i -O -K >> ' ps], Gship)
 
 	gmt(['psmask ' region ' -I10m -J -B -O -K -X-3.6i -Y3.75i >> ' ps], ship_10m)
@@ -628,7 +628,6 @@ function [ps, d_path] = ex15(g_root_dir, out_path)
 	info = gmt('grdinfo -C -M', Gship);		% <----- GIVES WRONG COORDS DOR THE MINIMUM
 	gmt(['psxy -R -J -O -K -Sa0.15i -Wthick >> ' ps], info(11:12))					% <--------- DOES NOT SHOW UP
 	gmt(['pstext -R0/3/0/4 -Jx1i -F+f24p,Helvetica-Bold+jCB -O -N >> ' ps], {'-0.3 3.6 Gridding with missing data'})
-	builtin('delete','ship.b');
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
