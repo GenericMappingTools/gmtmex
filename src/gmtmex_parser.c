@@ -170,13 +170,13 @@ void *GMTMEX_Get_Grid (void *API, struct GMT_GRID *G) {
 	fieldnames[3]  = mxstrdup ("inc");
 	fieldnames[4]  = mxstrdup ("n_rows");
 	fieldnames[5]  = mxstrdup ("n_columns");
-	fieldnames[6]  = mxstrdup ("registration");
-	fieldnames[7]  = mxstrdup ("NoDataValue");
-	fieldnames[8]  = mxstrdup ("title");
-	fieldnames[9]  = mxstrdup ("remark");
-	fieldnames[10] = mxstrdup ("command");
-	fieldnames[11] = mxstrdup ("DataType");
-	fieldnames[12] = mxstrdup ("LayerCount");
+	fieldnames[6]  = mxstrdup ("n_bands");
+	fieldnames[7]  = mxstrdup ("registration");
+	fieldnames[8]  = mxstrdup ("NoDataValue");
+	fieldnames[9]  = mxstrdup ("title");
+	fieldnames[10] = mxstrdup ("remark");
+	fieldnames[11] = mxstrdup ("command");
+	fieldnames[12] = mxstrdup ("DataType");
 	fieldnames[13] = mxstrdup ("x");
 	fieldnames[14] = mxstrdup ("y");
 	fieldnames[15] = mxstrdup ("z");
@@ -206,6 +206,9 @@ void *GMTMEX_Get_Grid (void *API, struct GMT_GRID *G) {
 	mxtmp = mxCreateDoubleScalar ((double)G->header->nx);
 	mxSetField (grid_struct, 0, (const char *) "n_columns", mxtmp);
 
+	mxtmp = mxCreateDoubleScalar ((double)G->header->n_bands);
+	mxSetField (grid_struct, 0, (const char *) "n_bands", mxtmp);
+
 	mxtmp = mxCreateDoubleScalar ((double)G->header->nan_value);
 	mxSetField (grid_struct, 0, (const char *) "NoDataValue", mxtmp);
 
@@ -223,9 +226,6 @@ void *GMTMEX_Get_Grid (void *API, struct GMT_GRID *G) {
 
 	mxtmp = mxCreateString ("float32");
 	mxSetField (grid_struct, 0, (const char *) "DataType", mxtmp);
-
-	mxtmp = mxCreateDoubleScalar ((double)G->header->n_bands);
-	mxSetField (grid_struct, 0, (const char *) "LayerCount", mxtmp);
 
 	mxtmp = mxCreateString (G->header->x_units);
 	mxSetField (grid_struct, 0, (const char *) "x_units", mxtmp);
@@ -492,9 +492,6 @@ void *GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I) {
 
 	mxtmp = mxCreateString ("uint8");
 	mxSetField (image_struct, 0, (const char *) "DataType", mxtmp);
-
-	mxtmp = mxCreateDoubleScalar ((double)MIN(3,I->header->n_bands));
-	mxSetField (image_struct, 0, (const char *) "LayerCount", mxtmp);
 
 	mxtmp = mxCreateString (I->header->x_units);
 	mxSetField (image_struct, 0, (const char *) "x_units", mxtmp);
