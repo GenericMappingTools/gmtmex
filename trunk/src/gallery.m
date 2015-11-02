@@ -1451,7 +1451,7 @@ function [ps, d_path] = ex35(g_root_dir, out_path)
 	% Get Voronoi polygons
 	[nodes, pol] = gmt(['sphtriangulate ' d_path 'gshhs_c.txt -Qv -D -N']);
 	% Compute distances in km
-	Gtt = gmt('sphdistance -Rg -I1 -Q -N -G -Lk -Vd', pol, nodes);
+	Gtt = gmt('sphdistance -Rg -I1 -Q -N -G -Lk', pol, nodes);
 	t_cpt = gmt('makecpt -Chot -T0/3500/500 -Z');
 	% Make a basic image plot and overlay contours, Voronoi polygons and coastlines
 	gmt(['grdimage -JG-140/30/7i -P -K -C -X0.75i -Y2i > ' ps], t_cpt, Gtt)
