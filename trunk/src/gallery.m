@@ -844,7 +844,6 @@ function [ps, d_path] = ex21(g_root_dir, out_path)
 
 	% Plot main window with open price as red line over yellow envelope of low/highs
 
-	gmt('gmtset FORMAT_DATE_OUT dd-o-yy')
 	RHAT1_env = gmt(['gmtconvert -o0,2 -f0T ' d_path 'RHAT_price.csv']);
 	RHAT2_env = gmt(['gmtconvert -o0,3 -f0T -I -T ' d_path 'RHAT_price.csv']);
 	RHAT_env = [RHAT1_env; RHAT2_env];
