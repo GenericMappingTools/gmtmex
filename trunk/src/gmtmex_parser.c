@@ -858,6 +858,7 @@ struct GMT_PALETTE *GMTMEX_cpt_init (void *API, unsigned int direction, bool mod
 				P->range[j].z_low = range[0] + j * dz;
 				P->range[j].z_high = P->range[j].z_low + dz;
 			}
+			P->range[j].annot = 3;	/* Enforce annotations for now */
 		}
 		P->is_continuous = one;
 		GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_cpt_init: Allocated GMT CPT %lx\n", (long)P);
