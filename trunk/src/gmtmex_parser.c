@@ -870,14 +870,14 @@ struct GMT_PALETTE *GMTMEX_cpt_init (void *API, unsigned int direction, bool mod
 	return (P);
 }
 
-struct GMT_TEXTSET *GMTMEX_text_init (void *API, unsigned int direction, bool module_input, const mxArray *ptr) {
+struct GMT_TEXTSET *GMTMEX_text_init (void *API, unsigned int direction, bool module_input, unsigned int family, const mxArray *ptr) {
 	/* Used to Create an empty Textset container to hold a GMT TEXTSET.
  	 * If direction is GMT_IN then we are given a MATLAB cell array and can determine its size, etc.
 	 * If direction is GMT_OUT then we allocate an empty GMT TEXTSET as a destination. */
 	struct GMT_TEXTSET *T = NULL;
 	if (direction == GMT_IN) {	/* Dimensions are known from the MATLAB input pointer */
 		uint64_t rec, dim[3] = {1, 1, 0};
-		unsigned int family = (module_input) ? GMT_IS_TEXTSET|GMT_VIA_MODULE_INPUT : GMT_IS_TEXTSET;
+		if (module_input) family |= GMT_VIA_MODULE_INPUT;
 		bool got_text = false;
 		mxArray *mx_ptr = NULL;
 		char *txt = NULL;
@@ -942,10 +942,8 @@ void * GMTMEX_Register_IO (void *API, struct GMT_RESOURCE *X, const mxArray *ptr
 			break;
 		case GMT_IS_DATASET:
 			/* Ostensibly a DATASET, but it might be a TEXTSET passed via a cell array, so we must check */
-			if (X->direction == GMT_IN && mxIsCell (ptr)) {	/* Got TEXTSET input */
-				X->family = GMT_IS_TEXTSET;
-				obj = GMTMEX_text_init (API, X->direction, module_input, ptr);
-			}
+			if (X->direction == GMT_IN && mxIsCell (ptr))	/* Got TEXTSET input */
+				obj = GMTMEX_text_init (API, X->direction, module_input, GMT_IS_TEXTSET, ptr);
 			else	/* Get a matrix container, and if input we associate it with the MATLAB pointer */
 				obj = GMTMEX_dataset_init (API, X->direction, module_input, ptr);
 			X->object_ID = GMT_Get_ID (API, X->family, X->direction, obj);
@@ -953,7 +951,7 @@ void * GMTMEX_Register_IO (void *API, struct GMT_RESOURCE *X, const mxArray *ptr
 			break;
 		case GMT_IS_TEXTSET:
 			/* Get a TEXTSET container, and if input we associate it with the MATLAB pointer */
-			obj = GMTMEX_text_init (API, X->direction, module_input, ptr);
+			obj = GMTMEX_text_init (API, X->direction, module_input, GMT_IS_TEXTSET, ptr);
 			X->object_ID = GMT_Get_ID (API, GMT_IS_TEXTSET, X->direction, obj);
 			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Register_IO: Got TEXTSET with Object ID %d\n", X->object_ID);
 			break;
