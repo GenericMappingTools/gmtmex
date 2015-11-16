@@ -52,6 +52,7 @@ AC_SUBST(LD_OPT)
 AC_SUBST(LDFLAGS)
 AC_SUBST(GMT_LIB)
 AC_SUBST(GMT_INC)
+AC_SUBST(GMT_BIN)
 AC_SUBST(DEP_LIBS)
 AC_SUBST(LIBS)
 AC_SUBST(LIBEXT)
@@ -146,6 +147,9 @@ if test -x "$GMT_CONF" && test "X$GMT_INC" = "X" && test "X$GMT_LIB" = "X" ; the
 	GMT_LIB=`$GMT_CONF --libs`
 	DEP_LIBS=`$GMT_CONF --dep-libs`
 	AC_MSG_RESULT($GMT_LIB)
+	AC_MSG_CHECKING(for GMT bin directory)
+	GMT_BIN=`gmt --show-bindir`
+	AC_MSG_RESULT($GMT_BIN)
 	GMT_LIB_PATH=`echo $GMT_LIB | sed 's/^-L//;s/\ .*//'`
 	rpath="$GMT_LIB_PATH"
 	AC_MSG_CHECKING(for 32/64-bit GMT5 installation)

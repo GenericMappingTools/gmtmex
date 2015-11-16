@@ -12,9 +12,6 @@
 # POSIX shell.  On some platforms it is not /bin/sh.
 SHELL		= @SHELL@
 
-# Installation Directories:
-bindir		= $(DESTDIR)@prefix@/bin
-
 # Compiler, if $CC not set in environment
 CC		= @CC@
 
@@ -43,10 +40,11 @@ LD		= @LD@
 LN_S		= @LN_S@
 #
 #-------------------------------------------------------------------------------
-#	Required directives for GMT includes and library
+#	Required directives for GMT includes, library, and bin
 #-------------------------------------------------------------------------------
 GMT_INC		= @GMT_INC@
 GMT_LIB		= @GMT_LIB@
+GMT_BIN		= @GMT_BIN@
 #
 #-------------------------------------------------------------------------------
 #	Compiler switches and linker flags
