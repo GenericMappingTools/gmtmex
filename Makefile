@@ -22,6 +22,6 @@ uninstall:
 clean:
 	cd src; $(MAKE) clean
 
-spotless:
+spotless::
 	cd src; $(MAKE) spotless
 	rm -rf config.log config.status config.mk configure autom4te.cache
