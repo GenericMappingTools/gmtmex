@@ -23,10 +23,16 @@ help::
 #!build   : Configure, build and install the gmt mex files into /opt/gmt/bin
 #!tar     : Create a tar ball of the TOOLS source codes
 #!update  : Call svn update
+#!wipe    : Remove mex-* tarballs
+#!latest-config : Update the configure include files
 #!
 
 opt:
 		/Applications/GMT-`gmt --version`.app/Contents/Resources/share/tools/gmt_prepmex.sh
+
+latest-config:
+		curl "http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD" -s -R -o config.sub
+		curl "http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD" -s -R -o config.guess
 
 build:
 		autoconf
@@ -36,7 +42,10 @@ build:
 
 tar:
 		COPYFILE_DISABLE=true $(GNUTAR) --owner 0 --group 0 --mode a=rX,u=rwX \
-			-cvjf gmt-`gmt --version`-mex.tar.bz2 /opt/gmt
+			-cvjf mex-gmt-`gmt --version`-darwin-x84_64.tbz /opt/gmt
 
 update:
 		svn update
+
+wipe:
+		rm -f mex-gmt-*-darwin-x84_64.tbz
