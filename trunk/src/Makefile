@@ -12,6 +12,7 @@ ALLLIB     	= $(GMT_LIB) $(MEX_LIB)
 PROGS_C		= gmtmex.c
 PROGS           = $(PROGS_C:.c=.$(MEX_EXT))
 PROGS_H		= gmtmex.h
+SCRIPTS         = gmt.m
 LIB_C		= gmtmex_parser.c
 LIB_O		= $(LIB_C:.c=.o)
 
@@ -22,11 +23,11 @@ LIB_O		= $(LIB_C:.c=.o)
 all:		$(PROGS)
 
 install:	all
-		$(INSTALL) -d $(bindir)
-		$(INSTALL) $(PROGS) $(bindir)
+		$(INSTALL) -d $(GMT_BIN)
+		$(INSTALL) $(PROGS) $(SCRIPTS) $(GMT_BIN)
 
 uninstall:
-		cd $(bindir); rm -f $(PROGS)
+		cd $(GMT_BIN); rm -f $(PROGS) $(SCRIPTS)
 
 spotless::	clean
 
