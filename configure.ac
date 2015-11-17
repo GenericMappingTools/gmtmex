@@ -415,7 +415,7 @@ else
 	AC_MSG_CHECKING(Compiler options for Octave)
 	MEX_BLD="mkoctfile -D$OCT_ARG $MEX_ARG $MFLAGS"
 	MEX_LIB=
-	MEX_INC=-I`octave-config --print INCLUDEDIR`
+	MEX_INC=-I`octave-config --print OCTINCLUDEDIR`
 	if test "X$enable_mex_mdir" = "X" || test "X$enable_mdir" = "Xyes" ; then
 		MEX_MDIR=`octave-config --m-site-dir`
 	else
