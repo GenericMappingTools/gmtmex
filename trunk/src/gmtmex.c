@@ -101,7 +101,6 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	char *cmd = NULL;               /* Pointer used to get the user's MATLAB command */
 	char *gtxt = NULL;              /* For debug printing of revised command */
 	char *opt_args = NULL;		/* Pointer to the user's module options */
-	const char *keys = NULL;	/* This module's option keys */
 	char module[MODULE_LEN] = {""}; /* Name of GMT module to call */
 	char name[GMT_STR16];           /* Name of GMT module to call */
 	void *ptr = NULL;

@@ -148,10 +148,10 @@ void *GMTMEX_Get_Grid (void *API, struct GMT_GRID *G) {
 	/* Given an incoming GMT grid G, build a MATLAB structure and assign the output components.
  	 * Note: Incoming GMT grid has standard padding while MATLAB grid has none. */
 
-	int item, n;
+	int n;
 	uint64_t row, col, gmt_ij;
 	float  *f = NULL;
-	double *d = NULL, *dptr = NULL, *G_x = NULL, *G_y = NULL, *x = NULL, *y = NULL;
+	double *dptr = NULL, *G_x = NULL, *G_y = NULL, *x = NULL, *y = NULL;
 	mxArray *mxGrd = NULL, *mx_x = NULL, *mx_y= NULL;
 	mxArray *mxProjectionRef = NULL;
 	mxArray *mxHeader = NULL, *mxtmp = NULL;
@@ -268,7 +268,7 @@ void *GMTMEX_Get_Grid (void *API, struct GMT_GRID *G) {
 
 void *GMTMEX_Get_Dataset (void *API, struct GMT_VECTOR *V) {
 	/* Given an incoming GMT dataset via vectors, build a MATLAB matrix and assign values per column */
-	uint64_t  start, row, col;
+	uint64_t  start, col;
 	uint64_t *ui8 = NULL;
 	int64_t  *si8 = NULL;
 	uint32_t *ui4 = NULL;
@@ -405,12 +405,10 @@ void *GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C) {
 #define N_MEX_FIELDNAMES_IMAGE	21
 
 void *GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I) {
-	int item, n, k;
+	int n;
 	mwSize dim[3];
-	unsigned int row, col;
-	uint64_t gmt_ij, mex_ij;
 	uint8_t *u = NULL, *alpha = NULL;
-	double *d = NULL, *dptr = NULL, *I_x = NULL, *I_y = NULL, *x = NULL, *y = NULL;
+	double *dptr = NULL, *I_x = NULL, *I_y = NULL, *x = NULL, *y = NULL;
 	double *color = NULL;
 	mxArray *mxImg = NULL, *mx_x = NULL, *mx_y= NULL, *mxalpha = NULL, *mxcolormap = NULL;
 	mxArray *mxProjectionRef = NULL;
@@ -681,7 +679,7 @@ struct GMT_IMAGE *GMTMEX_image_init (void *API, unsigned int direction, bool mod
 	if (direction == GMT_IN) {	/* Dimensions are known from the input pointer */
 		unsigned int family = (module_input) ? GMT_IS_IMAGE|GMT_VIA_MODULE_INPUT : GMT_IS_IMAGE;
 		mxArray *mx_ptr = NULL;
-		double *inc = NULL, *range = NULL, *reg = NULL;
+		double *inc = NULL, *range = NULL;
 		float *f = NULL;
 
 		if (mxIsEmpty (ptr))
