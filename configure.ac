@@ -339,11 +339,9 @@ elif test ! "X$enable_matlab" = "X"; then
 			MEX_EXT='mexglx'
 			MATLAB_MEX='glnx86'
 		fi
-		MATLAB_LIB='mat'
 	elif test "$os" = "SunOS" ; then	# Sun Workshop
 		MEX_EXT='mexsol'
 		MATLAB_MEX='sol2'
-		MATLAB_LIB='mat'
 	elif test "$os" = "IRIX64" ; then	# SGI Irix 64
 		MEX_EXT='mexsg64'
 	elif test "$os" = "IRIX" ; then		# SGI Irix
@@ -353,7 +351,6 @@ elif test ! "X$enable_matlab" = "X"; then
 	elif test "$os" = "AIX" ; then		# IBM AIX
 		MEX_EXT='mexrs6'
 		MATLAB_MEX='ibm_rs'
-		MATLAB_LIB='mat'
 	elif test "$os" = "OSF1" ; then		# Dec Alpha
 		MEX_EXT='mexds'
 	elif test "$os" = "ULTRIX" ; then	# Dec Ultrix
@@ -365,7 +362,8 @@ elif test ! "X$enable_matlab" = "X"; then
 		else
 			MATLAB=/Applications/$dir
 		fi
-		MEX_BLD="$MATLAB/bin/mex -DGMT_MATLAB $MFLAGS"
+		dnl MEX_BLD="$MATLAB/bin/mex -DGMT_MATLAB $MFLAGS"
+		MEX_BLD="xcrun clang -undefined error -arch x86_64 -bundle -DGMT_MATLAB $MFLAGS"
 		if test "$chip" = "i386" ; then		#Intel Mac
 			if test "$ac_cv_sizeof_long" = "8" ; then
 				MEX_EXT='mexmaci64'
@@ -378,18 +376,19 @@ elif test ! "X$enable_matlab" = "X"; then
 			MEX_EXT='mexmac'
 			MATLAB_MEX='mac'
 		fi
-		MATLAB_LIB='mat'
+		MEX_LIB="-L$MATLAB/bin/$MATLAB_MEX -lmx -lmex"
 	else					# Other
 		MEX_EXT='mex'
 	fi
-	if test "X$MATLAB_LIB" = "X" || test "X$MATLAB_MEX" = "X" ; then
+	if test "X$MATLAB_MEX" = "X" ; then
 		# Users: pls supply your input
-		AC_MSG_RESULT([Matlab mex-file extension and Matlab library name not known - guessed to be mex])
+		AC_MSG_RESULT([Matlab mex-file extension not known - guessed to be mex])
 		AC_MSG_RESULT([If incorrect, please modify makefile manually and notify gmt@soest.hawaii.edu])
 		MATLAB_MEX='mex'
-		MATLAB_LIB='mex'
 	fi
-	MEX_LIB="-L$MATLAB/extern/lib/$MATLAB_MEX -l$MATLAB_LIB"
+	if test "X$MEX_LIB" = "X" ; then
+		MEX_LIB="-L$MATLAB/extern/lib/$MATLAB_MEX -lmx -lmex"
+	fi
 	MEX_INC="-I$MATLAB/extern/include"
 	if test "X$enable_mex_mdir" = "X" || test "X$enable_mdir" = "Xyes" ; then
 		MEX_MDIR=$MATLAB/toolbox/local

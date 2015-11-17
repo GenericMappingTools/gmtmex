@@ -28,7 +28,8 @@ help::
 #!
 
 opt:
-		/Applications/GMT-`gmt --version`.app/Contents/Resources/share/tools/gmt_prepmex.sh
+		@echo "[Running `ls /Applications/GMT-5.?.?.app/Contents/Resources/share/tools/gmt_prepmex.sh | tail -1`]"; echo ""
+		@`/Applications/GMT-5.?.?.app/Contents/Resources/share/tools/gmt_prepmex.sh | tail -1`
 
 latest-config:
 		curl "http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD" -s -R -o config.sub
@@ -36,6 +37,7 @@ latest-config:
 
 build:
 		autoconf
+		gmtswitch /opt/gmt
 		configure --enable-matlab --enable-debug
 		make all
 		make install

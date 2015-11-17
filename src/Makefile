@@ -10,6 +10,7 @@ FLAGS		= $(GMT_INC) $(MEX_INC)
 ALLLIB     	= $(GMT_LIB) $(MEX_LIB)
 
 PROGS_C		= gmtmex.c
+PROGS_O         = $(PROGS_C:.c=.o)
 PROGS           = $(PROGS_C:.c=.$(MEX_EXT))
 PROGS_H		= gmtmex.h
 SCRIPTS         = gmt.m
@@ -38,17 +39,10 @@ clean:
 #	program rules
 #-------------------------------------------------------------------------------
 
-gmt5.$(MEX_EXT):	$(PROGS_C) $(LIB_C)
-		$(MEX_BLD) $(FLAGS) gmt5.c $(LIB_C) $(ALLLIB)
+gmtmex.$(MEX_EXT):	$(PROGS_O) $(LIB_O)
+		$(MEX_BLD) $(FLAGS) $(PROGS_O) $(LIB_O) $(ALLLIB)
 
-gmtmex.$(MEX_EXT):	$(PROGS_C) $(LIB_C)
-		$(MEX_BLD) $(FLAGS) gmtmex.c $(LIB_C) $(ALLLIB)
+.SUFFIXES:	.o .c
 
-gmt_opttest:	gmt_opttest.o
-		$(CC) $(LDFLAGS) gmt_opttest.o $(GMT_LIB) $(LIBS) -o $@
-
-$(LIB_O):	$(LIB_C)
-		$(CC) $(FLAGS) $(CFLAGS) $(GMT_INC) -DNO_MEX $(LIB_C) -c -o $@
-
-gmt_opttest.o:	gmt_opttest.c
-		$(CC) $(CFLAGS) $(GMT_INC) gmt_opttest.c -c -o $@
+.c.o:
+		$(CC) $(FLAGS) $(CFLAGS) $(GMT_INC) -DNO_MEX -c $<
