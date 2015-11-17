@@ -563,7 +563,7 @@ void *GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I) {
 	return (image_struct);
 }
 
-struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, bool module_input, const mxArray *ptr) {
+struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, unsigned int module_input, const mxArray *ptr) {
 	/* Used to Create an empty Grid container to hold a GMT grid.
  	 * If direction is GMT_IN then we are given a MATLAB grid and can determine its size, etc.
 	 * If direction is GMT_OUT then we allocate an empty GMT grid as a destination. */
@@ -669,7 +669,7 @@ struct GMT_GRID *GMTMEX_grid_init (void *API, unsigned int direction, bool modul
 	return (G);
 }
 
-struct GMT_IMAGE *GMTMEX_image_init (void *API, unsigned int direction, bool module_input, const mxArray *ptr) {
+struct GMT_IMAGE *GMTMEX_image_init (void *API, unsigned int direction, unsigned int module_input, const mxArray *ptr) {
 	/* Used to Create an empty Image container to hold a GMT image.
  	 * If direction is GMT_IN then we are given a MATLAB image and can determine its size, etc.
 	 * If direction is GMT_OUT then we allocate an empty GMT image as a destination. */
@@ -730,7 +730,7 @@ struct GMT_IMAGE *GMTMEX_image_init (void *API, unsigned int direction, bool mod
 	return (I);
 }
 
-void *GMTMEX_dataset_init (void *API, unsigned int direction, bool module_input, const mxArray *ptr) {
+void *GMTMEX_dataset_init (void *API, unsigned int direction, unsigned int module_input, const mxArray *ptr) {
 	/* Used to create containers to hold or receive data:
 	 * direction == GMT_IN:  Create empty Matrix container, associate it with mex data matrix, and use as GMT input.
 	 * direction == GMT_OUT: Create empty Vector container, let GMT fill it out, and use for Mex output.
@@ -787,7 +787,7 @@ void *GMTMEX_dataset_init (void *API, unsigned int direction, bool module_input,
 	}
 }
 
-struct GMT_PALETTE *GMTMEX_cpt_init (void *API, unsigned int direction, bool module_input, const mxArray *ptr) {
+struct GMT_PALETTE *GMTMEX_cpt_init (void *API, unsigned int direction, unsigned int module_input, const mxArray *ptr) {
 	/* Used to Create an empty CPT container to hold a GMT CPT.
  	 * If direction is GMT_IN then we are given a MATLAB CPT and can determine its size, etc.
 	 * If direction is GMT_OUT then we allocate an empty GMT CPT as a destination. */
@@ -869,7 +869,7 @@ struct GMT_PALETTE *GMTMEX_cpt_init (void *API, unsigned int direction, bool mod
 	return (P);
 }
 
-struct GMT_TEXTSET *GMTMEX_text_init (void *API, unsigned int direction, bool module_input, unsigned int family, const mxArray *ptr) {
+struct GMT_TEXTSET *GMTMEX_text_init (void *API, unsigned int direction, unsigned int module_input, unsigned int family, const mxArray *ptr) {
 	/* Used to Create an empty Textset container to hold a GMT TEXTSET.
  	 * If direction is GMT_IN then we are given a MATLAB cell array and can determine its size, etc.
 	 * If direction is GMT_OUT then we allocate an empty GMT TEXTSET as a destination. */
@@ -877,7 +877,7 @@ struct GMT_TEXTSET *GMTMEX_text_init (void *API, unsigned int direction, bool mo
 	if (direction == GMT_IN) {	/* Dimensions are known from the MATLAB input pointer */
 		uint64_t rec, dim[3] = {1, 1, 0};
 		if (module_input) family |= GMT_VIA_MODULE_INPUT;
-		bool got_text = false;
+		unsigned int got_text = 0;
 		mxArray *mx_ptr = NULL;
 		char *txt = NULL;
 		struct GMT_TEXTSEGMENT *S = NULL;	/* Shorthand for current segment */
@@ -886,7 +886,7 @@ struct GMT_TEXTSET *GMTMEX_text_init (void *API, unsigned int direction, bool mo
 			mexErrMsgTxt ("GMTMEX_text_init: The input that was supposed to contain the Cell array is empty\n");
 		dim[GMT_ROW] = mxGetM (ptr);	/* Number of records */
 		if (mxIsChar (ptr) && dim[GMT_ROW] == 1)	/* Special case: Got a single text record */
-			got_text = true;
+			got_text = 1;
 		else if (!mxIsCell (ptr))
 			mexErrMsgTxt ("GMTMEX_text_init: Expected a Cell array for input\n");
 		if (dim[GMT_ROW] == 1 && !got_text) {	/* Check if we got a transpose arrangement or just one record */
@@ -923,7 +923,7 @@ void * GMTMEX_Register_IO (void *API, struct GMT_RESOURCE *X, const mxArray *ptr
 	/* Create the grid or matrix container, register it, and return the ID */
 	void *obj = NULL;		/* Pointer to the container we created */
 	char *name[2] = {"Matrix", "CellArray"};
-	bool module_input = (X->option->option == GMT_OPT_INFILE);
+	unsigned int module_input = (X->option->option == GMT_OPT_INFILE);
 	X->object_ID = GMT_NOTSET;
 
 	switch (X->family) {
