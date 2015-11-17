@@ -72,11 +72,11 @@ dnl Special configure options for gmtmex installation
 dnl -----------------------------------------------------------------
 dnl
 AC_ARG_WITH(gmt_config, [  --with-gmt-config=      Full path to gmt-config [[auto]]])
-AC_ARG_ENABLE(matlab,   [  --enable-matlab=dir     Build GMT-matlab interface, give directory with Matlab distribution [[auto]]])
-AC_ARG_ENABLE(octave,   [  --enable-octave=dir     Build GMT-octave interface, give directory with Octave distribution [[auto]] (disables Matlab interface)])
+AC_ARG_ENABLE(matlab,   [  --enable-matlab=dir     Build GMT-matlab interface, give directory with MATLAB distribution [[auto]]])
+AC_ARG_ENABLE(octave,   [  --enable-octave=dir     Build GMT-octave interface, give directory with Octave distribution [[auto]] (disables MATLAB interface)])
 AC_ARG_ENABLE(octmode,  [  --enable-octmode=mode   Append oct or mex [[auto]]])
-AC_ARG_ENABLE(mex_mdir, [  --enable-mex-mdir=dir   Directory in which to install GMT-octave/Matlab .m files [[auto]]])
-AC_ARG_ENABLE(mex_xdir, [  --enable-mex-xdir=dir   Directory in which to install GMT-octave/Matlab mex files [[auto]]])
+AC_ARG_ENABLE(mex_mdir, [  --enable-mex-mdir=dir   Directory in which to install GMT-octave/MATLAB .m files [[auto]]])
+AC_ARG_ENABLE(mex_xdir, [  --enable-mex-xdir=dir   Directory in which to install GMT-octave/MATLAB mex files [[auto]]])
 AC_ARG_ENABLE(debug,    [  --enable-debug          Compile for debugging instead of optimizing code])
 AC_ARG_ENABLE(rpath,	[  --disable-rpath         Do not hardcode runtime library paths])
 AC_ARG_ENABLE(shared,   [  --enable-shared         Build shared (dynamic) libraries instead of static])
@@ -92,11 +92,11 @@ if test "$GMT_in_path" = "X0" ; then
 	AC_MSG_RESULT(GMT5 executables are not in your path - aborting)
 	exit 1
 else
-	gversion=`gmt --version | awk '{print substr($1,1,1)}'`
-	if test "X$gversion" = "X5" ; then
-		AC_MSG_RESULT(GMT5 executables found)
+	gversion=`gmt --version | awk '{print substr($1,1,3)}'`
+	if test "X$gversion" = "X5.2" ; then
+		AC_MSG_RESULT(GMT5.2.x executables found)
 	else
-		AC_MSG_RESULT(GMT5 executables are not in your path - aborting)
+		AC_MSG_RESULT(GMT5.2.x executables are not in your path - aborting)
 		exit 1
 	fi
 fi
@@ -152,7 +152,7 @@ if test -x "$GMT_CONF" && test "X$GMT_INC" = "X" && test "X$GMT_LIB" = "X" ; the
 	AC_MSG_RESULT($GMT_BIN)
 	GMT_LIB_PATH=`echo $GMT_LIB | sed 's/^-L//;s/\ .*//'`
 	rpath="$GMT_LIB_PATH"
-	AC_MSG_CHECKING(for 32/64-bit GMT5 installation)
+	AC_MSG_CHECKING(for 32 vs 64-bit GMT5 installation)
 	bits=`$GMT_CONF --bits`
 	GCC_64="-m${bits}"
 	LDFLAGS="$LDFLAGS -m${bits}"
@@ -323,13 +323,13 @@ fi
 dnl
 dnl
 dnl -----------------------------------------------------------------
-dnl Determine Octave/Matlab mex extensions and dirs for this platform
+dnl Determine Octave/MATLAB mex extensions and dirs for this platform
 dnl -----------------------------------------------------------------
 dnl
 if test "X$MATLAB" = "XNONE" ; then
-	AC_MSG_RESULT([Octave/Matlab mex supplement will be skipped])
+	AC_MSG_RESULT([Octave/MATLAB mex supplement will be skipped])
 elif test ! "X$enable_matlab" = "X"; then
-	AC_MSG_CHECKING(Compiler options for Matlab)
+	AC_MSG_CHECKING(Compiler options for MATLAB)
 	MEX_BLD="$MATLAB/bin/mex -DGMT_MATLAB $MFLAGS"
 	if test "$os" = "Linux" ; then		# Linux systems
 		if test "$ac_cv_sizeof_long" = "8" ; then
@@ -380,7 +380,7 @@ elif test ! "X$enable_matlab" = "X"; then
 	fi
 	if test "X$MATLAB_MEX" = "X" ; then
 		# Users: pls supply your input
-		AC_MSG_RESULT([Matlab mex-file extension not known - guessed to be mex])
+		AC_MSG_RESULT([MATLAB mex-file extension not known - guessed to be mex])
 		AC_MSG_RESULT([If incorrect, please modify makefile manually and post an issue on the GMT/MEX wiki])
 		MATLAB_MEX='mex'
 	fi
@@ -397,9 +397,9 @@ elif test ! "X$enable_matlab" = "X"; then
 		MEX_XDIR=$enable_mex_xdir
 	fi
 	AC_MSG_RESULT([$MEX_BLD $MEX_LIB, extension .$MEX_EXT])
-	AC_MSG_CHECKING(Matlab install dir for .m files)
+	AC_MSG_CHECKING(MATLAB install dir for .m files)
 	AC_MSG_RESULT([$MEX_MDIR])
-	AC_MSG_CHECKING(Matlab install dir for .mex files)
+	AC_MSG_CHECKING(MATLAB install dir for .mex files)
 	AC_MSG_RESULT([$MEX_XDIR])
 else
 	if test "X$enable_octmode" = "Xyes" || test "X$enable_octmode" = "Xoct" ; then
@@ -426,10 +426,14 @@ else
 	else
 		MEX_XDIR=$enable_mex_xdir
 	fi
-	AC_MSG_RESULT([$MEX_BLD, extension .$MEX_EXT])
-	AC_MSG_CHECKING(Octave install dir for .m files)
+	AC_MSG_RESULT([$MEX_BLD])
+	AC_MSG_CHECKING(Octave extension)
+	AC_MSG_RESULT([.$MEX_EXT])
+	AC_MSG_CHECKING(Octave include dir)
+	AC_MSG_RESULT([$MEX_INC])
+	AC_MSG_CHECKING(Octave system install dir for .m files)
 	AC_MSG_RESULT([$MEX_MDIR])
-	AC_MSG_CHECKING(Octave install dir for .$MEX_EXT files)
+	AC_MSG_CHECKING(Octave system install dir for .$MEX_EXT files)
 	AC_MSG_RESULT([$MEX_XDIR])
 fi
 dnl -----------------------------------------------------------------
