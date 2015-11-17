@@ -362,7 +362,6 @@ elif test ! "X$enable_matlab" = "X"; then
 		else
 			MATLAB=/Applications/$dir
 		fi
-		dnl MEX_BLD="$MATLAB/bin/mex -DGMT_MATLAB $MFLAGS"
 		MEX_BLD="xcrun clang -undefined error -arch x86_64 -bundle -DGMT_MATLAB $MFLAGS"
 		if test "$chip" = "i386" ; then		#Intel Mac
 			if test "$ac_cv_sizeof_long" = "8" ; then
@@ -376,19 +375,16 @@ elif test ! "X$enable_matlab" = "X"; then
 			MEX_EXT='mexmac'
 			MATLAB_MEX='mac'
 		fi
-		MEX_LIB="-L$MATLAB/bin/$MATLAB_MEX -lmx -lmex"
 	else					# Other
 		MEX_EXT='mex'
 	fi
 	if test "X$MATLAB_MEX" = "X" ; then
 		# Users: pls supply your input
 		AC_MSG_RESULT([Matlab mex-file extension not known - guessed to be mex])
-		AC_MSG_RESULT([If incorrect, please modify makefile manually and notify gmt@soest.hawaii.edu])
+		AC_MSG_RESULT([If incorrect, please modify makefile manually and post an issue on the GMT/MEX wiki])
 		MATLAB_MEX='mex'
 	fi
-	if test "X$MEX_LIB" = "X" ; then
-		MEX_LIB="-L$MATLAB/extern/lib/$MATLAB_MEX -lmx -lmex"
-	fi
+	MEX_LIB="-L$MATLAB/bin/$MATLAB_MEX -lmx -lmex"
 	MEX_INC="-I$MATLAB/extern/include"
 	if test "X$enable_mex_mdir" = "X" || test "X$enable_mdir" = "Xyes" ; then
 		MEX_MDIR=$MATLAB/toolbox/local
