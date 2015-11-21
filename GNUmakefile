@@ -43,7 +43,7 @@ build:
 		make install
 
 tar:
-		COPYFILE_DISABLE=true $(GNUTAR) --owner 0 --group 0 --mode a=rX,u=rwX \
+		COPYFILE_DISABLE=true $(GNUTAR) --owner 0 --group 0 --mode a=rX,u=rwX --absolute-names \
 			-cvjf mex-gmt-`gmt --version`-darwin-x84_64.tbz /opt/gmt
 
 update:
