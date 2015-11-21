@@ -16,13 +16,13 @@
 		<string>svn://gmtserver.soest.hawaii.edu/DCW</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
-	<string>trunk/src/xcode/gmtmex.xcodeproj</string>
+	<string>branches/5.3/src/xcode/gmtmex.xcodeproj</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
 		<key>03974b7a-4592-4726-bb37-2cc38c695039</key>
-		<string>../../../../..</string>
-		<key>305fe793-6e83-4b96-80da-ffabbfd79e6a</key>
 		<string>../../../../../..</string>
+		<key>305fe793-6e83-4b96-80da-ffabbfd79e6a</key>
+		<string>../../../../../../..</string>
 	</dict>
 	<key>IDESourceControlProjectVersion</key>
 	<integer>111</integer>
