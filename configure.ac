@@ -88,13 +88,14 @@ dnl Check for ar, csh/bash, ld, awk, and ranlib
 dnl -----------------------------------------------------------------
 dnl
 AC_CHECK_PROG(GMT_in_path, gmt, 1, 0)
-if test "$GMT_in_path" = "X0" ; then
+if test "X$GMT_in_path" = "X0" ; then
 	AC_MSG_RESULT(GMT5 executables are not in your path - aborting)
 	exit 1
 else
-	gversion=`gmt --version | awk '{print substr($1,1,3)}'`
-	if test "X$gversion" = "X5.2" ; then
-		AC_MSG_RESULT(GMT5.2.x executables found)
+	gmajor=`gmt --version | awk '{print substr($1,1,1)}'`
+	gminor=`gmt --version | awk '{print substr($1,3,1)}'`
+	if test "X$gmajor" = "X5" && test $gminor -ge 2; then
+		AC_MSG_RESULT(GMT5.2.x or higher executables found)
 	else
 		AC_MSG_RESULT(GMT5.2.x executables are not in your path - aborting)
 		exit 1
