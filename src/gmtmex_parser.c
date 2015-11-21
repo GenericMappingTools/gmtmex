@@ -1,7 +1,7 @@
 /*
  *	$Id$
  *
- *	Copyright (c) 1991-2013 by P. Wessel, W. H. F. Smith, R. Scharroo, J. Luis and F. Wobbe
+ *	Copyright (c) 1991-2015 by P. Wessel, W. H. F. Smith, R. Scharroo, J. Luis and F. Wobbe
  *      See LICENSE.TXT file for copying and redistribution conditions.
  *
  *      This program is free software; you can redistribute it and/or modify
@@ -349,6 +349,35 @@ void *GMTMEX_Get_Textset (void *API, struct GMT_TEXTSET *T) {
 	return C;
 }
 
+#define N_MEX_FIELDNAMES_PS	2
+
+void *GMTMEX_Get_PS (void *API, struct GMT_PS *P) {
+	/* Given a GMT Postscript structure P, build a MATLAB PS structure */
+	uint64_t *length;
+	mxArray *C = NULLL;
+	mxArray *PS_struct = NULL, *mxPS = NULL, *mxlength = NULL;
+	char *fieldnames[N_MEX_FIELDNAMES_PS];	/* Array with the names of the fields of the output grid structure. */
+	
+	if (P == NULL || !P->data)
+		mexErrMsgTxt ("GMTMEX_Get_PS: programming error, input PS struct P is NULL or data string is empty\n");
+
+	memset (fieldnames, 0, N_MEX_FIELDNAMES_PS*sizeof (char *));
+	/* Return PS with postscript and length in a struct */
+	/* Create a MATLAB struct for this PS */
+	fieldnames[0] = mxstrdup ("postscript");
+	fieldnames[1] = mxstrdup ("length");
+	PS_struct = mxCreateStructMatrix (1, 1, N_MEX_FIELDNAMES_PS, (const char **)fieldnames );
+
+	mxPS     = mxCreateString (P->data);
+	mxlength = mxCreateNumericMatrix (1, 1, mxUINT64_CLASS, mxREAL);
+	length   = mxGetPr (mxalpha);
+	
+	length[0] = (uint64_t)P->n;	/* Set length of the PS string */
+	mxSetField (PS_struct, 0, fieldnames[0], mxPS);
+	mxSetField (PS_struct, 0, fieldnames[1], mxlength);
+
+	return PS_struct;
+}
 
 #define N_MEX_FIELDNAMES_CPT	4
 
@@ -917,6 +946,46 @@ struct GMT_TEXTSET *GMTMEX_text_init (void *API, unsigned int direction, unsigne
 	}
 	return (T);
 }
+
+struct GMT_PS *GMTMEX_PS_init (void *API, unsigned int direction, unsigned int module_input, unsigned int family, const mxArray *ptr) {
+	/* Used to Create an empty PS container to hold a GMT PS object.
+ 	 * If direction is GMT_IN then we are given a MATLAB structure with known sizes.
+	 * If direction is GMT_OUT then we allocate an empty GMT PS as a destination. */
+	struct GMT_PS *P = NULL;
+	if (direction == GMT_IN) {	/* Dimensions are known from the MATLAB input pointer */
+		uint64_t dim[1] = {0}, *length = NULL;
+		if (module_input) family |= GMT_VIA_MODULE_INPUT;
+		mxArray *mx_ptr = NULL;
+
+		if (mxIsEmpty (ptr))
+			mexErrMsgTxt ("GMTMEX_PS_init: The input that was supposed to contain the PS structure is empty\n");
+		if (!mxIsStruct (ptr))
+			mexErrMsgTxt ("GMTMEX_PS_init: Expected a MATLAB PS structure for input\n");
+		mx_ptr = mxGetField (ptr, 0, "postscript");
+		if (!mxIsEmpty (mx_ptr) || !mxIsChar (mx_ptr)
+			mexErrMsgTxt ("GMTMEX_PS_init: Expected structure to contain a text array for PostScript\n");
+		PS = mxGetData (mx_ptr);
+		mx_ptr = mxGetField (ptr, 0, "length");
+		if (!mxIsEmpty (mx_ptr) || !mxIsUint64 (mx_ptr)
+			mexErrMsgTxt ("GMTMEX_PS_init: Expected structure to contain a coutner for PostScript length\n");
+		length = mxGetData (mx_ptr);
+		if (length[0] == 0)
+			mexErrMsgTxt ("GMTMEX_PS_init: Dimension of PostScript given as zero\n");
+		dim[0] = length[0];
+		if ((P = GMT_Create_Data (API, family, GMT_IS_NONE, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
+			mexErrMsgTxt ("GMTMEX_PS_init: Failure to alloc GMT source PS for input\n");
+		P->data = PS;	/* PostScript coming from MATLAB */
+		P->alloc_mode = GMT_ALLOC_EXTERNALLY;
+		GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_PS_init: Allocated GMT PS %lx\n", (long)P);
+	}
+	else {	/* Just allocate an empty container to hold an output PS object (signal this by passing NULLs) */
+		if ((P = GMT_Create_Data (API, GMT_IS_PS, GMT_IS_NONE, 0,
+                        NULL, NULL, NULL, 0, 0, NULL)) == NULL)
+			mexErrMsgTxt ("GMTMEX_PS_init: Failure to alloc GMT PS container for holding output PostScript\n");
+	}
+	return (P);
+}
+
 // (void *API, unsigned int family, unsigned int geometry, unsigned int direction, const mxArray *ptr, int *ID)
 
 void * GMTMEX_Register_IO (void *API, struct GMT_RESOURCE *X, const mxArray *ptr) {
@@ -959,6 +1028,12 @@ void * GMTMEX_Register_IO (void *API, struct GMT_RESOURCE *X, const mxArray *ptr
 			obj = GMTMEX_cpt_init (API, X->direction, module_input, ptr);
 			X->object_ID = GMT_Get_ID (API, GMT_IS_CPT, X->direction, obj);
 			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Register_IO: Got CPT with Object ID %d\n", X->object_ID);
+			break;
+		case GMT_IS_PS:
+			/* Get a PS container, and if input we associate it with the MATLAB PS pointer */
+			obj = GMTMEX_PS_init (API, X->direction, module_input, ptr);
+			X->object_ID = GMT_Get_ID (API, GMT_IS_PS, X->direction, obj);
+			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Register_IO: Got PS with Object ID %d\n", X->object_ID);
 			break;
 		default:
 			GMT_Report (API, GMT_MSG_NORMAL, "GMTMEX_Register_IO: Bad data type (%d)\n", X->family);
