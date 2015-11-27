@@ -914,7 +914,7 @@ struct GMT_TEXTSET *GMTMEX_text_init (void *API, unsigned int direction, unsigne
 						sprintf (word, "\t%.16g", d[rec+col*dim[GMT_ROW]]);
 						strcat (buffer, word);
 					}
-					txt = strdup (buffer);
+					txt = mxstrdup (buffer);
 				}
 				else {	/* Got cell array */
 					mx_ptr = mxGetCell (ptr, rec);
