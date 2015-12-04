@@ -370,7 +370,7 @@ void *GMTMEX_Get_PS (void *API, struct GMT_PS *P) {
 
 	mxPS     = mxCreateString (P->data);
 	mxlength = mxCreateNumericMatrix (1, 1, mxUINT64_CLASS, mxREAL);
-	length   = mxGetPr (mxlength);
+	length   = (uint64_t *)mxGetData(mxlength);
 	
 	length[0] = (uint64_t)P->n;	/* Set length of the PS string */
 	mxSetField (PS_struct, 0, fieldnames[0], mxPS);
