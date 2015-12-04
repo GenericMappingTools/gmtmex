@@ -904,21 +904,26 @@ struct GMT_TEXTSET *GMTMEX_text_init (void *API, unsigned int direction, unsigne
 	 * If direction is GMT_OUT then we allocate an empty GMT TEXTSET as a destination. */
 	struct GMT_TEXTSET *T = NULL;
 	if (direction == GMT_IN) {	/* Dimensions are known from the MATLAB input pointer */
-		uint64_t rec, dim[3] = {1, 1, 0};
+		uint64_t rec, col, dim[3] = {1, 1, 0}, n_col = 0;
 		if (module_input) family |= GMT_VIA_MODULE_INPUT;
 		unsigned int got_text = 0;
 		mxArray *mx_ptr = NULL;
 		char *txt = NULL;
+		double *d = NULL;
 		struct GMT_TEXTSEGMENT *S = NULL;	/* Shorthand for current segment */
 
 		if (mxIsEmpty (ptr))
 			mexErrMsgTxt ("GMTMEX_text_init: The input that was supposed to contain the Cell array is empty\n");
 		dim[GMT_ROW] = mxGetM (ptr);	/* Number of records */
-		if (mxIsChar (ptr) && dim[GMT_ROW] == 1)	/* Special case: Got a single text record */
+		if (mxIsNumeric (ptr)) {	/* Got matrix, must convert to text first */
+			n_col = mxGetN (ptr);	/* Number of columns */
+			d = mxGetData (ptr);
+		}
+		else if (mxIsChar (ptr) && dim[GMT_ROW] == 1)	/* Special case: Got a single text record */
 			got_text = 1;
 		else if (!mxIsCell (ptr))
-			mexErrMsgTxt ("GMTMEX_text_init: Expected a Cell array for input\n");
-		if (dim[GMT_ROW] == 1 && !got_text) {	/* Check if we got a transpose arrangement or just one record */
+			mexErrMsgTxt ("GMTMEX_text_init: Expected either a Cell array, Matrix, or text string for input\n");
+		if (n_col == 0 && dim[GMT_ROW] == 1 && !got_text) {	/* Check if we got a transpose arrangement or just one record */
 			rec = mxGetN (ptr);	/* Also possibly number of records */
 			if (rec > 1) dim[GMT_ROW] = rec;	/* User gave row-vector of cells */
 		}
@@ -931,8 +936,19 @@ struct GMT_TEXTSET *GMTMEX_text_init (void *API, unsigned int direction, unsigne
 			S->record[0] = mxArrayToString (ptr);
 		else {	/* Must get strings out of the cell array */
 			for (rec = 0; rec < S->n_rows; rec++) {
-				mx_ptr = mxGetCell (ptr, rec);
-				txt = mxArrayToString (mx_ptr);
+				if (n_col) {	/* Create text string from matrix */
+					char buffer[BUFSIZ] = {""}, word[64] = {""};
+					sprintf (buffer, "%.16g", d[rec]);
+					for (col = 1; col < n_col; col++) {
+						sprintf (word, "\t%.16g", d[rec+col*dim[GMT_ROW]]);
+						strcat (buffer, word);
+					}
+					txt = mxstrdup (buffer);
+				}
+				else {	/* Got cell array */
+					mx_ptr = mxGetCell (ptr, rec);
+					txt = mxArrayToString (mx_ptr);
+				}
 				S->record[rec] = txt;
 			}
 		}
