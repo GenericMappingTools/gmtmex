@@ -29,7 +29,7 @@
  * Finally, there are optional comma-separated MATLAB array entities required by the command.
  * Information about the options of each program is provided via GMT_Encode_Options.
  *
- * Version:	5.2
+ * Version:	5.3.x
  * Created:	20-JUL-2015
  *
  */
@@ -55,7 +55,7 @@ static void force_Destroy_Session (void) {
 void usage (int nlhs, int nrhs) {
 	/* Basic usage message */
 	if (nrhs == 0) {	/* No arguments at all results in the GMT banner message */
-		mexPrintf("\nGMT - The Generic Mapping Tools, Version %s %s API\n", "5.2", MEX_PROG);
+		mexPrintf("\nGMT - The Generic Mapping Tools, Version %s %s API\n", "5.3", MEX_PROG);
 		mexPrintf("Copyright 1991-2015 Paul Wessel, Walter H. F. Smith, R. Scharroo, J. Luis, and F. Wobbe\n\n");
 		mexPrintf("This program comes with NO WARRANTY, to the extent permitted by law.\n");
 		mexPrintf("You may redistribute copies of this program under the terms of the\n");
@@ -288,6 +288,9 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 				break;
 			case GMT_IS_IMAGE:	/* A GMT Image; make it the pos'th output item  */
 				plhs[pos] = GMTMEX_Get_Image (API, X[k].object);
+				break;
+			case GMT_IS_PS:		/* A GMT PostScript string; make it the pos'th output item  */
+				plhs[pos] = GMTMEX_Get_PS (API, X[k].object);
 				break;
 			default:
 				mexErrMsgTxt ("GMT: Internal Error - unsupported data type\n");
