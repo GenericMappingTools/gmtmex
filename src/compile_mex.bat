@@ -88,8 +88,8 @@ SET  GMT_LIB=c:\progs_cygw\GMTdev\gmt5\trunk\WIN%BITS%\lib\gmt.lib
 call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" x86
 )
 
-rem SET     GMT_INC=c:\progs_cygw\GMTdev\gmt5\trunk\WIN%BITS%\include
-SET    GMT_INC=C:\progs_cygw\GMTdev\gmt5\branches\5.2.0\src
+SET     GMT_INC=c:\progs_cygw\GMTdev\gmt5\trunk\WIN%BITS%\include\gmt
+REM SET    GMT_INC=C:\progs_cygw\GMTdev\gmt5\branches\5.2.2\src
 REM ----------------------------------------------------------------------------
 
 REM ____________________________________________________________________________
