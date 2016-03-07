@@ -52,7 +52,7 @@ static void force_Destroy_Session (void) {
 	}
 }
 
-void usage (int nlhs, int nrhs) {
+static void usage (int nlhs, int nrhs) {
 	/* Basic usage message */
 	if (nrhs == 0) {	/* No arguments at all results in the GMT banner message */
 		mexPrintf("\nGMT - The Generic Mapping Tools, Version %s %s API\n", "5.3", MEX_PROG);
@@ -72,7 +72,7 @@ void usage (int nlhs, int nrhs) {
 	}
 }
 
-void *Initiate_Session (unsigned int verbose) {
+static void *Initiate_Session (unsigned int verbose) {
 	/* Initialize the GMT Session and store the API pointer in a persistent variable */
 	void *API = NULL;
 	/* Initializing new GMT session with a MATLAB-acceptable replacement for the printf function */
