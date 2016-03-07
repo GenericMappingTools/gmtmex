@@ -105,7 +105,7 @@ enum MEX_dim {
  *		  + alpha is a N-element array with transparencies
  */
 
-mxClassID GMTMEX_type (void *API) {
+static mxClassID GMTMEX_type (void *API) {
 	/* Get default export type from GMT and return equivalent MATLAB class */
 	char value[8] = {""};
 	GMT_Get_Default (API, "GMT_EXPORT_TYPE", value);
@@ -124,7 +124,7 @@ mxClassID GMTMEX_type (void *API) {
 	return mxDOUBLE_CLASS;
 }
 
-char *mxstrdup (const char *s) {
+static char *mxstrdup (const char *s) {
 	/* A strdup replacement to be used in Mexs to avoid memory leaks since the MATLAB
 	   memory management will take care to free the memory allocated by this function */
 	char *d = mxMalloc (strlen (s) + 1);
