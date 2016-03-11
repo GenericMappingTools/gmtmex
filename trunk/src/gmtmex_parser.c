@@ -996,6 +996,7 @@ static struct GMT_PS *gmtmex_ps_init (void *API, unsigned int direction, unsigne
 			mexErrMsgTxt ("gmtmex_ps_init: Failure to alloc GMT source PS for input\n");
 		P->data = PS;	/* PostScript string coming from MATLAB */
 		P->alloc_mode = GMT_ALLOC_EXTERNALLY;
+		P->n = dim[0];
 		GMT_Report (API, GMT_MSG_DEBUG, "gmtmex_ps_init: Allocated GMT PS %lx\n", (long)P);
 	}
 	else {	/* Just allocate an empty container to hold an output PS object (signal this by passing NULLs) */
