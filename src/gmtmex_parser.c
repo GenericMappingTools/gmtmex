@@ -980,11 +980,13 @@ static struct GMT_PS *gmtmex_ps_init (void *API, unsigned int direction, unsigne
 		if (!mxIsStruct (ptr))
 			mexErrMsgTxt ("gmtmex_ps_init: Expected a MATLAB PS structure for input\n");
 		mx_ptr = mxGetField (ptr, 0, "postscript");
-		if (mxIsEmpty (mx_ptr) || !mxIsChar (mx_ptr))
+		//if (mxIsEmpty (mx_ptr) || !mxIsChar (mx_ptr))
+		if (mxIsEmpty (mx_ptr))
 			mexErrMsgTxt ("gmtmex_ps_init: Expected structure to contain a text array for PostScript\n");
 		PS = mxGetData (mx_ptr);
 		mx_ptr = mxGetField (ptr, 0, "length");
-		if (mxIsEmpty (mx_ptr) || !mxIsUint64 (mx_ptr))
+		//if (mxIsEmpty (mx_ptr) || !mxIsUint64 (mx_ptr))
+		if (mxIsEmpty (mx_ptr))
 			mexErrMsgTxt ("gmtmex_ps_init: Expected structure to contain a countner for PostScript length\n");
 		length = mxGetData (mx_ptr);
 		if (length[0] == 0)
