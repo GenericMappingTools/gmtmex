@@ -979,11 +979,6 @@ static struct GMT_PS *gmtmex_ps_init (void *API, unsigned int direction, unsigne
 			mexErrMsgTxt ("gmtmex_ps_init: The input that was supposed to contain the PS structure is empty\n");
 		if (!mxIsStruct (ptr))
 			mexErrMsgTxt ("gmtmex_ps_init: Expected a MATLAB PS structure for input\n");
-		mx_ptr = mxGetField (ptr, 0, "postscript");
-		//if (mxIsEmpty (mx_ptr) || !mxIsChar (mx_ptr))
-		if (mxIsEmpty (mx_ptr))
-			mexErrMsgTxt ("gmtmex_ps_init: Expected structure to contain a text array for PostScript\n");
-		PS = mxGetData (mx_ptr);
 		mx_ptr = mxGetField (ptr, 0, "length");
 		//if (mxIsEmpty (mx_ptr) || !mxIsUint64 (mx_ptr))
 		if (mxIsEmpty (mx_ptr))
@@ -991,6 +986,13 @@ static struct GMT_PS *gmtmex_ps_init (void *API, unsigned int direction, unsigne
 		length = mxGetData (mx_ptr);
 		if (length[0] == 0)
 			mexErrMsgTxt ("gmtmex_ps_init: Dimension of PostScript given as zero\n");
+		mx_ptr = mxGetField (ptr, 0, "postscript");
+		//if (mxIsEmpty (mx_ptr) || !mxIsChar (mx_ptr))
+		if (mxIsEmpty (mx_ptr))
+			mexErrMsgTxt ("gmtmex_ps_init: Expected structure to contain a text array for PostScript\n");
+		//PS = mxGetData (mx_ptr);
+		PS = malloc(mxGetN(mx_ptr)+1);
+		mxGetString(mx_ptr, PS, mxGetN(mx_ptr));
 		dim[0] = length[0];
 		if ((P = GMT_Create_Data (API, family, GMT_IS_NONE, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
 			mexErrMsgTxt ("gmtmex_ps_init: Failure to alloc GMT source PS for input\n");
@@ -1000,8 +1002,7 @@ static struct GMT_PS *gmtmex_ps_init (void *API, unsigned int direction, unsigne
 		GMT_Report (API, GMT_MSG_DEBUG, "gmtmex_ps_init: Allocated GMT PS %lx\n", (long)P);
 	}
 	else {	/* Just allocate an empty container to hold an output PS object (signal this by passing NULLs) */
-		if ((P = GMT_Create_Data (API, GMT_IS_PS, GMT_IS_NONE, 0,
-                        NULL, NULL, NULL, 0, 0, NULL)) == NULL)
+		if ((P = GMT_Create_Data (API, GMT_IS_PS, GMT_IS_NONE, 0, NULL, NULL, NULL, 0, 0, NULL)) == NULL)
 			mexErrMsgTxt ("gmtmex_ps_init: Failure to alloc GMT PS container for holding output PostScript\n");
 	}
 	return (P);
