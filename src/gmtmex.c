@@ -291,6 +291,13 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 				break;
 			case GMT_IS_PS:		/* A GMT PostScript string; make it the pos'th output item  */
 				plhs[pos] = GMTMEX_Get_PS (API, X[k].object);
+#if 0
+				{
+				char cmd[32] = {""};
+				strcpy(cmd, name);		strcat(cmd, " -A -Tf");
+				GMT_Call_Module(API, "psconvert", GMT_MODULE_CMD, cmd);
+				}
+#endif
 				break;
 			default:
 				mexErrMsgTxt ("GMT: Internal Error - unsupported data type\n");
