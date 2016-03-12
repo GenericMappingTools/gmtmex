@@ -40,7 +40,7 @@ clean:
 #-------------------------------------------------------------------------------
 
 gmtmex.$(MEX_EXT):	$(PROGS_O) $(LIB_O)
-		$(MEX_BLD) $(FLAGS) $(PROGS_O) $(LIB_O) $(ALLLIB)
+		$(MEX_BLD) $(FLAGS) $(PROGS_O) $(LIB_O) $(ALLLIB) -o gmtmex.$(MEX_EXT)
 
 .SUFFIXES:	.o .c
 
