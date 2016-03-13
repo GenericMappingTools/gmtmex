@@ -13,9 +13,9 @@
 		<key>03974b7a-4592-4726-bb37-2cc38c695039</key>
 		<string>svn://gmtserver.soest.hawaii.edu/gmt-mex</string>
 		<key>917c8030-4a88-45db-99bb-0766df257695</key>
-		<string>svn://gmtserver.soest.hawaii.edu/gmt-dig</string>
-		<key>917c8030-4a88-45db-99bb-0766df257695+++71B8ACF</key>
 		<string>svn://gmtserver.soest.hawaii.edu/DABOOKS</string>
+		<key>917c8030-4a88-45db-99bb-0766df257695+++2A8E892</key>
+		<string>svn://gmtserver.soest.hawaii.edu/gmt-dig</string>
 		<key>b0423341-95e2-47b4-bd03-98c9ce1e05f2</key>
 		<string>svn://gmtserver.soest.hawaii.edu/DABOOKS</string>
 	</dict>
@@ -27,7 +27,7 @@
 		<string>../../../../..</string>
 		<key>917c8030-4a88-45db-99bb-0766df257695</key>
 		<string>../../../../../..</string>
-		<key>917c8030-4a88-45db-99bb-0766df257695+++71B8ACF</key>
+		<key>917c8030-4a88-45db-99bb-0766df257695+++2A8E892</key>
 		<string>../../../../../..</string>
 		<key>b0423341-95e2-47b4-bd03-98c9ce1e05f2</key>
 		<string>../../../../../../..</string>
@@ -50,7 +50,7 @@
 			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
 			<string>public.vcs.subversion</string>
 			<key>IDESourceControlWCCIdentifierKey</key>
-			<string>917c8030-4a88-45db-99bb-0766df257695+++71B8ACF</string>
+			<string>917c8030-4a88-45db-99bb-0766df257695+++2A8E892</string>
 			<key>IDESourceControlWCCName</key>
 			<string></string>
 		</dict>
