@@ -349,13 +349,14 @@ void *GMTMEX_Get_Textset (void *API, struct GMT_TEXTSET *T) {
 	return C;
 }
 
-#define N_MEX_FIELDNAMES_PS	2
+#define N_MEX_FIELDNAMES_PS	3
 
 void *GMTMEX_Get_PS (void *API, struct GMT_PS *P) {
 	/* Given a GMT Postscript structure P, build a MATLAB PS structure */
-	uint64_t *length;
+	uint64_t *length = NULL;
+	unsigned int *mode = NULL;
 	mxArray *C = NULL;
-	mxArray *PS_struct = NULL, *mxPS = NULL, *mxlength = NULL;
+	mxArray *PS_struct = NULL, *mxPS = NULL, *mxlength = NULL, *mxmode = NULL;
 	char *fieldnames[N_MEX_FIELDNAMES_PS];	/* Array with the names of the fields of the output grid structure. */
 	
 	if (P == NULL || !P->data)
@@ -366,15 +367,20 @@ void *GMTMEX_Get_PS (void *API, struct GMT_PS *P) {
 	/* Create a MATLAB struct for this PS */
 	fieldnames[0] = mxstrdup ("postscript");
 	fieldnames[1] = mxstrdup ("length");
+	fieldnames[2] = mxstrdup ("mode");
 	PS_struct = mxCreateStructMatrix (1, 1, N_MEX_FIELDNAMES_PS, (const char **)fieldnames );
 
 	mxPS     = mxCreateString (P->data);
 	mxlength = mxCreateNumericMatrix (1, 1, mxUINT64_CLASS, mxREAL);
 	length   = (uint64_t *)mxGetData(mxlength);
+	mxmode = mxCreateNumericMatrix (1, 1, mxUINT32_CLASS, mxREAL);
+	mode   = (uint32_t *)mxGetData(mxmode);
 	
 	length[0] = (uint64_t)P->n;	/* Set length of the PS string */
+	mode[0] = (uint32_t)P->mode;	/* Set mode of the PS string */
 	mxSetField (PS_struct, 0, fieldnames[0], mxPS);
 	mxSetField (PS_struct, 0, fieldnames[1], mxlength);
+	mxSetField (PS_struct, 0, fieldnames[2], mxmode);
 
 	return PS_struct;
 }
@@ -970,7 +976,7 @@ static struct GMT_PS *gmtmex_ps_init (void *API, unsigned int direction, unsigne
 	struct GMT_PS *P = NULL;
 	if (direction == GMT_IN) {	/* Dimensions are known from the MATLAB input pointer */
 		uint64_t dim[1] = {0}, *length = NULL;
-		unsigned int family = (module_input) ? GMT_IS_PS|GMT_VIA_MODULE_INPUT : GMT_IS_PS;
+		unsigned int *mode = NULL, family = (module_input) ? GMT_IS_PS|GMT_VIA_MODULE_INPUT : GMT_IS_PS;
 		mxArray *mx_ptr = NULL;
 		char *PS = NULL;
 		if (module_input) family |= GMT_VIA_MODULE_INPUT;
@@ -993,12 +999,18 @@ static struct GMT_PS *gmtmex_ps_init (void *API, unsigned int direction, unsigne
 		//PS = mxGetData (mx_ptr);
 		PS = malloc(mxGetN(mx_ptr)+1);
 		mxGetString(mx_ptr, PS, mxGetN(mx_ptr));
+		mx_ptr = mxGetField (ptr, 0, "mode");
+		//if (mxIsEmpty (mx_ptr) || !mxIsUint64 (mx_ptr))
+		if (mxIsEmpty (mx_ptr))
+			mexErrMsgTxt ("gmtmex_ps_init: Expected structure to contain a mode for PostScript status\n");
+		mode = mxGetData (mx_ptr);
 		dim[0] = length[0];
 		if ((P = GMT_Create_Data (API, family, GMT_IS_NONE, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
 			mexErrMsgTxt ("gmtmex_ps_init: Failure to alloc GMT source PS for input\n");
 		P->data = PS;	/* PostScript string coming from MATLAB */
 		P->alloc_mode = GMT_ALLOC_EXTERNALLY;
 		P->n = dim[0];
+		P->mode = mode[0];
 		GMT_Report (API, GMT_MSG_DEBUG, "gmtmex_ps_init: Allocated GMT PS %lx\n", (long)P);
 	}
 	else {	/* Just allocate an empty container to hold an output PS object (signal this by passing NULLs) */
