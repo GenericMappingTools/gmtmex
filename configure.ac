@@ -412,8 +412,8 @@ else
 		MEX_ARG='-mex'
 		OCT_ARG=GMT_OCTMEX
 	fi
-
 	AC_MSG_CHECKING(Compiler options for Octave)
+	CFLAGS="$CFLAGS -D$OCT_ARG"
 	MEX_BLD="mkoctfile -D$OCT_ARG $MEX_ARG $MFLAGS"
 	MEX_LIB=
 	MEX_INC=-I`octave-config --print OCTINCLUDEDIR`

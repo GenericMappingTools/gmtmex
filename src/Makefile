@@ -45,4 +45,4 @@ gmtmex.$(MEX_EXT):	$(PROGS_O) $(LIB_O)
 .SUFFIXES:	.o .c
 
 .c.o:
-		$(CC) $(FLAGS) $(CFLAGS) $(GMT_INC) -DNO_MEX -c $<
+		$(CC) $(FLAGS) $(CFLAGS) $(GMT_INC) -c $<
