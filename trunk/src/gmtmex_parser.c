@@ -760,7 +760,9 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 		if ((I = GMT_Create_Data (API, GMT_IS_IMAGE, GMT_IS_SURFACE, GMT_GRID_HEADER_ONLY,
 		                          NULL, NULL, NULL, 0, 0, NULL)) == NULL)
 			mexErrMsgTxt ("gmtmex_image_init: Failure to alloc GMT blank image container for holding output image\n");
+#ifdef HAVE_GDAL
 		GMT_Set_Default (API, "API_IMAGE_LAYOUT", "TCLS");	/* State how we wish to receive images from GDAL */
+#endif
 	}
 	return (I);
 }
