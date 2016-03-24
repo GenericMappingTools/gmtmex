@@ -148,6 +148,9 @@ if test -x "$GMT_CONF" && test "X$GMT_INC" = "X" && test "X$GMT_LIB" = "X" ; the
 	GMT_LIB=`$GMT_CONF --libs`
 	DEP_LIBS=`$GMT_CONF --dep-libs`
 	AC_MSG_RESULT($GMT_LIB)
+	AC_MSG_CHECKING(if GMT was built with GDAL)
+	GMT_GDAL=`$GMT_CONF --has-gdal`
+	AC_MSG_RESULT($GMT_GDAL)
 	AC_MSG_CHECKING(for GMT bin directory)
 	GMT_BIN=`gmt --show-bindir`
 	AC_MSG_RESULT($GMT_BIN)
@@ -436,6 +439,9 @@ else
 	AC_MSG_RESULT([$MEX_MDIR])
 	AC_MSG_CHECKING(Octave system install dir for .$MEX_EXT files)
 	AC_MSG_RESULT([$MEX_XDIR])
+fi
+if test "X$GMT_GDAL" = "yes" ; then
+	CFLAGS="$CFLAGS -DHAVE_GDAL"
 fi
 dnl -----------------------------------------------------------------
 dnl Update the Make macros
