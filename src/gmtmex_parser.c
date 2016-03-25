@@ -349,6 +349,7 @@ void *GMTMEX_Get_Textset (void *API, struct GMT_TEXTSET *T) {
 	return C;
 }
 
+#if GMT_MINOR_VERSION > 2
 #define N_MEX_FIELDNAMES_PS	3
 
 void *GMTMEX_Get_PS (void *API, struct GMT_PS *P) {
@@ -384,6 +385,7 @@ void *GMTMEX_Get_PS (void *API, struct GMT_PS *P) {
 
 	return PS_struct;
 }
+#endif
 
 #define N_MEX_FIELDNAMES_CPT	4
 
@@ -971,6 +973,7 @@ static struct GMT_TEXTSET *gmtmex_text_init (void *API, unsigned int direction, 
 	return (T);
 }
 
+#if GMT_MINOR_VERSION > 2
 static struct GMT_PS *gmtmex_ps_init (void *API, unsigned int direction, unsigned int module_input, const mxArray *ptr) {
 	/* Used to Create an empty PS container to hold a GMT PS object.
  	 * If direction is GMT_IN then we are given a MATLAB structure with known sizes.
@@ -1021,6 +1024,7 @@ static struct GMT_PS *gmtmex_ps_init (void *API, unsigned int direction, unsigne
 	}
 	return (P);
 }
+#endif
 
 // (void *API, unsigned int family, unsigned int geometry, unsigned int direction, const mxArray *ptr, int *ID)
 
@@ -1065,12 +1069,14 @@ void * GMTMEX_Register_IO (void *API, struct GMT_RESOURCE *X, const mxArray *ptr
 			X->object_ID = GMT_Get_ID (API, GMT_IS_CPT, X->direction, obj);
 			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Register_IO: Got CPT with Object ID %d\n", X->object_ID);
 			break;
+#if GMT_MINOR_VERSION > 2
 		case GMT_IS_PS:
 			/* Get a PS container, and if input we associate it with the MATLAB PS pointer */
 			obj = gmtmex_ps_init (API, X->direction, module_input, ptr);
 			X->object_ID = GMT_Get_ID (API, GMT_IS_PS, X->direction, obj);
 			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Register_IO: Got PS with Object ID %d\n", X->object_ID);
 			break;
+#endif
 		default:
 			GMT_Report (API, GMT_MSG_NORMAL, "GMTMEX_Register_IO: Bad data type (%d)\n", X->family);
 			break;
