@@ -289,6 +289,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 			case GMT_IS_IMAGE:	/* A GMT Image; make it the pos'th output item  */
 				plhs[pos] = GMTMEX_Get_Image (API, X[k].object);
 				break;
+#if GMT_MINOR_VERSION > 2
 			case GMT_IS_PS:		/* A GMT PostScript string; make it the pos'th output item  */
 				plhs[pos] = GMTMEX_Get_PS (API, X[k].object);
 #if 0
@@ -299,6 +300,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 				}
 #endif
 				break;
+#endif
 			default:
 				mexErrMsgTxt ("GMT: Internal Error - unsupported data type\n");
 				break;

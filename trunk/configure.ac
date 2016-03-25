@@ -66,6 +66,7 @@ AC_SUBST(MEX_INC)
 AC_SUBST(MEX_EXT)
 AC_SUBST(MEX_XDIR)
 AC_SUBST(MEX_MDIR)
+AC_SUBST(GS_PATH)
 dnl
 dnl -----------------------------------------------------------------
 dnl Special configure options for gmtmex installation
@@ -111,6 +112,14 @@ AC_PROG_INSTALL
 AC_PROG_AWK
 AC_PROG_RANLIB
 AC_CHECK_SIZEOF(long)
+dnl
+dnl -----------------------------------------------------------------
+dnl Find full path to gs
+dnl -----------------------------------------------------------------
+AC_PATH_PROG([GS_EXE], [gs], [$gs_exe])
+if test -x "$GS_EXE" ; then
+	GS_PATH=$GS_EXE
+fi	
 dnl
 dnl -----------------------------------------------------------------
 dnl Get current OS and chip type

@@ -38,6 +38,7 @@ RANLIB		= @RANLIB@
 CSH		= @CSH@
 LD		= @LD@
 LN_S		= @LN_S@
+GS_PATH		= @GS_PATH@
 #
 #-------------------------------------------------------------------------------
 #	Required directives for GMT includes, library, and bin
