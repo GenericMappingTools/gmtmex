@@ -53,6 +53,7 @@ AC_SUBST(LDFLAGS)
 AC_SUBST(GMT_LIB)
 AC_SUBST(GMT_INC)
 AC_SUBST(GMT_BIN)
+AC_SUBST(GMT_MINOR)
 AC_SUBST(DEP_LIBS)
 AC_SUBST(LIBS)
 AC_SUBST(LIBEXT)
@@ -157,6 +158,9 @@ if test -x "$GMT_CONF" && test "X$GMT_INC" = "X" && test "X$GMT_LIB" = "X" ; the
 	GMT_LIB=`$GMT_CONF --libs`
 	DEP_LIBS=`$GMT_CONF --dep-libs`
 	AC_MSG_RESULT($GMT_LIB)
+	AC_MSG_CHECKING(for GMT version)
+	GMT_VER=`$GMT_CONF --version`
+	AC_MSG_RESULT($GMT_VER)
 	AC_MSG_CHECKING(if GMT was built with GDAL)
 	GMT_GDAL=`$GMT_CONF --has-gdal`
 	AC_MSG_RESULT($GMT_GDAL)
@@ -449,6 +453,8 @@ else
 	AC_MSG_CHECKING(Octave system install dir for .$MEX_EXT files)
 	AC_MSG_RESULT([$MEX_XDIR])
 fi
+GMT_MINOR=`echo $GMT_VER | awk '{print substr($1,3,1)}'`
+CFLAGS="$CFLAGS -DGMT_MINOR_VERSION=$GMT_MINOR"
 if test "X$GMT_GDAL" = "yes" ; then
 	CFLAGS="$CFLAGS -DHAVE_GDAL"
 fi
