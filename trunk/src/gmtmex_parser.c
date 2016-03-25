@@ -742,7 +742,7 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 
 		mx_ptr = mxGetField (ptr, 0, "z");
 		if (mx_ptr == NULL)
-			mexErrMsgTxt ("gmtmex_image_init: Could not find data array for Grid\n");
+			mexErrMsgTxt ("gmtmex_image_init: Could not find data array for Image\n");
 
 		f = mxGetData (mx_ptr);
 		for (row = 0; row < I->header->ny; row++) {
@@ -756,7 +756,7 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 		            "gmtmex_image_init: Registered GMT Image array %lx via memory reference from MATLAB\n",
 		            (long)I->data);
 	}
-	else {	/* Just allocate an empty container to hold an output grid (signal this by passing NULLs) */
+	else {	/* Just allocate an empty container to hold an output image (signal this by passing NULLs) */
 		if ((I = GMT_Create_Data (API, GMT_IS_IMAGE, GMT_IS_SURFACE, GMT_GRID_HEADER_ONLY,
 		                          NULL, NULL, NULL, 0, 0, NULL)) == NULL)
 			mexErrMsgTxt ("gmtmex_image_init: Failure to alloc GMT blank image container for holding output image\n");
