@@ -87,3 +87,7 @@ MEX_INC		= @MEX_INC@
 MEX_EXT		= @MEX_EXT@
 MEX_XDIR	= $(DESTDIR)@MEX_XDIR@
 MEX_MDIR	= $(DESTDIR)@MEX_MDIR@
+#-------------------------------------------------------------------------------
+#	GMT minor release number X in 5.X.y
+#-------------------------------------------------------------------------------
+GMT_MINOR	= @GMT_MINOR@

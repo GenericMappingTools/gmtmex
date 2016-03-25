@@ -55,7 +55,7 @@ static void force_Destroy_Session (void) {
 static void usage (int nlhs, int nrhs) {
 	/* Basic usage message */
 	if (nrhs == 0) {	/* No arguments at all results in the GMT banner message */
-		mexPrintf("\nGMT - The Generic Mapping Tools, Version %s %s API\n", "5.3", MEX_PROG);
+		mexPrintf("\nGMT - The Generic Mapping Tools, Version 5.%d %s API\n", GMT_MINOR_VERSION, MEX_PROG);
 		mexPrintf("Copyright 1991-2015 Paul Wessel, Walter H. F. Smith, R. Scharroo, J. Luis, and F. Wobbe\n\n");
 		mexPrintf("This program comes with NO WARRANTY, to the extent permitted by law.\n");
 		mexPrintf("You may redistribute copies of this program under the terms of the\n");
@@ -220,7 +220,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	
 	/* 2+ Add -F to psconvert if user requested a return image but did not give -F */
 	
-	if (!strcmp (module, "psconvert") && nlhs == 1 && !strstr ("-F", opt_args))	/* OK, add -F */
+	if (!strcmp (module, "psconvert") && nlhs == 1 && (!opt_args || !strstr ("-F", opt_args)))	/* OK, add -F */
 		strcat (opt_args, " -F");
 
 	/* 3. Convert mex command line arguments to a linked GMT option list */
