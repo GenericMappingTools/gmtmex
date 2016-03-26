@@ -348,6 +348,7 @@ if test "X$MATLAB" = "XNONE" ; then
 elif test ! "X$enable_matlab" = "X"; then
 	AC_MSG_CHECKING(Compiler options for MATLAB)
 	MEX_BLD="$MATLAB/bin/mex -DGMT_MATLAB $MFLAGS"
+	CFLAGS="$CFLAGS -DGMT_MATLAB"
 	if test "$os" = "Linux" ; then		# Linux systems
 		if test "$ac_cv_sizeof_long" = "8" ; then
 			MEX_EXT='mexa64'

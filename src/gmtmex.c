@@ -220,8 +220,12 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	
 	/* 2+ Add -F to psconvert if user requested a return image but did not give -F */
 	
-	if (!strcmp (module, "psconvert") && nlhs == 1 && (!opt_args || !strstr ("-F", opt_args)))	/* OK, add -F */
-		strcat (opt_args, " -F");
+	if (!strcmp (module, "psconvert") && nlhs == 1 && (!opt_args || !strstr ("-F", opt_args))) {	/* OK, add -F */
+		if (opt_args)
+			strcat (opt_args, " -F");
+		else
+			opt_args = "-F";
+	}
 
 	/* 3. Convert mex command line arguments to a linked GMT option list */
 	if (opt_args && (options = GMT_Create_Options (API, 0, opt_args)) == NULL)
