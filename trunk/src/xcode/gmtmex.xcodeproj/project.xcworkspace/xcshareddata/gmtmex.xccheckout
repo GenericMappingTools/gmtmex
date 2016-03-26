@@ -11,13 +11,9 @@
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
 		<key>03974b7a-4592-4726-bb37-2cc38c695039</key>
-		<string>svn://gmtserver.soest.hawaii.edu/gmt-mex</string>
-		<key>917c8030-4a88-45db-99bb-0766df257695</key>
-		<string>svn://gmtserver.soest.hawaii.edu/gmt-dig</string>
-		<key>917c8030-4a88-45db-99bb-0766df257695+++71B8ACF</key>
-		<string>svn://gmtserver.soest.hawaii.edu/DABOOKS</string>
-		<key>b0423341-95e2-47b4-bd03-98c9ce1e05f2</key>
-		<string>svn://gmtserver.soest.hawaii.edu/DABOOKS</string>
+		<string>svn://gmtserver/gmt-mex</string>
+		<key>305fe793-6e83-4b96-80da-ffabbfd79e6a</key>
+		<string>svn://gmtserver.soest.hawaii.edu/DCW</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
 	<string>trunk/src/xcode/gmtmex.xcodeproj</string>
@@ -25,12 +21,8 @@
 	<dict>
 		<key>03974b7a-4592-4726-bb37-2cc38c695039</key>
 		<string>../../../../..</string>
-		<key>917c8030-4a88-45db-99bb-0766df257695</key>
+		<key>305fe793-6e83-4b96-80da-ffabbfd79e6a</key>
 		<string>../../../../../..</string>
-		<key>917c8030-4a88-45db-99bb-0766df257695+++71B8ACF</key>
-		<string>../../../../../..</string>
-		<key>b0423341-95e2-47b4-bd03-98c9ce1e05f2</key>
-		<string>../../../../../../..</string>
 	</dict>
 	<key>IDESourceControlProjectVersion</key>
 	<integer>111</integer>
@@ -42,35 +34,13 @@
 			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
 			<string>public.vcs.subversion</string>
 			<key>IDESourceControlWCCIdentifierKey</key>
-			<string>917c8030-4a88-45db-99bb-0766df257695</string>
+			<string>305fe793-6e83-4b96-80da-ffabbfd79e6a</string>
 			<key>IDESourceControlWCCName</key>
 			<string></string>
 		</dict>
 		<dict>
 			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
 			<string>public.vcs.subversion</string>
-			<key>IDESourceControlWCCIdentifierKey</key>
-			<string>917c8030-4a88-45db-99bb-0766df257695+++71B8ACF</string>
-			<key>IDESourceControlWCCName</key>
-			<string></string>
-		</dict>
-		<dict>
-			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
-			<string>public.vcs.subversion</string>
-			<key>IDESourceControlWCCIdentifierKey</key>
-			<string>b0423341-95e2-47b4-bd03-98c9ce1e05f2</string>
-			<key>IDESourceControlWCCName</key>
-			<string>..</string>
-		</dict>
-		<dict>
-			<key>IDESourceControlRepositoryBranchesRelativeLocationKey</key>
-			<string>branches</string>
-			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
-			<string>public.vcs.subversion</string>
-			<key>IDESourceControlRepositoryTagsRelativeLocationKey</key>
-			<string>tags</string>
-			<key>IDESourceControlRepositoryTrunkRelativeLocationKey</key>
-			<string>trunk</string>
 			<key>IDESourceControlWCCIdentifierKey</key>
 			<string>03974b7a-4592-4726-bb37-2cc38c695039</string>
 			<key>IDESourceControlWCCName</key>
