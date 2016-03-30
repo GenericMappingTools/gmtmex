@@ -1009,13 +1009,14 @@ static struct GMT_PS *gmtmex_ps_init (void *API, unsigned int direction, unsigne
 		if (mxIsEmpty (mx_ptr))
 			mexErrMsgTxt ("gmtmex_ps_init: Expected structure to contain a mode for PostScript status\n");
 		mode = mxGetData (mx_ptr);
+		/* Passing dim[0] = 0 since we dont want any allocation of a PS string */
 		if ((P = GMT_Create_Data (API, family, GMT_IS_NONE, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
 			mexErrMsgTxt ("gmtmex_ps_init: Failure to alloc GMT source PS for input\n");
-		P->data = PS;	/* PostScript string coming from MATLAB */
-		P->alloc_mode = GMT_ALLOC_EXTERNALLY;
+		P->data = PS;	/* PostScript string instead is coming from MATLAB */
+		P->alloc_mode = GMT_ALLOC_EXTERNALLY;	/* Hence we are not allowed to free it */
 		P->n = length[0];	/* Length of the actual PS string */
-		P->n_alloc = dim[0];	/* But nothing was actually allocated here - just passing pointer from MATLAB */
-		P->mode = mode[0];
+		P->n_alloc = 0;		/* But nothing was actually allocated here - just passing pointer from MATLAB */
+		P->mode = mode[0];	/* Inherit the mode */
 		GMT_Report (API, GMT_MSG_DEBUG, "gmtmex_ps_init: Allocated GMT PS %lx\n", (long)P);
 	}
 	else {	/* Just allocate an empty container to hold an output PS object (signal this by passing NULLs) */
