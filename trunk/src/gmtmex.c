@@ -196,8 +196,9 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		if (nrhs > 1 && mxIsChar (prhs[first+1])) {	/* Got option string */
 			first++;	/* Since we have a 2nd string to skip now */
 			opt_args = mxArrayToString (prhs[first]);
+			n_in_objects--;
 		}
-		n_in_objects--;
+		/* Else we got no options, just input objects */
 	}
 	else {	/* Case b2. Get mex arguments, if any, and extract the GMT module name */
 		if (k >= MODULE_LEN)
