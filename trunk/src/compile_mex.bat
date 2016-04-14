@@ -47,7 +47,7 @@ IF %R13%=="yes" SET BITS=32
 
 REM
 REM Set to "yes" if you want to build a debug version
-SET DEBUG="yes"
+SET DEBUG="no"
 REM
 SET LDEBUG=
 IF %DEBUG%=="yes" SET LDEBUG=/debug
@@ -105,7 +105,7 @@ IF %BITS%==32 SET arc=X86
 SET LINKFLAGS=/dll /export:mexFunction /LIBPATH:%MATLIB% libmx.lib libmex.lib libmat.lib /MACHINE:%arc% kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /incremental:NO %LDEBUG%
 
 REM -------------------------------------------------------------------------------------------------------
-%CC% /c -DWIN32 %COMPFLAGS% -I%MATINC% -I%GMT_INC% %OPTIMFLAGS% %_MX_COMPAT% -DLIBRARY_EXPORTS -DGMT_MATLAB gmtmex_parser.c gmtmex.c
+%CC% /c -DWIN32 %COMPFLAGS% -I%MATINC% -I%GMT_INC% %OPTIMFLAGS% %_MX_COMPAT% -DLIBRARY_EXPORTS -DGMT_MATLAB -DGMT_MINOR_VERSION=3 gmtmex_parser.c gmtmex.c
 link  /out:"gmtmex.%MEX_EXT%" %LINKFLAGS% %GMT_LIB% /implib:templib.x gmtmex_parser.obj gmtmex.obj
 
 REM %CC% /c -DWIN32 %COMPFLAGS% -I%GMT_INC% %OPTIMFLAGS% %_MX_COMPAT% -DGMT_MATLAB -DNO_MEX gmtmex_parser.c gmt_mextest.c
