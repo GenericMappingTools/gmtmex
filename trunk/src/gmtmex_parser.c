@@ -512,10 +512,6 @@ void *GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I) {
 	mxtmp = mxCreateDoubleScalar ((double)I->header->nan_value);
 	mxSetField (image_struct, 0, (const char *) "NoDataValue", mxtmp);
 	
-	dptr = mxGetPr(mxtmp = mxCreateNumericMatrix (1, 2, mxDOUBLE_CLASS, mxREAL));
-	dptr[0] = I->header->ny;	dptr[1] = I->header->nx;
-	mxSetField (image_struct, 0, "dim", mxtmp);
-
 	mxtmp = mxCreateString (I->header->title);
 	mxSetField (image_struct, 0, (const char *) "title", mxtmp);
 
