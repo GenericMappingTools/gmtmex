@@ -108,11 +108,6 @@ REM ----------------------------------------------------------------------------
 %CC% /c -DWIN32 %COMPFLAGS% -I%MATINC% -I%GMT_INC% %OPTIMFLAGS% %_MX_COMPAT% -DLIBRARY_EXPORTS -DGMT_MATLAB -DGMT_MINOR_VERSION=3 gmtmex_parser.c gmtmex.c
 link  /out:"gmtmex.%MEX_EXT%" %LINKFLAGS% %GMT_LIB% /implib:templib.x gmtmex_parser.obj gmtmex.obj
 
-REM %CC% /c -DWIN32 %COMPFLAGS% -I%GMT_INC% %OPTIMFLAGS% %_MX_COMPAT% -DGMT_MATLAB -DNO_MEX gmtmex_parser.c gmt_mextest.c
-REM link /MACHINE:%arc% /nologo %LDEBUG% %GMT_LIB%  gmtmex_parser.obj gmt_mextest.obj
-REM -------------------------------------------------------------------------------------------------------
-
-
 del *.obj *.exp templib.x
 
 pause
