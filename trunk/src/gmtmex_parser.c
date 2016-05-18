@@ -153,8 +153,7 @@ void *GMTMEX_Get_Grid (void *API, struct GMT_GRID *G) {
 	float  *f = NULL;
 	double *dptr = NULL, *G_x = NULL, *G_y = NULL, *x = NULL, *y = NULL;
 	mxArray *mxGrd = NULL, *mx_x = NULL, *mx_y= NULL;
-	mxArray *mxProjectionRef = NULL;
-	mxArray *mxHeader = NULL, *mxtmp = NULL;
+	mxArray *mxtmp = NULL;
 	mxArray *grid_struct = NULL;
 	char    *fieldnames[N_MEX_FIELDNAMES_GRID];	/* this array contains the names of the fields of the output grid structure. */
 
@@ -356,7 +355,6 @@ void *GMTMEX_Get_PS (void *API, struct GMT_PS *P) {
 	/* Given a GMT Postscript structure P, build a MATLAB PS structure */
 	uint64_t *length = NULL;
 	unsigned int *mode = NULL;
-	mxArray *C = NULL;
 	mxArray *PS_struct = NULL, *mxPS = NULL, *mxlength = NULL, *mxmode = NULL;
 	char *fieldnames[N_MEX_FIELDNAMES_PS];	/* Array with the names of the fields of the output grid structure. */
 	
@@ -448,7 +446,6 @@ void *GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I) {
 	double *dptr = NULL, *I_x = NULL, *I_y = NULL, *x = NULL, *y = NULL;
 	double *color = NULL;
 	mxArray *mxImg = NULL, *mx_x = NULL, *mx_y= NULL, *mxalpha = NULL, *mxcolormap = NULL;
-	mxArray *mxProjectionRef = NULL;
 	mxArray *mxtmp = NULL;
 	mxArray *image_struct = NULL;
 	char    *fieldnames[N_MEX_FIELDNAMES_IMAGE];	/* this array contains the names of the fields of the output grid structure. */
