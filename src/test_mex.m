@@ -113,8 +113,7 @@ function grdinfo()
 
 function grdimage()
 	disp ('Test grdimage');
-	t = rand(100,3) * 100;
-	G = gmt('surface -R0/150/0/100 -I1', t);
+	G = gmt('surface -R0/150/0/100 -I1', rand(100,3) * 150);
 	gmt('grdimage -JX8c -Ba -P -Cblue,red > crap_img.ps', G);
 
 function grdsample()
@@ -150,7 +149,7 @@ function pscoast()
 function pstext()
 	disp ('Test pstext');
 	lines = {'5 6 Some label', '6 7 Another label'};
-	gmt('pstext -R0/10/0/10 -JM6i -Bafg -F+f18p -P > text.ps', lines)
+	gmt('pstext -R0/10/0/10 -JM6i -Bafg -F+f18p -P > V:\text.ps', lines)
 
 function psxy()
 	disp ('Test psxy');
