@@ -64,9 +64,7 @@ static void usage (int nlhs, int nrhs) {
 		mexPrintf("For a brief description of GMT modules, type gmt ('help')\n\n");
 	}
 	else {
-		mexPrintf("Usage is:\n\tgmt ('create');  %% Create a new GMT/MEX session\n");
-		mexPrintf("\tgmt ('module_name', 'options'[, <matlab arrays>]); %% Run a GMT module\n");
-		mexPrintf("\tgmt ('destroy');  %% Destroy the GMT/MEX session\n");
+		mexPrintf("Usage is:\n\tgmt ('module_name', 'options'[, <matlab arrays>]); %% Run a GMT module\n");
 		if (nlhs != 0)
 			mexErrMsgTxt ("But meanwhile you already made an error by asking help and an output.\n");
 	}
@@ -90,17 +88,17 @@ static void *Initiate_Session (unsigned int verbose) {
 /* This is the function that is called when we type gmt in MATLAB/Octave */
 void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	int status = 0;                 /* Status code from GMT API */
-	int n_in_objects = 0;		/* Number of input objects passed to module */
+	int n_in_objects = 0;           /* Number of input objects passed to module */
 	unsigned int first = 0;         /* Array ID of first command argument (not 0 when API-ID is first) */
 	unsigned int verbose = 0;       /* Default verbose setting */
 	unsigned int n_items = 0, pos = 0; /* Number of MATLAB arguments (left and right) */
 	size_t str_length = 0, k = 0;   /* Misc. counters */
-	void *API = NULL;		/* GMT API control structure */
+	void *API = NULL;               /* GMT API control structure */
 	struct GMT_OPTION *options = NULL; /* Linked list of module options */
 	struct GMT_RESOURCE *X = NULL;  /* Array of information about MATLAB args */
 	char *cmd = NULL;               /* Pointer used to get the user's MATLAB command */
 	char *gtxt = NULL;              /* For debug printing of revised command */
-	char *opt_args = NULL;		/* Pointer to the user's module options */
+	char *opt_args = NULL;          /* Pointer to the user's module options */
 	char module[MODULE_LEN] = {""}; /* Name of GMT module to call */
 	char name[GMT_STR16];           /* Name of GMT module to call */
 	void *ptr = NULL;
@@ -208,6 +206,33 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		while (cmd[k] == ' ') k++;	/* Skip any spaces between module name and start of options */
 		if (cmd[k]) opt_args = &cmd[k];
 	}
+
+
+	/* See if info about instalation is required */
+	if (!strcmp(module, "gmt")) {
+		char t[256] = {""};
+		if (!strcmp(opt_args, "--show-bindir")) 			/* Show the directory that contains the 'gmt' executable */
+			GMT_Get_Default (API, "BINDIR", t);
+		else if (!strcmp(opt_args, "--show-sharedir"))		/* Show share directory */
+			GMT_Get_Default (API, "SHAREDIR", t);
+		else if (!strcmp(opt_args, "--show-datadir"))		/* Show the data directory */
+			GMT_Get_Default (API, "DATADIR", t);
+		else if (!strcmp(opt_args, "--show-plugindir"))		/* Show the plugin directory */
+			GMT_Get_Default (API, "PLUGINDIR", t);
+		else if (!strcmp(opt_args, "--show-cores"))			/* Show number of cores */
+			GMT_Get_Default (API, "CORES", t);
+
+		if (t[0] != '\0') {
+			if (nlhs)
+				plhs[0] = mxCreateString (t);
+			else
+				mexPrintf ("%s\n", t);
+		}
+		else
+			mexPrintf ("Warning: calling the 'gmt' program by itself does nothing here.\n");
+		return;
+	}
+
 	/* Make sure this is a valid module */
 	if ((status = GMT_Call_Module (API, module, GMT_MODULE_EXIST, NULL))) {
 		char gmt_module[MODULE_LEN] = "gmt";	/* Alternate module name that starts with "gmt" */
