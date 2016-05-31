@@ -670,6 +670,8 @@ static struct GMT_GRID *gmtmex_grid_init (void *API, unsigned int direction, uns
 
 		if (mxIsSingle(mxGrid)) {
 			float *f4 = mxGetData(mxGrid);
+			if (f4 == NULL)
+				mexErrMsgTxt("gmtmex_grid_init: Grid pointer is NULL where it absolutely could not be.");
 			for (row = 0; row < G->header->ny; row++) {
 				for (col = 0; col < G->header->nx; col++) {
 					gmt_ij = GMT_IJP (G->header, row, col);
@@ -679,6 +681,8 @@ static struct GMT_GRID *gmtmex_grid_init (void *API, unsigned int direction, uns
 		}
 		else {
 			double *f8 = mxGetData(mxGrid);
+			if (f8 == NULL)
+				mexErrMsgTxt("gmtmex_grid_init: Grid pointer is NULL where it absolutely could not be.");
 			for (row = 0; row < G->header->ny; row++) {
 				for (col = 0; col < G->header->nx; col++) {
 					gmt_ij = GMT_IJP (G->header, row, col);
