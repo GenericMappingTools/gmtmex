@@ -385,15 +385,15 @@ void *GMTMEX_Get_PS (void *API, struct GMT_PS *P) {
 }
 #endif
 
-#define N_MEX_FIELDNAMES_CPT	4
+#define N_MEX_FIELDNAMES_CPT	6
 
 void *GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C) {
 	/* Given a GMT CPT C, build a MATLAB structure and assign values */
 
-	unsigned int k, j, n_colors;
-	double *color = NULL, *alpha = NULL, *rangeMinMax = NULL, *range = NULL;
+	unsigned int k, j, n_colors, *depth = NULL;
+	double *color = NULL, *alpha = NULL, *rangeMinMax = NULL, *range = NULL, *BFN = NULL;
 	mxArray *mxcolormap = NULL, *mxalpha = NULL, *mxrangeMinMax = NULL, *mxrange = NULL;
-	mxArray *CPT_struct = NULL;
+	mxArray *CPT_struct = NULL, *mxBFN = NULL, *mxdepth = NULL;
 	char *fieldnames[N_MEX_FIELDNAMES_CPT];	/* Array with the names of the fields of the output grid structure. */
 
 	if (!C->range)
@@ -406,6 +406,8 @@ void *GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C) {
 	fieldnames[1] = mxstrdup ("alpha");
 	fieldnames[2] = mxstrdup ("range");
 	fieldnames[3] = mxstrdup ("rangeMinMax");
+	fieldnames[4] = mxstrdup ("BFN");
+	fieldnames[5] = mxstrdup ("depth");
 	CPT_struct = mxCreateStructMatrix (1, 1, N_MEX_FIELDNAMES_CPT, (const char **)fieldnames );
 
 	n_colors = (C->is_continuous) ? C->n_colors + 1 : C->n_colors;
@@ -417,6 +419,14 @@ void *GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C) {
 	rangeMinMax   = mxGetPr (mxrangeMinMax);
 	mxrange       = mxCreateNumericMatrix (C->n_colors, 2, mxDOUBLE_CLASS, mxREAL);
 	range         = mxGetPr (mxrange);
+	mxBFN         = mxCreateNumericMatrix (3, 3, mxDOUBLE_CLASS, mxREAL);
+	BFN           = mxGetPr (mxBFN);
+	mxdepth       = mxCreateNumericMatrix (1, 1, mxUINT32_CLASS, mxREAL);
+	depth         = (uint32_t *)mxGetData(mxdepth);
+	depth[0] = (C->is_bw) ? 1 : ((C->is_gray) ? 8 : 24);
+	for (j = 0; j < 3; j++) {	/* Copy r/g/b from palette BFN to MATLAB array */
+		for (k = 0; k < 3; k++) BFN[j+k*3] = C->patch[j].rgb[k];
+	}
 	for (j = 0; j < C->n_colors; j++) {	/* Copy r/g/b from palette to MATLAB array */
 		for (k = 0; k < 3; k++) color[j+k*n_colors] = C->range[j].rgb_low[k];
 		alpha[j] = C->range[j].rgb_low[3];
@@ -433,7 +443,8 @@ void *GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C) {
 	mxSetField (CPT_struct, 0, "colormap", mxcolormap);
 	mxSetField (CPT_struct, 0, "alpha", mxalpha);
 	mxSetField (CPT_struct, 0, "range", mxrange);
-	mxSetField (CPT_struct, 0, "rangeMinMax", mxrangeMinMax);
+	mxSetField (CPT_struct, 0, "BFN", mxBFN);
+	mxSetField (CPT_struct, 0, "depth", mxdepth);
 	return (CPT_struct);
 }
 
@@ -829,11 +840,11 @@ static struct GMT_PALETTE *gmtmex_cpt_init (void *API, unsigned int direction, u
 	 * If direction is GMT_OUT then we allocate an empty GMT CPT as a destination. */
 	struct GMT_PALETTE *P = NULL;
 	if (direction == GMT_IN) {	/* Dimensions are known from the input pointer */
-		unsigned int k, j, one = 1;
+		unsigned int k, j, one = 1, *depth = NULL;
 		uint64_t dim[2];
 		unsigned int family = (module_input) ? GMT_IS_CPT|GMT_VIA_MODULE_INPUT : GMT_IS_CPT;
 		mxArray *mx_ptr = NULL;
-		double dz, *colormap = NULL, *range = NULL, *rangeMinMax = NULL, *alpha = NULL;
+		double dz, *colormap = NULL, *range = NULL, *rangeMinMax = NULL, *alpha = NULL, *BFN = NULL;
 
 		if (mxIsEmpty (ptr))
 			mexErrMsgTxt ("gmtmex_cpt_init: The input that was supposed to contain the CPT, is empty\n");
@@ -870,6 +881,14 @@ static struct GMT_PALETTE *gmtmex_cpt_init (void *API, unsigned int direction, u
 		if (mx_ptr == NULL)
 			mexErrMsgTxt ("gmtmex_cpt_init: Could not find alpha array for CPT transparency\n");
 		alpha = mxGetData (mx_ptr);
+		mx_ptr = mxGetField (ptr, 0, "BFN");
+		if (mx_ptr == NULL)
+			mexErrMsgTxt ("gmtmex_cpt_init: Could not find BFN array for back-, fore-, and nan-settings\n");
+		BFN = mxGetData (mx_ptr);
+		mx_ptr = mxGetField (ptr, 0, "depth");
+		if (mx_ptr == NULL)
+			mexErrMsgTxt ("gmtmex_cpt_init: Could not find CPT depth entry\n");
+		depth = mxGetData (mx_ptr);
 
 		if ((P = GMT_Create_Data (API, family, GMT_IS_NONE, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
 			mexErrMsgTxt ("gmtmex_cpt_init: Failure to alloc GMT source CPT for input\n");
@@ -877,6 +896,10 @@ static struct GMT_PALETTE *gmtmex_cpt_init (void *API, unsigned int direction, u
 		if (rangeMinMax)	/* Means we didn't get the full range array and need to compute it */
 			dz = (range[1] - range[0]) / P->n_colors;
 
+		for (j = 0; j < 3; j++) {	/* Do the BFN first */
+			for (k = 0; k < 3; k++)
+				P->patch[j].rgb[k] = BFN[j+k*3];
+		}
 		for (j = 0; j < P->n_colors; j++) {	/* OK to access j+1'th elemenent since length of colormap is P->n_colors+1 */
 			for (k = 0; k < 3; k++) {
 				P->range[j].rgb_low[k]  = colormap[j+k*dim[1]];
@@ -895,6 +918,11 @@ static struct GMT_PALETTE *gmtmex_cpt_init (void *API, unsigned int direction, u
 			P->range[j].annot = 3;	/* Enforce annotations for now */
 		}
 		P->is_continuous = one;
+		P->is_bw = P->is_gray = false;
+		if (depth[0] == 1)
+			P->is_bw = true;
+		else if (depth[0] == 8)
+			P->is_gray = true;
 		GMT_Report (API, GMT_MSG_DEBUG, "gmtmex_cpt_init: Allocated GMT CPT %lx\n", (long)P);
 	}
 	else {	/* Just allocate an empty container to hold an output grid (signal this by passing NULLs) */
