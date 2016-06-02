@@ -26,7 +26,7 @@ function  [ps_, t_path_] = gallery(opt, r_dir, o_path)
 		end
 	else
 		% Edit those two for your own needs
-		g_root_dir = 'C:/progs_cygw/GMTdev/gmt5/branches/5.2.0/';
+		g_root_dir = 'C:/progs_cygw/GMTdev/gmt5/trunk/';
 		out_path = 'V:/';		% Set this if you want to save the PS files in a prticular place
 	end
 
@@ -584,8 +584,8 @@ function [ps, d_path] = ex14(g_root_dir, out_path)
 	gmt(['psxy -R -J -Wthick,. -O -K >> ' ps], track)
 
 	% Sample along diagonal
-	data  = gmt('grdtrack -G -o2,3', Gdata, track);
-	trend = gmt('grdtrack -G -o2,3', Gtrend, track);
+	data  = gmt('grdtrack -G -o2,3', track, Gdata);
+	trend = gmt('grdtrack -G -o2,3', track, Gtrend);
 	t = gmt('info -I0.5/25', data, trend);
 	gmt(['psxy -JX6.3i/1.4i ' t{1} ' -Wthick -O -K -X-3.25i -Y-1.9i -Bx1 -By50 -BWSne >> ' ps], data)
 	gmt(['psxy -R -J -Wthinner,- -O >> ' ps], trend)
