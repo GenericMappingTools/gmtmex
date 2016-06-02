@@ -74,7 +74,8 @@ static void *Initiate_Session (unsigned int verbose) {
 	/* Initialize the GMT Session and store the API pointer in a persistent variable */
 	void *API = NULL;
 	/* Initializing new GMT session with a MATLAB-acceptable replacement for the printf function */
-	if ((API = GMT_Create_Session (MEX_PROG, 2U, (verbose << 0) + GMT_SESSION_NOEXIT + GMT_SESSION_EXTERNAL +
+	/* For debugging with verbose we pass the specified verbose shifted by 10 - this is decoded in API */
+	if ((API = GMT_Create_Session (MEX_PROG, 2U, (verbose << 10) + GMT_SESSION_NOEXIT + GMT_SESSION_EXTERNAL +
 	                               GMT_SESSION_COLMAJOR, GMTMEX_print_func)) == NULL)
 		mexErrMsgTxt ("GMT: Failure to create new GMT session\n");
 

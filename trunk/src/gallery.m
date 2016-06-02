@@ -728,7 +728,7 @@ function [ps, d_path] = ex18(g_root_dir, out_path)
 	centers = gmt('gmtspatial -Q -fg sm_C.txt');
 
 	% Only plot the ones within 200 km
-	t = gmt('gmtselect -C200k/$ -fg', pratt, centers);
+	t = gmt('gmtselect -C200k/$ -fg', centers, pratt);
 	gmt(['psxy -R -J -O -K -SC0.04i -Gred -Wthinnest >> ' ps], t)
 	gmt(['psxy -R -J -O -K -ST0.1i -Gyellow -Wthinnest >> ' ps], pratt)
 
@@ -1152,7 +1152,7 @@ function [ps, d_path] = ex27(g_root_dir, out_path)
 	grav_cpt = gmt('makecpt -T-120/120/1 -Z -Crainbow');
 
 	% Since this is a Mercator grid we use a linear projection
-	gmt(['grdimage ' d_path 'tasman_grav.nc=ns/0.1 -I -Jx0.25i -C -P -K > ' ps], Gtasman_grav_i, grav_cpt)
+	gmt(['grdimage ' d_path 'tasman_grav.nc=ns/0.1 -I -Jx0.25i -C -P -K > ' ps], grav_cpt, Gtasman_grav_i)
 
 	% Then use gmt pscoast to plot land; get original -R from grid remark
 	% and use Mercator gmt projection with same scale as above on a spherical Earth
@@ -1221,13 +1221,13 @@ function [ps, d_path] = ex29(g_root_dir, out_path)
 	mars_cpt = gmt('makecpt -Crainbow -T-7/15/0.1 -Z');
 	Gmars2_i = gmt('grdgradient -fg -Ne0.75 -A45 -G', Gmars2);
 	gmt(['grdimage -I -C -B30g30 -BWsne -JH0/7i -P -K -E200' ...
-		' --FONT_ANNOT_PRIMARY=12p -X0.75i > ' ps], Gmars2_i, mars_cpt, Gmars2)
+		' --FONT_ANNOT_PRIMARY=12p -X0.75i > ' ps], Gmars2, Gmars2_i, mars_cpt)
 	gmt(['grdcontour -J -O -K -C1 -A5 -Glz+/z- >> ' ps], Gmars2)
 	gmt(['psxy -Rg -J -O -K -Sc0.045i -Gblack ' d_path 'mars370.in  >> ' ps])
 	gmt(['pstext -R -J -O -K -N -D-3.5i/-0.2i -F+f14p,Helvetica-Bold+jLB >> ' ps], {'0 90 b)'})
 	Gmars_i = gmt('grdgradient -fg -Ne0.75 -A45 -G', Gmars);
 	gmt(['grdimage -I -C -B30g30 -BWsne -J -O -K -Y4.2i -E200' ...
-		' --FONT_ANNOT_PRIMARY=12p >> ' ps], Gmars_i, mars_cpt, Gmars)
+		' --FONT_ANNOT_PRIMARY=12p >> ' ps], Gmars, Gmars_i, mars_cpt)
 	gmt(['grdcontour -J -O -K -C1 -A5 -Glz+/z- >> ' ps], Gmars)
 	gmt(['psxy -Rg -J -O -K -Sc0.045i -Gblack ' d_path 'mars370.in  >> ' ps])
 	gmt(['psscale -C -O -K -R -J -DJBC+o0/0.15i+w6i/0.1i+h -I --FONT_ANNOT_PRIMARY=12p -Bx2f1 -By+lkm >> ' ps], mars_cpt)
@@ -1429,7 +1429,7 @@ function [ps, d_path] = ex35(g_root_dir, out_path)
 	Gtt = gmt('sphdistance -Rg -I1 -Q -N -G -Lk', pol, nodes);
 	t_cpt = gmt('makecpt -Chot -T0/3500/500 -Z');
 	% Make a basic image plot and overlay contours, Voronoi polygons and coastlines
-	gmt(['grdimage -JG-140/30/7i -P -K -C -X0.75i -Y2i > ' ps], t_cpt, Gtt)
+	gmt(['grdimage -JG-140/30/7i -P -K -C -X0.75i -Y2i > ' ps], Gtt, t_cpt)
 	gmt(['grdcontour -J -O -K -C500 -A1000+f10p,Helvetica,white -L500' ...
 		' -GL0/90/203/-10,175/60/170/-30,-50/30/220/-5 -Wa0.75p,white -Wc0.25p,white >> ' ps], Gtt)
 	gmt(['psxy -R -J -O -K -W0.25p,green,. >> ' ps], pol)
@@ -1446,11 +1446,11 @@ function [ps, d_path] = ex36(g_root_dir, out_path)
 	tt_cpt = gmt('makecpt -Crainbow -T-7000/15000/1000 -Z');
 	% Piecewise linear interpolation; no tension
 	Gtt = gmt(['sphinterpolate ' d_path 'mars370.txt -Rg -I1 -Q0 -G']);
-	gmt(['grdimage -JH0/6i -Bag -C -P -Xc -Y7.25i -K > ' ps], tt_cpt, Gtt)
+	gmt(['grdimage -JH0/6i -Bag -C -P -Xc -Y7.25i -K > ' ps], Gtt, tt_cpt)
 	gmt(['psxy -Rg -J -O -K ' d_path 'mars370.txt -Sc0.05i -G0 -B30g30 -Y-3.25i >> ' ps])
 	% Smoothing
 	Gtt = gmt(['sphinterpolate ' d_path 'mars370.txt -Rg -I1 -Q3 -G']);
-	gmt(['grdimage -J -Bag -C -Y-3.25i -O -K >> ' ps], tt_cpt, Gtt)
+	gmt(['grdimage -J -Bag -C -Y-3.25i -O -K >> ' ps], Gtt, tt_cpt)
 	gmt(['psxy -Rg -J -O -T >> ' ps])
 	builtin('delete','gmt.conf');
 
@@ -1550,15 +1550,15 @@ function [ps, d_path] = ex39(g_root_dir, out_path)
 	Gv3 = gmt(['sph2grd ' d_path 'VenusTopo180.txt -I1 -Rg -Ng -G -F1/1/170/180']);
 	t_cpt = gmt('grd2cpt -Crainbow -E16 -Z', Gv3);
 	Gvint = gmt('grdgradient -Nt0.75 -A45 -G', Gv1);
-	gmt(['grdimage -I -JG90/30/5i -P -K -Bg -C -X3i -Y1.1i > ' ps], Gvint, t_cpt, Gv1)
+	gmt(['grdimage -I -JG90/30/5i -P -K -Bg -C -X3i -Y1.1i > ' ps], Gv1, Gvint, t_cpt)
 	gmt(['pstext -R0/6/0/6 -Jx1i -O -K -Dj0.2i -F+f16p+jLM -N >> ' ps], {'4 4.5 L = 30'})
 	gmt(['psscale --FORMAT_FLOAT_MAP="%''g" -C -O -K -Dx1.25i/-0.2i+jTC+w5.5i/0.1i+h -Bxaf -By+lm >> ' ps], t_cpt)
 	Gvint = gmt('grdgradient -Nt0.75 -A45 -G', Gv2);
-	gmt(['grdimage -I -JG -O -K -Bg -C -X-1.25i -Y1.9i >> ' ps], Gvint, t_cpt, Gv2)
+	gmt(['grdimage -I -JG -O -K -Bg -C -X-1.25i -Y1.9i >> ' ps], Gv2, Gvint, t_cpt)
 	gmt(['pstext -R0/6/0/6 -Jx1i -O -K -Dj0.2i -F+f16p+jLM -N >> ' ps], {'4 4.5 L = 90'})
 	Gv3 = gmt(['sph2grd ' d_path 'VenusTopo180.txt -I1 -Rg -Ng -G -F1/1/170/180']);
 	Gvint = gmt('grdgradient -Nt0.75 -A45 -G', Gv3);
-	gmt(['grdimage -I -JG -O -K -Bg -C -X-1.25i -Y1.9i >> ' ps], Gvint, t_cpt, Gv3)
+	gmt(['grdimage -I -JG -O -K -Bg -C -X-1.25i -Y1.9i >> ' ps], Gv3, Gvint, t_cpt, Gv3)
 	gmt(['pstext -R0/6/0/6 -Jx1i -O -K -Dj0.2i -F+f16p+jLM -N >> ' ps], {'4 4.5 L = 180'})
 	gmt(['pstext -R0/6/0/6 -Jx1i -O -F+f24p+jCM -N >> ' ps], {'3.75 5.4 Venus Spherical Harmonic Model'})
 	builtin('delete','gmt.conf');
