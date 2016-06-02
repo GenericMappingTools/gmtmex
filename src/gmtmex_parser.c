@@ -182,7 +182,7 @@ void *GMTMEX_Get_Grid (void *API, struct GMT_GRID *G) {
 	fieldnames[16] = mxstrdup ("x_units");
 	fieldnames[17] = mxstrdup ("y_units");
 	fieldnames[18] = mxstrdup ("z_units");
-	grid_struct = mxCreateStructMatrix (1, 1, N_MEX_FIELDNAMES_GRID, (const char **)fieldnames );
+	grid_struct = mxCreateStructMatrix (1, 1, N_MEX_FIELDNAMES_GRID, (const char **)fieldnames);
 
 	mxtmp = mxCreateString (G->header->ProjRefPROJ4);
 	mxSetField (grid_struct, 0, (const char *) "ProjectionRefPROJ4", mxtmp);
@@ -329,8 +329,9 @@ void *GMTMEX_Get_Textset (void *API, struct GMT_TEXTSET *T) {
 	if (T == NULL || !T->table)
 		mexErrMsgTxt ("GMTMEX_Get_Textset: programming error, input textset T is NULL or empty\n");
 	/* Create a cell array to hold all records */
-	k = T->n_records;	/* Actual number of text records */
-	if (T->table[0]->n_segments > 1) k += T->table[0]->n_segments;	/* If more than one segment we must include segment headers */
+	k = T->n_records;					/* Actual number of text records */
+	if (T->table[0]->n_segments > 1)	/* If more than one segment we must include segment headers */
+		k += T->table[0]->n_segments;
 	C = mxCreateCellMatrix (k, 1);
 	/* There is only one table when used in the external API, but it may have many segments. */
 	for (seg = k = 0; seg < T->table[0]->n_segments; seg++) {
@@ -443,7 +444,8 @@ void *GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C) {
 	mxSetField (CPT_struct, 0, "colormap", mxcolormap);
 	mxSetField (CPT_struct, 0, "alpha", mxalpha);
 	mxSetField (CPT_struct, 0, "range", mxrange);
-	mxSetField (CPT_struct, 0, "BFN", mxBFN);
+	mxSetField (CPT_struct, 0, "rangeMinMax", mxrangeMinMax);
+	mxSetField (CPT_struct, 0, "BFN",   mxBFN);
 	mxSetField (CPT_struct, 0, "depth", mxdepth);
 	return (CPT_struct);
 }
@@ -546,7 +548,8 @@ void *GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I) {
 		mxImg = mxCreateNumericMatrix (I->header->ny, I->header->nx, mxUINT8_CLASS, mxREAL);
 		color = mxGetPr (mxcolormap);
 		u = mxGetData (mxImg);
-		for (n = 0; n < 4 * I->nIndexedColors && I->ColorMap[n] >= 0; n++) color[n] = (uint8_t)I->ColorMap[n];
+		for (n = 0; n < 4 * I->nIndexedColors && I->ColorMap[n] >= 0; n++)
+			color[n] = (uint8_t)I->ColorMap[n];
 		n /= 4;
 		memcpy (u, I->data, I->header->nm * sizeof (uint8_t));
 		mxSetField (image_struct, 0, "colormap", mxcolormap);
@@ -594,7 +597,8 @@ void *GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I) {
 	x = mxGetData (mx_x);
 	y = mxGetData (mx_y);
 	memcpy (x, I_x, I->header->nx * sizeof (double));
-	for (n = 0; n < I->header->ny; n++) y[I->header->ny-1-n] = I_y[n];	/* Must reverse the y-array */
+	for (n = 0; n < I->header->ny; n++)		/* Must reverse the y-array */
+		y[I->header->ny-1-n] = I_y[n];
 	if (GMT_Destroy_Data (API, &I_x))
 		mexPrintf("Warning: Failure to delete I_x (x coordinate vector)\n");
 	if (GMT_Destroy_Data (API, &I_y))
@@ -861,9 +865,8 @@ static struct GMT_PALETTE *gmtmex_cpt_init (void *API, unsigned int direction, u
 		mx_ptr = mxGetField (ptr, 0, "range");
 		if (mx_ptr == NULL) {	/* OK, we don't have the 'range' member but than we must have the 'rangeMinMax' */
 			mx_ptr = mxGetField(ptr, 0, "rangeMinMax");
-			if (mx_ptr == NULL) {
+			if (mx_ptr == NULL)
 				mexErrMsgTxt("gmtmex_cpt_init: Could not find neither the 'range' nor the 'rangeMinMax' arrays for CPT range\n");
-			}
 			rangeMinMax = mxGetData(mx_ptr);
 			dim[1] = dim[0];	/* This means discrete CPT */
 		}
@@ -871,12 +874,13 @@ static struct GMT_PALETTE *gmtmex_cpt_init (void *API, unsigned int direction, u
 			range  = mxGetData(mx_ptr);
 			dim[1] = mxGetM (mx_ptr);	/* Length of range array */
 		}
-		if (dim[0] > dim[1]) {	/* This only happens when we have a continuous color table */
-			dim[1] = dim[0];	/* Actual length of colormap array */
-			dim[0]--;		/* Number of CPT slices */
+		if (dim[0] > dim[1]) {  /* This only happens when we have a continuous color table */
+			dim[1] = dim[0];    /* Actual length of colormap array */
+			dim[0]--;           /* Number of CPT slices */
 		}
 		else	/* Discrete, so the one offset needs to be zero */
 			one = 0;
+
 		mx_ptr = mxGetField (ptr, 0, "alpha");
 		if (mx_ptr == NULL)
 			mexErrMsgTxt ("gmtmex_cpt_init: Could not find alpha array for CPT transparency\n");
@@ -926,8 +930,7 @@ static struct GMT_PALETTE *gmtmex_cpt_init (void *API, unsigned int direction, u
 		GMT_Report (API, GMT_MSG_DEBUG, "gmtmex_cpt_init: Allocated GMT CPT %lx\n", (long)P);
 	}
 	else {	/* Just allocate an empty container to hold an output grid (signal this by passing NULLs) */
-		if ((P = GMT_Create_Data (API, GMT_IS_CPT, GMT_IS_NONE, 0,
-                        NULL, NULL, NULL, 0, 0, NULL)) == NULL)
+		if ((P = GMT_Create_Data (API, GMT_IS_CPT, GMT_IS_NONE, 0, NULL, NULL, NULL, 0, 0, NULL)) == NULL)
 			mexErrMsgTxt ("gmtmex_cpt_init: Failure to alloc GMT blank CPT container for holding output CPT\n");
 	}
 	return (P);
@@ -1016,21 +1019,18 @@ static struct GMT_PS *gmtmex_ps_init (void *API, unsigned int direction, unsigne
 		if (!mxIsStruct (ptr))
 			mexErrMsgTxt ("gmtmex_ps_init: Expected a MATLAB PS structure for input\n");
 		mx_ptr = mxGetField (ptr, 0, "length");
-		//if (mxIsEmpty (mx_ptr) || !mxIsUint64 (mx_ptr))
 		if (mxIsEmpty (mx_ptr))
 			mexErrMsgTxt ("gmtmex_ps_init: Expected structure to contain a countner for PostScript length\n");
 		length = mxGetData (mx_ptr);
 		if (length[0] == 0)
 			mexErrMsgTxt ("gmtmex_ps_init: Dimension of PostScript given as zero\n");
 		mx_ptr = mxGetField (ptr, 0, "postscript");
-		//if (mxIsEmpty (mx_ptr) || !mxIsChar (mx_ptr))
 		if (mxIsEmpty (mx_ptr))
 			mexErrMsgTxt ("gmtmex_ps_init: Expected structure to contain a text array for PostScript\n");
 		//PS = mxGetData (mx_ptr);
 		PS = malloc(mxGetN(mx_ptr)+1);
 		mxGetString(mx_ptr, PS, mxGetN(mx_ptr));
 		mx_ptr = mxGetField (ptr, 0, "mode");
-		//if (mxIsEmpty (mx_ptr) || !mxIsUint64 (mx_ptr))
 		if (mxIsEmpty (mx_ptr))
 			mexErrMsgTxt ("gmtmex_ps_init: Expected structure to contain a mode for PostScript status\n");
 		mode = mxGetData (mx_ptr);
@@ -1052,9 +1052,7 @@ static struct GMT_PS *gmtmex_ps_init (void *API, unsigned int direction, unsigne
 }
 #endif
 
-// (void *API, unsigned int family, unsigned int geometry, unsigned int direction, const mxArray *ptr, int *ID)
-
-void * GMTMEX_Register_IO (void *API, struct GMT_RESOURCE *X, const mxArray *ptr) {
+void *GMTMEX_Register_IO (void *API, struct GMT_RESOURCE *X, const mxArray *ptr) {
 	/* Create the grid or matrix container, register it, and return the ID */
 	void *obj = NULL;		/* Pointer to the container we created */
 	char *name[2] = {"Matrix", "CellArray"};
