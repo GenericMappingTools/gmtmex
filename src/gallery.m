@@ -21,9 +21,7 @@ function  [ps_, t_path_] = gallery(opt, r_dir, o_path)
 
 	if (nargin == 3)
 		g_root_dir = r_dir;
-		if (nargin == 3),	out_path = o_path;
-		else				out_path = './';		% Current dir
-		end
+		out_path = o_path;
 	elseif (nargin >= 1)
 		g_root_dir = opt;
 		if (nargin == 2),	out_path = r_dir;
