@@ -656,10 +656,6 @@ static struct GMT_GRID *gmtmex_grid_init (void *API, unsigned int direction, uns
 				mexErrMsgTxt ("gmtmex_grid_init: Could not find range array for Grid range\n");
 			range = mxGetData (mx_ptr);
 
-			mx_ptr = mxGetField (ptr, 0, "registration");
-			if (mx_ptr == NULL)
-				mexErrMsgTxt ("gmtmex_grid_init: Could not find registration array for Grid registration\n");
-
 			mxGrid = mxGetField(ptr, 0, "z");
 			if (mxGrid == NULL)
 				mexErrMsgTxt ("gmtmex_grid_init: Could not find data array for Grid\n");
@@ -674,6 +670,55 @@ static struct GMT_GRID *gmtmex_grid_init (void *API, unsigned int direction, uns
 
 			G->header->z_min = range[4];
 			G->header->z_max = range[5];
+
+			mx_ptr = mxGetField (ptr, 0, "registration");
+			if (mx_ptr == NULL)
+				mexErrMsgTxt ("gmtmex_grid_init: Could not find registration array for Grid registration\n");
+			G->header->registration = *(uint32_t *)mxGetData (mx_ptr);
+
+			mx_ptr = mxGetField (ptr, 0, "NoDataValue");
+			if (mx_ptr != NULL)
+				G->header->nan_value = *(float *)mxGetData (mx_ptr);
+
+#if 0		/* Commented because we need a solution for the strdup. We can't use it because of the cross DLL problem */
+			mx_ptr = mxGetField (ptr, 0, "ProjectionRefPROJ4");
+			if (mx_ptr != NULL && mxGetN(mx_ptr) > 6) {		/* A true proj4 string will have at least this lenght */
+				char *str = malloc(mxGetN(mx_ptr) + 1);
+				mxGetString(mx_ptr, str, mxGetN(mx_ptr));
+				G->header->ProjRefPROJ4 = strdup(str);
+				free (str);
+			}
+			mx_ptr = mxGetField (ptr, 0, "ProjectionRefWKT");
+			if (mx_ptr != NULL && mxGetN(mx_ptr) > 20) {	/* A true WTT string will have more thna this lenght */ 
+				char *str = malloc(mxGetN(mx_ptr)+1);
+				mxGetString(mx_ptr, str, mxGetN(mx_ptr));
+				G->header->ProjRefWKT = strdup(str);
+				free (str);
+			}
+#endif
+
+			mx_ptr = mxGetField (ptr, 0, "title");
+			if (mx_ptr != NULL) {
+				char *str = malloc(mxGetN(mx_ptr)+1);
+				mxGetString(mx_ptr, str, mxGetN(mx_ptr));
+				strncpy(G->header->title, str, GMT_GRID_VARNAME_LEN80 - 1);
+				free (str);
+			}
+			mx_ptr = mxGetField (ptr, 0, "command");
+			if (mx_ptr != NULL) {
+				char *str = malloc(mxGetN(mx_ptr)+1);
+				mxGetString(mx_ptr, str, mxGetN(mx_ptr));
+				strncpy(G->header->command, str, GMT_GRID_COMMAND_LEN320 - 1);
+				free (str);
+			}
+			mx_ptr = mxGetField (ptr, 0, "remark");
+			if (mx_ptr != NULL) {
+				char *str = malloc(mxGetN(mx_ptr)+1);
+				mxGetString(mx_ptr, str, mxGetN(mx_ptr));
+				strncpy(G->header->remark, str, GMT_GRID_REMARK_LEN160 - 1);
+				free (str);
+			}
+
 			mx_ptr = mxGetField (ptr, 0, "x_units");
 			if (mx_ptr != NULL) {
 				mxGetString(mx_ptr, x_units, mxGetN(mx_ptr));
@@ -744,9 +789,11 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 	struct GMT_IMAGE *I = NULL;
 	if (direction == GMT_IN) {	/* Dimensions are known from the input pointer */
 		unsigned int family = (module_input) ? GMT_IS_IMAGE|GMT_VIA_MODULE_INPUT : GMT_IS_IMAGE;
-		mxArray *mx_ptr = NULL;
-		double *inc = NULL, *range = NULL;
+		char x_units[GMT_GRID_VARNAME_LEN80] = { "" }, y_units[GMT_GRID_VARNAME_LEN80] = { "" },
+		     z_units[GMT_GRID_VARNAME_LEN80] = { "" };
 		float *f = NULL;
+		double *inc = NULL, *range = NULL;
+		mxArray *mx_ptr = NULL;
 
 		if (mxIsEmpty (ptr))
 			mexErrMsgTxt ("gmtmex_image_init: The input that was supposed to contain the Image, is empty\n");
@@ -771,7 +818,11 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 		I->header->z_min = range[4];
 		I->header->z_max = range[5];
 
-		mx_ptr = mxGetField (ptr, 0, "z");
+		mx_ptr = mxGetField (ptr, 0, "NoDataValue");
+		if (mx_ptr != NULL)
+			I->header->nan_value = *(float *)mxGetData (mx_ptr);
+
+		mx_ptr = mxGetField (ptr, 0, "image");
 		if (mx_ptr == NULL)
 			mexErrMsgTxt ("gmtmex_image_init: Could not find data array for Image\n");
 
@@ -781,6 +832,61 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 				gmt_ij = GMT_IJP (I->header, row, col);
 				I->data [gmt_ij] = f[MEXG_IJ(I,row,col)];
 			}
+		}
+
+#if 0		/* Commented because we need a solution for the strdup. We can't use it because of the cross DLL problem */
+		mx_ptr = mxGetField (ptr, 0, "ProjectionRefPROJ4");
+		if (mx_ptr != NULL && mxGetN(mx_ptr) > 6) {		/* A true proj4 string will have at least this lenght */
+			char *str = malloc(mxGetN(mx_ptr) + 1);
+			mxGetString(mx_ptr, str, mxGetN(mx_ptr));
+			I->header->ProjRefPROJ4 = strdup(str);
+			free (str);
+		}
+		mx_ptr = mxGetField (ptr, 0, "ProjectionRefWKT");
+		if (mx_ptr != NULL && mxGetN(mx_ptr) > 20) {	/* A true WTT string will have more thna this lenght */ 
+			char *str = malloc(mxGetN(mx_ptr)+1);
+			mxGetString(mx_ptr, str, mxGetN(mx_ptr));
+			I->header->ProjRefWKT = strdup(str);
+			free (str);
+		}
+#endif
+
+		mx_ptr = mxGetField (ptr, 0, "title");
+		if (mx_ptr != NULL) {
+			char *str = malloc(mxGetN(mx_ptr)+1);
+			mxGetString(mx_ptr, str, mxGetN(mx_ptr));
+			strncpy(I->header->title, str, GMT_GRID_VARNAME_LEN80 - 1);
+			free (str);
+		}
+		mx_ptr = mxGetField (ptr, 0, "command");
+		if (mx_ptr != NULL) {
+			char *str = malloc(mxGetN(mx_ptr)+1);
+			mxGetString(mx_ptr, str, mxGetN(mx_ptr));
+			strncpy(I->header->command, str, GMT_GRID_COMMAND_LEN320 - 1);
+			free (str);
+		}
+		mx_ptr = mxGetField (ptr, 0, "remark");
+		if (mx_ptr != NULL) {
+			char *str = malloc(mxGetN(mx_ptr)+1);
+			mxGetString(mx_ptr, str, mxGetN(mx_ptr));
+			strncpy(I->header->remark, str, GMT_GRID_REMARK_LEN160 - 1);
+			free (str);
+		}
+
+		mx_ptr = mxGetField (ptr, 0, "x_units");
+		if (mx_ptr != NULL) {
+			mxGetString(mx_ptr, x_units, mxGetN(mx_ptr));
+			strncpy(I->header->x_units, x_units, GMT_GRID_VARNAME_LEN80 - 1);
+		}
+		mx_ptr = mxGetField (ptr, 0, "y_units");
+		if (mx_ptr != NULL) {
+			mxGetString(mx_ptr, y_units, mxGetN(mx_ptr));
+			strncpy(I->header->y_units, y_units, GMT_GRID_VARNAME_LEN80 - 1);
+		}
+		mx_ptr = mxGetField (ptr, 0, "z_units");
+		if (mx_ptr != NULL) {
+			mxGetString(mx_ptr, z_units, mxGetN(mx_ptr));
+			strncpy(I->header->z_units, z_units, GMT_GRID_VARNAME_LEN80 - 1);
 		}
 		GMT_Report (API, GMT_MSG_DEBUG, "gmtmex_image_init: Allocated GMT Image %lx\n", (long)I);
 		GMT_Report (API, GMT_MSG_DEBUG,
