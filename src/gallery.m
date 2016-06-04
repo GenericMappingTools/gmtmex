@@ -1152,7 +1152,7 @@ function [ps, d_path] = ex27(g_root_dir, out_path)
 	grav_cpt = gmt('makecpt -T-120/120/1 -Z -Crainbow');
 
 	% Since this is a Mercator grid we use a linear projection
-	gmt(['grdimage ' d_path 'tasman_grav.nc=ns/0.1 -I -Jx0.25i -C -P -K > ' ps], grav_cpt, Gtasman_grav_i)
+	gmt(['grdimage ' d_path 'tasman_grav.nc=ns/0.1 -I -Jx0.25i -C -P -K > ' ps], Gtasman_grav_i, grav_cpt)
 
 	% Then use gmt pscoast to plot land; get original -R from grid remark
 	% and use Mercator gmt projection with same scale as above on a spherical Earth
