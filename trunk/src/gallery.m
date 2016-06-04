@@ -1519,15 +1519,15 @@ function [ps, d_path] = ex38(g_root_dir, out_path)
 	Gout  = gmt(['grdhisteq ' d_path 'topo.nc -G -C16']);
 	gmt(['grdimage ' d_path 'topo.nc -I -C -JM3i -Y5i -K -P -B5 -BWSne > ' ps], Gitopo, t_cpt)
 	gmt(['pstext -R' d_path 'topo.nc -J -O -K -F+jTR+f14p -T -Gwhite -W1p -Dj0.1i >> ' ps], {'315 -10 Original'})
-	gmt(['grdimage -C -J -X3.5i -K -O -B5 -BWSne >> ' ps], c_cpt, Gout)
+	gmt(['grdimage -C -J -X3.5i -K -O -B5 -BWSne >> ' ps], Gout, c_cpt)
 	gmt(['pstext -R -J -O -K -F+jTR+f14p -T -Gwhite -W1p -Dj0.1i >> ' ps], {'315 -10 Equalized'})
 	gmt(['psscale -Dx0i/-0.4i+jTC+w5i/0.15i+h+e+n -O -K -C -Ba500 -By+lm >> ' ps], t_cpt)
 	Gout = gmt(['grdhisteq ' d_path 'topo.nc -G -N']);
 	c_cpt = gmt('makecpt -Crainbow -T-3/3/0.1 -Z');
-	gmt(['grdimage -C -J -X-3.5i -Y-3.3i -K -O -B5 -BWSne >> ' ps], c_cpt, Gout)
+	gmt(['grdimage -C -J -X-3.5i -Y-3.3i -K -O -B5 -BWSne >> ' ps], Gout, c_cpt)
 	gmt(['pstext -R -J -O -K -F+jTR+f14p -T -Gwhite -W1p -Dj0.1i >> ' ps], {'315 -10 Normalized'})
 	Gout = gmt(['grdhisteq ' d_path 'topo.nc -G -N']);
-	gmt(['grdimage -C -J -X3.5i -K -O -B5 -BWSne >> ' ps], c_cpt, Gout)
+	gmt(['grdimage -C -J -X3.5i -K -O -B5 -BWSne >> ' ps], Gout, c_cpt)
 	gmt(['pstext -R -J -O -K -F+jTR+f14p -T -Gwhite -W1p -Dj0.1i >> ' ps], {'315 -10 Quadratic'})
 	gmt(['psscale -Dx0i/-0.4i+w5i/0.15i+h+jTC+e+n -O -C -Bx1 -By+lz >> ' ps], c_cpt)
 	builtin('delete','gmt.conf');
