@@ -1,14 +1,24 @@
-function  [ps_, t_path_] = gallery(opt, r_dir, o_path)
+function  [ps_, t_path_] = gallery(varargin)
 %	The examples Gallery in GMT-MEX API
 %
-% If R_DIR and O_PATH are not transmitted, they must be manually set in this function
+% gallery(OPT, R_DIR, O_PATH, VERBOSE)
+% or
+% [ps_, t_path_] = gallery(OPT, R_DIR, O_PATH, VERBOSE)
+%
+% If R_DIR and O_PATH are not transmitted, the defaul value in this function is used (JL paths)
 % R_DIR is a string with the path to the root of your GMT installation. E.g.
-%	R_DIR = 'C:/progs_cygw/GMTdev/gmt5/branches/5.2.0/'
+%	R_DIR = 'C:/progs_cygw/GMTdev/gmt5/trunk/'
 %
 % O_PATH is a string with the output path where the new PS files will be writen
 %
-% If both R_DIR & O_PATH are not transmitted, they must be manually set in this function
 % If only R_DIR is set than O_PATH will default to current directory
+%
+% If the last argin is a logical variable that the examples are run in verbose mode
+%
+% Examples:
+%	gallery([], true)			Run all examples in verbose mode and use JL's paths
+%	gallery('ex03', true)		Run example3 in verbose mode and use JL's paths
+%   gallery([], '/user/PW_GMT_location/', true)		Run all examples in verbose mode and set GMT location
 
 %	$Id$
 
@@ -19,9 +29,21 @@ function  [ps_, t_path_] = gallery(opt, r_dir, o_path)
 	% 
 	global g_root_dir out_path;
 
-	if (nargin >= 2)
-		g_root_dir = r_dir;
-		if (nargin == 3),	out_path = o_path;
+	% Check if any of the input args is a logical, if yes set verbose to true.
+	verbose = false;
+	c = false(1, numel(varargin));
+	for (k = 1:numel(varargin))
+		if isa(varargin{k}, 'logical')
+			verbose = true;
+			c(k) = true;
+		end
+	end
+	varargin(c) = [];		% Remove the eventual logical argument
+	
+	n_args = numel(varargin);
+	if (n_args >= 2)
+		g_root_dir = varargin{2};
+		if (n_args == 3),	out_path = varargin{2};
 		else				out_path = './';		% Current dir
 		end
 	else
@@ -37,60 +59,60 @@ function  [ps_, t_path_] = gallery(opt, r_dir, o_path)
 		'ex29' 'ex30' 'ex33' 'ex34' 'ex35' 'ex36' 'ex37' 'ex38' 'ex39' 'ex40' 'ex41' 'ex42' ...
 		'ex44' 'ex45'}; 
 
-	if (nargin == 0 || isempty(opt))
+	if (n_args == 0 || isempty(varargin{1}))
 		opt = all_exs;
 	else
-		opt = {opt};		% Make it a cell to fit the other branch
+		opt = varargin(1);		% Make it a cell to fit the other branch
 	end
 
 	try
 		for (k = 1: numel(opt))
 			switch opt{k}
-				case 'ex01',   [ps, t_path] = ex01(g_root_dir, out_path);
-				case 'ex02',   [ps, t_path] = ex02(g_root_dir, out_path);
-				case 'ex03',   [ps, t_path] = ex03(g_root_dir, out_path);
-				case 'ex04',   [ps, t_path] = ex04(g_root_dir, out_path);
-				case 'ex05',   [ps, t_path] = ex05(g_root_dir, out_path);
-				case 'ex06',   [ps, t_path] = ex06(g_root_dir, out_path);
-				case 'ex07',   [ps, t_path] = ex07(g_root_dir, out_path);
-				case 'ex08',   [ps, t_path] = ex08(g_root_dir, out_path);
-				case 'ex09',   [ps, t_path] = ex09(g_root_dir, out_path);
-				case 'ex10',   [ps, t_path] = ex10(g_root_dir, out_path);
-				case 'ex11',   [ps, t_path] = ex11(g_root_dir, out_path);
-				case 'ex12',   [ps, t_path] = ex12(g_root_dir, out_path);
-				case 'ex13',   [ps, t_path] = ex13(g_root_dir, out_path);
-				case 'ex14',   [ps, t_path] = ex14(g_root_dir, out_path);
-				case 'ex15',   [ps, t_path] = ex15(g_root_dir, out_path);
-				case 'ex16',   [ps, t_path] = ex16(g_root_dir, out_path);
-				case 'ex17',   [ps, t_path] = ex17(g_root_dir, out_path);
-				case 'ex18',   [ps, t_path] = ex18(g_root_dir, out_path);
-				case 'ex19',   [ps, t_path] = ex19(g_root_dir, out_path);
-				case 'ex20',   [ps, t_path] = ex20(g_root_dir, out_path);
-				case 'ex21',   [ps, t_path] = ex21(g_root_dir, out_path);
-				case 'ex22',   [ps, t_path] = ex22(g_root_dir, out_path);
-				case 'ex23',   [ps, t_path] = ex23(g_root_dir, out_path);
-				case 'ex24',   [ps, t_path] = ex24(g_root_dir, out_path);
-				case 'ex25',   [ps, t_path] = ex25(g_root_dir, out_path);
-				case 'ex26',   [ps, t_path] = ex26(g_root_dir, out_path);
-				case 'ex27',   [ps, t_path] = ex27(g_root_dir, out_path);
-				case 'ex28',   [ps, t_path] = ex28(g_root_dir, out_path);
-				case 'ex29',   [ps, t_path] = ex29(g_root_dir, out_path);
-				case 'ex30',   [ps, t_path] = ex30(g_root_dir, out_path);
-				case 'ex31',   [ps, t_path] = ex31(g_root_dir, out_path);	% Not yet
-				case 'ex32',   [ps, t_path] = ex32(g_root_dir, out_path);
-				case 'ex33',   [ps, t_path] = ex33(g_root_dir, out_path);
-				case 'ex34',   [ps, t_path] = ex34(g_root_dir, out_path);
-				case 'ex35',   [ps, t_path] = ex35(g_root_dir, out_path);
-				case 'ex36',   [ps, t_path] = ex36(g_root_dir, out_path);
-				case 'ex37',   [ps, t_path] = ex37(g_root_dir, out_path);		% grdfft errors
-				case 'ex38',   [ps, t_path] = ex38(g_root_dir, out_path);
-				case 'ex39',   [ps, t_path] = ex39(g_root_dir, out_path);
-				case 'ex40',   [ps, t_path] = ex40(g_root_dir, out_path);
-				case 'ex41',   [ps, t_path] = ex41(g_root_dir, out_path);
-				case 'ex42',   [ps, t_path] = ex42(g_root_dir, out_path);
-				case 'ex43',   [ps, t_path] = ex43(g_root_dir, out_path);	% Not yet
-				case 'ex44',   [ps, t_path] = ex44(g_root_dir, out_path);
-				case 'ex45',   [ps, t_path] = ex45(g_root_dir, out_path);
+				case 'ex01',   [ps, t_path] = ex01(g_root_dir, out_path, verbose);
+				case 'ex02',   [ps, t_path] = ex02(g_root_dir, out_path, verbose);
+				case 'ex03',   [ps, t_path] = ex03(g_root_dir, out_path, verbose);
+				case 'ex04',   [ps, t_path] = ex04(g_root_dir, out_path, verbose);
+				case 'ex05',   [ps, t_path] = ex05(g_root_dir, out_path, verbose);
+				case 'ex06',   [ps, t_path] = ex06(g_root_dir, out_path, verbose);
+				case 'ex07',   [ps, t_path] = ex07(g_root_dir, out_path, verbose);
+				case 'ex08',   [ps, t_path] = ex08(g_root_dir, out_path, verbose);
+				case 'ex09',   [ps, t_path] = ex09(g_root_dir, out_path, verbose);
+				case 'ex10',   [ps, t_path] = ex10(g_root_dir, out_path, verbose);
+				case 'ex11',   [ps, t_path] = ex11(g_root_dir, out_path, verbose);
+				case 'ex12',   [ps, t_path] = ex12(g_root_dir, out_path, verbose);
+				case 'ex13',   [ps, t_path] = ex13(g_root_dir, out_path, verbose);
+				case 'ex14',   [ps, t_path] = ex14(g_root_dir, out_path, verbose);
+				case 'ex15',   [ps, t_path] = ex15(g_root_dir, out_path, verbose);
+				case 'ex16',   [ps, t_path] = ex16(g_root_dir, out_path, verbose);
+				case 'ex17',   [ps, t_path] = ex17(g_root_dir, out_path, verbose);
+				case 'ex18',   [ps, t_path] = ex18(g_root_dir, out_path, verbose);
+				case 'ex19',   [ps, t_path] = ex19(g_root_dir, out_path, verbose);
+				case 'ex20',   [ps, t_path] = ex20(g_root_dir, out_path, verbose);
+				case 'ex21',   [ps, t_path] = ex21(g_root_dir, out_path, verbose);
+				case 'ex22',   [ps, t_path] = ex22(g_root_dir, out_path, verbose);
+				case 'ex23',   [ps, t_path] = ex23(g_root_dir, out_path, verbose);
+				case 'ex24',   [ps, t_path] = ex24(g_root_dir, out_path, verbose);
+				case 'ex25',   [ps, t_path] = ex25(g_root_dir, out_path, verbose);
+				case 'ex26',   [ps, t_path] = ex26(g_root_dir, out_path, verbose);
+				case 'ex27',   [ps, t_path] = ex27(g_root_dir, out_path, verbose);
+				case 'ex28',   [ps, t_path] = ex28(g_root_dir, out_path, verbose);
+				case 'ex29',   [ps, t_path] = ex29(g_root_dir, out_path, verbose);
+				case 'ex30',   [ps, t_path] = ex30(g_root_dir, out_path, verbose);
+				case 'ex31',   [ps, t_path] = ex31(g_root_dir, out_path, verbose);	% Not yet
+				case 'ex32',   [ps, t_path] = ex32(g_root_dir, out_path, verbose);
+				case 'ex33',   [ps, t_path] = ex33(g_root_dir, out_path, verbose);
+				case 'ex34',   [ps, t_path] = ex34(g_root_dir, out_path, verbose);
+				case 'ex35',   [ps, t_path] = ex35(g_root_dir, out_path, verbose);
+				case 'ex36',   [ps, t_path] = ex36(g_root_dir, out_path, verbose);
+				case 'ex37',   [ps, t_path] = ex37(g_root_dir, out_path, verbose);		% grdfft errors
+				case 'ex38',   [ps, t_path] = ex38(g_root_dir, out_path, verbose);
+				case 'ex39',   [ps, t_path] = ex39(g_root_dir, out_path, verbose);
+				case 'ex40',   [ps, t_path] = ex40(g_root_dir, out_path, verbose);
+				case 'ex41',   [ps, t_path] = ex41(g_root_dir, out_path, verbose);
+				case 'ex42',   [ps, t_path] = ex42(g_root_dir, out_path, verbose);
+				case 'ex43',   [ps, t_path] = ex43(g_root_dir, out_path, verbose);	% Not yet
+				case 'ex44',   [ps, t_path] = ex44(g_root_dir, out_path, verbose);
+				case 'ex45',   [ps, t_path] = ex45(g_root_dir, out_path, verbose);
 			end
 		end
 	catch
@@ -104,9 +126,10 @@ function  [ps_, t_path_] = gallery(opt, r_dir, o_path)
 	gmt('destroy')
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex01(g_root_dir, out_path)
+function [ps, d_path] = ex01(g_root_dir, out_path, verbose)
 	d_path = [g_root_dir 'doc/examples/ex01/'];
 	ps = [out_path 'example_01.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	gmt('set MAP_GRID_CROSS_SIZE_PRIMARY 0 FONT_ANNOT_PRIMARY 10p PROJ_LENGTH_UNIT inch PS_CHAR_ENCODING Standard+ PS_MEDIA letter')
 	gmt(['psbasemap -R0/6.5/0/7.5 -Jx1i -B0 -P -K > ' ps])
@@ -120,9 +143,10 @@ function [ps, d_path] = ex01(g_root_dir, out_path)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex02(g_root_dir, out_path)
+function [ps, d_path] = ex02(g_root_dir, out_path, verbose)
 	d_path = [g_root_dir 'doc/examples/ex02/'];
 	ps = [out_path 'example_02.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	gmt('set FONT_TITLE 30p MAP_ANNOT_OBLIQUE 0 PROJ_LENGTH_UNIT inch PS_CHAR_ENCODING Standard+ PS_MEDIA letter')
 	g_cpt = gmt('makecpt -Crainbow -T-2/14/2');
@@ -138,11 +162,12 @@ function [ps, d_path] = ex02(g_root_dir, out_path)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex03(g_root_dir, out_path)
+function [ps, d_path] = ex03(g_root_dir, out_path, verbose)
 % THIS EXAMPLE CRASH IN THE project CALL
 % It crashes in project/#L1013 because pdata.z, when pure_ascii == true, was never initialized 
 	d_path = [g_root_dir 'doc/examples/ex03/'];
 	ps = [out_path 'example_03a.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	gmt('set -Du')
 
@@ -270,9 +295,10 @@ function [ps, d_path] = ex03(g_root_dir, out_path)
 	ps = ps_out;	% This the one we want to return
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex04(g_root_dir, out_path)
+function [ps, d_path] = ex04(g_root_dir, out_path, verbose)
 	d_path = [g_root_dir 'doc/examples/ex04/'];
 	ps = [out_path 'example_04.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	gmt('set -Du')
 	fid = fopen('zero.cpt','w');
@@ -303,9 +329,10 @@ function [ps, d_path] = ex04(g_root_dir, out_path)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex05(g_root_dir, out_path)
+function [ps, d_path] = ex05(g_root_dir, out_path, verbose)
 	d_path = [g_root_dir 'doc/examples/ex05/'];
 	ps = [out_path 'example_05.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	gmt('set -Du')
 	Gsombrero = gmt('grdmath -R-15/15/-15/15 -I0.3 X Y HYPOT DUP 2 MUL PI MUL 8 DIV COS EXCH NEG 10 DIV EXP MUL =');
@@ -321,7 +348,7 @@ function [ps, d_path] = ex05(g_root_dir, out_path)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex06(g_root_dir, out_path)
+function [ps, d_path] = ex06(g_root_dir, out_path, verbose)
 	d_path = [g_root_dir 'doc/examples/ex06/'];
 	ps = [out_path 'example_06.ps'];
 
@@ -334,9 +361,10 @@ function [ps, d_path] = ex06(g_root_dir, out_path)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex07(g_root_dir, out_path)
+function [ps, d_path] = ex07(g_root_dir, out_path, verbose)
 	d_path = [g_root_dir 'doc/examples/ex07'];
 	ps = [out_path 'example_07.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	gmt('set -Du')
 	gmt(['pscoast -R-50/0/-10/20 -JM9i -K -Slightblue -GP300/26:FtanBdarkbrown -Dl -Wthinnest' ...
@@ -353,7 +381,7 @@ function [ps, d_path] = ex07(g_root_dir, out_path)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex08(g_root_dir, out_path)
+function [ps, d_path] = ex08(g_root_dir, out_path, verbose)
 	d_path = [g_root_dir 'doc/examples/ex08'];
 	ps = [out_path 'example_08.ps'];
 
@@ -365,9 +393,10 @@ function [ps, d_path] = ex08(g_root_dir, out_path)
 	gmt(['pstext -R -J -JZ -Z0 -F+f24p,Helvetica-Bold+jTL -p -O >> ' ps], {'0.1 4.9 This is the surface of cube'})
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex09(g_root_dir, out_path)
+function [ps, d_path] = ex09(g_root_dir, out_path, verbose)
 	d_path = [g_root_dir 'doc/examples/ex09/'];
 	ps = [out_path 'example_09.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	gmt('set -Du')
 	gmt(['pswiggle ' d_path 'tracks.txt -R185/250/-68/-42 -K -Jm0.13i -Ba10f5 -BWSne+g240/255/240 -G+red' ...
@@ -380,7 +409,7 @@ function [ps, d_path] = ex09(g_root_dir, out_path)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex10(g_root_dir, out_path)
+function [ps, d_path] = ex10(g_root_dir, out_path, verbose)
 	d_path = [g_root_dir 'doc/examples/ex10/'];
 	ps = [out_path 'example_10.ps'];
 
@@ -417,9 +446,10 @@ function [ps, d_path] = ex10(g_root_dir, out_path)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex11(g_root_dir, out_path)
+function [ps, d_path] = ex11(g_root_dir, out_path, verbose)
 	d_path = [g_root_dir 'doc/examples/ex11/'];
 	ps = [out_path 'example_11.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	% Use gmt psxy to plot "cut-along-the-dotted" lines.
 
@@ -501,10 +531,11 @@ function [ps, d_path] = ex11(g_root_dir, out_path)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex12(g_root_dir, out_path)
+function [ps, d_path] = ex12(g_root_dir, out_path, verbose)
 % THIS EXAMPLE FAILS
 	d_path = [g_root_dir 'doc/examples/ex12/'];
 	ps = [out_path 'example_12.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	gmt('set -Du')
 	net_xy = gmt(['triangulate ' d_path 'table_5.11 -M']);
@@ -536,9 +567,10 @@ function [ps, d_path] = ex12(g_root_dir, out_path)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex13(g_root_dir, out_path)
+function [ps, d_path] = ex13(g_root_dir, out_path, verbose)
 	d_path = [g_root_dir 'doc/examples/ex13/'];
 	ps = [out_path 'example_13.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	gmt('set -Du')
 	Gz = gmt('grdmath -R-2/2/-2/2 -I0.1 X Y R2 NEG EXP X MUL =');
@@ -554,7 +586,7 @@ function [ps, d_path] = ex13(g_root_dir, out_path)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex14(g_root_dir, out_path)
+function [ps, d_path] = ex14(g_root_dir, out_path, verbose)
 % THIS EXAMPLE FAILS
 	d_path = [g_root_dir 'doc/examples/ex14/'];
 	ps = [out_path 'example_14.ps'];
@@ -593,10 +625,11 @@ function [ps, d_path] = ex14(g_root_dir, out_path)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex15(g_root_dir, out_path)
+function [ps, d_path] = ex15(g_root_dir, out_path, verbose)
 % THIS EXAMPLE FAILS TO PLOT THE STAR AT THE MINIMUM AT UR FIG (grdinfo gives wrong info)
 	d_path = [g_root_dir 'doc/examples/ex15/'];
 	ps = [out_path 'example_15.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	gmt('set -Du')
 	ship_d = gmt(['read -Td ' d_path '/ship.xyz']);
@@ -624,11 +657,12 @@ function [ps, d_path] = ex15(g_root_dir, out_path)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex16(g_root_dir, out_path)
+function [ps, d_path] = ex16(g_root_dir, out_path, verbose)
 % THIS EXAMPLE FAILS BECAUSE THE CPT EX16.CPT INCLUDES A RAS FILE AND THAT FILE IS NOT FOUND
 % UNLESS THE COMMAND IS EXECUTED IN THE DIR WHERE IT SITS. AS A CONSEQUENCE PSL_EXIT, REALLY EXITS
 	d_path = [g_root_dir 'doc/examples/ex16/'];
 	ps = [out_path 'example_16.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 disp('This example (16) would blow Matlab in a blink. Returning before that happen')
 	ps = '';	d_path = '';
@@ -656,9 +690,10 @@ disp('This example (16) would blow Matlab in a blink. Returning before that happ
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex17(g_root_dir, out_path)
+function [ps, d_path] = ex17(g_root_dir, out_path, verbose)
 	d_path = [g_root_dir 'doc/examples/ex17/'];
 	ps = [out_path 'example_17.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	% First generate geoid image w/ shading
 	gmt('set -Du')
@@ -690,10 +725,11 @@ function [ps, d_path] = ex17(g_root_dir, out_path)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex18(g_root_dir, out_path)
+function [ps, d_path] = ex18(g_root_dir, out_path, verbose)
 % THIS EXAMPLE ...
 	d_path = [g_root_dir 'doc/examples/ex18/'];
 	ps = [out_path 'example_18.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	% Use spherical gmt projection since SS data define on sphere
 	gmt('set PROJ_ELLIPSOID Sphere FORMAT_FLOAT_OUT %g PROJ_LENGTH_UNIT inch PS_CHAR_ENCODING Standard+ PS_MEDIA letter')
@@ -755,9 +791,10 @@ function [ps, d_path] = ex18(g_root_dir, out_path)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex19(g_root_dir, out_path)
+function [ps, d_path] = ex19(g_root_dir, out_path, verbose)
 	d_path = [g_root_dir 'doc/examples/ex19/'];
 	ps = [out_path 'example_19.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	% First make a worldmap with graded blue oceans and rainbow continents
 	gmt('set -Du')
@@ -793,7 +830,7 @@ function [ps, d_path] = ex19(g_root_dir, out_path)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex20(g_root_dir, out_path)
+function [ps, d_path] = ex20(g_root_dir, out_path, verbose)
 	d_path = [g_root_dir 'doc/examples/ex20/'];
 	ps = [out_path 'example_20.ps'];
 
@@ -820,10 +857,11 @@ function [ps, d_path] = ex20(g_root_dir, out_path)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex21(g_root_dir, out_path)
+function [ps, d_path] = ex21(g_root_dir, out_path, verbose)
 % THIS EXAMPLE ORIGINALY WOULD FAILS BECAUSE gmtinfo -C -fT returns a double and not a string
 	d_path = [g_root_dir 'doc/examples/ex21/'];
 	ps = [out_path 'example_21.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	% File has time stored as dd-Mon-yy so set input format to match it
 	gmt('destroy')
@@ -904,10 +942,11 @@ function [ps, d_path] = ex21(g_root_dir, out_path)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex22(g_root_dir, out_path)
+function [ps, d_path] = ex22(g_root_dir, out_path, verbose)
 % THIS EXAMPLE ...
 	d_path = [g_root_dir 'doc/examples/ex22/'];
 	ps = [out_path 'example_22.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	gmt(['set FONT_ANNOT_PRIMARY 10p FONT_TITLE 18p FORMAT_GEO_MAP ddd:mm:ssF' ...
 		' PROJ_LENGTH_UNIT inch PS_CHAR_ENCODING Standard+ PS_MEDIA letter'])
@@ -995,9 +1034,10 @@ function [ps, d_path] = ex22(g_root_dir, out_path)
 	builtin('delete','gmt.conf', 'neis.cpt');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex23(g_root_dir, out_path)
+function [ps, d_path] = ex23(g_root_dir, out_path, verbose)
 	d_path = [g_root_dir 'doc/examples/ex23/'];
 	ps = [out_path 'example_23.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	% Position and name of central point:
 	lon  = 12.50;	lat  = 41.99;
@@ -1050,9 +1090,10 @@ function [ps, d_path] = ex23(g_root_dir, out_path)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex24(g_root_dir, out_path)
+function [ps, d_path] = ex24(g_root_dir, out_path, verbose)
 	d_path = [g_root_dir 'doc/examples/ex24/'];
 	ps = [out_path 'example_24.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	% Currently there is no way of avoiding creating files for this
 	fid = fopen('dateline.d', 'w');
@@ -1078,10 +1119,11 @@ function [ps, d_path] = ex24(g_root_dir, out_path)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex25(g_root_dir, out_path)
+function [ps, d_path] = ex25(g_root_dir, out_path, verbose)
 % THIS EXAMPLE FAILS BECAUSE OF AN ASSERT FAILURE
 	d_path = [g_root_dir 'doc/examples/ex25/'];
 	ps = [out_path 'example_25.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	D = 30;
 	gmt('set -Du')
@@ -1120,9 +1162,10 @@ function [ps, d_path] = ex25(g_root_dir, out_path)
 	builtin('delete','gmt.conf', 'key.cpt');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex26(g_root_dir, out_path)
+function [ps, d_path] = ex26(g_root_dir, out_path, verbose)
 	d_path = [g_root_dir 'doc/examples/ex26/'];
 	ps = [out_path 'example_26.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	% first do an overhead of the east coast from 160 km altitude point straight down
 	lat = 41.5;	lon = -74;	alt = 160;	tilt = 0;	azim = 0;	twist = 0;	width = 0;	height = 0;
@@ -1138,9 +1181,10 @@ function [ps, d_path] = ex26(g_root_dir, out_path)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex27(g_root_dir, out_path)
+function [ps, d_path] = ex27(g_root_dir, out_path, verbose)
 	d_path = [g_root_dir 'doc/examples/ex27/'];
 	ps = [out_path 'example_27.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	gmt('set -Du')
 
@@ -1172,9 +1216,10 @@ function [ps, d_path] = ex27(g_root_dir, out_path)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex28(g_root_dir, out_path)
+function [ps, d_path] = ex28(g_root_dir, out_path, verbose)
 	d_path = [g_root_dir 'doc/examples/ex28/'];
 	ps = [out_path 'example_28.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	gmt('set -Du')
 
@@ -1196,10 +1241,11 @@ function [ps, d_path] = ex28(g_root_dir, out_path)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex29(g_root_dir, out_path)
+function [ps, d_path] = ex29(g_root_dir, out_path, verbose)
 % THIS EXAMPLE FAILS BECAUSE THE RESULT IS WRONG
 	d_path = [g_root_dir 'doc/examples/ex29/'];
 	ps = [out_path 'example_29.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 	
 	gmt('set -Du')
 
@@ -1235,9 +1281,10 @@ function [ps, d_path] = ex29(g_root_dir, out_path)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex30(g_root_dir, out_path)
+function [ps, d_path] = ex30(g_root_dir, out_path, verbose)
 	d_path = [g_root_dir 'doc/examples/ex30/'];
 	ps = [out_path 'example_30.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	gmt('set -Du')
 	gmt(['psbasemap -R0/360/-1.25/1.75 -JX8i/6i -Bx90f30+u"\312" -By1g10 -BWS+t"Two Trigonometric Functions"' ...
@@ -1297,17 +1344,18 @@ function [ps, d_path] = ex30(g_root_dir, out_path)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex31(g_root_dir, out_path)
+function [ps, d_path] = ex31(g_root_dir, out_path, verbose)
 	d_path = [g_root_dir 'doc/examples/ex31/'];
 	ps = [out_path 'example_31.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	ps = '';	d_path = '';
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex32(g_root_dir, out_path)
-
+function [ps, d_path] = ex32(g_root_dir, out_path, verbose)
 	d_path = [g_root_dir 'doc/examples/ex32/'];
 	ps = [out_path 'example_32.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	gmt('set -Du')
 
@@ -1366,9 +1414,10 @@ function [ps, d_path] = ex32(g_root_dir, out_path)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex33(g_root_dir, out_path)
+function [ps, d_path] = ex33(g_root_dir, out_path, verbose)
 	d_path = [g_root_dir 'doc/examples/ex33/'];
 	ps = [out_path 'example_33.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	gmt('set -Du')
 
@@ -1398,9 +1447,10 @@ function [ps, d_path] = ex33(g_root_dir, out_path)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex34(g_root_dir, out_path)
+function [ps, d_path] = ex34(g_root_dir, out_path, verbose)
 	d_path = [g_root_dir 'doc/examples/ex34/'];
 	ps = [out_path 'example_34.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	gmt('set FORMAT_GEO_MAP dddF PROJ_LENGTH_UNIT inch PS_CHAR_ENCODING Standard+ PS_MEDIA letter')
 	gmt(['pscoast -JM4.5i -R-6/20/35/52 -EFR,IT+gP300/8 -Glightgray -Baf -BWSne -P -K -X2i > ' ps])
@@ -1414,10 +1464,11 @@ function [ps, d_path] = ex34(g_root_dir, out_path)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex35(g_root_dir, out_path)
+function [ps, d_path] = ex35(g_root_dir, out_path, verbose)
 % THIS EXAMPLE FAILS BECAUSE OF sphdistance
 	d_path = [g_root_dir 'doc/examples/ex35/'];
 	ps = [out_path 'example_35.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	gmt('set -Du')
 
@@ -1437,9 +1488,10 @@ function [ps, d_path] = ex35(g_root_dir, out_path)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex36(g_root_dir, out_path)
+function [ps, d_path] = ex36(g_root_dir, out_path, verbose)
 	d_path = [g_root_dir 'doc/examples/ex36/'];
 	ps = [out_path 'example_36.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	% Interpolate data of Mars radius from Mariner9 and Viking Orbiter spacecrafts
 	gmt('set -Du')
@@ -1455,12 +1507,13 @@ function [ps, d_path] = ex36(g_root_dir, out_path)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex37(g_root_dir, out_path)
+function [ps, d_path] = ex37(g_root_dir, out_path, verbose)
 % THIS EXAMPLE ...
 % This example has secondary file writing that cannot be catched in a variable -- grdfft -N 
 
 	d_path = [g_root_dir 'doc/examples/ex37/'];
 	ps = [out_path 'example_37.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	gmt('set FONT_TITLE 14p PROJ_LENGTH_UNIT inch PS_CHAR_ENCODING Standard+ PS_MEDIA letter')
 
@@ -1508,9 +1561,10 @@ function [ps, d_path] = ex37(g_root_dir, out_path)
 	builtin('delete','gmt.conf', 'grav.V18.par.surf.1km.sq_tmp.nc', 'mb.par.surf.1km.sq_tmp.nc');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex38(g_root_dir, out_path)
+function [ps, d_path] = ex38(g_root_dir, out_path, verbose)
 	d_path = [g_root_dir 'doc/examples/ex38/'];
 	ps = [out_path 'example_38.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	gmt('set -Du')
 	t_cpt = gmt('makecpt -Crainbow -T0/1700/100 -Z');
@@ -1533,9 +1587,10 @@ function [ps, d_path] = ex38(g_root_dir, out_path)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex39(g_root_dir, out_path)
+function [ps, d_path] = ex39(g_root_dir, out_path, verbose)
 	d_path = [g_root_dir 'doc/examples/ex39/'];
 	ps = [out_path 'example_39.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	gmt('set -Du')
 
@@ -1564,9 +1619,10 @@ function [ps, d_path] = ex39(g_root_dir, out_path)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex40(g_root_dir, out_path)
+function [ps, d_path] = ex40(g_root_dir, out_path, verbose)
 	d_path = [g_root_dir 'doc/examples/ex40/'];
 	ps = [out_path 'example_40.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	gmt('set -Du')
 
@@ -1602,9 +1658,10 @@ function [ps, d_path] = ex40(g_root_dir, out_path)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex41(g_root_dir, out_path)
+function [ps, d_path] = ex41(g_root_dir, out_path, verbose)
 	d_path = [g_root_dir 'doc/examples/ex41/'];
 	ps = [out_path 'example_41.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	gmt('set FONT_ANNOT_PRIMARY 12p FONT_LABEL 12p PROJ_LENGTH_UNIT inch PS_CHAR_ENCODING Standard+ PS_MEDIA letter')
 	gmt(['pscoast -R130W/50W/8N/56N -JM5.6i -B0 -P -K -Glightgray -Sazure1 -A1000 -Wfaint -Xc -Y1.2i --MAP_FRAME_TYPE=plain > ' ps])
@@ -1615,9 +1672,10 @@ function [ps, d_path] = ex41(g_root_dir, out_path)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex42(g_root_dir, out_path)
+function [ps, d_path] = ex42(g_root_dir, out_path, verbose)
 	d_path = [g_root_dir 'doc/examples/ex42/'];
 	ps = [out_path 'example_42.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	gmt('set FONT_ANNOT_PRIMARY 12p FONT_LABEL 12p PROJ_ELLIPSOID WGS-84 FORMAT_GEO_MAP dddF PROJ_LENGTH_UNIT inch PS_CHAR_ENCODING Standard+ PS_MEDIA letter')
 	% Data obtained via website and converted to netCDF thus:
@@ -1651,10 +1709,11 @@ function [ps, d_path] = ex42(g_root_dir, out_path)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex43(g_root_dir, out_path)
+function [ps, d_path] = ex43(g_root_dir, out_path, verbose)
 % THIS EXAMPLE ...
 	d_path = [g_root_dir 'doc/examples/ex43/'];
 	ps = [out_path 'example_43.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	model    = gmt(['regress -Ey -Nw -i0:1l ' d_path 'bb_weights.asc']);
 	rls_line = gmt(['regress -Ey -Nw -i0:1l ' d_path 'bb_weights.asc -Fxmc -T-2/6/0.1']);
@@ -1665,9 +1724,10 @@ function [ps, d_path] = ex43(g_root_dir, out_path)
 	ps = '';	d_path = '';
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex44(g_root_dir, out_path)
+function [ps, d_path] = ex44(g_root_dir, out_path, verbose)
 	d_path = [g_root_dir 'doc/examples/ex44/'];
 	ps = [out_path 'example_44.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	% Bottom map of Australia
 	gmt('set -Du')
@@ -1691,9 +1751,10 @@ function [ps, d_path] = ex44(g_root_dir, out_path)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex45(g_root_dir, out_path)
+function [ps, d_path] = ex45(g_root_dir, out_path, verbose)
 	d_path = [g_root_dir 'doc/examples/ex45/'];
 	ps = [out_path 'example_45.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	% Basic LS line y = a + bx
 	gmt('set -Du')
