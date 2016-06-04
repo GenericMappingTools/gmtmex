@@ -19,11 +19,17 @@ function  [ps_, t_path_] = gallery(opt, r_dir, o_path)
 	% 
 	global g_root_dir out_path;
 
-	if (nargin >= 2)
+	if (nargin == 3)
 		g_root_dir = r_dir;
 		if (nargin == 3),	out_path = o_path;
 		else				out_path = './';		% Current dir
 		end
+	elseif (nargin >= 1)
+		g_root_dir = opt;
+		if (nargin == 2),	out_path = r_dir;
+		else				out_path = './';		% Current dir
+		end
+		opt = [];
 	else
 		% Edit those two for your own needs
 		g_root_dir = 'C:/progs_cygw/GMTdev/gmt5/branches/5.2.0/';
@@ -37,7 +43,7 @@ function  [ps_, t_path_] = gallery(opt, r_dir, o_path)
 		'ex29' 'ex30' 'ex33' 'ex34' 'ex35' 'ex36' 'ex37' 'ex38' 'ex39' 'ex40' 'ex41' 'ex42' ...
 		'ex44' 'ex45'}; 
 
-	if (nargin == 0)
+	if (nargin == 0 || isempty(opt))
 		opt = all_exs;
 	else
 		opt = {opt};		% Make it a cell to fit the other branch
@@ -630,7 +636,7 @@ function [ps, d_path] = ex16(g_root_dir, out_path)
 	d_path = [g_root_dir 'doc/examples/ex16/'];
 	ps = [out_path 'example_16.ps'];
 
-disp('This example would blow Matlab in a blink. Returning before that happen')
+disp('This example (16) would blow Matlab in a blink. Returning before that happen')
 	ps = '';	d_path = '';
 	return
 
