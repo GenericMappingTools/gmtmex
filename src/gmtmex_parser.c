@@ -644,7 +644,8 @@ static struct GMT_GRID *gmtmex_grid_init (void *API, unsigned int direction, uns
 
 		if (mxIsStruct(ptr)) {	/* Passed a regular MEX Grid structure */
 			double *inc = NULL, *range = NULL, *reg = NULL;
-			char *x_units = NULL, *y_units = NULL, *z_units = NULL;
+			char x_units[GMT_GRID_VARNAME_LEN80] = { "" }, y_units[GMT_GRID_VARNAME_LEN80] = { "" },
+			     z_units[GMT_GRID_VARNAME_LEN80] = { "" };
 			mx_ptr = mxGetField (ptr, 0, "inc");
 			if (mx_ptr == NULL)
 				mexErrMsgTxt ("gmtmex_grid_init: Could not find inc array with Grid increments\n");
@@ -674,14 +675,20 @@ static struct GMT_GRID *gmtmex_grid_init (void *API, unsigned int direction, uns
 			G->header->z_min = range[4];
 			G->header->z_max = range[5];
 			mx_ptr = mxGetField (ptr, 0, "x_units");
-			mxGetString (mx_ptr, x_units, mxGetN(mx_ptr));
-			strncpy (G->header->x_units, x_units, GMT_GRID_VARNAME_LEN80-1);
+			if (mx_ptr != NULL) {
+				mxGetString(mx_ptr, x_units, mxGetN(mx_ptr));
+				strncpy(G->header->x_units, x_units, GMT_GRID_VARNAME_LEN80 - 1);
+			}
 			mx_ptr = mxGetField (ptr, 0, "y_units");
-			mxGetString (mx_ptr, y_units, mxGetN(mx_ptr));
-			strncpy (G->header->y_units, y_units, GMT_GRID_VARNAME_LEN80-1);
+			if (mx_ptr != NULL) {
+				mxGetString(mx_ptr, y_units, mxGetN(mx_ptr));
+				strncpy(G->header->y_units, y_units, GMT_GRID_VARNAME_LEN80 - 1);
+			}
 			mx_ptr = mxGetField (ptr, 0, "z_units");
-			mxGetString (mx_ptr, z_units, mxGetN(mx_ptr));
-			strncpy (G->header->z_units, z_units, GMT_GRID_VARNAME_LEN80-1);
+			if (mx_ptr != NULL) {
+				mxGetString(mx_ptr, z_units, mxGetN(mx_ptr));
+				strncpy(G->header->z_units, z_units, GMT_GRID_VARNAME_LEN80 - 1);
+			}
 		}
 		else {	/* Passed header and grid separately */
 			double *h = mxGetData(mxHdr);
