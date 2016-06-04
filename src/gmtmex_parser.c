@@ -662,6 +662,9 @@ static struct GMT_GRID *gmtmex_grid_init (void *API, unsigned int direction, uns
 			if (!mxIsSingle(mxGrid) && !mxIsDouble(mxGrid))
 				mexErrMsgTxt ("gmtmex_grid_init: data array must be either single or double.\n");
 
+			mx_ptr = mxGetField (ptr, 0, "registration");
+			if (mx_ptr == NULL)
+				mexErrMsgTxt ("gmtmex_grid_init: Could not find registration array for Grid registration\n");
 			reg = mxGetData (mx_ptr);
 			registration = (unsigned int)lrint(reg[0]);
 			if ((G = GMT_Create_Data (API, family, GMT_IS_SURFACE, GMT_GRID_ALL,
@@ -671,10 +674,7 @@ static struct GMT_GRID *gmtmex_grid_init (void *API, unsigned int direction, uns
 			G->header->z_min = range[4];
 			G->header->z_max = range[5];
 
-			mx_ptr = mxGetField (ptr, 0, "registration");
-			if (mx_ptr == NULL)
-				mexErrMsgTxt ("gmtmex_grid_init: Could not find registration array for Grid registration\n");
-			G->header->registration = *(uint32_t *)mxGetData (mx_ptr);
+			G->header->registration = registration;
 
 			mx_ptr = mxGetField (ptr, 0, "NoDataValue");
 			if (mx_ptr != NULL)
@@ -1059,7 +1059,7 @@ static struct GMT_PALETTE *gmtmex_cpt_init (void *API, unsigned int direction, u
 	return (P);
 }
 
-static struct GMT_TEXTSET *gmtmex_text_init (void *API, unsigned int direction, unsigned int module_input, unsigned int family, const mxArray *ptr) {
+static struct GMT_TEXTSET *gmtmex_textset_init (void *API, unsigned int direction, unsigned int module_input, unsigned int family, const mxArray *ptr) {
 	/* Used to Create an empty Textset container to hold a GMT TEXTSET.
  	 * If direction is GMT_IN then we are given a MATLAB cell array and can determine its size, etc.
 	 * If direction is GMT_OUT then we allocate an empty GMT TEXTSET as a destination. */
@@ -1074,7 +1074,7 @@ static struct GMT_TEXTSET *gmtmex_text_init (void *API, unsigned int direction, 
 		struct GMT_TEXTSEGMENT *S = NULL;	/* Shorthand for current segment */
 
 		if (mxIsEmpty (ptr))
-			mexErrMsgTxt ("gmtmex_text_init: The input that was supposed to contain the Cell array is empty\n");
+			mexErrMsgTxt ("gmtmex_textset_init: The input that was supposed to contain the Cell array is empty\n");
 		dim[GMT_ROW] = mxGetM (ptr);	/* Number of records */
 		if (mxIsNumeric (ptr)) {	/* Got matrix, must convert to text first */
 			n_col = mxGetN (ptr);	/* Number of columns */
@@ -1083,13 +1083,13 @@ static struct GMT_TEXTSET *gmtmex_text_init (void *API, unsigned int direction, 
 		else if (mxIsChar (ptr) && dim[GMT_ROW] == 1)	/* Special case: Got a single text record */
 			got_text = 1;
 		else if (!mxIsCell (ptr))
-			mexErrMsgTxt ("gmtmex_text_init: Expected either a Cell array, Matrix, or text string for input\n");
+			mexErrMsgTxt ("gmtmex_textset_init: Expected either a Cell array, Matrix, or text string for input\n");
 		if (n_col == 0 && dim[GMT_ROW] == 1 && !got_text) {	/* Check if we got a transpose arrangement or just one record */
 			rec = mxGetN (ptr);	/* Also possibly number of records */
 			if (rec > 1) dim[GMT_ROW] = rec;	/* User gave row-vector of cells */
 		}
 		if ((T = GMT_Create_Data (API, family, GMT_IS_NONE, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
-			mexErrMsgTxt ("gmtmex_text_init: Failure to alloc GMT source TEXTSET for input\n");
+			mexErrMsgTxt ("gmtmex_textset_init: Failure to alloc GMT source TEXTSET for input\n");
 		S = T->table[0]->segment[0];	/* Only one segment coming from MATLAB */
 		S->n_rows = dim[GMT_ROW];
 		T->alloc_mode = GMT_ALLOC_EXTERNALLY;
@@ -1114,12 +1114,12 @@ static struct GMT_TEXTSET *gmtmex_text_init (void *API, unsigned int direction, 
 			}
 		}
 		T->n_records = T->table[0]->n_records = S->n_rows;
-		GMT_Report (API, GMT_MSG_DEBUG, "gmtmex_text_init: Allocated GMT TEXTSET %lx\n", (long)T);
+		GMT_Report (API, GMT_MSG_DEBUG, "gmtmex_textset_init: Allocated GMT TEXTSET %lx\n", (long)T);
 	}
 	else {	/* Just allocate an empty container to hold an output grid (signal this by passing NULLs) */
 		if ((T = GMT_Create_Data (API, GMT_IS_TEXTSET, GMT_IS_NONE, 0,
                         NULL, NULL, NULL, 0, 0, NULL)) == NULL)
-			mexErrMsgTxt ("gmtmex_text_init: Failure to alloc GMT TEXTSET container for holding output TEXT\n");
+			mexErrMsgTxt ("gmtmex_textset_init: Failure to alloc GMT TEXTSET container for holding output TEXT\n");
 	}
 	return (T);
 }
@@ -1197,8 +1197,10 @@ void *GMTMEX_Register_IO (void *API, struct GMT_RESOURCE *X, const mxArray *ptr)
 			break;
 		case GMT_IS_DATASET:
 			/* Ostensibly a DATASET, but it might be a TEXTSET passed via a cell array, so we must check */
-			if (X->direction == GMT_IN && mxIsCell (ptr))	/* Got TEXTSET input */
-				obj = gmtmex_text_init (API, X->direction, module_input, GMT_IS_TEXTSET, ptr);
+			if (X->direction == GMT_IN && mxIsCell (ptr)) {	/* Got TEXTSET input */
+				obj = gmtmex_textset_init (API, X->direction, module_input, GMT_IS_TEXTSET, ptr);
+				X->family = GMT_IS_TEXTSET;
+			}
 			else	/* Get a matrix container, and if input we associate it with the MATLAB pointer */
 				obj = gmtmex_dataset_init (API, X->direction, module_input, ptr);
 			X->object_ID = GMT_Get_ID (API, X->family, X->direction, obj);
@@ -1206,7 +1208,7 @@ void *GMTMEX_Register_IO (void *API, struct GMT_RESOURCE *X, const mxArray *ptr)
 			break;
 		case GMT_IS_TEXTSET:
 			/* Get a TEXTSET container, and if input we associate it with the MATLAB pointer */
-			obj = gmtmex_text_init (API, X->direction, module_input, GMT_IS_TEXTSET, ptr);
+			obj = gmtmex_textset_init (API, X->direction, module_input, GMT_IS_TEXTSET, ptr);
 			X->object_ID = GMT_Get_ID (API, GMT_IS_TEXTSET, X->direction, obj);
 			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Register_IO: Got TEXTSET with Object ID %d\n", X->object_ID);
 			break;

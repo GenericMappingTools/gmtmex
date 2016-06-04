@@ -28,7 +28,7 @@ function  [ps_, t_path_] = gallery(varargin)
 
 	% 
 	global g_root_dir out_path;
-
+echo on
 	% Check if any of the input args is a logical, if yes set verbose to true.
 	verbose = false;
 	c = false(1, numel(varargin));
@@ -124,6 +124,7 @@ function  [ps_, t_path_] = gallery(varargin)
 	end
 
 	gmt('destroy')
+	echo off
 
 % -------------------------------------------------------------------------------------------------
 function [ps, d_path] = ex01(g_root_dir, out_path, verbose)
