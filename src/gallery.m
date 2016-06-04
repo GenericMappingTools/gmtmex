@@ -1558,7 +1558,7 @@ function [ps, d_path] = ex39(g_root_dir, out_path)
 	gmt(['pstext -R0/6/0/6 -Jx1i -O -K -Dj0.2i -F+f16p+jLM -N >> ' ps], {'4 4.5 L = 90'})
 	Gv3 = gmt(['sph2grd ' d_path 'VenusTopo180.txt -I1 -Rg -Ng -G -F1/1/170/180']);
 	Gvint = gmt('grdgradient -Nt0.75 -A45 -G', Gv3);
-	gmt(['grdimage -I -JG -O -K -Bg -C -X-1.25i -Y1.9i >> ' ps], Gv3, Gvint, t_cpt, Gv3)
+	gmt(['grdimage -I -JG -O -K -Bg -C -X-1.25i -Y1.9i >> ' ps], Gv3, Gvint, t_cpt)
 	gmt(['pstext -R0/6/0/6 -Jx1i -O -K -Dj0.2i -F+f16p+jLM -N >> ' ps], {'4 4.5 L = 180'})
 	gmt(['pstext -R0/6/0/6 -Jx1i -O -F+f24p+jCM -N >> ' ps], {'3.75 5.4 Venus Spherical Harmonic Model'})
 	builtin('delete','gmt.conf');
