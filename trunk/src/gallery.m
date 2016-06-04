@@ -767,7 +767,7 @@ function [ps, d_path] = ex19(g_root_dir, out_path)
 	lon_cpt = gmt('makecpt -Crainbow -T-180/180/2 -Z');
 	gmt(['grdimage -JI0/6.5i -Clat.cpt -P -K -Y7.5i -B0 -nl > ' ps], Glat)
 	gmt(['pscoast -R -J -O -K -Dc -A5000 -Gc >> ' ps])
-	gmt(['grdimage -J -C -O -K -nl >> ' ps], lon_cpt, Glon)
+	gmt(['grdimage -J -C -O -K -nl >> ' ps], Glon, lon_cpt)
 	gmt(['pscoast -R -J -O -K -Q >> ' ps])
 	gmt(['pscoast -R -J -O -K -Dc -A5000 -Wthinnest >> ' ps])
 	gmt(['pstext -R -J -O -K -F+f32p,Helvetica-Bold,red=thinner >> ' ps], {'0 20 12TH INTERNATIONAL'})
@@ -781,7 +781,7 @@ function [ps, d_path] = ex19(g_root_dir, out_path)
 	gmt(['psimage -DjCM+w3i -R -J ' d_path 'GMT_covertext.eps -O -K >> ' ps])
 
 	% Finally repeat 1st plot but exchange the patterns
-	gmt(['grdimage -J -C -O -K -Y-3.25i -B0 -nl >> ' ps], lon_cpt, Glon)
+	gmt(['grdimage -J -C -O -K -Y-3.25i -B0 -nl >> ' ps], Glon, lon_cpt)
 	gmt(['pscoast -R -J -O -K -Dc -A5000 -Gc >> ' ps])
 	gmt(['grdimage -J -Clat.cpt -O -K -nl >> ' ps], Glat)
 	gmt(['pscoast -R -J -O -K -Q >> ' ps])
