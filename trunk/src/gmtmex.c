@@ -279,7 +279,18 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	/* 5. Assign input sources (from MATLAB to GMT) and output destinations (from GMT to MATLAB) */
 	
 	for (k = 0; k < n_items; k++) {	/* Number of GMT containers involved in this module call */
-		ptr = (X[k].direction == GMT_IN) ? (void *)prhs[X[k].pos+first+1] : (void *)plhs[X[k].pos];
+		if (X[k].direction == GMT_IN) {
+			if ((X[k].pos+first+1) < nrhs)
+				ptr = (void *)prhs[X[k].pos+first+1];
+			else
+				mexErrMsgTxt ("GMT: Attempting to address a prhs entry that does not exist\n");
+		}
+		else {
+			if ((X[k].pos) < nlhs)
+				ptr = (void *)plhs[X[k].pos];
+			else
+				mexErrMsgTxt ("GMT: Attempting to address a plhs entry that does not exist\n");
+		}
 		X[k].object = GMTMEX_Register_IO (API, &X[k], ptr);	/* Get object pointer */
 		if (X[k].object == NULL || X[k].object_ID == GMT_NOTSET)
 			mexErrMsgTxt("GMT: Failure to register the resource\n");
