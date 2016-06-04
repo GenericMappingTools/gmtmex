@@ -29,6 +29,8 @@ function cpt = cptjoin(cpt1, cpt2)
 
 	if (nargin ~= 2)
 		error('    Must provide 2 input arguments.')
+	elseif (cpt1.depth ~= cpt2.depth)
+		error('    Cannot join two palletes that have different bit depths.')
 	end
 	if (size(cpt1.colormap,1) ~= size(cpt1.range))
 		% A continuous palette so the join would have one color in excess. We could average
@@ -42,6 +44,8 @@ function cpt = cptjoin(cpt1, cpt2)
 	end
 	cpt.range       = [cpt1.range;    cpt2.range];
 	cpt.rangeMinMax = [cpt1.rangeMinMax(1) cpt2.rangeMinMax(2)];
+	cpt.BFN         = cpt1.BFN;			% Just keep the first one
+	cpt.depth       = cpt1.depth;
 
 % -------------------------------------------------------------------------------------------------
 function G = fill_grid_struct(Z, head)
