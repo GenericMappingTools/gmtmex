@@ -19,18 +19,14 @@ function  [ps_, t_path_] = gallery(opt, r_dir, o_path)
 	% 
 	global g_root_dir out_path;
 
-	if (nargin == 3)
+	if (nargin >= 2)
 		g_root_dir = r_dir;
-		out_path = o_path;
-	elseif (nargin >= 1)
-		g_root_dir = opt;
-		if (nargin == 2),	out_path = r_dir;
+		if (nargin == 3),	out_path = o_path;
 		else				out_path = './';		% Current dir
 		end
-		opt = [];
 	else
 		% Edit those two for your own needs
-		g_root_dir = 'C:/progs_cygw/GMTdev/gmt5/branches/5.2.0/';
+		g_root_dir = 'C:/progs_cygw/GMTdev/gmt5/trunk/';
 		out_path = 'V:/';		% Set this if you want to save the PS files in a prticular place
 	end
 
