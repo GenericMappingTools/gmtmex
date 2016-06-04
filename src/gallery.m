@@ -1626,7 +1626,7 @@ function [ps, d_path] = ex42(g_root_dir, out_path)
 	% grdreformat bedelev.asc BEDMAP_elevation.nc=ns -V
 	cpt1 = gmt('makecpt -Cbathy -T-7000/0/200 -N -Z');
 	cpt2 = gmt('makecpt -Cdem4 -T0/4000/200 -N -Z');
-	t_cpt = cptjoin(cpt1, cpt2);
+	t_cpt = gmt('_cptjoin', cpt1, cpt2);
 	gmt(['grdimage -C ' d_path 'BEDMAP_elevation.nc -Jx1:60000000 -Q -P -K > ' ps], t_cpt)
 	gmt(['pscoast -R-180/180/-90/-60 -Js0/-90/-71/1:60000000 -Bafg -Di -W0.25p -O -K >> ' ps])
 	gmt(['psscale -C -DjRM+w2.5i/0.2i+o0.5i/0+jLM+mc -R -J -O -K -F+p+i -Bxa1000+lELEVATION -By+lm >> ' ps], t_cpt)
@@ -1717,21 +1717,3 @@ function [ps, d_path] = ex45(g_root_dir, out_path)
 		' -Sc0.05c -Gred -O -K -i0,2 -Y2.3i >> ' ps], model)
 	gmt(['pstext -R -J -O -F+f12p+cTL -Dj0.1i -Glightyellow >> ' ps], {'@~e@~(t) = y(t) - m@-5@-(t)'})
 	builtin('delete','gmt.conf');
-
-% -------------------------------------------------------------------------------------------------
-function cpt = cptjoin(cpt1, cpt2)
-% Join two CPT1 and CPT2 color palette structures. 
-% Note, the two palettes should be continuous across its common border. No testing on that is donne here
-
-	if (size(cpt1.colormap,1) ~= size(cpt1.range))
-		% A continuous palette so the join would have one color in excess. We could average
-		% the top cpt1 color and bottom cpt2 but that would blur the transition. 
-		%cpt.colormap = [cpt1.colormap(1:end-1,:); (cpt1.colormap(end,:)+cpt2.colormap(1,:))/2; cpt2.colormap(2:end,:)];
-		cpt.colormap = [cpt1.colormap(1:end-1,:); cpt2.colormap];
-		cpt.alpha    = [cpt1.alpha(1:end-1,:);    cpt2.alpha];
-	else
-		cpt.colormap = [cpt1.colormap; cpt2.colormap];
-		cpt.alpha    = [cpt1.alpha;    cpt2.alpha];
-	end
-	cpt.range       = [cpt1.range;    cpt2.range];
-	cpt.rangeMinMax = [cpt1.rangeMinMax(1) cpt2.rangeMinMax(2)];
