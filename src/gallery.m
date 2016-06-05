@@ -1476,7 +1476,7 @@ function [ps, d_path] = ex35(g_root_dir, out_path, verbose)
 	% Get the crude GSHHS data, select GMT format, and decimate to ~20%:
 	% gshhs $GMTHOME/src/coast/gshhs/gshhs_c.b | $AWK '{if ($1 == ">" || NR%5 == 0) print $0}' > gshhs_c.txt
 	% Get Voronoi polygons
-	[nodes, pol] = gmt(['sphtriangulate ' d_path 'gshhs_c.txt -Qv -D -N']);
+	[pol, nodes] = gmt(['sphtriangulate ' d_path 'gshhs_c.txt -Qv -D -N']);
 	% Compute distances in km
 	Gtt = gmt('sphdistance -Rg -I1 -Q -N -G -Lk', pol, nodes);
 	t_cpt = gmt('makecpt -Chot -T0/3500/500 -Z');
