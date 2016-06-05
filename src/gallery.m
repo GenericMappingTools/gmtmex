@@ -668,8 +668,7 @@ function [ps, d_path] = ex16(g_root_dir, out_path, verbose)
 	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	gmt('set FONT_ANNOT_PRIMARY 9p PROJ_LENGTH_UNIT inch PS_CHAR_ENCODING Standard+ PS_MEDIA letter')
-	gmt(['set DIR_DATA' d_path])
-	gmt(['pscontour -R0/6.5/-0.2/6.5 -Jx0.45i -P -K -Y5.5i -Ba2f1 -BWSne ' d_path 'table_5.11 -C' d_path '/ex16.cpt -I > ' ps])
+	gmt(['pscontour -R0/6.5/-0.2/6.5 -Jx0.45i -P -K -Y5.5i -Ba2f1 -BWSne ' d_path 'table_5.11 -C' d_path 'ex16.cpt -I > ' ps])
 	gmt(['pstext -R -J -O -K -N -F+f18p,Times-Roman+jCB >> ' ps], {'3.25 7 pscontour (triangulate)'})
 
 	Graws0 = gmt(['surface ' d_path 'table_5.11 -R -I0.2']);
