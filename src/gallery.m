@@ -28,7 +28,7 @@ function  [ps_, t_path_] = gallery(varargin)
 
 	% 
 	global g_root_dir out_path;
-echo on
+
 	% Check if any of the input args is a logical, if yes set verbose to true.
 	verbose = false;
 	c = false(1, numel(varargin));
@@ -124,7 +124,6 @@ echo on
 	end
 
 	gmt('destroy')
-	echo off
 
 % -------------------------------------------------------------------------------------------------
 function [ps, d_path] = ex01(g_root_dir, out_path, verbose)
@@ -232,13 +231,13 @@ function [ps, d_path] = ex03(g_root_dir, out_path, verbose)
 	samp_x = gmt(['gmtmath ' sprintf('-T%d/%d/1', sampr1, sampr2) ' -N1/0 T =']);
 
 	% Now we can resample the gmt projected satellite data:
-	samp_sat_pg = gmt('sample1d -N', samp_x, sat_pg);
+	samp_sat_pg = gmt('sample1d -N', sat_pg, samp_x);
 
 	% For reasons above, we use gmt filter1d to pre-treat the ship data.  We also need to sample
 	% it because of the gaps > 1 km we found.  So we use gmt filter1d | gmt sample1d.  We also
 	% use the -E on gmt filter1d to use the data all the way out to sampr1/sampr2 :
 	t = gmt(['filter1d -Fm1 ' sprintf('-T%d/%d/1', sampr1, sampr2) ' -E'], ship_pg); 
-	samp_ship_pg = gmt('sample1d -N', samp_x, t);
+	samp_ship_pg = gmt('sample1d -N', t, samp_x);
 
 	ps = [out_path 'example_03c.ps'];
 
@@ -340,9 +339,9 @@ function [ps, d_path] = ex05(g_root_dir, out_path, verbose)
 	fid = fopen('gray.cpt','w');
 	fprintf(fid, '%s\n', '-5 128 5 128');
 	fclose(fid);
-	Gintensity = gmt('grdgradient -A225 -G -Nt0.75', Gsombrero);
+	Gintensity = gmt('grdgradient -A225 -Nt0.75', Gsombrero);
 	gmt(['grdview -JX6i -JZ2i -B5 -Bz0.5 -BSEwnZ -N-1+gwhite -Qs -I -X1.5i' ...
-		' -Cgray.cpt -R-15/15/-15/15/-1/1 -K -p120/30 > ' ps], Gintensity, Gsombrero)
+		' -Cgray.cpt -R-15/15/-15/15/-1/1 -K -p120/30 > ' ps], Gsombrero, Gintensity)
 	gmt(['pstext -R0/11/0/8.5 -Jx1i -F+f50p,ZapfChancery-MediumItalic+jBC -O >> ' ps], ...
 		{'4.1 5.5 z(r) = cos (2@~p@~r/8) @~\327@~e@+-r/10@+'})
 	builtin('delete','gray.cpt');
@@ -653,7 +652,7 @@ function [ps, d_path] = ex15(g_root_dir, out_path, verbose)
 	gmt(['grdcontour -J -C250 -A1000 -L-8000/0 -Gd2i -O -K >> ' ps], Gship)
 	gmt(['psmask -C -O -K >> ' ps])
 
-	Gship_clipped = gmt('grdclip -Sa-1/NaN -G', Gship);
+	Gship_clipped = gmt('grdclip -Sa-1/NaN', Gship);
 	gmt(['grdcontour -J -B -C250 -A1000 -L-8000/0 -Gd2i -O -K -X3.6i >> ' ps], Gship_clipped)
 	gmt(['pscoast ' region ' -J -O -K -Ggray -Wthinnest >> ' ps])
 	info = gmt('grdinfo -C -M', Gship);
@@ -739,7 +738,7 @@ function [ps, d_path] = ex18(g_root_dir, out_path, verbose)
 	% of radius = 200 km centered on Pratt.
 
 	grav_cpt = gmt('makecpt -Crainbow -T-60/60/0.2 -Z');
-	GAK_gulf_grav_i = gmt(['grdgradient ' d_path 'AK_gulf_grav.nc -Nt1 -A45 -G']);
+	GAK_gulf_grav_i = gmt(['grdgradient ' d_path 'AK_gulf_grav.nc -Nt1 -A45']);
 	gmt(['grdimage ' d_path 'AK_gulf_grav.nc -I -JM5.5i -C -B2f1 -P -K -X1.5i' ...
 		' -Y5.85i > ' ps], GAK_gulf_grav_i, grav_cpt)
 	gmt(['pscoast -R' d_path 'AK_gulf_grav.nc -J -O -K -Di -Ggray -Wthinnest >> ' ps])
@@ -771,7 +770,7 @@ function [ps, d_path] = ex18(g_root_dir, out_path, verbose)
 	% the 200 km-radius circle and then evaluate area/volume for the 50 mGal contour
 
 	Gmask = gmt(['grdmath -R ' sprintf('%f %f', pratt(1), pratt(2)) ' SDIST =']);
-	Gmask = gmt('grdclip -Sa200/NaN -Sb200/1 -G', Gmask);
+	Gmask = gmt('grdclip -Sa200/NaN -Sb200/1', Gmask);
 	Gtmp = gmt(['grdmath ' d_path 'AK_gulf_grav.nc $ MUL ='], Gmask);
 	area = gmt('grdvolume -C50 -Sk', Gtmp); % | cut -f2`
 	volume = gmt('grdvolume -C50 -Sk', Gtmp); % | cut -f3`
@@ -1456,7 +1455,7 @@ function [ps, d_path] = ex34(g_root_dir, out_path, verbose)
 	% Extract a subset of ETOPO2m for this part of Europe
 	% gmt grdcut etopo2m_grd.nc -R -GFR+IT.nc=ns
 	z_cpt = gmt('makecpt -Cglobe -T-5000/5000/50 -Z');
-	FR_IT_int = gmt(['grdgradient ' d_path 'FR+IT.nc -A15 -Ne0.75 -G']);
+	FR_IT_int = gmt(['grdgradient ' d_path 'FR+IT.nc -A15 -Ne0.75']);
 	gmt(['grdimage ' d_path 'FR+IT.nc -I -C -J -O -K -Y4.5i' ...
 		' -Baf -BWsnE+t"Franco-Italian Union, 2042-45" >> ' ps], FR_IT_int, z_cpt)
 	gmt(['pscoast -J -R -EFR,IT+gred@60 -O >> ' ps])
