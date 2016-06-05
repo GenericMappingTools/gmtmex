@@ -1260,8 +1260,8 @@ function [ps, d_path] = ex29(g_root_dir, out_path, verbose)
 	Gproj_ellipsoid = gmt(sprintf(['grdmath -Rg -I4 -r X COSD %f DIV DUP MUL X SIND %f DIV DUP MUL ADD' ...
 		' Y COSD DUP MUL MUL Y SIND %f DIV DUP MUL ADD SQRT INV ='], a, b, c));
 	%  Do both Parker and Wessel/Becker solutions (tension = 0.9975)
-	Gmars  = gmt(['greenspline -R$ ' d_path 'mars370.in -D4 -Sp -G'], Gproj_ellipsoid);
-	Gmars2 = gmt(['greenspline -R$ ' d_path 'mars370.in -D4 -Sq0.9975 -G'], Gproj_ellipsoid);
+	Gmars  = gmt(['greenspline -R$ ' d_path 'mars370.txt -D4 -Sp -G'], Gproj_ellipsoid);
+	Gmars2 = gmt(['greenspline -R$ ' d_path 'mars370.txt -D4 -Sq0.9975 -G'], Gproj_ellipsoid);
 	% Scale to km and remove PROJ_ELLIPSOID
 	Gmars  = gmt('grdmath $ 1000 DIV $ SUB =', Gmars, Gproj_ellipsoid);
 	Gmars2 = gmt('grdmath $ 1000 DIV $ SUB =', Gmars2, Gproj_ellipsoid);
@@ -1270,13 +1270,13 @@ function [ps, d_path] = ex29(g_root_dir, out_path, verbose)
 	gmt(['grdimage -I -C -B30g30 -BWsne -JH0/7i -P -K -E200' ...
 		' --FONT_ANNOT_PRIMARY=12p -X0.75i > ' ps], Gmars2, Gmars2_i, mars_cpt)
 	gmt(['grdcontour -J -O -K -C1 -A5 -Glz+/z- >> ' ps], Gmars2)
-	gmt(['psxy -Rg -J -O -K -Sc0.045i -Gblack ' d_path 'mars370.in  >> ' ps])
+	gmt(['psxy -Rg -J -O -K -Sc0.045i -Gblack ' d_path 'mars370.txt  >> ' ps])
 	gmt(['pstext -R -J -O -K -N -D-3.5i/-0.2i -F+f14p,Helvetica-Bold+jLB >> ' ps], {'0 90 b)'})
 	Gmars_i = gmt('grdgradient -fg -Ne0.75 -A45 -G', Gmars);
 	gmt(['grdimage -I -C -B30g30 -BWsne -J -O -K -Y4.2i -E200' ...
 		' --FONT_ANNOT_PRIMARY=12p >> ' ps], Gmars, Gmars_i, mars_cpt)
 	gmt(['grdcontour -J -O -K -C1 -A5 -Glz+/z- >> ' ps], Gmars)
-	gmt(['psxy -Rg -J -O -K -Sc0.045i -Gblack ' d_path 'mars370.in  >> ' ps])
+	gmt(['psxy -Rg -J -O -K -Sc0.045i -Gblack ' d_path 'mars370.txt  >> ' ps])
 	gmt(['psscale -C -O -K -R -J -DJBC+o0/0.15i+w6i/0.1i+h -I --FONT_ANNOT_PRIMARY=12p -Bx2f1 -By+lkm >> ' ps], mars_cpt)
 	gmt(['pstext -R -J -O -N -D-3.5i/-0.2i -F+f14p,Helvetica-Bold+jLB >> ' ps], {'0 90 a)'})
 	builtin('delete','gmt.conf');
