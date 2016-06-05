@@ -659,35 +659,29 @@ function [ps, d_path] = ex15(g_root_dir, out_path, verbose)
 
 % -------------------------------------------------------------------------------------------------
 function [ps, d_path] = ex16(g_root_dir, out_path, verbose)
-% THIS EXAMPLE FAILS BECAUSE THE CPT EX16.CPT INCLUDES A RAS FILE AND THAT FILE IS NOT FOUND
-% UNLESS THE COMMAND IS EXECUTED IN THE DIR WHERE IT SITS. AS A CONSEQUENCE PSL_EXIT, REALLY EXITS
 	d_path = [g_root_dir 'doc/examples/ex16/'];
 	ps = [out_path 'example_16.ps'];
 	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
-disp('This example (16) would blow Matlab in a blink. Returning before that happen')
-	ps = '';	d_path = '';
-	return
-
-	setenv('GMT_DATADIR', d_path)			% <----- NOT GOOD ENOUGH
 	gmt('set FONT_ANNOT_PRIMARY 9p PROJ_LENGTH_UNIT inch PS_CHAR_ENCODING Standard+ PS_MEDIA letter')
-	gmt(['pscontour -R0/6.5/-0.2/6.5 -Jx0.45i -P -K -Y5.5i -Ba2f1 -BWSne ' d_path '/table_5.11 -C' d_path '/ex16.cpt -I > ' ps])
+	gmt(['set DIR_DATA' d_path])
+	gmt(['pscontour -R0/6.5/-0.2/6.5 -Jx0.45i -P -K -Y5.5i -Ba2f1 -BWSne ' d_path 'table_5.11 -C' d_path '/ex16.cpt -I > ' ps])
 	gmt(['pstext -R -J -O -K -N -F+f18p,Times-Roman+jCB >> ' ps], {'3.25 7 pscontour (triangulate)'})
 
-	Graws0 = gmt(['surface ' d_path '/table_5.11 -R -I0.2']);
-	gmt(['grdview -R -J -B -C' d_path '/ex16.cpt -Qs -O -K -X3.5i >> ' ps], Graws0)
+	Graws0 = gmt(['surface ' d_path 'table_5.11 -R -I0.2']);
+	gmt(['grdview -R -J -B -C' d_path 'ex16.cpt -Qs -O -K -X3.5i >> ' ps], Graws0)
 	gmt(['pstext -R -J -O -K -N -F+f18p,Times-Roman+jCB >> ' ps], {'3.25 7 surface (tension = 0)'})
 
-	Graws5 = gmt(['surface ' d_path '/table_5.11 -R -I0.2 -G -T0.5']);
-	gmt(['grdview -R -J -B -C' d_path '/ex16.cpt -Qs -O -K -Y-3.75i -X-3.5i >> ' ps], Graws5)
+	Graws5 = gmt(['surface ' d_path 'table_5.11 -R -I0.2 -G -T0.5']);
+	gmt(['grdview -R -J -B -C' d_path 'ex16.cpt -Qs -O -K -Y-3.75i -X-3.5i >> ' ps], Graws5)
 	gmt(['pstext -R -J -O -K -N -F+f18p,Times-Roman+jCB >> ' ps], {'3.25 7 surface (tension = 0.5)'})
 
-	Grawt = gmt(['triangulate ' d_path '/table_5.11 -G -R -I0.2']); %%%%
+	Grawt = gmt(['triangulate ' d_path 'table_5.11 -G -R -I0.2']);
 	Gfiltered = gmt('grdfilter -G -D0 -Fc1', Grawt);
-	gmt(['grdview -R -J -B -C' d_path '/ex16.cpt -Qs -O -K -X3.5i >> ' ps], Gfiltered)
+	gmt(['grdview -R -J -B -C' d_path 'ex16.cpt -Qs -O -K -X3.5i >> ' ps], Gfiltered)
 	gmt(['pstext -R -J -O -K -N -F+f18p,Times-Roman+jCB >> ' ps], {'3.25 7 triangulate @~\256@~ grdfilter'})
 	gmt(['pstext -R0/10/0/10 -Jx1i -O -K -N -F+f32p,Times-Roman+jCB -X-3.5i >> ' ps], {'3.2125 7.5 Gridding of Data'})
-	gmt(['psscale -Dx3.25i/0.35i+jTC+w5i/0.25i+h -C' d_path '/ex16.cpt -O -Y-0.75i >> ' ps])
+	gmt(['psscale -Dx3.25i/0.35i+jTC+w5i/0.25i+h -C' d_path 'ex16.cpt -O -Y-0.75i >> ' ps])
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
