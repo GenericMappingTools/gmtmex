@@ -49,7 +49,7 @@ echo on
 	else
 		% Edit those two for your own needs
 		g_root_dir = 'C:/progs_cygw/GMTdev/gmt5/trunk/';
-		out_path = 'V:/';		% Set this if you want to save the PS files in a prticular place
+		out_path = 'V:/';		% Set this if you want to save the PS files in a particular place
 	end
 
 	ps = [];	t_path = [];	% Defaults for the case we have an error
@@ -352,6 +352,7 @@ function [ps, d_path] = ex05(g_root_dir, out_path, verbose)
 function [ps, d_path] = ex06(g_root_dir, out_path, verbose)
 	d_path = [g_root_dir 'doc/examples/ex06/'];
 	ps = [out_path 'example_06.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	gmt('set -Du')
 	gmt(['psrose ' d_path 'fractures.d -: -A10r -S1.8in -P -Gorange -R0/1/0/360 -X2.5i -K -Bx0.2g0.2' ...
@@ -385,6 +386,7 @@ function [ps, d_path] = ex07(g_root_dir, out_path, verbose)
 function [ps, d_path] = ex08(g_root_dir, out_path, verbose)
 	d_path = [g_root_dir 'doc/examples/ex08'];
 	ps = [out_path 'example_08.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	gmt('set -Du')
 	xyz = gmt(['grd2xyz ' d_path '/guinea_bay.nc']);
@@ -413,6 +415,7 @@ function [ps, d_path] = ex09(g_root_dir, out_path, verbose)
 function [ps, d_path] = ex10(g_root_dir, out_path, verbose)
 	d_path = [g_root_dir 'doc/examples/ex10/'];
 	ps = [out_path 'example_10.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	gmt('set -Du')
 	gmt(['pscoast -Rd -JX8id/5id -Dc -Sazure2 -Gwheat -Wfaint -A5000 -p200/40 -K > ' ps])
@@ -591,6 +594,7 @@ function [ps, d_path] = ex14(g_root_dir, out_path, verbose)
 % THIS EXAMPLE FAILS
 	d_path = [g_root_dir 'doc/examples/ex14/'];
 	ps = [out_path 'example_14.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	D = gmt(['read ' d_path 'table_5.11 -Td']);
 	% First draw network and label the nodes
@@ -828,6 +832,7 @@ function [ps, d_path] = ex19(g_root_dir, out_path, verbose)
 function [ps, d_path] = ex20(g_root_dir, out_path, verbose)
 	d_path = [g_root_dir 'doc/examples/ex20/'];
 	ps = [out_path 'example_20.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	fogspots = [
 		55.5	-21.0	0.25
