@@ -890,26 +890,26 @@ function [ps, d_path] = ex21(g_root_dir, out_path, verbose)
 	% Draw P Wessel's purchase price as line and label it.  Note we temporary switch
 	% back to default yyyy-mm-dd format since that is what gmt info gave us.
 	fid = fopen('RHAT.pw','w');
-	fprintf(fid, '05-May-00	0\n');
-	fprintf(fid, '05-May-00	300\n');
+	fprintf(fid, '05-May-00 0\n');
+	fprintf(fid, '05-May-00 300\n');
 	fclose(fid);
 	gmt(['psxy -R -J RHAT.pw -Wthinner,- -O -K >> ' ps])
 	fid = fopen('RHAT.pw','w');
-	fprintf(fid, '01-Jan-99	25\n');
-	fprintf(fid, '01-Jan-02	25\n');
+	fprintf(fid, '01-Jan-99 25\n');
+	fprintf(fid, '01-Jan-02 25\n');
 	fclose(fid);
 	gmt(['psxy -R -J RHAT.pw -Wthick,- -O -K >> ' ps])
 	gmt(['pstext -R -J -O -K -D1.5i/0.05i -N -F+f12p,Bookman-Demi+jLB --FORMAT_DATE_IN=yyyy-mm-dd >> ' ps], {[wT ' 25 PW buy']})
 
 	% Draw P Wessel's sales price as line and label it.
 	fid = fopen('RHAT.pw','w');
-	fprintf(fid, '25-Jun-07	0\n');
-	fprintf(fid, '25-Jun-07	300\n');
+	fprintf(fid, '25-Jun-07 0\n');
+	fprintf(fid, '25-Jun-07 300\n');
 	fclose(fid);
 	gmt(['psxy -R -J RHAT.pw -Wthinner,- -O -K >> ' ps])
 	fid = fopen('RHAT.pw','w');
-	fprintf(fid, '01-Aug-06	23.8852\n');
-	fprintf(fid, '01-Jan-08	23.8852\n');
+	fprintf(fid, '01-Aug-06 23.8852\n');
+	fprintf(fid, '01-Jan-08 23.8852\n');
 	fclose(fid);
 	gmt(['psxy -R -J RHAT.pw -Wthick,- -O -K >> ' ps])
 	gmt(['pstext -R -J -O -K -Dj0.8i/0.05i -N -F+f12p,Bookman-Demi+jRB --FORMAT_DATE_IN=yyyy-mm-dd >> ' ps], {[eT ' 23.8852 PW sell']})
