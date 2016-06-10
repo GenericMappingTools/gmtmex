@@ -680,22 +680,20 @@ static struct GMT_GRID *gmtmex_grid_init (void *API, unsigned int direction, uns
 			if (mx_ptr != NULL)
 				G->header->nan_value = *(float *)mxGetData (mx_ptr);
 
-#if 0		/* Commented because we need a solution for the strdup. We can't use it because of the cross DLL problem */
 			mx_ptr = mxGetField (ptr, 0, "ProjectionRefPROJ4");
 			if (mx_ptr != NULL && mxGetN(mx_ptr) > 6) {		/* A true proj4 string will have at least this lenght */
 				char *str = malloc(mxGetN(mx_ptr) + 1);
 				mxGetString(mx_ptr, str, mxGetN(mx_ptr));
-				G->header->ProjRefPROJ4 = strdup(str);
+				G->header->ProjRefPROJ4 = GMT_Duplicate_String (API, str);
 				free (str);
 			}
 			mx_ptr = mxGetField (ptr, 0, "ProjectionRefWKT");
 			if (mx_ptr != NULL && mxGetN(mx_ptr) > 20) {	/* A true WTT string will have more thna this lenght */ 
 				char *str = malloc(mxGetN(mx_ptr)+1);
 				mxGetString(mx_ptr, str, mxGetN(mx_ptr));
-				G->header->ProjRefWKT = strdup(str);
+				G->header->ProjRefWKT = GMT_Duplicate_String (API, str);
 				free (str);
 			}
-#endif
 
 			mx_ptr = mxGetField (ptr, 0, "title");
 			if (mx_ptr != NULL) {
@@ -834,22 +832,20 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 			}
 		}
 
-#if 0		/* Commented because we need a solution for the strdup. We can't use it because of the cross DLL problem */
 		mx_ptr = mxGetField (ptr, 0, "ProjectionRefPROJ4");
 		if (mx_ptr != NULL && mxGetN(mx_ptr) > 6) {		/* A true proj4 string will have at least this lenght */
 			char *str = malloc(mxGetN(mx_ptr) + 1);
 			mxGetString(mx_ptr, str, mxGetN(mx_ptr));
-			I->header->ProjRefPROJ4 = strdup(str);
+			I->header->ProjRefPROJ4 = GMT_Duplicate_String (API, str);
 			free (str);
 		}
 		mx_ptr = mxGetField (ptr, 0, "ProjectionRefWKT");
 		if (mx_ptr != NULL && mxGetN(mx_ptr) > 20) {	/* A true WTT string will have more thna this lenght */ 
 			char *str = malloc(mxGetN(mx_ptr)+1);
 			mxGetString(mx_ptr, str, mxGetN(mx_ptr));
-			I->header->ProjRefWKT = strdup(str);
+			I->header->ProjRefWKT = GMT_Duplicate_String (API, str);
 			free (str);
 		}
-#endif
 
 		mx_ptr = mxGetField (ptr, 0, "title");
 		if (mx_ptr != NULL) {
