@@ -771,7 +771,7 @@ static struct GMT_GRID *gmtmex_grid_init (void *API, unsigned int direction, uns
 		            (long)G->data);
 	}
 	else {	/* Just allocate an empty container to hold an output grid (signal this by passing NULLs) */
-		if ((G = GMT_Create_Data (API, GMT_IS_GRID, GMT_IS_SURFACE, GMT_GRID_HEADER_ONLY,
+		if ((G = GMT_Create_Data (API, GMT_IS_GRID, GMT_IS_SURFACE, 0,
 		                          NULL, NULL, NULL, 0, 0, NULL)) == NULL)
 			mexErrMsgTxt ("gmtmex_grid_init: Failure to alloc GMT blank grid container for holding output grid\n");
 	}
@@ -890,7 +890,7 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 		            (long)I->data);
 	}
 	else {	/* Just allocate an empty container to hold an output image (signal this by passing NULLs) */
-		if ((I = GMT_Create_Data (API, GMT_IS_IMAGE, GMT_IS_SURFACE, GMT_GRID_HEADER_ONLY,
+		if ((I = GMT_Create_Data (API, GMT_IS_IMAGE, GMT_IS_SURFACE, 0,
 		                          NULL, NULL, NULL, 0, 0, NULL)) == NULL)
 			mexErrMsgTxt ("gmtmex_image_init: Failure to alloc GMT blank image container for holding output image\n");
 #ifdef HAVE_GDAL

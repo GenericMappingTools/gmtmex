@@ -937,7 +937,7 @@ function [ps, d_path] = ex21(g_root_dir, out_path, verbose)
 	gmt(['psxy -R -J RHAT.pw -Wthinner,- -O >> ' ps])
 
 	builtin('delete','RHAT.pw');
-	builtin('delete','gmt.conf');
+	%builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
 function [ps, d_path] = ex22(g_root_dir, out_path, verbose)
