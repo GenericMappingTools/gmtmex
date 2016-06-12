@@ -325,14 +325,14 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 			case GMT_IS_TEXTSET:	/* A GMT textset; make it a cell and the pos'th output item */
 				plhs[pos] = GMTMEX_Get_Textset (API, X[k].object);
 				break;
-			case GMT_IS_CPT:	/* A GMT CPT; make it a colormap and the pos'th output item  */
+			case GMT_IS_PALETTE:	/* A GMT CPT; make it a colormap and the pos'th output item  */
 				plhs[pos] = GMTMEX_Get_CPT (API, X[k].object);
 				break;
 			case GMT_IS_IMAGE:	/* A GMT Image; make it the pos'th output item  */
 				plhs[pos] = GMTMEX_Get_Image (API, X[k].object);
 				break;
 #if GMT_MINOR_VERSION > 2
-			case GMT_IS_PS:		/* A GMT PostScript string; make it the pos'th output item  */
+			case GMT_IS_POSTSCRIPT:		/* A GMT PostScript string; make it the pos'th output item  */
 				plhs[pos] = GMTMEX_Get_PS (API, X[k].object);
 #if 0
 				{

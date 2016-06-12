@@ -352,7 +352,7 @@ void *GMTMEX_Get_Textset (void *API, struct GMT_TEXTSET *T) {
 #if GMT_MINOR_VERSION > 2
 #define N_MEX_FIELDNAMES_PS	3
 
-void *GMTMEX_Get_PS (void *API, struct GMT_PS *P) {
+void *GMTMEX_Get_PS (void *API, struct GMT_POSTSCRIPT *P) {
 	/* Given a GMT Postscript structure P, build a MATLAB PS structure */
 	uint64_t *length = NULL;
 	unsigned int *mode = NULL;
@@ -376,7 +376,7 @@ void *GMTMEX_Get_PS (void *API, struct GMT_PS *P) {
 	mxmode = mxCreateNumericMatrix (1, 1, mxUINT32_CLASS, mxREAL);
 	mode   = (uint32_t *)mxGetData(mxmode);
 	
-	length[0] = (uint64_t)P->n;	/* Set length of the PS string */
+	length[0] = (uint64_t)P->n_bytes;	/* Set length of the PS string */
 	mode[0] = (uint32_t)P->mode;	/* Set mode of the PS string */
 	mxSetField (PS_struct, 0, fieldnames[0], mxPS);
 	mxSetField (PS_struct, 0, fieldnames[1], mxlength);
@@ -965,7 +965,7 @@ static struct GMT_PALETTE *gmtmex_cpt_init (void *API, unsigned int direction, u
 	if (direction == GMT_IN) {	/* Dimensions are known from the input pointer */
 		unsigned int k, j, one = 1, *depth = NULL;
 		uint64_t dim[2];
-		unsigned int family = (module_input) ? GMT_IS_CPT|GMT_VIA_MODULE_INPUT : GMT_IS_CPT;
+		unsigned int family = (module_input) ? GMT_IS_PALETTE|GMT_VIA_MODULE_INPUT : GMT_IS_PALETTE;
 		mxArray *mx_ptr = NULL;
 		double dz, *colormap = NULL, *range = NULL, *rangeMinMax = NULL, *alpha = NULL, *BFN = NULL;
 
@@ -1049,7 +1049,7 @@ static struct GMT_PALETTE *gmtmex_cpt_init (void *API, unsigned int direction, u
 		GMT_Report (API, GMT_MSG_DEBUG, "gmtmex_cpt_init: Allocated GMT CPT %lx\n", (long)P);
 	}
 	else {	/* Just allocate an empty container to hold an output grid (signal this by passing NULLs) */
-		if ((P = GMT_Create_Data (API, GMT_IS_CPT, GMT_IS_NONE, 0, NULL, NULL, NULL, 0, 0, NULL)) == NULL)
+		if ((P = GMT_Create_Data (API, GMT_IS_PALETTE, GMT_IS_NONE, 0, NULL, NULL, NULL, 0, 0, NULL)) == NULL)
 			mexErrMsgTxt ("gmtmex_cpt_init: Failure to alloc GMT blank CPT container for holding output CPT\n");
 	}
 	return (P);
@@ -1121,22 +1121,22 @@ static struct GMT_TEXTSET *gmtmex_textset_init (void *API, unsigned int directio
 }
 
 #if GMT_MINOR_VERSION > 2
-static struct GMT_PS *gmtmex_ps_init (void *API, unsigned int direction, unsigned int module_input, const mxArray *ptr) {
+static struct GMT_POSTSCRIPT *gmtmex_ps_init (void *API, unsigned int direction, unsigned int module_input, const mxArray *ptr) {
 	/* Used to Create an empty PS container to hold a GMT PS object.
  	 * If direction is GMT_IN then we are given a MATLAB structure with known sizes.
 	 * If direction is GMT_OUT then we allocate an empty GMT PS as a destination. */
-	struct GMT_PS *P = NULL;
+	struct GMT_POSTSCRIPT *P = NULL;
 	if (direction == GMT_IN) {	/* Dimensions are known from the MATLAB input pointer */
 		uint64_t dim[1] = {0}, *length = NULL;
-		unsigned int *mode = NULL, family = (module_input) ? GMT_IS_PS|GMT_VIA_MODULE_INPUT : GMT_IS_PS;
+		unsigned int *mode = NULL, family = (module_input) ? GMT_IS_POSTSCRIPT|GMT_VIA_MODULE_INPUT : GMT_IS_POSTSCRIPT;
 		mxArray *mx_ptr = NULL;
 		char *PS = NULL;
 		if (module_input) family |= GMT_VIA_MODULE_INPUT;
 
 		if (mxIsEmpty (ptr))
-			mexErrMsgTxt ("gmtmex_ps_init: The input that was supposed to contain the PS structure is empty\n");
+			mexErrMsgTxt ("gmtmex_ps_init: The input that was supposed to contain the PostScript structure is empty\n");
 		if (!mxIsStruct (ptr))
-			mexErrMsgTxt ("gmtmex_ps_init: Expected a MATLAB PS structure for input\n");
+			mexErrMsgTxt ("gmtmex_ps_init: Expected a MATLAB PostScript structure for input\n");
 		mx_ptr = mxGetField (ptr, 0, "length");
 		if (mxIsEmpty (mx_ptr))
 			mexErrMsgTxt ("gmtmex_ps_init: Expected structure to contain a countner for PostScript length\n");
@@ -1158,13 +1158,13 @@ static struct GMT_PS *gmtmex_ps_init (void *API, unsigned int direction, unsigne
 			mexErrMsgTxt ("gmtmex_ps_init: Failure to alloc GMT source PS for input\n");
 		P->data = PS;	/* PostScript string instead is coming from MATLAB */
 		P->alloc_mode = GMT_ALLOC_EXTERNALLY;	/* Hence we are not allowed to free it */
-		P->n = length[0];	/* Length of the actual PS string */
+		P->n_bytes = length[0];	/* Length of the actual PS string */
 		P->n_alloc = 0;		/* But nothing was actually allocated here - just passing pointer from MATLAB */
 		P->mode = mode[0];	/* Inherit the mode */
 		GMT_Report (API, GMT_MSG_DEBUG, "gmtmex_ps_init: Allocated GMT PS %lx\n", (long)P);
 	}
 	else {	/* Just allocate an empty container to hold an output PS object (signal this by passing NULLs) */
-		if ((P = GMT_Create_Data (API, GMT_IS_PS, GMT_IS_NONE, 0, NULL, NULL, NULL, 0, 0, NULL)) == NULL)
+		if ((P = GMT_Create_Data (API, GMT_IS_POSTSCRIPT, GMT_IS_NONE, 0, NULL, NULL, NULL, 0, 0, NULL)) == NULL)
 			mexErrMsgTxt ("gmtmex_ps_init: Failure to alloc GMT PS container for holding output PostScript\n");
 	}
 	return (P);
@@ -1208,17 +1208,17 @@ void *GMTMEX_Register_IO (void *API, struct GMT_RESOURCE *X, const mxArray *ptr)
 			X->object_ID = GMT_Get_ID (API, GMT_IS_TEXTSET, X->direction, obj);
 			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Register_IO: Got TEXTSET with Object ID %d\n", X->object_ID);
 			break;
-		case GMT_IS_CPT:
+		case GMT_IS_PALETTE:
 			/* Get a CPT container, and if input we associate it with the MATLAB CPT pointer */
 			obj = gmtmex_cpt_init (API, X->direction, module_input, ptr);
-			X->object_ID = GMT_Get_ID (API, GMT_IS_CPT, X->direction, obj);
+			X->object_ID = GMT_Get_ID (API, GMT_IS_PALETTE, X->direction, obj);
 			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Register_IO: Got CPT with Object ID %d\n", X->object_ID);
 			break;
 #if GMT_MINOR_VERSION > 2
-		case GMT_IS_PS:
+		case GMT_IS_POSTSCRIPT:
 			/* Get a PS container, and if input we associate it with the MATLAB PS pointer */
 			obj = gmtmex_ps_init (API, X->direction, module_input, ptr);
-			X->object_ID = GMT_Get_ID (API, GMT_IS_PS, X->direction, obj);
+			X->object_ID = GMT_Get_ID (API, GMT_IS_POSTSCRIPT, X->direction, obj);
 			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Register_IO: Got PS with Object ID %d\n", X->object_ID);
 			break;
 #endif
