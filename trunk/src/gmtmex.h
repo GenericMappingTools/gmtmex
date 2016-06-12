@@ -124,6 +124,6 @@ EXTERN_MSC void * GMTMEX_Get_Image   (void *API, struct GMT_IMAGE *I);
 EXTERN_MSC void * GMTMEX_Register_IO (void *API, struct GMT_RESOURCE *X, const mxArray *ptr);
 EXTERN_MSC void GMTMEX_Free_Textset  (void *API, struct GMT_TEXTSET *T);
 #if GMT_MINOR_VERSION > 2
-EXTERN_MSC void * GMTMEX_Get_PS      (void *API, struct GMT_PS *P);
+EXTERN_MSC void * GMTMEX_Get_PS      (void *API, struct GMT_POSTSCRIPT *P);
 #endif
 #endif
