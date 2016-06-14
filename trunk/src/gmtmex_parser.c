@@ -199,10 +199,10 @@ void *GMTMEX_Get_Grid (void *API, struct GMT_GRID *G) {
 	for (n = 0; n < 2; n++) dptr[n] = G->header->inc[n];
 	mxSetField (grid_struct, 0, "inc", mxtmp);
 
-	mxtmp = mxCreateDoubleScalar ((double)G->header->ny);
+	mxtmp = mxCreateDoubleScalar ((double)G->header->n_rows);
 	mxSetField (grid_struct, 0, (const char *) "n_rows", mxtmp);
 
-	mxtmp = mxCreateDoubleScalar ((double)G->header->nx);
+	mxtmp = mxCreateDoubleScalar ((double)G->header->n_columns);
 	mxSetField (grid_struct, 0, (const char *) "n_columns", mxtmp);
 
 	mxtmp = mxCreateDoubleScalar ((double)G->header->n_bands);
@@ -235,12 +235,12 @@ void *GMTMEX_Get_Grid (void *API, struct GMT_GRID *G) {
 	mxtmp = mxCreateString (G->header->z_units);
 	mxSetField (grid_struct, 0, (const char *) "z_units", mxtmp);
 
-	mxGrd = mxCreateNumericMatrix (G->header->ny, G->header->nx, mxSINGLE_CLASS, mxREAL);
+	mxGrd = mxCreateNumericMatrix (G->header->n_rows, G->header->n_columns, mxSINGLE_CLASS, mxREAL);
 	f = mxGetData (mxGrd);
 	/* Load the real grd array into a float MATLAB array by transposing
            from padded GMT grd format to unpadded MATLAB format */
-	for (row = 0; row < G->header->ny; row++) {
-		for (col = 0; col < G->header->nx; col++) {
+	for (row = 0; row < G->header->n_rows; row++) {
+		for (col = 0; col < G->header->n_columns; col++) {
 			gmt_ij = GMT_IJP (G->header, row, col);
 			f[MEXG_IJ(G,row,col)] = G->data[gmt_ij];
 		}
@@ -250,12 +250,12 @@ void *GMTMEX_Get_Grid (void *API, struct GMT_GRID *G) {
 	/* Also return the convenient x and y arrays */
 	G_x = GMT_Get_Coord (API, GMT_IS_GRID, GMT_X, G);	/* Get array of x coordinates */
 	G_y = GMT_Get_Coord (API, GMT_IS_GRID, GMT_Y, G);	/* Get array of y coordinates */
-	mx_x = mxCreateNumericMatrix (1, G->header->nx, mxDOUBLE_CLASS, mxREAL);
-	mx_y = mxCreateNumericMatrix (1, G->header->ny, mxDOUBLE_CLASS, mxREAL);
+	mx_x = mxCreateNumericMatrix (1, G->header->n_columns, mxDOUBLE_CLASS, mxREAL);
+	mx_y = mxCreateNumericMatrix (1, G->header->n_rows, mxDOUBLE_CLASS, mxREAL);
 	x = mxGetData (mx_x);
 	y = mxGetData (mx_y);
-	memcpy (x, G_x, G->header->nx * sizeof (double));
-	for (n = 0; n < G->header->ny; n++) y[G->header->ny-1-n] = G_y[n];	/* Must reverse the y-array */
+	memcpy (x, G_x, G->header->n_columns * sizeof (double));
+	for (n = 0; n < G->header->n_rows; n++) y[G->header->n_rows-1-n] = G_y[n];	/* Must reverse the y-array */
 	if (GMT_Destroy_Data (API, &G_x))
 		mexPrintf("Warning: Failure to delete G_x (x coordinate vector)\n");
 	if (GMT_Destroy_Data (API, &G_y))
@@ -397,7 +397,7 @@ void *GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C) {
 	mxArray *CPT_struct = NULL, *mxBFN = NULL, *mxdepth = NULL;
 	char *fieldnames[N_MEX_FIELDNAMES_CPT];	/* Array with the names of the fields of the output grid structure. */
 
-	if (!C->range)
+	if (!C->data)
 		mexErrMsgTxt ("GMTMEX_Get_CPT: programming error, output CPT C is empty\n");
 
 	memset (fieldnames, 0, N_MEX_FIELDNAMES_CPT*sizeof (char *));
@@ -426,20 +426,20 @@ void *GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C) {
 	depth         = (uint32_t *)mxGetData(mxdepth);
 	depth[0] = (C->is_bw) ? 1 : ((C->is_gray) ? 8 : 24);
 	for (j = 0; j < 3; j++) {	/* Copy r/g/b from palette BFN to MATLAB array */
-		for (k = 0; k < 3; k++) BFN[j+k*3] = C->patch[j].rgb[k];
+		for (k = 0; k < 3; k++) BFN[j+k*3] = C->bfn[j].rgb[k];
 	}
 	for (j = 0; j < C->n_colors; j++) {	/* Copy r/g/b from palette to MATLAB array */
-		for (k = 0; k < 3; k++) color[j+k*n_colors] = C->range[j].rgb_low[k];
-		alpha[j] = C->range[j].rgb_low[3];
-		range[j] = C->range[j].z_low;
-		range[j+C->n_colors] = C->range[j].z_high;
+		for (k = 0; k < 3; k++) color[j+k*n_colors] = C->data[j].rgb_low[k];
+		alpha[j] = C->data[j].rgb_low[3];
+		range[j] = C->data[j].z_low;
+		range[j+C->n_colors] = C->data[j].z_high;
 	}
 	if (C->is_continuous) {	/* Add last color */
-		for (k = 0; k < 3; k++) color[j+k*n_colors] = C->range[C->n_colors-1].rgb_high[k];
-		alpha[j] = C->range[j].rgb_low[3];
+		for (k = 0; k < 3; k++) color[j+k*n_colors] = C->data[C->n_colors-1].rgb_high[k];
+		alpha[j] = C->data[j].rgb_low[3];
 	}
-	rangeMinMax[0] = C->range[0].z_low;
-	rangeMinMax[1] = C->range[C->n_colors-1].z_high;
+	rangeMinMax[0] = C->data[0].z_low;
+	rangeMinMax[1] = C->data[C->n_colors-1].z_high;
 	
 	mxSetField (CPT_struct, 0, "colormap", mxcolormap);
 	mxSetField (CPT_struct, 0, "alpha", mxalpha);
@@ -507,10 +507,10 @@ void *GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I) {
 	for (n = 0; n < 2; n++) dptr[n] = I->header->inc[n];
 	mxSetField (image_struct, 0, "inc", mxtmp);
 
-	mxtmp = mxCreateDoubleScalar ((double)I->header->ny);
+	mxtmp = mxCreateDoubleScalar ((double)I->header->n_rows);
 	mxSetField (image_struct, 0, (const char *) "n_rows", mxtmp);
 
-	mxtmp = mxCreateDoubleScalar ((double)I->header->nx);
+	mxtmp = mxCreateDoubleScalar ((double)I->header->n_columns);
 	mxSetField (image_struct, 0, (const char *) "n_columns", mxtmp);
 
 	mxtmp = mxCreateDoubleScalar ((double)I->header->n_bands);
@@ -543,24 +543,24 @@ void *GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I) {
 	mxtmp = mxCreateString (I->header->z_units);
 	mxSetField (image_struct, 0, (const char *) "z_units", mxtmp);
 
-	if (I->ColorMap != NULL) {	/* Indexed image has a color map */
-		mxcolormap = mxCreateNumericMatrix (I->nIndexedColors, 3, mxDOUBLE_CLASS, mxREAL);
-		mxImg = mxCreateNumericMatrix (I->header->ny, I->header->nx, mxUINT8_CLASS, mxREAL);
+	if (I->colormap != NULL) {	/* Indexed image has a color map */
+		mxcolormap = mxCreateNumericMatrix (I->n_indexed_colors, 3, mxDOUBLE_CLASS, mxREAL);
+		mxImg = mxCreateNumericMatrix (I->header->n_rows, I->header->n_columns, mxUINT8_CLASS, mxREAL);
 		color = mxGetPr (mxcolormap);
 		u = mxGetData (mxImg);
-		for (n = 0; n < 4 * I->nIndexedColors && I->ColorMap[n] >= 0; n++)
-			color[n] = (uint8_t)I->ColorMap[n];
+		for (n = 0; n < 4 * I->n_indexed_colors && I->colormap[n] >= 0; n++)
+			color[n] = (uint8_t)I->colormap[n];
 		n /= 4;
 		memcpy (u, I->data, I->header->nm * sizeof (uint8_t));
 		mxSetField (image_struct, 0, "colormap", mxcolormap);
 	}	
 	else if (I->header->n_bands == 1) { /* gray image */
-		mxImg = mxCreateNumericMatrix (I->header->ny, I->header->nx, mxUINT8_CLASS, mxREAL);
+		mxImg = mxCreateNumericMatrix (I->header->n_rows, I->header->n_columns, mxUINT8_CLASS, mxREAL);
 		u = mxGetData (mxImg);
 		memcpy (u, I->data, I->header->nm * sizeof (uint8_t));
 	}
 	else if (I->header->n_bands == 3) { /* RGB image */
-		dim[0] = I->header->ny;	dim[1] = I->header->nx; dim[2] = 3;
+		dim[0] = I->header->n_rows;	dim[1] = I->header->n_columns; dim[2] = 3;
 		mxImg = mxCreateNumericArray (3, dim, mxUINT8_CLASS, mxREAL);
 		u = mxGetData (mxImg);
 		/*
@@ -571,10 +571,10 @@ void *GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I) {
 		memcpy (u, I->data, 3 * I->header->nm * sizeof (uint8_t));
 	}
 	else if (I->header->n_bands == 4) { /* RGBA image, with a color map */
-		dim[0] = I->header->ny;	dim[1] = I->header->nx; dim[2] = 3;
+		dim[0] = I->header->n_rows;	dim[1] = I->header->n_columns; dim[2] = 3;
 		mxImg = mxCreateNumericArray (3, dim, mxUINT8_CLASS, mxREAL);
 		u = mxGetData (mxImg);
-		mxalpha = mxCreateNumericMatrix (I->header->ny, I->header->nx, mxUINT8_CLASS, mxREAL);
+		mxalpha = mxCreateNumericMatrix (I->header->n_rows, I->header->n_columns, mxUINT8_CLASS, mxREAL);
 		alpha = mxGetData (mxalpha);
 		memcpy(u, I->data, 3 * I->header->nm * sizeof (uint8_t)); 
 		memcpy(alpha, &(I->data)[3 * I->header->nm], I->header->nm * sizeof (uint8_t)); 
@@ -592,13 +592,13 @@ void *GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I) {
 	/* Also return the convenient x and y arrays */
 	I_x = GMT_Get_Coord (API, GMT_IS_IMAGE, GMT_X, I);	/* Get array of x coordinates */
 	I_y = GMT_Get_Coord (API, GMT_IS_IMAGE, GMT_Y, I);	/* Get array of y coordinates */
-	mx_x = mxCreateNumericMatrix (1, I->header->nx, mxDOUBLE_CLASS, mxREAL);
-	mx_y = mxCreateNumericMatrix (1, I->header->ny, mxDOUBLE_CLASS, mxREAL);
+	mx_x = mxCreateNumericMatrix (1, I->header->n_columns, mxDOUBLE_CLASS, mxREAL);
+	mx_y = mxCreateNumericMatrix (1, I->header->n_rows, mxDOUBLE_CLASS, mxREAL);
 	x = mxGetData (mx_x);
 	y = mxGetData (mx_y);
-	memcpy (x, I_x, I->header->nx * sizeof (double));
-	for (n = 0; n < I->header->ny; n++)		/* Must reverse the y-array */
-		y[I->header->ny-1-n] = I_y[n];
+	memcpy (x, I_x, I->header->n_columns * sizeof (double));
+	for (n = 0; n < I->header->n_rows; n++)		/* Must reverse the y-array */
+		y[I->header->n_rows-1-n] = I_y[n];
 	if (GMT_Destroy_Data (API, &I_x))
 		mexPrintf("Warning: Failure to delete I_x (x coordinate vector)\n");
 	if (GMT_Destroy_Data (API, &I_y))
@@ -747,8 +747,8 @@ static struct GMT_GRID *gmtmex_grid_init (void *API, unsigned int direction, uns
 			float *f4 = mxGetData(mxGrid);
 			if (f4 == NULL)
 				mexErrMsgTxt("gmtmex_grid_init: Grid pointer is NULL where it absolutely could not be.");
-			for (row = 0; row < G->header->ny; row++) {
-				for (col = 0; col < G->header->nx; col++) {
+			for (row = 0; row < G->header->n_rows; row++) {
+				for (col = 0; col < G->header->n_columns; col++) {
 					gmt_ij = GMT_IJP (G->header, row, col);
 					G->data[gmt_ij] = f4[MEXG_IJ(G,row,col)];
 				}
@@ -758,8 +758,8 @@ static struct GMT_GRID *gmtmex_grid_init (void *API, unsigned int direction, uns
 			double *f8 = mxGetData(mxGrid);
 			if (f8 == NULL)
 				mexErrMsgTxt("gmtmex_grid_init: Grid pointer is NULL where it absolutely could not be.");
-			for (row = 0; row < G->header->ny; row++) {
-				for (col = 0; col < G->header->nx; col++) {
+			for (row = 0; row < G->header->n_rows; row++) {
+				for (col = 0; col < G->header->n_columns; col++) {
 					gmt_ij = GMT_IJP (G->header, row, col);
 					G->data[gmt_ij] = (float)f8[MEXG_IJ(G,row,col)];
 				}
@@ -825,8 +825,8 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 			mexErrMsgTxt ("gmtmex_image_init: Could not find data array for Image\n");
 
 		f = mxGetData (mx_ptr);
-		for (row = 0; row < I->header->ny; row++) {
-			for (col = 0; col < I->header->nx; col++, gmt_ij++) {
+		for (row = 0; row < I->header->n_rows; row++) {
+			for (col = 0; col < I->header->n_columns; col++, gmt_ij++) {
 				gmt_ij = GMT_IJP (I->header, row, col);
 				I->data [gmt_ij] = f[MEXG_IJ(I,row,col)];
 			}
@@ -1021,24 +1021,24 @@ static struct GMT_PALETTE *gmtmex_cpt_init (void *API, unsigned int direction, u
 
 		for (j = 0; j < 3; j++) {	/* Do the BFN first */
 			for (k = 0; k < 3; k++)
-				P->patch[j].rgb[k] = BFN[j+k*3];
+				P->bfn[j].rgb[k] = BFN[j+k*3];
 		}
 		for (j = 0; j < P->n_colors; j++) {	/* OK to access j+1'th elemenent since length of colormap is P->n_colors+1 */
 			for (k = 0; k < 3; k++) {
-				P->range[j].rgb_low[k]  = colormap[j+k*dim[1]];
-				P->range[j].rgb_high[k] = colormap[(j+one)+k*dim[1]];
+				P->data[j].rgb_low[k]  = colormap[j+k*dim[1]];
+				P->data[j].rgb_high[k] = colormap[(j+one)+k*dim[1]];
 			}
-			P->range[j].rgb_low[3]  = alpha[j];
-			P->range[j].rgb_high[3] = alpha[j+one];
+			P->data[j].rgb_low[3]  = alpha[j];
+			P->data[j].rgb_high[3] = alpha[j+one];
 			if (range) {
-				P->range[j].z_low  = range[j];
-				P->range[j].z_high = range[j+P->n_colors];
+				P->data[j].z_low  = range[j];
+				P->data[j].z_high = range[j+P->n_colors];
 			}
 			else {
-				P->range[j].z_low = range[0] + j * dz;
-				P->range[j].z_high = P->range[j].z_low + dz;
+				P->data[j].z_low = range[0] + j * dz;
+				P->data[j].z_high = P->data[j].z_low + dz;
 			}
-			P->range[j].annot = 3;	/* Enforce annotations for now */
+			P->data[j].annot = 3;	/* Enforce annotations for now */
 		}
 		P->is_continuous = one;
 		P->is_bw = P->is_gray = false;
