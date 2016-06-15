@@ -104,7 +104,7 @@ function  [ps_, t_path_] = gallery(varargin)
 				case 'ex34',   [ps, t_path] = ex34(g_root_dir, out_path, verbose);
 				case 'ex35',   [ps, t_path] = ex35(g_root_dir, out_path, verbose);
 				case 'ex36',   [ps, t_path] = ex36(g_root_dir, out_path, verbose);
-				case 'ex37',   [ps, t_path] = ex37(g_root_dir, out_path, verbose);		% grdfft errors
+				case 'ex37',   [ps, t_path] = ex37(g_root_dir, out_path, verbose);
 				case 'ex38',   [ps, t_path] = ex38(g_root_dir, out_path, verbose);
 				case 'ex39',   [ps, t_path] = ex39(g_root_dir, out_path, verbose);
 				case 'ex40',   [ps, t_path] = ex40(g_root_dir, out_path, verbose);
@@ -113,6 +113,7 @@ function  [ps_, t_path_] = gallery(varargin)
 				case 'ex43',   [ps, t_path] = ex43(g_root_dir, out_path, verbose);	% Not yet
 				case 'ex44',   [ps, t_path] = ex44(g_root_dir, out_path, verbose);
 				case 'ex45',   [ps, t_path] = ex45(g_root_dir, out_path, verbose);
+				case 'ex46',   [ps, t_path] = ex46(g_root_dir, out_path, verbose);
 			end
 		end
 	catch
@@ -937,7 +938,7 @@ function [ps, d_path] = ex21(g_root_dir, out_path, verbose)
 	gmt(['psxy -R -J RHAT.pw -Wthinner,- -O >> ' ps])
 
 	builtin('delete','RHAT.pw');
-	%builtin('delete','gmt.conf');
+	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
 function [ps, d_path] = ex22(g_root_dir, out_path, verbose)
@@ -1776,3 +1777,21 @@ function [ps, d_path] = ex45(g_root_dir, out_path, verbose)
 		' -Sc0.05c -Gred -O -K -i0,2 -Y2.3i >> ' ps], model)
 	gmt(['pstext -R -J -O -F+f12p+cTL -Dj0.1i -Glightyellow >> ' ps], {'@~e@~(t) = y(t) - m@-5@-(t)'})
 	builtin('delete','gmt.conf');
+
+% -------------------------------------------------------------------------------------------------
+function [ps, d_path] = ex46(g_root_dir, out_path, verbose)
+	d_path = [g_root_dir 'doc/examples/ex46/'];
+	ps = [out_path 'example_46.ps'];
+	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
+
+	gmt('set -Du')
+	gmt(['pscoast -Rd -JKs0/10i -Dl -A5000 -W0.5p -N1/0.5p,gray -S175/210/255 -Bafg --MAP_FRAME_TYPE=plain -K -Xc > ' ps])
+	gmt(['pssolar -R  -J -Td+d2016-02-09T16:00:00 -Gnavy@95 -K -O >> ' ps])
+	gmt(['pssolar -R  -J -Tc+d2016-02-09T16:00:00 -Gnavy@85 -K -O >> ' ps])
+	gmt(['pssolar -R  -J -Tn+d2016-02-09T16:00:00 -Gnavy@80 -K -O >> ' ps])
+	gmt(['pssolar -R  -J -Ta+d2016-02-09T16:00:00 -Gnavy@80 -K -O >> ' ps])
+	t = gmt('pssolar -I+d2016-02-09T16:00:00 -C -o0,1');
+	gmt(['psxy -R -J -Sk' d_path 'sunglasses/1.5c -Gyellow -O >> ' ps], t)
+	builtin('delete','gmt.conf');
+
+
