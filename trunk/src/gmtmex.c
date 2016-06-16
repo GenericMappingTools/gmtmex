@@ -235,14 +235,14 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	}
 
 	/* Make sure this is a valid module */
-	if ((status = GMT_Call_Module (API, module, GMT_MODULE_EXIST, NULL))) {
+	if ((status = GMT_Call_Module (API, module, GMT_MODULE_EXIST, NULL))) {	/* No, not found */
 		char gmt_module[MODULE_LEN] = "gmt";	/* Alternate module name that starts with "gmt" */
 		/* module does not contain a valid module name; try prepending gmt: */
 		strncat (gmt_module, module, MODULE_LEN-4U);
 		status = GMT_Call_Module (API, gmt_module, GMT_MODULE_EXIST, NULL); /* either GMT_NOERROR or GMT_NOT_A_VALID_MODULE */
 		if (status)
 			mexErrMsgTxt ("GMT: No module by that name was found.\n"); 
-		strcpy (module, gmt_module);	/* Use the prepended module name since that worked */
+		strcpy (module, gmt_module);	/* Use the prepended module name since that one worked */
 	}
 	
 	/* 2+ Add -F to psconvert if user requested a return image but did not give -F */
@@ -302,9 +302,12 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	
 	/* 6. Run GMT module; give usage message if errors arise during parsing */
 	status = GMT_Call_Module (API, module, GMT_MODULE_OPT, options);
-	if (!(status == GMT_NOERROR || status == GMT_SYNOPSIS)) {
-		mexPrintf("GMT: Module return with failure while executing the command\n%s\n", cmd);
-		mexErrMsgTxt("GMT: exiting\n");
+	if (status != GMT_NOERROR) {
+		if (status != GMT_SYNOPSIS) {
+			mexPrintf("GMT: Module return with failure while executing the command\n%s\n", cmd);
+			mexErrMsgTxt("GMT: exiting\n");
+		}
+		return;
 	}
 
 	/* 7. Hook up any GMT outputs to MATLAB plhs array */
