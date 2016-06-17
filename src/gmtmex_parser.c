@@ -386,15 +386,15 @@ void *GMTMEX_Get_PS (void *API, struct GMT_POSTSCRIPT *P) {
 }
 #endif
 
-#define N_MEX_FIELDNAMES_CPT	6
+#define N_MEX_FIELDNAMES_CPT	7
 
 void *GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C) {
 	/* Given a GMT CPT C, build a MATLAB structure and assign values */
 
 	unsigned int k, j, n_colors, *depth = NULL;
-	double *color = NULL, *alpha = NULL, *rangeMinMax = NULL, *range = NULL, *BFN = NULL;
+	double *color = NULL, *alpha = NULL, *rangeMinMax = NULL, *range = NULL, *hinge = NULL, *BFN = NULL;
 	mxArray *mxcolormap = NULL, *mxalpha = NULL, *mxrangeMinMax = NULL, *mxrange = NULL;
-	mxArray *CPT_struct = NULL, *mxBFN = NULL, *mxdepth = NULL;
+	mxArray *CPT_struct = NULL, *mxBFN = NULL, *mxdepth = NULL, *mxhinge = NULL;
 	char *fieldnames[N_MEX_FIELDNAMES_CPT];	/* Array with the names of the fields of the output grid structure. */
 
 	if (!C->data)
@@ -409,6 +409,7 @@ void *GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C) {
 	fieldnames[3] = mxstrdup ("rangeMinMax");
 	fieldnames[4] = mxstrdup ("BFN");
 	fieldnames[5] = mxstrdup ("depth");
+	fieldnames[6] = mxstrdup ("hinge");
 	CPT_struct = mxCreateStructMatrix (1, 1, N_MEX_FIELDNAMES_CPT, (const char **)fieldnames );
 
 	n_colors = (C->is_continuous) ? C->n_colors + 1 : C->n_colors;
@@ -423,8 +424,11 @@ void *GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C) {
 	mxBFN         = mxCreateNumericMatrix (3, 3, mxDOUBLE_CLASS, mxREAL);
 	BFN           = mxGetPr (mxBFN);
 	mxdepth       = mxCreateNumericMatrix (1, 1, mxUINT32_CLASS, mxREAL);
-	depth         = (uint32_t *)mxGetData(mxdepth);
+	depth         = (uint32_t *)mxGetData (mxdepth);
+	mxhinge       = mxCreateNumericMatrix (1, 1, mxDOUBLE_CLASS, mxREAL);
+	hinge         = mxGetPr (mxhinge);
 	depth[0] = (C->is_bw) ? 1 : ((C->is_gray) ? 8 : 24);
+	hinge[0] = (C->has_hinge) ? C->hinge : mxGetNaN ();
 	for (j = 0; j < 3; j++) {	/* Copy r/g/b from palette BFN to MATLAB array */
 		for (k = 0; k < 3; k++) BFN[j+k*3] = C->bfn[j].rgb[k];
 	}
@@ -447,6 +451,7 @@ void *GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C) {
 	mxSetField (CPT_struct, 0, "rangeMinMax", mxrangeMinMax);
 	mxSetField (CPT_struct, 0, "BFN",   mxBFN);
 	mxSetField (CPT_struct, 0, "depth", mxdepth);
+	mxSetField (CPT_struct, 0, "hinge", mxhinge);
 	return (CPT_struct);
 }
 
@@ -967,7 +972,7 @@ static struct GMT_PALETTE *gmtmex_cpt_init (void *API, unsigned int direction, u
 		uint64_t dim[2];
 		unsigned int family = (module_input) ? GMT_IS_PALETTE|GMT_VIA_MODULE_INPUT : GMT_IS_PALETTE;
 		mxArray *mx_ptr = NULL;
-		double dz, *colormap = NULL, *range = NULL, *rangeMinMax = NULL, *alpha = NULL, *BFN = NULL;
+		double dz, *colormap = NULL, *range = NULL, *rangeMinMax = NULL, *alpha = NULL, *BFN = NULL, *hinge = NULL;
 
 		if (mxIsEmpty (ptr))
 			mexErrMsgTxt ("gmtmex_cpt_init: The input that was supposed to contain the CPT, is empty\n");
@@ -1012,6 +1017,10 @@ static struct GMT_PALETTE *gmtmex_cpt_init (void *API, unsigned int direction, u
 		if (mx_ptr == NULL)
 			mexErrMsgTxt ("gmtmex_cpt_init: Could not find CPT depth entry\n");
 		depth = mxGetData (mx_ptr);
+		mx_ptr = mxGetField (ptr, 0, "hinge");
+		if (mx_ptr == NULL)
+			mexErrMsgTxt ("gmtmex_cpt_init: Could not find hinge entry for hinged CPT\n");
+		hinge = mxGetData (mx_ptr);
 
 		if ((P = GMT_Create_Data (API, family, GMT_IS_NONE, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
 			mexErrMsgTxt ("gmtmex_cpt_init: Failure to alloc GMT source CPT for input\n");
@@ -1041,12 +1050,16 @@ static struct GMT_PALETTE *gmtmex_cpt_init (void *API, unsigned int direction, u
 			P->data[j].annot = 3;	/* Enforce annotations for now */
 		}
 		P->is_continuous = one;
-		P->is_bw = P->is_gray = false;
+		P->is_bw = P->is_gray = 0;
 		if (depth[0] == 1)
-			P->is_bw = true;
+			P->is_bw = 1;
 		else if (depth[0] == 8)
-			P->is_gray = true;
+			P->is_gray = 1;
 		GMT_Report (API, GMT_MSG_DEBUG, "gmtmex_cpt_init: Allocated GMT CPT %lx\n", (long)P);
+		if (mxIsNaN (hinge[0])) {
+			P->has_hinge = 1;
+			P->mode &= GMT_CPT_HINGED;
+		}
 	}
 	else {	/* Just allocate an empty container to hold an output grid (signal this by passing NULLs) */
 		if ((P = GMT_Create_Data (API, GMT_IS_PALETTE, GMT_IS_NONE, 0, NULL, NULL, NULL, 0, 0, NULL)) == NULL)
