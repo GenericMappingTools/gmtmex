@@ -1,12 +1,15 @@
 function run_tests(what)
 % Run 'packages' of examples/tests
-% WHAT can be 'all_examples' to run all examples or 'all_tests' for the ported tests
+% WHAT can be 'all_examples' to run all examples, 'all_tests' for the ported tests
+%      or a single example. e.g. run_tests('ex02')
 
 	if (strcmp(what, 'all_examples'))
 		for (k = 1:45)
 			ex = sprintf('ex%.2d', k);
 			gmtest(ex)
 		end
+	elseif (strncmp(what, 'ex', 2))
+		gmtest(what)
 	elseif (strcmp(what, 'all_tests'))
 		do_tests()
 	end
@@ -24,11 +27,13 @@ function do_tests()
 		'spotter_6','spotter'
 		'map_JE','psbasemap'
 		'mapscales','psbasemap'
-		'oblique','psbasemap'		% THIS ONE CRASHES gmt(['psbasemap -R-100/100/-60/60 -JOa1/0/45/5.5i -B30g30 -P -K -Xc > lixo.ps'])
+		'oblique','psbasemap'
 		'oblsuite','pscoast'
 		'trimvector','psxy'
+		'decoratedlines','psxy'
 		'sph_5','sph'
 		%'flexure_e','potential'	% See test. We dont' have syntax to run it
+		'spheres','potential'
 		'clipping6','psxy'
 		%'clipping5','psxy'			% See test. We dont' have syntax to run it
 		'clipping4','psxy'
