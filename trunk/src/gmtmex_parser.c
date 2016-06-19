@@ -342,7 +342,7 @@ void *GMTMEX_Get_Textset (void *API, struct GMT_TEXTSET *T) {
 			mxSetCell (C, k++, p);
 		}
 		for (row = 0; row <S->n_rows; row++, k++) {	/* Place all the text records */
-			p = mxCreateString (S->record[row]);
+			p = mxCreateString (S->data[row]);
 			mxSetCell (C, k, p);
 		}
 	}
@@ -1119,15 +1119,14 @@ static struct GMT_TEXTSET *gmtmex_textset_init (void *API, unsigned int directio
 					mx_ptr = mxGetCell (ptr, rec);
 					txt = mxArrayToString (mx_ptr);
 				}
-				S->record[rec] = txt;
+				S->data[rec] = txt;
 			}
 		}
 		T->n_records = T->table[0]->n_records = S->n_rows;
 		GMT_Report (API, GMT_MSG_DEBUG, "gmtmex_textset_init: Allocated GMT TEXTSET %lx\n", (long)T);
 	}
 	else {	/* Just allocate an empty container to hold an output grid (signal this by passing NULLs) */
-		if ((T = GMT_Create_Data (API, GMT_IS_TEXTSET, GMT_IS_NONE, 0,
-                        NULL, NULL, NULL, 0, 0, NULL)) == NULL)
+		if ((T = GMT_Create_Data (API, GMT_IS_TEXTSET, GMT_IS_NONE, 0, NULL, NULL, NULL, 0, 0, NULL)) == NULL)
 			mexErrMsgTxt ("gmtmex_textset_init: Failure to alloc GMT TEXTSET container for holding output TEXT\n");
 	}
 	return (T);
