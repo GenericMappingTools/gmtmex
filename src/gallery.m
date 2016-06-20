@@ -738,7 +738,7 @@ function [ps, d_path] = ex18(g_root_dir, out_path, verbose)
 	% First generate gravity image w/ shading, label Pratt, and draw a circle
 	% of radius = 200 km centered on Pratt.
 
-	grav_cpt = gmt('makecpt -Crainbow -T-60/60/0.2 -Z');
+	grav_cpt = gmt('makecpt -Crainbow -T-60/60');
 	GAK_gulf_grav_i = gmt(['grdgradient ' d_path 'AK_gulf_grav.nc -Nt1 -A45']);
 	gmt(['grdimage ' d_path 'AK_gulf_grav.nc -I -JM5.5i -C -B2f1 -P -K -X1.5i' ...
 		' -Y5.85i > ' ps], GAK_gulf_grav_i, grav_cpt)
@@ -799,7 +799,7 @@ function [ps, d_path] = ex19(g_root_dir, out_path, verbose)
 	Glat = gmt('grdmath -Rd -I1 -r Y COSD 2 POW =');
 	Glon = gmt('grdmath -Rd -I1 -r X =');
 	fid = fopen('lat.cpt','w');		fprintf(fid, '0 white 1 blue\n');	fclose(fid);
-	lon_cpt = gmt('makecpt -Crainbow -T-180/180/2 -Z');
+	lon_cpt = gmt('makecpt -Crainbow -T-180/180');
 	gmt(['grdimage -JI0/6.5i -Clat.cpt -P -K -Y7.5i -B0 -nl > ' ps], Glat)
 	gmt(['pscoast -R -J -O -K -Dc -A5000 -Gc >> ' ps])
 	gmt(['grdimage -J -C -O -K -nl >> ' ps], Glon, lon_cpt)
@@ -1192,7 +1192,7 @@ function [ps, d_path] = ex27(g_root_dir, out_path, verbose)
 	Gtasman_grav_i = gmt(['grdgradient ' d_path 'tasman_grav.nc -Nt1 -A45 -G']);
 
 	% Make a suitable cpt file for mGal
-	grav_cpt = gmt('makecpt -T-120/120/1 -Z -Crainbow');
+	grav_cpt = gmt('makecpt -T-120/120 -Crainbow');
 
 	% Since this is a Mercator grid we use a linear projection
 	gmt(['grdimage ' d_path 'tasman_grav.nc=ns/0.1 -I -Jx0.25i -C -P -K > ' ps], Gtasman_grav_i, grav_cpt)
@@ -1224,7 +1224,7 @@ function [ps, d_path] = ex28(g_root_dir, out_path, verbose)
 
 	% Get intensity grid and set up a color table
 	GKilauea_utm_i = gmt(['grdgradient ' d_path 'Kilauea.utm.nc -Nt1 -A45 -G']);
-	Kilauea_cpt = gmt('makecpt -Ccopper -T0/1500/100 -Z');
+	Kilauea_cpt = gmt('makecpt -Ccopper -T0/1500');
 	% Lay down the UTM topo grid using a 1:16,000 scale
 	gmt(['grdimage ' d_path 'Kilauea.utm.nc -I -C -Jx1:160000 -P -K' ...
 		' --FORMAT_FLOAT_OUT=%.10g --FONT_ANNOT_PRIMARY=9p > ' ps], GKilauea_utm_i, Kilauea_cpt)
@@ -1263,7 +1263,7 @@ function [ps, d_path] = ex29(g_root_dir, out_path, verbose)
 	% Scale to km and remove PROJ_ELLIPSOID
 	Gmars  = gmt('grdmath $ 1000 DIV $ SUB =', Gmars, Gproj_ellipsoid);
 	Gmars2 = gmt('grdmath $ 1000 DIV $ SUB =', Gmars2, Gproj_ellipsoid);
-	mars_cpt = gmt('makecpt -Crainbow -T-7/15/0.1 -Z');
+	mars_cpt = gmt('makecpt -Crainbow -T-7/15');
 	Gmars2_i = gmt('grdgradient -fg -Ne0.75 -A45 -G', Gmars2);
 	gmt(['grdimage -I -C -B30g30 -BWsne -JH0/7i -P -K -E200' ...
 		' --FONT_ANNOT_PRIMARY=12p -X0.75i > ' ps], Gmars2, Gmars2_i, mars_cpt)
@@ -1422,7 +1422,7 @@ function [ps, d_path] = ex33(g_root_dir, out_path, verbose)
 
 	% Extract a subset of ETOPO1m for the East Pacific Rise
 	% gmt grdcut etopo1m_grd.nc -R118W/107W/49S/42S -Gspac.nc
-	z_cpt = gmt('makecpt -Crainbow -T-5000/-2000/500 -Z');
+	z_cpt = gmt('makecpt -Crainbow -T-5000/-2000');
 	Gspac_int = gmt(['grdgradient ' d_path 'spac.nc -A15 -Ne0.75 -G']);
 	gmt(['grdimage ' d_path 'spac.nc -I -C -JM6i -P -Baf -K -Xc --FORMAT_GEO_MAP=dddF > ' ps], Gspac_int, z_cpt)
 	% Select two points along the ridge
@@ -1455,7 +1455,7 @@ function [ps, d_path] = ex34(g_root_dir, out_path, verbose)
 	gmt(['pscoast -JM4.5i -R-6/20/35/52 -EFR,IT+gP300/8 -Glightgray -Baf -BWSne -P -K -X2i > ' ps])
 	% Extract a subset of ETOPO2m for this part of Europe
 	% gmt grdcut etopo2m_grd.nc -R -GFR+IT.nc=ns
-	z_cpt = gmt('makecpt -Cglobe -T-5000/5000/50 -Z');
+	z_cpt = gmt('makecpt -Cglobe -T-5000/5000');
 	FR_IT_int = gmt(['grdgradient ' d_path 'FR+IT.nc -A15 -Ne0.75']);
 	gmt(['grdimage ' d_path 'FR+IT.nc -I -C -J -O -K -Y4.5i' ...
 		' -Baf -BWsnE+t"Franco-Italian Union, 2042-45" >> ' ps], FR_IT_int, z_cpt)
@@ -1477,7 +1477,7 @@ function [ps, d_path] = ex35(g_root_dir, out_path, verbose)
 	[pol, nodes] = gmt(['sphtriangulate ' d_path 'gshhs_c.txt -Qv -D -N']);
 	% Compute distances in km
 	Gtt = gmt('sphdistance -Rg -I1 -Q -N -G -Lk', pol, nodes);
-	t_cpt = gmt('makecpt -Chot -T0/3500/500 -Z');
+	t_cpt = gmt('makecpt -Chot -T0/3500');
 	% Make a basic image plot and overlay contours, Voronoi polygons and coastlines
 	gmt(['grdimage -JG-140/30/7i -P -K -C -X0.75i -Y2i > ' ps], Gtt, t_cpt)
 	gmt(['grdcontour -J -O -K -C500 -A1000+f10p,Helvetica,white -L500' ...
@@ -1494,7 +1494,7 @@ function [ps, d_path] = ex36(g_root_dir, out_path, verbose)
 
 	% Interpolate data of Mars radius from Mariner9 and Viking Orbiter spacecrafts
 	gmt('set -Du')
-	tt_cpt = gmt('makecpt -Crainbow -T-7000/15000/1000 -Z');
+	tt_cpt = gmt('makecpt -Crainbow -T-7000/15000');
 	% Piecewise linear interpolation; no tension
 	Gtt = gmt(['sphinterpolate ' d_path 'mars370.txt -Rg -I1 -Q0 -G']);
 	gmt(['grdimage -JH0/6i -Bag -C -P -Xc -Y7.25i -K > ' ps], Gtt, tt_cpt)
@@ -1520,8 +1520,8 @@ function [ps, d_path] = ex37(g_root_dir, out_path, verbose)
 	G = [d_path 'grav.V18.par.surf.1km.sq.nc'];
 	T = [d_path 'mb.par.surf.1km.sq.nc'];
 
-	z_cpt = gmt('makecpt -Crainbow -T-5000/-3000/100 -Z');
-	g_cpt = gmt('makecpt -Crainbow -T-50/25/5 -Z');
+	z_cpt = gmt('makecpt -Crainbow -T-5000/-3000');
+	g_cpt = gmt('makecpt -Crainbow -T-50/25');
 	bbox_t = gmt(['grdinfo ' T ' -Ib']);			% Trouble here bbox_t is a cell array of text and we need it to be a matrix
 	bbox = zeros(4,2);
 	for (k = 1:4)
@@ -1541,8 +1541,8 @@ function [ps, d_path] = ex37(g_root_dir, out_path, verbose)
 	GG_tmp_int = gmt('grdgradient grav.V18.par.surf.1km.sq_tmp.nc -A0 -Nt1 -G');
 	GT_tmp_int = gmt('grdgradient mb.par.surf.1km.sq_tmp.nc -A0 -Nt1 -G');
 
-	z_cpt = gmt('makecpt -Crainbow -T-1500/1500/100 -Z');
-	g_cpt = gmt('makecpt -Crainbow -T-40/40/5 -Z');
+	z_cpt = gmt('makecpt -Crainbow -T-1500/1500');
+	g_cpt = gmt('makecpt -Crainbow -T-40/40');
 
 	gmt(['grdimage mb.par.surf.1km.sq_tmp.nc -I -Jx' scl 'i -C -O -K -X-3.474i -Y3i >> ' ps], GT_tmp_int, z_cpt)
 	gmt(['psxy -Rmb.par.surf.1km.sq_tmp.nc -J -O -K -L -W0.5p,- >> ' ps], bbox)
@@ -1566,7 +1566,7 @@ function [ps, d_path] = ex38(g_root_dir, out_path, verbose)
 	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	gmt('set -Du')
-	t_cpt = gmt('makecpt -Crainbow -T0/1700/100 -Z');
+	t_cpt = gmt('makecpt -Crainbow -T0/1700');
 	c_cpt = gmt('makecpt -Crainbow -T0/15/1');
 	Gitopo = gmt(['grdgradient ' d_path 'topo.nc -Nt1 -fg -A45 -G']);
 	Gout  = gmt(['grdhisteq ' d_path 'topo.nc -G -C16']);
@@ -1576,7 +1576,7 @@ function [ps, d_path] = ex38(g_root_dir, out_path, verbose)
 	gmt(['pstext -R -J -O -K -F+jTR+f14p -T -Gwhite -W1p -Dj0.1i >> ' ps], {'315 -10 Equalized'})
 	gmt(['psscale -Dx0i/-0.4i+jTC+w5i/0.15i+h+e+n -O -K -C -Ba500 -By+lm >> ' ps], t_cpt)
 	Gout = gmt(['grdhisteq ' d_path 'topo.nc -G -N']);
-	c_cpt = gmt('makecpt -Crainbow -T-3/3/0.1 -Z');
+	c_cpt = gmt('makecpt -Crainbow -T-3/3');
 	gmt(['grdimage -C -J -X-3.5i -Y-3.3i -K -O -B5 -BWSne >> ' ps], Gout, c_cpt)
 	gmt(['pstext -R -J -O -K -F+jTR+f14p -T -Gwhite -W1p -Dj0.1i >> ' ps], {'315 -10 Normalized'})
 	Gout = gmt(['grdhisteq ' d_path 'topo.nc -G -N']);
@@ -1602,7 +1602,7 @@ function [ps, d_path] = ex39(g_root_dir, out_path, verbose)
 	Gv1 = gmt(['sph2grd ' d_path 'VenusTopo180.txt -I1 -Rg -Ng -G -F1/1/25/30']);
 	Gv2 = gmt(['sph2grd ' d_path 'VenusTopo180.txt -I1 -Rg -Ng -G -F1/1/85/90']);
 	Gv3 = gmt(['sph2grd ' d_path 'VenusTopo180.txt -I1 -Rg -Ng -G -F1/1/170/180']);
-	t_cpt = gmt('grd2cpt -Crainbow -E16 -Z', Gv3);
+	t_cpt = gmt('grd2cpt -Crainbow -E', Gv3);
 	Gvint = gmt('grdgradient -Nt0.75 -A45 -G', Gv1);
 	gmt(['grdimage -I -JG90/30/5i -P -K -Bg -C -X3i -Y1.1i > ' ps], Gv1, Gvint, t_cpt)
 	gmt(['pstext -R0/6/0/6 -Jx1i -O -K -Dj0.2i -F+f16p+jLM -N >> ' ps], {'4 4.5 L = 30'})
@@ -1681,8 +1681,8 @@ function [ps, d_path] = ex42(g_root_dir, out_path, verbose)
 	% curl http://www.antarctica.ac.uk//bas_research/data/access/bedmap/download/bedelev.asc.gz
 	% gunzip bedelev.asc.gz
 	% grdreformat bedelev.asc BEDMAP_elevation.nc=ns -V
-	cpt1 = gmt('makecpt -Cbathy -T-7000/0/200 -N -Z');
-	cpt2 = gmt('makecpt -Cdem4 -T0/4000/200 -N -Z');
+	cpt1 = gmt('makecpt -Cbathy -T-7000/0 -N');
+	cpt2 = gmt('makecpt -Cdem4 -T0/4000 -N');
 	t_cpt = gmt('_cptjoin', cpt1, cpt2);
 	gmt(['grdimage -C ' d_path 'BEDMAP_elevation.nc -Jx1:60000000 -Q -P -K > ' ps], t_cpt)
 	gmt(['pscoast -R-180/180/-90/-60 -Js0/-90/-71/1:60000000 -Bafg -Di -W0.25p -O -K >> ' ps])
