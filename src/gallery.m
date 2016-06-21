@@ -1108,7 +1108,7 @@ function [ps, d_path] = ex24(g_root_dir, out_path, verbose)
 	R = gmt(['info -I10 ' d_path 'oz_quakes.txt']);
 	gmt(['pscoast ' R{1} ' -JM9i -K -Gtan -Sdarkblue -Wthin,white -Dl -A500 -Ba20f10g10 -BWeSn > ' ps])
 	gmt(['psxy -R -J -O -K ' d_path 'oz_quakes.txt -Sc0.05i -Gred >> ' ps])
-	t = gmt(['gmtselect ' d_path 'oz_quakes.txt -Ldateline.txt+1000k -Nk/s -Cpoint.txt+d3000k -fg -R -Il']);
+	t = gmt(['gmtselect ' d_path 'oz_quakes.txt -Ldateline.txt+d1000k -Nk/s -Cpoint.txt+d3000k -fg -R -Il']);
 	gmt(['psxy -R -JM -O -K -Sc0.05i -Ggreen >> ' ps], t)
 	gmt(['psxy point.txt -R -J -O -K -SE- -Wfat,white >> ' ps])
 	gmt(['pstext -R -J -O -K -F+f14p,Helvetica-Bold,white+jLT -D0.1i/-0.1i >> ' ps], {'147:13 -42:48 Hobart'})
