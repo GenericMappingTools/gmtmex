@@ -42,10 +42,10 @@ function cpt = cptjoin(cpt1, cpt2)
 		cpt.colormap = [cpt1.colormap; cpt2.colormap];
 		cpt.alpha    = [cpt1.alpha;    cpt2.alpha];
 	end
-	cpt.range       = [cpt1.range;    cpt2.range];
-	cpt.rangeMinMax = [cpt1.rangeMinMax(1) cpt2.rangeMinMax(2)];
-	cpt.BFN         = cpt1.BFN;			% Just keep the first one
-	cpt.depth       = cpt1.depth;
+	cpt.range  = [cpt1.range;    cpt2.range];
+	cpt.minmax = [cpt1.minmax(1) cpt2.minmax(2)];
+	cpt.bfn    = cpt1.bfn;			% Just keep the first one
+	cpt.depth  = cpt1.depth;
 
 % -------------------------------------------------------------------------------------------------
 function G = fill_grid_struct(Z, head)
@@ -60,25 +60,22 @@ function G = fill_grid_struct(Z, head)
 	end
 
 	if (~isa(head, 'double')),	head = double(head);	end
-	G.ProjectionRefPROJ4 = '';
-	G.ProjectionRefWKT = '';	
+	G.projection_ref_proj4 = '';
+	G.projection_ref_wkt = '';	
 	G.range = head(1:6);
 	G.inc = head(8:9);
-	G.n_rows = size(Z,1);
-	G.n_columns = size(Z,2);
-	G.n_bands = size(Z,3);
 	G.registration = head(7);
-	G.NoDataValue = NaN;
+	G.no_data_value = NaN;
 	G.title = '';
 	G.remark = '';
 	G.command = '';
-	G.DataType = 'float32';
-	G.x = linspace(head(1), head(2), G.n_columns);
-	G.y = linspace(head(3), head(4), G.n_rows);
+	G.datatype = 'float32';
+	G.x = linspace(head(1), head(2), size(Z,2));
+	G.y = linspace(head(3), head(4), size(Z,1));
 	G.z = Z;
-	G.x_units = '';
-	G.y_units = '';
-	G.z_units = '';	
+	G.x_unit = '';
+	G.y_unit = '';
+	G.z_unit = '';	
 
 % -------------------------------------------------------------------------------------------------
 function I = fill_img_struct(img, head, cmap)
@@ -94,25 +91,22 @@ function I = fill_img_struct(img, head, cmap)
 	end
 
 	if (~isa(head, 'double')),	head = double(head);	end
-	I.ProjectionRefPROJ4 = '';
-	I.ProjectionRefWKT = '';	
+	I.projection_ref_proj4 = '';
+	I.projection_ref_wkt = '';	
 	I.range = head(1:6);
 	I.inc = head(8:9);
-	I.n_rows = size(img,1);
-	I.n_columns = size(img,2);
-	I.n_bands = size(img,3);
-	I.NoDataValue = NaN;
+	I.no_data_value = NaN;
 	I.registration = head(7);
 	I.title = '';
 	I.remark = '';
 	I.command = '';
-	I.DataType = 'uint8';
-	I.x = linspace(head(1), head(2), I.n_columns);
-	I.y = linspace(head(3), head(4), I.n_rows);
+	I.datatype = 'uint8';
+	I.x = linspace(head(1), head(2), size(img,2));
+	I.y = linspace(head(3), head(4), size(img,1));
 	I.image = img;
-	I.x_units = '';
-	I.y_units = '';
-	I.z_units = '';	
+	I.x_unit = '';
+	I.y_unit = '';
+	I.z_unit = '';	
 	if (nargin == 3)
 		if (~isa(cmap, 'struct'))
 			% TODO: write a function that converts from Mx3 Matlab cmap to color struct used in MEX
@@ -122,7 +116,7 @@ function I = fill_img_struct(img, head, cmap)
 	else
 		I.colormap = [];	
 	end
-	if (I.n_bands == 4)			% Not obvious that this is the best choice
+	if (size(img,3) == 4)			% Not obvious that this is the best choice
 		I.alpha = img(:,:,4);
 		I.n_bands = 3;
 	else
