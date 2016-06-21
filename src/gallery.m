@@ -355,7 +355,7 @@ function [ps, d_path] = ex06(g_root_dir, out_path, verbose)
 	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	gmt('set -Du')
-	gmt(['psrose ' d_path 'fractures.d -: -A10r -S1.8in -P -Gorange -R0/1/0/360 -X2.5i -K -Bx0.2g0.2' ...
+	gmt(['psrose ' d_path 'fractures.txt -: -A10r -S1.8in -P -Gorange -R0/1/0/360 -X2.5i -K -Bx0.2g0.2' ...
 		' -By30g30 -B+glightblue -W1p > ' ps])
 	gmt(['pshistogram -Bxa2000f1000+l"Topography (m)" -Bya10f5+l"Frequency"+u" %"' ...
 		' -BWSne+t"Histograms"+glightblue ' d_path 'v3206.t -R-6000/0/0/30 -JX4.8i/2.4i -Gorange -O' ...
@@ -759,11 +759,11 @@ function [ps, d_path] = ex18(g_root_dir, out_path, verbose)
 	% Now determine centers of each enclosed seamount > 50 mGal but only plot
 	% the ones within 200 km of Pratt seamount.
 
-	% First determine mean location of each closed contour and add it to the file centers.d
+	% First determine mean location of each closed contour and add it to the file centers.txt
 	centers = gmt('gmtspatial -Q -fg sm_C.txt');
 
 	% Only plot the ones within 200 km
-	t = gmt('gmtselect -C200k/$ -fg', centers, pratt);
+	t = gmt('gmtselect -C+d200k -fg', centers, pratt);
 	gmt(['psxy -R -J -O -K -SC0.04i -Gred -Wthinnest >> ' ps], t)
 	gmt(['psxy -R -J -O -K -ST0.1i -Gyellow -Wthinnest >> ' ps], pratt)
 
@@ -954,19 +954,19 @@ function [ps, d_path] = ex22(g_root_dir, out_path, verbose)
 	% Get the data (-q quietly) from USGS using the wget (comment out in case
 	% your system does not have wget or curl)
 	% 
-	% wget http://neic.usgs.gov/neis/gis/bulletin.asc -q -O neic_quakes.d
-	% curl http://neic.usgs.gov/neis/gis/bulletin.asc -s > neic_quakes.d
+	% wget http://neic.usgs.gov/neis/gis/bulletin.asc -q -O neic_quakes.txt
+	% curl http://neic.usgs.gov/neis/gis/bulletin.asc -s > neic_quakes.txt
 	% 
 	% Count the number of events (to be used in title later. one less due to header)
 
-	% n=`cat neic_quakes.d | wc -l`
+	% n=`cat neic_quakes.txt | wc -l`
 	% n=`expr $n - 1`
 	n = 77;
 	
 	% Pull out the first and last timestamp to use in legend title
 
-	% first=`sed -n 2p neic_quakes.d | awk -F, '{printf "%s %s\n", $1, $2}'`
-	% last=`sed -n '$p' neic_quakes.d | awk -F, '{printf "%s %s\n", $1, $2}'`
+	% first=`sed -n 2p neic_quakes.txt | awk -F, '{printf "%s %s\n", $1, $2}'`
+	% last=`sed -n '$p' neic_quakes.txt | awk -F, '{printf "%s %s\n", $1, $2}'`
 	first = '04/04/19 00:04:33';
 	last  = '04/04/25 11:11:33';
 
@@ -987,8 +987,8 @@ function [ps, d_path] = ex22(g_root_dir, out_path, verbose)
 	% Start plotting. First lay down map, then plot quakes with size = magintude/50":
 
 	gmt(['pscoast -Rg -JK180/9i -B45g30 -B+t"World-wide earthquake activity" -Gbrown -Slightblue -Dc -A1000 -K -Y2.75i > ' ps])
-	%gawk -F, "{ print $4, $3, $6, $5*0.02}" neic_quakes.d |
-	t = gmt(['gmtconvert -h ' d_path 'neic_quakes.d -i3,2,5,4']);
+	%gawk -F, "{ print $4, $3, $6, $5*0.02}" neic_quakes.txt |
+	t = gmt(['gmtconvert -h ' d_path 'neic_quakes.txt -i3,2,5,4']);
 	gmt(['psxy -R -JK -O -K -Cneis.cpt -Sci -Wthin >> ' ps], [t(:,1:3) t(:,4)*0.02])
 
 	% Create legend input file for NEIS quake plot
@@ -1058,7 +1058,7 @@ function [ps, d_path] = ex23(g_root_dir, out_path, verbose)
 	cities{3} = '178.42 -18.13 LM SUVA';
 	cities{4} = '237.67 47.58 RM SEATTLE';
 	cities{5} = '28.20 -25.75 LM PRETORIA';
-	fid = fopen('cities.d','w');
+	fid = fopen('cities.txt','w');
 	for (k = 1:5)
 		fprintf(fid, '%s\n', cities{k});
 	end
@@ -1072,20 +1072,20 @@ function [ps, d_path] = ex23(g_root_dir, out_path, verbose)
 	gmt(['psxy -R -J -O -K -Wthickest,red >> ' ps], [lon lat; 28.20 -25.75])
 
 	% Plot red squares at cities and plot names:
-	gmt(['psxy -R -J -O -K -Ss0.2 -Gred -Wthinnest cities.d >> ' ps])
+	gmt(['psxy -R -J -O -K -Ss0.2 -Gred -Wthinnest cities.txt >> ' ps])
 	gmt(['pstext -R -J -O -K -Dj0.15/0 -F+f12p,Courier-Bold,red+j -N >> ' ps], cities)
 
 	% Place a yellow star at Rome
 	gmt(['psxy -R -J -O -K -Sa0.2i -Gyellow -Wthin >> ' ps], [12.5 41.99])
 
 	% Sample the distance grid at the cities and use the distance in km for labels
-	dist = gmt('grdtrack cities.d -G', Gdist);
+	dist = gmt('grdtrack cities.txt -G', Gdist);
 	t = cell(5,1);
 	for (k = 1:5)
 		t{k} = sprintf('%f %f %d', dist(k,1), dist(k,2), round(dist(k,end)));
 	end
 	gmt(['pstext -R -J -O -D0/-0.2i -N -Gwhite -W -C0.02i -F+f12p,Helvetica-Bold+jCT >> ' ps], t)
-	builtin('delete','cities.d');
+	builtin('delete','cities.txt');
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
@@ -1095,26 +1095,26 @@ function [ps, d_path] = ex24(g_root_dir, out_path, verbose)
 	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	% Currently there is no way of avoiding creating files for this
-	fid = fopen('dateline.d', 'w');
+	fid = fopen('dateline.txt', 'w');
 	fprintf(fid, '> Our proxy for the dateline\n');
 	fprintf(fid, '180 0\n180 -90\n');
 	fclose(fid);
 
-	fid = fopen('point.d', 'w');
+	fid = fopen('point.txt', 'w');
 	fprintf(fid, '147:13 -42:48 6000 Hobart');
 	fclose(fid);
 
 	gmt('set -Du')
-	R = gmt(['info -I10 ' d_path 'oz_quakes.d']);
+	R = gmt(['info -I10 ' d_path 'oz_quakes.txt']);
 	gmt(['pscoast ' R{1} ' -JM9i -K -Gtan -Sdarkblue -Wthin,white -Dl -A500 -Ba20f10g10 -BWeSn > ' ps])
-	gmt(['psxy -R -J -O -K ' d_path 'oz_quakes.d -Sc0.05i -Gred >> ' ps])
-	t = gmt(['gmtselect ' d_path 'oz_quakes.d -L1000k/dateline.d -Nk/s -C3000k/point.d -fg -R -Il']);
+	gmt(['psxy -R -J -O -K ' d_path 'oz_quakes.txt -Sc0.05i -Gred >> ' ps])
+	t = gmt(['gmtselect ' d_path 'oz_quakes.txt -Ldateline.txt+1000k -Nk/s -Cpoint.txt+d3000k -fg -R -Il']);
 	gmt(['psxy -R -JM -O -K -Sc0.05i -Ggreen >> ' ps], t)
-	gmt(['psxy point.d -R -J -O -K -SE- -Wfat,white >> ' ps])
+	gmt(['psxy point.txt -R -J -O -K -SE- -Wfat,white >> ' ps])
 	gmt(['pstext -R -J -O -K -F+f14p,Helvetica-Bold,white+jLT -D0.1i/-0.1i >> ' ps], {'147:13 -42:48 Hobart'})
-	gmt(['psxy -R -J -O -K point.d -Wfat,white -S+0.2i >> ' ps])
-	gmt(['psxy dateline.d -R -J -O -Wfat,white -A >> ' ps])
-	builtin('delete','point.d', 'dateline.d');
+	gmt(['psxy -R -J -O -K point.txt -Wfat,white -S+0.2i >> ' ps])
+	gmt(['psxy dateline.txt -R -J -O -Wfat,white -A >> ' ps])
+	builtin('delete','point.txt', 'dateline.txt');
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------

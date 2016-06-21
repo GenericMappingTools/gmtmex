@@ -142,7 +142,7 @@ int GMTMEX_print_func (FILE *fp, const char *message) {
 	return 0;
 }
 
-#define N_MEX_FIELDNAMES_GRID	19
+#define N_MEX_FIELDNAMES_GRID	16
 
 void *GMTMEX_Get_Grid (void *API, struct GMT_GRID *G) {
 	/* Given an incoming GMT grid G, build a MATLAB structure and assign the output components.
@@ -163,32 +163,29 @@ void *GMTMEX_Get_Grid (void *API, struct GMT_GRID *G) {
 	memset (fieldnames, 0, N_MEX_FIELDNAMES_GRID*sizeof (char *));
 	/* Return grids via a float (mxSINGLE_CLASS) matrix in a struct */
 	/* Create a MATLAB struct to hold this grid.  First create field names for all struct components */
-	fieldnames[0]  = mxstrdup ("ProjectionRefPROJ4");
-	fieldnames[1]  = mxstrdup ("ProjectionRefWKT");
-	fieldnames[2]  = mxstrdup ("range");
-	fieldnames[3]  = mxstrdup ("inc");
-	fieldnames[4]  = mxstrdup ("n_rows");
-	fieldnames[5]  = mxstrdup ("n_columns");
-	fieldnames[6]  = mxstrdup ("n_bands");
-	fieldnames[7]  = mxstrdup ("registration");
-	fieldnames[8]  = mxstrdup ("NoDataValue");
+	fieldnames[0] = mxstrdup ("z");
+	fieldnames[1] = mxstrdup ("x");
+	fieldnames[2] = mxstrdup ("y");
+	fieldnames[3]  = mxstrdup ("range");
+	fieldnames[4]  = mxstrdup ("inc");
+	fieldnames[5]  = mxstrdup ("registration");
+	fieldnames[6]  = mxstrdup ("no_data_value");
+	fieldnames[7]  = mxstrdup ("projection_ref_proj4");
+	fieldnames[8]  = mxstrdup ("projection_ref_wkt");
 	fieldnames[9]  = mxstrdup ("title");
 	fieldnames[10] = mxstrdup ("remark");
 	fieldnames[11] = mxstrdup ("command");
-	fieldnames[12] = mxstrdup ("DataType");
-	fieldnames[13] = mxstrdup ("x");
-	fieldnames[14] = mxstrdup ("y");
-	fieldnames[15] = mxstrdup ("z");
-	fieldnames[16] = mxstrdup ("x_units");
-	fieldnames[17] = mxstrdup ("y_units");
-	fieldnames[18] = mxstrdup ("z_units");
+	fieldnames[12] = mxstrdup ("datatype");
+	fieldnames[13] = mxstrdup ("x_unit");
+	fieldnames[14] = mxstrdup ("y_unit");
+	fieldnames[15] = mxstrdup ("z_unit");
 	grid_struct = mxCreateStructMatrix (1, 1, N_MEX_FIELDNAMES_GRID, (const char **)fieldnames);
 
 	mxtmp = mxCreateString (G->header->ProjRefPROJ4);
-	mxSetField (grid_struct, 0, (const char *) "ProjectionRefPROJ4", mxtmp);
+	mxSetField (grid_struct, 0, (const char *) "projection_ref_proj4", mxtmp);
 
 	mxtmp = mxCreateString (G->header->ProjRefWKT);
-	mxSetField (grid_struct, 0, (const char *) "ProjectionRefWKT", mxtmp);
+	mxSetField (grid_struct, 0, (const char *) "projection_ref_wkt", mxtmp);
 
 	dptr = mxGetPr(mxtmp = mxCreateNumericMatrix (1, 6, mxDOUBLE_CLASS, mxREAL));
 	for (n = 0; n < 4; n++) dptr[n] = G->header->wesn[n];
@@ -199,17 +196,8 @@ void *GMTMEX_Get_Grid (void *API, struct GMT_GRID *G) {
 	for (n = 0; n < 2; n++) dptr[n] = G->header->inc[n];
 	mxSetField (grid_struct, 0, "inc", mxtmp);
 
-	mxtmp = mxCreateDoubleScalar ((double)G->header->n_rows);
-	mxSetField (grid_struct, 0, (const char *) "n_rows", mxtmp);
-
-	mxtmp = mxCreateDoubleScalar ((double)G->header->n_columns);
-	mxSetField (grid_struct, 0, (const char *) "n_columns", mxtmp);
-
-	mxtmp = mxCreateDoubleScalar ((double)G->header->n_bands);
-	mxSetField (grid_struct, 0, (const char *) "n_bands", mxtmp);
-
 	mxtmp = mxCreateDoubleScalar ((double)G->header->nan_value);
-	mxSetField (grid_struct, 0, (const char *) "NoDataValue", mxtmp);
+	mxSetField (grid_struct, 0, (const char *) "no_data_value", mxtmp);
 
 	mxtmp = mxCreateDoubleScalar ((double)G->header->registration);
 	mxSetField (grid_struct, 0, (const char *) "registration", mxtmp);
@@ -224,16 +212,16 @@ void *GMTMEX_Get_Grid (void *API, struct GMT_GRID *G) {
 	mxSetField (grid_struct, 0, (const char *) "remark", mxtmp);
 
 	mxtmp = mxCreateString ("float32");
-	mxSetField (grid_struct, 0, (const char *) "DataType", mxtmp);
+	mxSetField (grid_struct, 0, (const char *) "datatype", mxtmp);
 
 	mxtmp = mxCreateString (G->header->x_units);
-	mxSetField (grid_struct, 0, (const char *) "x_units", mxtmp);
+	mxSetField (grid_struct, 0, (const char *) "x_unit", mxtmp);
 
 	mxtmp = mxCreateString (G->header->y_units);
-	mxSetField (grid_struct, 0, (const char *) "y_units", mxtmp);
+	mxSetField (grid_struct, 0, (const char *) "y_unit", mxtmp);
 
 	mxtmp = mxCreateString (G->header->z_units);
-	mxSetField (grid_struct, 0, (const char *) "z_units", mxtmp);
+	mxSetField (grid_struct, 0, (const char *) "z_unit", mxtmp);
 
 	mxGrd = mxCreateNumericMatrix (G->header->n_rows, G->header->n_columns, mxSINGLE_CLASS, mxREAL);
 	f = mxGetData (mxGrd);
@@ -392,9 +380,9 @@ void *GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C) {
 	/* Given a GMT CPT C, build a MATLAB structure and assign values */
 
 	unsigned int k, j, n_colors, *depth = NULL;
-	double *color = NULL, *alpha = NULL, *rangeMinMax = NULL, *range = NULL, *hinge = NULL, *BFN = NULL;
-	mxArray *mxcolormap = NULL, *mxalpha = NULL, *mxrangeMinMax = NULL, *mxrange = NULL;
-	mxArray *CPT_struct = NULL, *mxBFN = NULL, *mxdepth = NULL, *mxhinge = NULL;
+	double *color = NULL, *alpha = NULL, *minmax = NULL, *range = NULL, *hinge = NULL, *bfn = NULL;
+	mxArray *mxcolormap = NULL, *mxalpha = NULL, *mxminmax = NULL, *mxrange = NULL;
+	mxArray *CPT_struct = NULL, *mxbfn = NULL, *mxdepth = NULL, *mxhinge = NULL;
 	char *fieldnames[N_MEX_FIELDNAMES_CPT];	/* Array with the names of the fields of the output grid structure. */
 
 	if (!C->data)
@@ -406,8 +394,8 @@ void *GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C) {
 	fieldnames[0] = mxstrdup ("colormap");
 	fieldnames[1] = mxstrdup ("alpha");
 	fieldnames[2] = mxstrdup ("range");
-	fieldnames[3] = mxstrdup ("rangeMinMax");
-	fieldnames[4] = mxstrdup ("BFN");
+	fieldnames[3] = mxstrdup ("minmax");
+	fieldnames[4] = mxstrdup ("bfn");
 	fieldnames[5] = mxstrdup ("depth");
 	fieldnames[6] = mxstrdup ("hinge");
 	CPT_struct = mxCreateStructMatrix (1, 1, N_MEX_FIELDNAMES_CPT, (const char **)fieldnames );
@@ -417,20 +405,20 @@ void *GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C) {
 	color         = mxGetPr (mxcolormap);
 	mxalpha       = mxCreateNumericMatrix (n_colors, 1, mxDOUBLE_CLASS, mxREAL);
 	alpha         = mxGetPr (mxalpha);
-	mxrangeMinMax = mxCreateNumericMatrix (2, 1, mxDOUBLE_CLASS, mxREAL);
-	rangeMinMax   = mxGetPr (mxrangeMinMax);
+	mxminmax = mxCreateNumericMatrix (2, 1, mxDOUBLE_CLASS, mxREAL);
+	minmax   = mxGetPr (mxminmax);
 	mxrange       = mxCreateNumericMatrix (C->n_colors, 2, mxDOUBLE_CLASS, mxREAL);
 	range         = mxGetPr (mxrange);
-	mxBFN         = mxCreateNumericMatrix (3, 3, mxDOUBLE_CLASS, mxREAL);
-	BFN           = mxGetPr (mxBFN);
+	mxbfn         = mxCreateNumericMatrix (3, 3, mxDOUBLE_CLASS, mxREAL);
+	bfn           = mxGetPr (mxbfn);
 	mxdepth       = mxCreateNumericMatrix (1, 1, mxUINT32_CLASS, mxREAL);
 	depth         = (uint32_t *)mxGetData (mxdepth);
 	mxhinge       = mxCreateNumericMatrix (1, 1, mxDOUBLE_CLASS, mxREAL);
 	hinge         = mxGetPr (mxhinge);
 	depth[0] = (C->is_bw) ? 1 : ((C->is_gray) ? 8 : 24);
 	hinge[0] = (C->has_hinge) ? C->hinge : mxGetNaN ();
-	for (j = 0; j < 3; j++) {	/* Copy r/g/b from palette BFN to MATLAB array */
-		for (k = 0; k < 3; k++) BFN[j+k*3] = C->bfn[j].rgb[k];
+	for (j = 0; j < 3; j++) {	/* Copy r/g/b from palette bfn to MATLAB array */
+		for (k = 0; k < 3; k++) bfn[j+k*3] = C->bfn[j].rgb[k];
 	}
 	for (j = 0; j < C->n_colors; j++) {	/* Copy r/g/b from palette to MATLAB array */
 		for (k = 0; k < 3; k++) color[j+k*n_colors] = C->data[j].rgb_low[k];
@@ -442,20 +430,20 @@ void *GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C) {
 		for (k = 0; k < 3; k++) color[j+k*n_colors] = C->data[C->n_colors-1].rgb_high[k];
 		alpha[j] = C->data[j].rgb_low[3];
 	}
-	rangeMinMax[0] = C->data[0].z_low;
-	rangeMinMax[1] = C->data[C->n_colors-1].z_high;
+	minmax[0] = C->data[0].z_low;
+	minmax[1] = C->data[C->n_colors-1].z_high;
 	
 	mxSetField (CPT_struct, 0, "colormap", mxcolormap);
-	mxSetField (CPT_struct, 0, "alpha", mxalpha);
-	mxSetField (CPT_struct, 0, "range", mxrange);
-	mxSetField (CPT_struct, 0, "rangeMinMax", mxrangeMinMax);
-	mxSetField (CPT_struct, 0, "BFN",   mxBFN);
-	mxSetField (CPT_struct, 0, "depth", mxdepth);
-	mxSetField (CPT_struct, 0, "hinge", mxhinge);
+	mxSetField (CPT_struct, 0, "alpha",    mxalpha);
+	mxSetField (CPT_struct, 0, "range",    mxrange);
+	mxSetField (CPT_struct, 0, "minmax",   mxminmax);
+	mxSetField (CPT_struct, 0, "bfn",      mxbfn);
+	mxSetField (CPT_struct, 0, "depth",    mxdepth);
+	mxSetField (CPT_struct, 0, "hinge",    mxhinge);
 	return (CPT_struct);
 }
 
-#define N_MEX_FIELDNAMES_IMAGE	21
+#define N_MEX_FIELDNAMES_IMAGE	18
 
 void *GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I) {
 	int n;
@@ -474,34 +462,31 @@ void *GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I) {
 	memset (fieldnames, 0, N_MEX_FIELDNAMES_IMAGE*sizeof (char *));
 	/* Return umage via a uint8_t (mxUINT8_CLASS) matrix in a struct */
 	/* Create a MATLAB struct for this image */
-	fieldnames[0]  = mxstrdup ("ProjectionRefPROJ4");
-	fieldnames[1]  = mxstrdup ("ProjectionRefWKT");
-	fieldnames[2]  = mxstrdup ("range");
-	fieldnames[3]  = mxstrdup ("inc");
-	fieldnames[4]  = mxstrdup ("n_rows");
-	fieldnames[5]  = mxstrdup ("n_columns");
-	fieldnames[6]  = mxstrdup ("n_bands");
-	fieldnames[7]  = mxstrdup ("registration");
-	fieldnames[8]  = mxstrdup ("NoDataValue");
+	fieldnames[0] = mxstrdup ("image");
+	fieldnames[1] = mxstrdup ("x");
+	fieldnames[2] = mxstrdup ("y");
+	fieldnames[3]  = mxstrdup ("range");
+	fieldnames[4]  = mxstrdup ("inc");
+	fieldnames[5]  = mxstrdup ("registration");
+	fieldnames[6]  = mxstrdup ("no_data_value");
+	fieldnames[7]  = mxstrdup ("projection_ref_proj4");
+	fieldnames[8]  = mxstrdup ("projection_ref_wkt");
 	fieldnames[9]  = mxstrdup ("title");
 	fieldnames[10] = mxstrdup ("remark");
 	fieldnames[11] = mxstrdup ("command");
-	fieldnames[12] = mxstrdup ("DataType");
-	fieldnames[13] = mxstrdup ("x");
-	fieldnames[14] = mxstrdup ("y");
-	fieldnames[15] = mxstrdup ("image");
-	fieldnames[16] = mxstrdup ("x_units");
-	fieldnames[17] = mxstrdup ("y_units");
-	fieldnames[18] = mxstrdup ("z_units");
-	fieldnames[19] = mxstrdup ("colormap");
-	fieldnames[20] = mxstrdup ("alpha");
+	fieldnames[12] = mxstrdup ("datatype");
+	fieldnames[13] = mxstrdup ("x_unit");
+	fieldnames[14] = mxstrdup ("y_unit");
+	fieldnames[15] = mxstrdup ("z_unit");
+	fieldnames[16] = mxstrdup ("colormap");
+	fieldnames[17] = mxstrdup ("alpha");
 	image_struct = mxCreateStructMatrix (1, 1, N_MEX_FIELDNAMES_IMAGE, (const char **)fieldnames );
 
 	mxtmp = mxCreateString (I->header->ProjRefPROJ4);
-	mxSetField (image_struct, 0, (const char *) "ProjectionRefPROJ4", mxtmp);
+	mxSetField (image_struct, 0, (const char *) "projection_ref_proj4", mxtmp);
 
 	mxtmp = mxCreateString (I->header->ProjRefWKT);
-	mxSetField (image_struct, 0, (const char *) "ProjectionRefWKT", mxtmp);
+	mxSetField (image_struct, 0, (const char *) "projection_ref_wkt", mxtmp);
 
 	dptr = mxGetPr(mxtmp = mxCreateNumericMatrix (1, 6, mxDOUBLE_CLASS, mxREAL));
 	for (n = 0; n < 4; n++) dptr[n] = I->header->wesn[n];
@@ -512,20 +497,11 @@ void *GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I) {
 	for (n = 0; n < 2; n++) dptr[n] = I->header->inc[n];
 	mxSetField (image_struct, 0, "inc", mxtmp);
 
-	mxtmp = mxCreateDoubleScalar ((double)I->header->n_rows);
-	mxSetField (image_struct, 0, (const char *) "n_rows", mxtmp);
-
-	mxtmp = mxCreateDoubleScalar ((double)I->header->n_columns);
-	mxSetField (image_struct, 0, (const char *) "n_columns", mxtmp);
-
-	mxtmp = mxCreateDoubleScalar ((double)I->header->n_bands);
-	mxSetField (image_struct, 0, (const char *) "n_bands", mxtmp);
-
 	mxtmp = mxCreateDoubleScalar ((double)I->header->registration);
 	mxSetField (image_struct, 0, (const char *) "registration", mxtmp);
 
 	mxtmp = mxCreateDoubleScalar ((double)I->header->nan_value);
-	mxSetField (image_struct, 0, (const char *) "NoDataValue", mxtmp);
+	mxSetField (image_struct, 0, (const char *) "no_data_value", mxtmp);
 	
 	mxtmp = mxCreateString (I->header->title);
 	mxSetField (image_struct, 0, (const char *) "title", mxtmp);
@@ -537,16 +513,16 @@ void *GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I) {
 	mxSetField (image_struct, 0, (const char *) "remark", mxtmp);
 
 	mxtmp = mxCreateString ("uint8");
-	mxSetField (image_struct, 0, (const char *) "DataType", mxtmp);
+	mxSetField (image_struct, 0, (const char *) "datatype", mxtmp);
 
 	mxtmp = mxCreateString (I->header->x_units);
-	mxSetField (image_struct, 0, (const char *) "x_units", mxtmp);
+	mxSetField (image_struct, 0, (const char *) "x_unit", mxtmp);
 
 	mxtmp = mxCreateString (I->header->y_units);
-	mxSetField (image_struct, 0, (const char *) "y_units", mxtmp);
+	mxSetField (image_struct, 0, (const char *) "y_unit", mxtmp);
 
 	mxtmp = mxCreateString (I->header->z_units);
-	mxSetField (image_struct, 0, (const char *) "z_units", mxtmp);
+	mxSetField (image_struct, 0, (const char *) "z_unit", mxtmp);
 
 	if (I->colormap != NULL) {	/* Indexed image has a color map */
 		mxcolormap = mxCreateNumericMatrix (I->n_indexed_colors, 3, mxDOUBLE_CLASS, mxREAL);
@@ -649,8 +625,8 @@ static struct GMT_GRID *gmtmex_grid_init (void *API, unsigned int direction, uns
 
 		if (mxIsStruct(ptr)) {	/* Passed a regular MEX Grid structure */
 			double *inc = NULL, *range = NULL, *reg = NULL;
-			char x_units[GMT_GRID_VARNAME_LEN80] = { "" }, y_units[GMT_GRID_VARNAME_LEN80] = { "" },
-			     z_units[GMT_GRID_VARNAME_LEN80] = { "" };
+			char x_unit[GMT_GRID_VARNAME_LEN80] = { "" }, y_unit[GMT_GRID_VARNAME_LEN80] = { "" },
+			     z_unit[GMT_GRID_VARNAME_LEN80] = { "" };
 			mx_ptr = mxGetField (ptr, 0, "inc");
 			if (mx_ptr == NULL)
 				mexErrMsgTxt ("gmtmex_grid_init: Could not find inc array with Grid increments\n");
@@ -681,18 +657,18 @@ static struct GMT_GRID *gmtmex_grid_init (void *API, unsigned int direction, uns
 
 			G->header->registration = registration;
 
-			mx_ptr = mxGetField (ptr, 0, "NoDataValue");
+			mx_ptr = mxGetField (ptr, 0, "no_data_value");
 			if (mx_ptr != NULL)
 				G->header->nan_value = *(float *)mxGetData (mx_ptr);
 
-			mx_ptr = mxGetField (ptr, 0, "ProjectionRefPROJ4");
+			mx_ptr = mxGetField (ptr, 0, "projection_ref_proj4");
 			if (mx_ptr != NULL && mxGetN(mx_ptr) > 6) {		/* A true proj4 string will have at least this lenght */
 				char *str = malloc(mxGetN(mx_ptr) + 1);
 				mxGetString(mx_ptr, str, mxGetN(mx_ptr));
 				G->header->ProjRefPROJ4 = GMT_Duplicate_String (API, str);
 				free (str);
 			}
-			mx_ptr = mxGetField (ptr, 0, "ProjectionRefWKT");
+			mx_ptr = mxGetField (ptr, 0, "projection_ref_wkt");
 			if (mx_ptr != NULL && mxGetN(mx_ptr) > 20) {	/* A true WTT string will have more thna this lenght */ 
 				char *str = malloc(mxGetN(mx_ptr)+1);
 				mxGetString(mx_ptr, str, mxGetN(mx_ptr));
@@ -722,20 +698,20 @@ static struct GMT_GRID *gmtmex_grid_init (void *API, unsigned int direction, uns
 				free (str);
 			}
 
-			mx_ptr = mxGetField (ptr, 0, "x_units");
+			mx_ptr = mxGetField (ptr, 0, "x_unit");
 			if (mx_ptr != NULL) {
-				mxGetString(mx_ptr, x_units, mxGetN(mx_ptr));
-				strncpy(G->header->x_units, x_units, GMT_GRID_VARNAME_LEN80 - 1);
+				mxGetString(mx_ptr, x_unit, mxGetN(mx_ptr));
+				strncpy(G->header->x_units, x_unit, GMT_GRID_VARNAME_LEN80 - 1);
 			}
-			mx_ptr = mxGetField (ptr, 0, "y_units");
+			mx_ptr = mxGetField (ptr, 0, "y_unit");
 			if (mx_ptr != NULL) {
-				mxGetString(mx_ptr, y_units, mxGetN(mx_ptr));
-				strncpy(G->header->y_units, y_units, GMT_GRID_VARNAME_LEN80 - 1);
+				mxGetString(mx_ptr, y_unit, mxGetN(mx_ptr));
+				strncpy(G->header->y_units, y_unit, GMT_GRID_VARNAME_LEN80 - 1);
 			}
-			mx_ptr = mxGetField (ptr, 0, "z_units");
+			mx_ptr = mxGetField (ptr, 0, "z_unit");
 			if (mx_ptr != NULL) {
-				mxGetString(mx_ptr, z_units, mxGetN(mx_ptr));
-				strncpy(G->header->z_units, z_units, GMT_GRID_VARNAME_LEN80 - 1);
+				mxGetString(mx_ptr, z_unit, mxGetN(mx_ptr));
+				strncpy(G->header->z_units, z_unit, GMT_GRID_VARNAME_LEN80 - 1);
 			}
 		}
 		else {	/* Passed header and grid separately */
@@ -792,8 +768,8 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 	struct GMT_IMAGE *I = NULL;
 	if (direction == GMT_IN) {	/* Dimensions are known from the input pointer */
 		unsigned int family = (module_input) ? GMT_IS_IMAGE|GMT_VIA_MODULE_INPUT : GMT_IS_IMAGE;
-		char x_units[GMT_GRID_VARNAME_LEN80] = { "" }, y_units[GMT_GRID_VARNAME_LEN80] = { "" },
-		     z_units[GMT_GRID_VARNAME_LEN80] = { "" };
+		char x_unit[GMT_GRID_VARNAME_LEN80] = { "" }, y_unit[GMT_GRID_VARNAME_LEN80] = { "" },
+		     z_unit[GMT_GRID_VARNAME_LEN80] = { "" };
 		float *f = NULL;
 		double *inc = NULL, *range = NULL;
 		mxArray *mx_ptr = NULL;
@@ -821,7 +797,7 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 		I->header->z_min = range[4];
 		I->header->z_max = range[5];
 
-		mx_ptr = mxGetField (ptr, 0, "NoDataValue");
+		mx_ptr = mxGetField (ptr, 0, "no_data_value");
 		if (mx_ptr != NULL)
 			I->header->nan_value = *(float *)mxGetData (mx_ptr);
 
@@ -837,14 +813,14 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 			}
 		}
 
-		mx_ptr = mxGetField (ptr, 0, "ProjectionRefPROJ4");
+		mx_ptr = mxGetField (ptr, 0, "projection_ref_proj4");
 		if (mx_ptr != NULL && mxGetN(mx_ptr) > 6) {		/* A true proj4 string will have at least this lenght */
 			char *str = malloc(mxGetN(mx_ptr) + 1);
 			mxGetString(mx_ptr, str, mxGetN(mx_ptr));
 			I->header->ProjRefPROJ4 = GMT_Duplicate_String (API, str);
 			free (str);
 		}
-		mx_ptr = mxGetField (ptr, 0, "ProjectionRefWKT");
+		mx_ptr = mxGetField (ptr, 0, "projection_ref_wkt");
 		if (mx_ptr != NULL && mxGetN(mx_ptr) > 20) {	/* A true WTT string will have more thna this lenght */ 
 			char *str = malloc(mxGetN(mx_ptr)+1);
 			mxGetString(mx_ptr, str, mxGetN(mx_ptr));
@@ -874,20 +850,20 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 			free (str);
 		}
 
-		mx_ptr = mxGetField (ptr, 0, "x_units");
+		mx_ptr = mxGetField (ptr, 0, "x_unit");
 		if (mx_ptr != NULL) {
-			mxGetString(mx_ptr, x_units, mxGetN(mx_ptr));
-			strncpy(I->header->x_units, x_units, GMT_GRID_VARNAME_LEN80 - 1);
+			mxGetString(mx_ptr, x_unit, mxGetN(mx_ptr));
+			strncpy(I->header->x_units, x_unit, GMT_GRID_VARNAME_LEN80 - 1);
 		}
-		mx_ptr = mxGetField (ptr, 0, "y_units");
+		mx_ptr = mxGetField (ptr, 0, "y_unit");
 		if (mx_ptr != NULL) {
-			mxGetString(mx_ptr, y_units, mxGetN(mx_ptr));
-			strncpy(I->header->y_units, y_units, GMT_GRID_VARNAME_LEN80 - 1);
+			mxGetString(mx_ptr, y_unit, mxGetN(mx_ptr));
+			strncpy(I->header->y_units, y_unit, GMT_GRID_VARNAME_LEN80 - 1);
 		}
-		mx_ptr = mxGetField (ptr, 0, "z_units");
+		mx_ptr = mxGetField (ptr, 0, "z_unit");
 		if (mx_ptr != NULL) {
-			mxGetString(mx_ptr, z_units, mxGetN(mx_ptr));
-			strncpy(I->header->z_units, z_units, GMT_GRID_VARNAME_LEN80 - 1);
+			mxGetString(mx_ptr, z_unit, mxGetN(mx_ptr));
+			strncpy(I->header->z_units, z_unit, GMT_GRID_VARNAME_LEN80 - 1);
 		}
 		GMT_Report (API, GMT_MSG_DEBUG, "gmtmex_image_init: Allocated GMT Image %lx\n", (long)I);
 		GMT_Report (API, GMT_MSG_DEBUG,
@@ -972,7 +948,7 @@ static struct GMT_PALETTE *gmtmex_cpt_init (void *API, unsigned int direction, u
 		uint64_t dim[2];
 		unsigned int family = (module_input) ? GMT_IS_PALETTE|GMT_VIA_MODULE_INPUT : GMT_IS_PALETTE;
 		mxArray *mx_ptr = NULL;
-		double dz, *colormap = NULL, *range = NULL, *rangeMinMax = NULL, *alpha = NULL, *BFN = NULL, *hinge = NULL;
+		double dz, *colormap = NULL, *range = NULL, *minmax = NULL, *alpha = NULL, *bfn = NULL, *hinge = NULL;
 
 		if (mxIsEmpty (ptr))
 			mexErrMsgTxt ("gmtmex_cpt_init: The input that was supposed to contain the CPT, is empty\n");
@@ -987,11 +963,11 @@ static struct GMT_PALETTE *gmtmex_cpt_init (void *API, unsigned int direction, u
 		colormap = mxGetData (mx_ptr);
 
 		mx_ptr = mxGetField (ptr, 0, "range");
-		if (mx_ptr == NULL) {	/* OK, we don't have the 'range' member but than we must have the 'rangeMinMax' */
-			mx_ptr = mxGetField(ptr, 0, "rangeMinMax");
+		if (mx_ptr == NULL) {	/* OK, we don't have the 'range' member but than we must have the 'minmax' */
+			mx_ptr = mxGetField(ptr, 0, "minmax");
 			if (mx_ptr == NULL)
-				mexErrMsgTxt("gmtmex_cpt_init: Could not find neither the 'range' nor the 'rangeMinMax' arrays for CPT range\n");
-			rangeMinMax = mxGetData(mx_ptr);
+				mexErrMsgTxt("gmtmex_cpt_init: Could not find neither the 'range' nor the 'minmax' arrays for CPT range\n");
+			minmax = mxGetData(mx_ptr);
 			dim[1] = dim[0];	/* This means discrete CPT */
 		}
 		else {	/* With range we can determine if continuous or discrete */
@@ -1009,10 +985,10 @@ static struct GMT_PALETTE *gmtmex_cpt_init (void *API, unsigned int direction, u
 		if (mx_ptr == NULL)
 			mexErrMsgTxt ("gmtmex_cpt_init: Could not find alpha array for CPT transparency\n");
 		alpha = mxGetData (mx_ptr);
-		mx_ptr = mxGetField (ptr, 0, "BFN");
+		mx_ptr = mxGetField (ptr, 0, "bfn");
 		if (mx_ptr == NULL)
-			mexErrMsgTxt ("gmtmex_cpt_init: Could not find BFN array for back-, fore-, and nan-settings\n");
-		BFN = mxGetData (mx_ptr);
+			mexErrMsgTxt ("gmtmex_cpt_init: Could not find bfn array for back-, fore-, and nan-settings\n");
+		bfn = mxGetData (mx_ptr);
 		mx_ptr = mxGetField (ptr, 0, "depth");
 		if (mx_ptr == NULL)
 			mexErrMsgTxt ("gmtmex_cpt_init: Could not find CPT depth entry\n");
@@ -1025,12 +1001,12 @@ static struct GMT_PALETTE *gmtmex_cpt_init (void *API, unsigned int direction, u
 		if ((P = GMT_Create_Data (API, family, GMT_IS_NONE, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
 			mexErrMsgTxt ("gmtmex_cpt_init: Failure to alloc GMT source CPT for input\n");
 
-		if (rangeMinMax)	/* Means we didn't get the full range array and need to compute it */
+		if (minmax)	/* Means we didn't get the full range array and need to compute it */
 			dz = (range[1] - range[0]) / P->n_colors;
 
-		for (j = 0; j < 3; j++) {	/* Do the BFN first */
+		for (j = 0; j < 3; j++) {	/* Do the bfn first */
 			for (k = 0; k < 3; k++)
-				P->bfn[j].rgb[k] = BFN[j+k*3];
+				P->bfn[j].rgb[k] = bfn[j+k*3];
 		}
 		for (j = 0; j < P->n_colors; j++) {	/* OK to access j+1'th elemenent since length of colormap is P->n_colors+1 */
 			for (k = 0; k < 3; k++) {
