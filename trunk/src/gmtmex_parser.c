@@ -142,6 +142,31 @@ int GMTMEX_print_func (FILE *fp, const char *message) {
 	return 0;
 }
 
+int getNK (const mxArray *p, int which) {
+	/* Get number of columns or number of bands of a mxArray.
+	   which = 1 to inquire n_columns
+	         = 2 to inquire n_bands
+	         = ? ERROR
+	*/
+	int nx, nBands, nDims;
+	const int *dim_array;
+
+	nDims     = mxGetNumberOfDimensions(p);
+	dim_array = mxGetDimensions(p);
+	nx = dim_array[1];
+	nBands = dim_array[2];
+	if (nDims == 2) 	/* Otherwise it would stay undefined */
+		nBands = 1;
+
+	if (which == 1)
+		return nx;
+	else if (which == 2)
+		return nBands;
+	else
+		mexErrMsgTxt("getNK: Bad dimension number!");
+	return -1;
+}
+
 #define N_MEX_FIELDNAMES_GRID	16
 
 void *GMTMEX_Get_Grid (void *API, struct GMT_GRID *G) {
@@ -763,14 +788,14 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 	/* Used to Create an empty Image container to hold a GMT image.
  	 * If direction is GMT_IN then we are given a MATLAB image and can determine its size, etc.
 	 * If direction is GMT_OUT then we allocate an empty GMT image as a destination. */
-	unsigned int row, col;
-	uint64_t gmt_ij;
 	struct GMT_IMAGE *I = NULL;
 	if (direction == GMT_IN) {	/* Dimensions are known from the input pointer */
+		unsigned int row, col, n_bands;
+		uint64_t gmt_ij;
 		unsigned int family = (module_input) ? GMT_IS_IMAGE|GMT_VIA_MODULE_INPUT : GMT_IS_IMAGE;
 		char x_unit[GMT_GRID_VARNAME_LEN80] = { "" }, y_unit[GMT_GRID_VARNAME_LEN80] = { "" },
 		     z_unit[GMT_GRID_VARNAME_LEN80] = { "" };
-		float *f = NULL;
+		char *f = NULL;
 		double *inc = NULL, *range = NULL;
 		mxArray *mx_ptr = NULL;
 
@@ -790,9 +815,38 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 			mexErrMsgTxt ("gmtmex_image_init: Could not find inc array with Image increments\n");
 		inc = mxGetData (mx_ptr);
 
-		if ((I = GMT_Create_Data (API, family, GMT_IS_SURFACE, GMT_GRID_ALL,
-			NULL, range, inc, 0, GMT_NOTSET, NULL)) == NULL)
+		mx_ptr = mxGetField (ptr, 0, "image");
+		if (mx_ptr == NULL)
+			mexErrMsgTxt ("gmtmex_image_init: Could not find data array for Image\n");
+
+		if (!mxIsUint8(mx_ptr))
+			mexErrMsgTxt("gmtmex_image_init: The only data type supported by now is UInt8, and this image is not.\n");
+
+		/* ------------------------ Temporary hack ----------------------------------
+		   Because when creating an image, the GMT_Create_Data() does the same as for a grid we end up with
+		   the default value of n_bands = 1; There is no choice to select a different value. So we are forced
+		   to create the header first, update the number of bands in header and finaly allocate the image.
+		*/
+		n_bands = getNK (mx_ptr, 2);		/* Get number of bands */
+		if ((I = GMT_Create_Data (API, family, GMT_IS_SURFACE, GMT_GRID_HEADER_ONLY,
+			                      NULL, range, inc, 0, GMT_NOTSET, NULL)) == NULL)
 			mexErrMsgTxt ("gmtmex_image_init: Failure to alloc GMT source image for input\n");
+		if (n_bands != 1)
+			I->header->n_bands = n_bands;
+		if ((I = GMT_Create_Data (API, family, GMT_IS_SURFACE, GMT_GRID_DATA_ONLY,
+			                      NULL, range, inc, 0, GMT_NOTSET, I)) == NULL)
+			mexErrMsgTxt ("gmtmex_image_init: Failure to alloc GMT source image for input\n");
+
+		f = (char *)mxGetData (mx_ptr);
+		memcpy (I->data, f, I->header->nm * I->header->n_bands * sizeof (char));
+/*
+		for (row = 0; row < I->header->n_rows; row++) {
+			for (col = 0; col < I->header->n_columns; col++) {
+				gmt_ij = GMT_IJP (I->header, row, col);
+				I->data [gmt_ij] = f[MEXG_IJ(I,row,col)];
+			}
+		}
+*/
 
 		I->header->z_min = range[4];
 		I->header->z_max = range[5];
@@ -800,18 +854,6 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 		mx_ptr = mxGetField (ptr, 0, "no_data_value");
 		if (mx_ptr != NULL)
 			I->header->nan_value = *(float *)mxGetData (mx_ptr);
-
-		mx_ptr = mxGetField (ptr, 0, "image");
-		if (mx_ptr == NULL)
-			mexErrMsgTxt ("gmtmex_image_init: Could not find data array for Image\n");
-
-		f = mxGetData (mx_ptr);
-		for (row = 0; row < I->header->n_rows; row++) {
-			for (col = 0; col < I->header->n_columns; col++, gmt_ij++) {
-				gmt_ij = GMT_IJP (I->header, row, col);
-				I->data [gmt_ij] = f[MEXG_IJ(I,row,col)];
-			}
-		}
 
 		mx_ptr = mxGetField (ptr, 0, "projection_ref_proj4");
 		if (mx_ptr != NULL && mxGetN(mx_ptr) > 6) {		/* A true proj4 string will have at least this lenght */
