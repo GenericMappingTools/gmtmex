@@ -194,7 +194,7 @@ void *GMTMEX_Get_Grid (void *API, struct GMT_GRID *G) {
 	fieldnames[3]  = mxstrdup ("range");
 	fieldnames[4]  = mxstrdup ("inc");
 	fieldnames[5]  = mxstrdup ("registration");
-	fieldnames[6]  = mxstrdup ("no_data_value");
+	fieldnames[6]  = mxstrdup ("nodata");
 	fieldnames[7]  = mxstrdup ("projection_ref_proj4");
 	fieldnames[8]  = mxstrdup ("projection_ref_wkt");
 	fieldnames[9]  = mxstrdup ("title");
@@ -222,7 +222,7 @@ void *GMTMEX_Get_Grid (void *API, struct GMT_GRID *G) {
 	mxSetField (grid_struct, 0, "inc", mxtmp);
 
 	mxtmp = mxCreateDoubleScalar ((double)G->header->nan_value);
-	mxSetField (grid_struct, 0, (const char *) "no_data_value", mxtmp);
+	mxSetField (grid_struct, 0, (const char *) "nodata", mxtmp);
 
 	mxtmp = mxCreateDoubleScalar ((double)G->header->registration);
 	mxSetField (grid_struct, 0, (const char *) "registration", mxtmp);
@@ -493,7 +493,7 @@ void *GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I) {
 	fieldnames[3]  = mxstrdup ("range");
 	fieldnames[4]  = mxstrdup ("inc");
 	fieldnames[5]  = mxstrdup ("registration");
-	fieldnames[6]  = mxstrdup ("no_data_value");
+	fieldnames[6]  = mxstrdup ("nodata");
 	fieldnames[7]  = mxstrdup ("projection_ref_proj4");
 	fieldnames[8]  = mxstrdup ("projection_ref_wkt");
 	fieldnames[9]  = mxstrdup ("title");
@@ -526,7 +526,7 @@ void *GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I) {
 	mxSetField (image_struct, 0, (const char *) "registration", mxtmp);
 
 	mxtmp = mxCreateDoubleScalar ((double)I->header->nan_value);
-	mxSetField (image_struct, 0, (const char *) "no_data_value", mxtmp);
+	mxSetField (image_struct, 0, (const char *) "nodata", mxtmp);
 	
 	mxtmp = mxCreateString (I->header->title);
 	mxSetField (image_struct, 0, (const char *) "title", mxtmp);
@@ -682,7 +682,7 @@ static struct GMT_GRID *gmtmex_grid_init (void *API, unsigned int direction, uns
 
 			G->header->registration = registration;
 
-			mx_ptr = mxGetField (ptr, 0, "no_data_value");
+			mx_ptr = mxGetField (ptr, 0, "nodata");
 			if (mx_ptr != NULL)
 				G->header->nan_value = *(float *)mxGetData (mx_ptr);
 
@@ -851,7 +851,7 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 		I->header->z_min = range[4];
 		I->header->z_max = range[5];
 
-		mx_ptr = mxGetField (ptr, 0, "no_data_value");
+		mx_ptr = mxGetField (ptr, 0, "nodata");
 		if (mx_ptr != NULL)
 			I->header->nan_value = *(float *)mxGetData (mx_ptr);
 
