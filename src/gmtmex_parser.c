@@ -149,7 +149,7 @@ int getNK (const mxArray *p, int which) {
 	         = ? ERROR
 	*/
 	int nx, nBands, nDims;
-	const int *dim_array;
+	const mwSize *dim_array;
 
 	nDims     = mxGetNumberOfDimensions(p);
 	dim_array = mxGetDimensions(p);
@@ -335,12 +335,18 @@ void *GMTMEX_Get_Dataset (void *API, struct GMT_VECTOR *V) {
 void *GMTMEX_Get_Textset (void *API, struct GMT_TEXTSET *T) {
 	/* Given a GMT textset T, build a MATLAB cell array and assign values */
 	uint64_t seg, row, k;
+	unsigned int flag[3] = {GMT_STRICT_CONVERSION, 0, 0};
 	mxArray *C = NULL, *p = NULL;
 	struct GMT_TEXTSEGMENT *S = NULL;
+	struct GMT_VECTOR *V = NULL;
 	char text[BUFSIZ] = {""};
 	
-	if (T == NULL || !T->table)
+	if (T == NULL || !T->table || T->n_records == 0)
 		mexErrMsgTxt ("GMTMEX_Get_Textset: programming error, input textset T is NULL or empty\n");
+	
+	if ((V = GMT_Convert_Data (API, T, GMT_IS_TEXTSET, NULL, GMT_IS_VECTOR, flag)))
+		return (GMTMEX_Get_Dataset (API, V));
+	
 	/* Create a cell array to hold all records */
 	k = T->n_records;					/* Actual number of text records */
 	if (T->table[0]->n_segments > 1)	/* If more than one segment we must include segment headers */
