@@ -225,8 +225,8 @@ function [ps, d_path] = ex03(g_root_dir, out_path, verbose)
 	% point, without NaNs.  So we want to get a starting and ending point which works for
 	% both of them.  This is a job for gmt gmtmath UPPER/LOWER.
 
-	sampr1 = gmt('gmtmath $ -Ca -Sf -o0 UPPER CEIL =',  [ship_pg(1,:); sat_pg(1,:)]);
-	sampr2 = gmt('gmtmath $ -Ca -Sf -o0 LOWER FLOOR =', [ship_pg(end,:); sat_pg(end,:)]);
+	sampr1 = gmt('gmtmath ? -Ca -Sf -o0 UPPER CEIL =',  [ship_pg(1,:); sat_pg(1,:)]);
+	sampr2 = gmt('gmtmath ? -Ca -Sf -o0 LOWER FLOOR =', [ship_pg(end,:); sat_pg(end,:)]);
 	
 	% Now we can use sampr1|2 in gmt gmtmath to make a sampling points file for gmt sample1d:
 	samp_x = gmt(['gmtmath ' sprintf('-T%d/%d/1', sampr1, sampr2) ' -N1/0 T =']);
@@ -578,8 +578,8 @@ function [ps, d_path] = ex13(g_root_dir, out_path, verbose)
 
 	gmt('set -Du')
 	Gz = gmt('grdmath -R-2/2/-2/2 -I0.1 X Y R2 NEG EXP X MUL =');
-	Gdzdx = gmt('grdmath $ DDX', Gz);
-	Gdzdy = gmt('grdmath $ DDY', Gz);
+	Gdzdx = gmt('grdmath ? DDX', Gz);
+	Gdzdy = gmt('grdmath ? DDY', Gz);
 	gmt(['grdcontour -JX3i -B1 -BWSne -C0.1 -A0.5 -K -P -Gd2i -S4 -T+d0.1i/0.03i > ' ps], Gdzdx)
 	gmt(['grdcontour -J -B -C0.05 -A0.2 -O -K -Gd2i -S4 -T+d0.1i/0.03i -Xa3.45i >> ' ps], Gdzdy)
 	gmt(['grdcontour -J -B -C0.05 -A0.1 -O -K -Gd2i -S4 -T+d0.1i/0.03i -Y3.45i >> ' ps], Gz)
@@ -772,7 +772,7 @@ function [ps, d_path] = ex18(g_root_dir, out_path, verbose)
 
 	Gmask = gmt(['grdmath -R ' sprintf('%f %f', pratt(1), pratt(2)) ' SDIST =']);
 	Gmask = gmt('grdclip -Sa200/NaN -Sb200/1', Gmask);
-	Gtmp = gmt(['grdmath ' d_path 'AK_gulf_grav.nc $ MUL ='], Gmask);
+	Gtmp = gmt(['grdmath ' d_path 'AK_gulf_grav.nc ? MUL ='], Gmask);
 	area = gmt('grdvolume -C50 -Sk', Gtmp); % | cut -f2`
 	volume = gmt('grdvolume -C50 -Sk', Gtmp); % | cut -f3`
 
@@ -1128,18 +1128,18 @@ function [ps, d_path] = ex25(g_root_dir, out_path, verbose)
 	gmt('set -Du')
 	Gwetdry = gmt(['grdlandmask -Rg -I' num2str(D) 'm -Dc -A500 -N-1/1/1/1/1 -r -G']);
 	%Manipulate so -1 means ocean/ocean antipode, +1 = land/land, and 0 elsewhere
-	Gkey = gmt('grdmath -fg $ DUP 180 ROTX FLIPUD ADD 2 DIV =', Gwetdry);
+	Gkey = gmt('grdmath -fg ? DUP 180 ROTX FLIPUD ADD 2 DIV =', Gwetdry);
 	%Calculate percentage area of each type of antipode match.
 	Gscale = gmt(['grdmath -Rg -I' num2str(D) 'm -r Y COSD 60 ' num2str(D) ' DIV 360 MUL DUP MUL PI DIV DIV 100 MUL =']);
-	Gtmp = gmt('grdmath -fg $ -1 EQ 0 NAN $ MUL =', Gkey, Gscale);
+	Gtmp = gmt('grdmath -fg ? -1 EQ 0 NAN ? MUL =', Gkey, Gscale);
 	key = gmt('grd2xyz -s -ZTLf', Gtmp);
-	ocean = gmt('gmtmath -bi1f -Ca -S $ SUM UPPER RINT =', key);
-	Gtmp = gmt('grdmath -fg $ 1 EQ 0 NAN $ MUL =', Gkey, Gscale);
+	ocean = gmt('gmtmath -bi1f -Ca -S ? SUM UPPER RINT =', key);
+	Gtmp = gmt('grdmath -fg ? 1 EQ 0 NAN ? MUL =', Gkey, Gscale);
 	key = gmt('grd2xyz -s -ZTLf', Gtmp);
-	land = gmt('gmtmath -bi1f -Ca -S $ SUM UPPER RINT =', key);
-	Gtmp = gmt('grdmath -fg $ 0 EQ 0 NAN $ MUL =', Gkey, Gscale);
+	land = gmt('gmtmath -bi1f -Ca -S ? SUM UPPER RINT =', key);
+	Gtmp = gmt('grdmath -fg ? 0 EQ 0 NAN ? MUL =', Gkey, Gscale);
 	key = gmt('grd2xyz -s -ZTLf', Gtmp);
-	mixed = gmt('gmtmath -bi1f -Ca -S $ SUM UPPER RINT =', key);
+	mixed = gmt('gmtmath -bi1f -Ca -S ? SUM UPPER RINT =', key);
  
  	% Generate corresponding color table
 	fid = fopen('key.cpt','w');
@@ -1258,11 +1258,11 @@ function [ps, d_path] = ex29(g_root_dir, out_path, verbose)
 	Gproj_ellipsoid = gmt(sprintf(['grdmath -Rg -I4 -r X COSD %f DIV DUP MUL X SIND %f DIV DUP MUL ADD' ...
 		' Y COSD DUP MUL MUL Y SIND %f DIV DUP MUL ADD SQRT INV ='], a, b, c));
 	%  Do both Parker and Wessel/Becker solutions (tension = 0.9975)
-	Gmars  = gmt(['greenspline -R$ ' d_path 'mars370.txt -D4 -Sp -G'], Gproj_ellipsoid);
-	Gmars2 = gmt(['greenspline -R$ ' d_path 'mars370.txt -D4 -Sq0.9975 -G'], Gproj_ellipsoid);
+	Gmars  = gmt(['greenspline -R? ' d_path 'mars370.txt -D4 -Sp -G'], Gproj_ellipsoid);
+	Gmars2 = gmt(['greenspline -R? ' d_path 'mars370.txt -D4 -Sq0.9975 -G'], Gproj_ellipsoid);
 	% Scale to km and remove PROJ_ELLIPSOID
-	Gmars  = gmt('grdmath $ 1000 DIV $ SUB =', Gmars, Gproj_ellipsoid);
-	Gmars2 = gmt('grdmath $ 1000 DIV $ SUB =', Gmars2, Gproj_ellipsoid);
+	Gmars  = gmt('grdmath ? 1000 DIV ? SUB =', Gmars, Gproj_ellipsoid);
+	Gmars2 = gmt('grdmath ? 1000 DIV ? SUB =', Gmars2, Gproj_ellipsoid);
 	mars_cpt = gmt('makecpt -Crainbow -T-7/15');
 	Gmars2_i = gmt('grdgradient -fg -Ne0.75 -A45 -G', Gmars2);
 	gmt(['grdimage -I -C -B30g30 -BWsne -JH0/7i -P -K -E200' ...
