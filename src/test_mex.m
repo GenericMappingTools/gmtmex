@@ -74,11 +74,11 @@ function gmtmath()
 	if (~isempty(A))
 		disp('gmtmath gave something when operating on two input files given on command line')
 	end
-	B = gmt('math $ $ ADD 0.5 MUL LOG10 =', t1, t2);
+	B = gmt('math ? ? ADD 0.5 MUL LOG10 =', t1, t2);
 	if (~isempty(B))
 		disp('gmtmath gave something when operating on two input files given as vectors')
 	end
-	C = gmt('math $ $ ADD 0.5 MUL LOG10', t1, t2);
+	C = gmt('math ? ? ADD 0.5 MUL LOG10', t1, t2);
 	if (~isempty(C))
 		disp('gmtmath gave something when operating on two input files given as vectors')
 	end
