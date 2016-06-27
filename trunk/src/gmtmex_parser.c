@@ -359,7 +359,7 @@ void *GMTMEX_Get_POSTSCRIPT (void *API, struct GMT_POSTSCRIPT *P) {
 	uint64_t *length = NULL;
 	unsigned int *mode = NULL;
 	mxArray *PS_struct = NULL, *mxPS = NULL, *mxlength = NULL, *mxmode = NULL;
-	char *fieldnames[N_MEX_FIELDNAMES_PS];	/* Array with the names of the fields of the output grid structure. */
+	char *fieldnames[N_MEX_FIELDNAMES_PS];	/* Array with the names of the fields of the output postscript structure. */
 	
 	if (P == NULL || !P->data)	/* Safety valve */
 		mexErrMsgTxt ("GMTMEX_Get_POSTSCRIPT: programming error, input POSTSCRIPT struct P is NULL or data string is empty\n");

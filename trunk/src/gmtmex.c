@@ -86,6 +86,50 @@ static void *Initiate_Session (unsigned int verbose) {
 	return (API);
 }
 
+#define N_MEX_FIELDNAMES_IMAGE	18
+#define N_MEX_FIELDNAMES_GRID	16
+#define N_MEX_FIELDNAMES_CPT	7
+#define N_MEX_FIELDNAMES_PS	3
+static void *alloc_default_plhs (void *API, struct GMT_RESOURCE *X) {
+	/* Allocate a default plhs when it was not stated in command line. That is, mimic the Matlab behavior
+	   when we do for example (i.e. no lhs):  sqrt([4 9])  
+	*/
+	int   k;
+	char *fnames_grd[N_MEX_FIELDNAMES_GRID];	/* This array contains the names of the fields of the output grid structure. */
+	char *fnames_img[N_MEX_FIELDNAMES_IMAGE];	/* This array contains the names of the fields of the output grid structure. */
+	char *fnames_cpt[N_MEX_FIELDNAMES_CPT];	/* Array with the names of the fields of the output grid structure. */
+	char *fnames_ps[N_MEX_FIELDNAMES_PS];	/* Array with the names of the fields of the output postscript structure. */
+	void *ptr = NULL;
+	mxClassID type;
+	switch (X->family) {
+		case GMT_IS_GRID:
+			for (k = 0; k < N_MEX_FIELDNAMES_GRID; k++) fnames_grd[k] = "";
+			ptr = (void *)mxCreateStructMatrix (0, 0, N_MEX_FIELDNAMES_GRID, (const char **)fnames_grd);
+			break;
+		case GMT_IS_IMAGE:
+			for (k = 0; k < N_MEX_FIELDNAMES_IMAGE; k++) fnames_img[k] = "";
+			ptr = (void *)mxCreateStructMatrix (0, 0, N_MEX_FIELDNAMES_IMAGE, (const char **)fnames_img);
+			break;
+		case GMT_IS_DATASET:
+			type = GMTMEX_type (API);		/* Get GMT's default data type */
+			ptr = (void *)mxCreateNumericMatrix(0, 0, type, mxREAL);
+			break;
+		case GMT_IS_TEXTSET:
+			break;
+		case GMT_IS_PALETTE:
+			for (k = 0; k < N_MEX_FIELDNAMES_CPT; k++) fnames_cpt[k] = "";
+			ptr = (void *)mxCreateStructMatrix (0, 0, N_MEX_FIELDNAMES_CPT, (const char **)fnames_cpt);
+			break;
+		case GMT_IS_POSTSCRIPT:
+			for (k = 0; k < N_MEX_FIELDNAMES_PS; k++) fnames_ps[k] = "";
+			ptr = (void *)mxCreateStructMatrix (0, 0, N_MEX_FIELDNAMES_PS, (const char **)fnames_cpt);
+			break;
+		default:
+			break;
+	}
+	return ptr;
+}
+
 /* This is the function that is called when we type gmt in MATLAB/Octave */
 void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	int status = 0;                 /* Status code from GMT API */
@@ -289,10 +333,8 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 			if ((X[k].pos) < nlhs)
 				ptr = (void *)plhs[X[k].pos];
 			else {
-				mexErrMsgTxt ("GMT: Attempting to address a plhs entry that does not exist\n");
-				//mxClassID type = GMTMEX_type (API);	/* Get GMT's default data type */
-				//plhs[X[k].pos] = mxCreateNumericMatrix(0, 0, type, mxREAL); 
-				//ptr = (void *)plhs[X[k].pos];
+				//mexErrMsgTxt ("GMT: Attempting to address a plhs entry that does not exist\n");
+				ptr = alloc_default_plhs (API, &X[k]);
 			}
 		}
 		X[k].object = GMTMEX_Register_IO (API, &X[k], ptr);	/* Get object pointer */
