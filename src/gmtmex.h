@@ -113,7 +113,6 @@ typedef int mwSize;
 #define GMT_IJP(h,row,col) ((uint64_t)(((int64_t)(row)+(int64_t)h->pad[GMT_YHI])*((int64_t)h->mx)+(int64_t)(col)+(int64_t)h->pad[GMT_XLO]))
 
 #define MODULE_LEN 	32	/* Max length of a GMT module name */
-#define ARG_MARKER	'$'	/* Character that indicates an memory reference to data */
 
 EXTERN_MSC int GMTMEX_print_func     (FILE *fp, const char *message);
 EXTERN_MSC void * GMTMEX_Get_Grid    (void *API, struct GMT_GRID *G);
