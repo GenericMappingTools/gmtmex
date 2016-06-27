@@ -263,7 +263,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	}
 	
 	/* 4. Preprocess to update GMT option lists and return info array X */
-	if ((X = GMT_Encode_Options (API, module, ARG_MARKER, n_in_objects, &options, &n_items)) == NULL) {
+	if ((X = GMT_Encode_Options (API, module, n_in_objects, &options, &n_items)) == NULL) {
 		if (n_items == UINT_MAX)	/* Just got usage/synopsis option */
 			n_items = 0;
 		else
@@ -296,8 +296,8 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 			mexErrMsgTxt("GMT: Failure to register the resource\n");
 		if (GMT_Encode_ID (API, name, X[k].object_ID) != GMT_NOERROR) 	/* Make filename with embedded object ID */
 			mexErrMsgTxt ("GMT: Failure to encode string\n");
-		if (GMT_Expand_Option (API, X[k].option, ARG_MARKER, name) != GMT_NOERROR)	/* Replace ARG_MARKER in argument with name */
-			mexErrMsgTxt ("GMT: Failure to expand filename marker\n");
+		if (GMT_Expand_Option (API, X[k].option, name) != GMT_NOERROR)	/* Replace ? in argument with name */
+			mexErrMsgTxt ("GMT: Failure to expand filename marker (?)\n");
 	}
 	
 	/* 6. Run GMT module; give usage message if errors arise during parsing */
