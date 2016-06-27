@@ -782,8 +782,7 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 	 * If direction is GMT_OUT then we allocate an empty GMT image as a destination. */
 	struct GMT_IMAGE *I = NULL;
 	if (direction == GMT_IN) {	/* Dimensions are known from the input pointer */
-		unsigned int row, col, n_bands;
-		uint64_t gmt_ij;
+		unsigned int n_bands;
 		unsigned int family = (module_input) ? GMT_IS_IMAGE|GMT_VIA_MODULE_INPUT : GMT_IS_IMAGE;
 		char x_unit[GMT_GRID_VARNAME_LEN80] = { "" }, y_unit[GMT_GRID_VARNAME_LEN80] = { "" },
 		     z_unit[GMT_GRID_VARNAME_LEN80] = { "" };
