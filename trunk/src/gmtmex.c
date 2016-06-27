@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------
  *	$Id$
  *
- *	Copyright (c) 1991-2015 by P. Wessel, W. H. F. Smith, R. Scharroo, J. Luis and F. Wobbe
+ *	Copyright (c) 1991-2016 by P. Wessel and J. Luis
  *	See LICENSE.TXT file for copying and redistribution conditions.
  *
  *	This program is free software; you can redistribute it and/or modify
@@ -30,13 +30,13 @@
  * Information about the options of each program is provided via GMT_Encode_Options.
  *
  * Version:	5.3.x
- * Created:	20-JUL-2015
+ * Created:	20-JUN-2016
  *
  */
 
 #include "gmtmex.h"
 
-extern int GMT_get_V (char arg);
+extern int GMT_get_V (char arg);	/* Temporary here to allow full debug messaging */
 
 /* Being declared external we can access it between MEX calls */
 static uintptr_t *pPersistent;    /* To store API address back and forth within a single MATLAB session */
@@ -56,7 +56,7 @@ static void usage (int nlhs, int nrhs) {
 	/* Basic usage message */
 	if (nrhs == 0) {	/* No arguments at all results in the GMT banner message */
 		mexPrintf("\nGMT - The Generic Mapping Tools, Version 5.%d %s API\n", GMT_MINOR_VERSION, MEX_PROG);
-		mexPrintf("Copyright 1991-2015 Paul Wessel, Walter H. F. Smith, R. Scharroo, J. Luis, and F. Wobbe\n\n");
+		mexPrintf("Copyright 1991-2016 Paul Wessel, Walter H. F. Smith, R. Scharroo, J. Luis, and F. Wobbe\n\n");
 		mexPrintf("This program comes with NO WARRANTY, to the extent permitted by law.\n");
 		mexPrintf("You may redistribute copies of this program under the terms of the\n");
 		mexPrintf("GNU Lesser General Public License.\n");
@@ -74,7 +74,7 @@ static void *Initiate_Session (unsigned int verbose) {
 	/* Initialize the GMT Session and store the API pointer in a persistent variable */
 	void *API = NULL;
 	/* Initializing new GMT session with a MATLAB-acceptable replacement for the printf function */
-	/* For debugging with verbose we pass the specified verbose shifted by 10 - this is decoded in API */
+	/* For debugging with verbose we pass the specified verbose shifted by 10 bits - this is decoded in API */
 	if ((API = GMT_Create_Session (MEX_PROG, 2U, (verbose << 10) + GMT_SESSION_NOEXIT + GMT_SESSION_EXTERNAL +
 	                               GMT_SESSION_COLMAJOR, GMTMEX_print_func)) == NULL)
 		mexErrMsgTxt ("GMT: Failure to create new GMT session\n");
@@ -202,7 +202,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	else {	/* Case b2. Get mex arguments, if any, and extract the GMT module name */
 		if (k >= MODULE_LEN)
 			mexErrMsgTxt ("GMT: Module name in command is too long\n");
-		strncpy (module, cmd, k);				/* Isolate the module name in this string */
+		strncpy (module, cmd, k);	/* Isolate the module name in this string */
 
 		while (cmd[k] == ' ') k++;	/* Skip any spaces between module name and start of options */
 		if (cmd[k]) opt_args = &cmd[k];
@@ -212,15 +212,15 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	/* See if info about instalation is required */
 	if (!strcmp(module, "gmt")) {
 		char t[256] = {""};
-		if (!strcmp(opt_args, "--show-bindir")) 			/* Show the directory that contains the 'gmt' executable */
+		if (!strcmp(opt_args, "--show-bindir")) 	/* Show the directory that contains the 'gmt' executable */
 			GMT_Get_Default (API, "BINDIR", t);
-		else if (!strcmp(opt_args, "--show-sharedir"))		/* Show share directory */
+		else if (!strcmp(opt_args, "--show-sharedir"))	/* Show share directory */
 			GMT_Get_Default (API, "SHAREDIR", t);
-		else if (!strcmp(opt_args, "--show-datadir"))		/* Show the data directory */
+		else if (!strcmp(opt_args, "--show-datadir"))	/* Show the data directory */
 			GMT_Get_Default (API, "DATADIR", t);
-		else if (!strcmp(opt_args, "--show-plugindir"))		/* Show the plugin directory */
+		else if (!strcmp(opt_args, "--show-plugindir"))	/* Show the plugin directory */
 			GMT_Get_Default (API, "PLUGINDIR", t);
-		else if (!strcmp(opt_args, "--show-cores"))			/* Show number of cores */
+		else if (!strcmp(opt_args, "--show-cores"))	/* Show number of cores */
 			GMT_Get_Default (API, "CORES", t);
 
 		if (t[0] != '\0') {
@@ -245,9 +245,9 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		strcpy (module, gmt_module);	/* Use the prepended module name since that one worked */
 	}
 	
-	/* 2+ Add -F to psconvert if user requested a return image but did not give -F */
+	/* 2+ Add -F to psconvert if user requested a return image but did not explicitly give -F */
 	
-	if (!strcmp (module, "psconvert") && nlhs == 1 && (!opt_args || !strstr ("-F", opt_args))) {	/* OK, add -F */
+	if (!strncmp (module, "psconvert", 9U) && nlhs == 1 && (!opt_args || !strstr ("-F", opt_args))) {	/* OK, add -F */
 		if (opt_args)
 			strcat (opt_args, " -F");
 		else
@@ -258,7 +258,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	if (opt_args && (options = GMT_Create_Options (API, 0, opt_args)) == NULL)
 		mexErrMsgTxt ("GMT: Failure to parse GMT5 command options\n");
 
-	if (!options && nlhs == 0 && nrhs == 1) {	/* Just requesting usage message, so add -? to  */
+	if (!options && nlhs == 0 && nrhs == 1) {	/* Just requesting usage message, so add -? to options */
 		options = GMT_Create_Options (API, 0, "-?");
 	}
 	
@@ -270,7 +270,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 			mexErrMsgTxt ("GMT: Failure to encode mex command options\n");
 	}
 	
-	if (options) {	/* Only for debugging - remove section when stable */
+	if (options) {	/* Only for debugging - remove this section when stable */
 		gtxt = GMT_Create_Cmd (API, options);
 		GMT_Report (API, GMT_MSG_DEBUG, "GMT_Encode_Options: Revised command after memory-substitution: %s\n", gtxt);
 		GMT_Destroy_Cmd (API, &gtxt);	/* Only needed it for the above verbose */
@@ -313,7 +313,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	/* 7. Hook up any GMT outputs to MATLAB plhs array */
 	
 	for (k = 0; k < n_items; k++) {	/* Get results from GMT into MATLAB arrays */
-		if (X[k].direction == GMT_IN) continue;	/* ONly looking for stuff coming OUT of GMT here */
+		if (X[k].direction == GMT_IN) continue;	/* Only looking for stuff coming OUT of GMT here */
 		
 		if ((X[k].object = GMT_Retrieve_Data (API, X[k].object_ID)) == NULL)
 			mexErrMsgTxt ("GMT: Error retrieving object from GMT\n");
@@ -336,7 +336,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 				break;
 #if GMT_MINOR_VERSION > 2
 			case GMT_IS_POSTSCRIPT:		/* A GMT PostScript string; make it the pos'th output item  */
-				plhs[pos] = GMTMEX_Get_PS (API, X[k].object);
+				plhs[pos] = GMTMEX_Get_POSTSCRIPT (API, X[k].object);
 #if 0
 				{
 				char cmd[32] = {""};
