@@ -56,12 +56,12 @@ enum MEX_dim {
 /* Note: Wherever we say "MATLAB" below we mean "MATLAB of Octave" */
 
 /* For the Mex interface we will wish to pass either filenames or mex variables via GMT command options.
- * We select a MATLAB variable by suppying $ as the file name.  The parser will then find these $
+ * We select a MATLAB variable by suppying ? as the file name.  The parser will then find these ?
  * arguments and replace them with references to mex variables via the GMT API mechanisms.
  * This requires us to know which options in a module may accept a file name.  As an example,
  * consider surface whose -Lu|l option may take a grid.  To pass a MATLAB grid already in memory
- * we would use -Lu$ and give the grid as an argument to the module, e.g.,
- *    Z = gmt ('surface', '-R0/50/0/50 -I1 -V xyzfile -Lu$', uppergrid);
+ * we would use -Lu? and give the grid as an argument to the module, e.g.,
+ *    Z = gmt ('surface', '-R0/50/0/50 -I1 -V xyzfile -Lu?', uppergrid);
  * For each option that may take a file we need to know what kind of file and if this is input or output.
  * We encode this in a 3-character word XYZ, explained below.  Note that each module may
  * need several comma-separated XYZ words and these are returned as one string via GMT_Get_Moduleinfo.
