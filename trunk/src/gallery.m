@@ -807,7 +807,7 @@ function [ps, d_path] = ex19(g_root_dir, out_path, verbose)
 	gmt(['pscoast -R -J -O -K -Dc -A5000 -Wthinnest >> ' ps])
 	gmt(['pstext -R -J -O -K -F+f32p,Helvetica-Bold,red=thinner >> ' ps], {'0 20 12TH INTERNATIONAL'})
 	gmt(['pstext -R -J -O -K -F+f32p,Helvetica-Bold,red=thinner >> ' ps], {'0 -10 GMT CONFERENCE'})
-	gmt(['pstext -R -J -O -K -F+f18p,Helvetica-Bold,green=thinnest >> ' ps], {'0 -30 Honolulu, Hawaii, April 1, 2015'})
+	gmt(['pstext -R -J -O -K -F+f18p,Helvetica-Bold,green=thinnest >> ' ps], {'0 -30 Honolulu, Hawaii, April 1, 2016'})
 
 	% Then show example of color patterns and placing a PostScript image
 	gmt(['pscoast -R -J -O -K -Dc -A5000 -Gp100/86:FredByellow -Sp100/' d_path 'circuit.ras -B0 -Y-3.25i >> ' ps])
@@ -823,7 +823,7 @@ function [ps, d_path] = ex19(g_root_dir, out_path, verbose)
 	gmt(['pscoast -R -J -O -K -Dc -A5000 -Wthinnest >> ' ps])
 	gmt(['pstext -R -J -O -K -F+f32p,Helvetica-Bold,red=thinner >> ' ps], {'0 20 12TH INTERNATIONAL'})
 	gmt(['pstext -R -J -O -K -F+f32p,Helvetica-Bold,red=thinner >> ' ps], {'0 -10 GMT CONFERENCE'})
-	gmt(['pstext -R -J -O -F+f18p,Helvetica-Bold,green=thinnest >> ' ps], {'0 -30 Honolulu, Hawaii, April 1, 2015'})
+	gmt(['pstext -R -J -O -F+f18p,Helvetica-Bold,green=thinnest >> ' ps], {'0 -30 Honolulu, Hawaii, April 1, 2016'})
 	builtin('delete','lat.cpt');
 	builtin('delete','gmt.conf');
 
