@@ -84,7 +84,7 @@ enum MEX_dim {
  *		  + mode is the overlay/trailer indicator
  */
 
-static mxClassID GMTMEX_type (void *API) {
+mxClassID GMTMEX_type (void *API) {
 	/* Get default export type from GMT and return equivalent MATLAB class */
 	char value[8] = {""};
 	GMT_Get_Default (API, "GMT_EXPORT_TYPE", value);

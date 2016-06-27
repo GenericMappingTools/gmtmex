@@ -132,7 +132,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 					plhs[0] = mxCreateNumericMatrix (1, 0, mxUINT64_CLASS, mxREAL);
 				return;
 			}
-			if ((gtxt = strstr (cmd, "-V"))) verbose = GMT_get_V (gtxt[2]);
+			if ((gtxt = strstr (cmd, "-V")) != NULL) verbose = GMT_get_V (gtxt[2]);
 			API = Initiate_Session (verbose);	/* Initializing a new GMT session */
 
 			if (nlhs) {	/* Return the API adress as an integer (nlhs == 1 here) )*/
@@ -235,7 +235,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	}
 
 	/* Make sure this is a valid module */
-	if ((status = GMT_Call_Module (API, module, GMT_MODULE_EXIST, NULL))) {	/* No, not found */
+	if ((status = GMT_Call_Module (API, module, GMT_MODULE_EXIST, NULL)) != 0) {	/* No, not found */
 		char gmt_module[MODULE_LEN] = "gmt";	/* Alternate module name that starts with "gmt" */
 		/* module does not contain a valid module name; try prepending gmt: */
 		strncat (gmt_module, module, MODULE_LEN-4U);
@@ -280,7 +280,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	
 	for (k = 0; k < n_items; k++) {	/* Number of GMT containers involved in this module call */
 		if (X[k].direction == GMT_IN) {
-			if ((X[k].pos+first+1) < nrhs)
+			if ((X[k].pos+first+1) < (unsigned int)nrhs)
 				ptr = (void *)prhs[X[k].pos+first+1];
 			else
 				mexErrMsgTxt ("GMT: Attempting to address a prhs entry that does not exist\n");
@@ -288,8 +288,12 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		else {
 			if ((X[k].pos) < nlhs)
 				ptr = (void *)plhs[X[k].pos];
-			else
+			else {
 				mexErrMsgTxt ("GMT: Attempting to address a plhs entry that does not exist\n");
+				//mxClassID type = GMTMEX_type (API);	/* Get GMT's default data type */
+				//plhs[X[k].pos] = mxCreateNumericMatrix(0, 0, type, mxREAL); 
+				//ptr = (void *)plhs[X[k].pos];
+			}
 		}
 		X[k].object = GMTMEX_Register_IO (API, &X[k], ptr);	/* Get object pointer */
 		if (X[k].object == NULL || X[k].object_ID == GMT_NOTSET)

@@ -125,4 +125,5 @@ EXTERN_MSC void GMTMEX_Free_Textset     (void *API, struct GMT_TEXTSET *T);
 #if GMT_MINOR_VERSION > 2
 EXTERN_MSC void * GMTMEX_Get_POSTSCRIPT (void *API, struct GMT_POSTSCRIPT *P);
 #endif
+mxClassID GMTMEX_type (void *API);
 #endif
