@@ -53,7 +53,7 @@ enum MEX_dim {
 	DIM_COL	= 0,	/* Holds the number of columns for vectors and x-nodes for matrix */
 	DIM_ROW = 1};	/* Holds the number of rows for vectors and y-nodes for matrix */
 
-/* Note: Wherever we say "MATLAB" below we mean "MATLAB of Octave"
+/* Note: Wherever we say "MATLAB" below we mean "MATLAB or Octave"
  *
  * Reading and writing occur inside gmt_api.c via the standard GMT containers.
  * The packing up of GMT grids into MATLAB grid structs and vice versa happens after getting the
