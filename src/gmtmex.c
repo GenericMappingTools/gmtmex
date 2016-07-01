@@ -140,6 +140,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	size_t str_length = 0, k = 0;   /* Misc. counters */
 	void *API = NULL;               /* GMT API control structure */
 	struct GMT_OPTION *options = NULL; /* Linked list of module options */
+	struct GMT_OPTION *opt = NULL;  /* Another LL used to hold only one option */
 	struct GMT_RESOURCE *X = NULL;  /* Array of information about MATLAB args */
 	char *cmd = NULL;               /* Pointer used to get the user's MATLAB command */
 	char *gtxt = NULL;              /* For debug printing of revised command */
@@ -290,7 +291,6 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	}
 	
 	/* 2+ Add -F to psconvert if user requested a return image but did not explicitly give -F */
-	
 	if (!strncmp (module, "psconvert", 9U) && nlhs == 1 && (!opt_args || !strstr ("-F", opt_args))) {	/* OK, add -F */
 		if (opt_args)
 			strcat (opt_args, " -F");
@@ -301,6 +301,26 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	/* 3. Convert mex command line arguments to a linked GMT option list */
 	if (opt_args && (options = GMT_Create_Options (API, 0, opt_args)) == NULL)
 		mexErrMsgTxt ("GMT: Failure to parse GMT5 command options\n");
+
+	/* 3+ Add -T to gmtwrite if user did not explicitly give -T. Also check that first arg is not mem API address */
+	if (!strncmp(module, "gmtwrite", 8U) && !strstr(opt_args, "-T") && !mxIsScalar_(prhs[0]) && nrhs > (int)first+1) {
+		mxArray *mx_ptr = NULL;
+		 
+		if ((mx_ptr = mxGetField (prhs[first+1], 0, "image")) != NULL)
+			opt = GMT_Create_Options (API, 0, "-Ti");
+		else if ((mx_ptr = mxGetField (prhs[first+1], 0, "z")) != NULL)
+			opt = GMT_Create_Options (API, 0, "-Tg");
+		else if ((mx_ptr = mxGetField (prhs[first+1], 0, "postscript")) != NULL)
+			opt = GMT_Create_Options (API, 0, "-Tp");
+		else if ((mx_ptr = mxGetField (prhs[first+1], 0, "bfn")) != NULL)
+			opt = GMT_Create_Options (API, 0, "-Tc");
+		else if (mxIsNumeric(prhs[first+1]))
+			opt = GMT_Create_Options (API, 0, "-Td");
+		else if (mxIsChar(prhs[first+1]))
+			opt = GMT_Create_Options (API, 0, "-Tt");
+
+		if (opt) GMT_Append_Option (API, opt, options);
+	}
 
 	if (!options && nlhs == 0 && nrhs == 1) {	/* Just requesting usage message, so add -? to options */
 		options = GMT_Create_Options (API, 0, "-?");
