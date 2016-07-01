@@ -820,7 +820,7 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 
 		dim[0] = getMNK (mx_ptr, 1);	dim[1] = getMNK (mx_ptr, 0);	dim[2] = getMNK (mx_ptr, 2);
 		if ((I = GMT_Create_Data (API, family, GMT_IS_SURFACE, GMT_GRID_ALL, dim,
-			                      NULL, NULL, 0, GMT_NOTSET, NULL)) == NULL)
+			                      NULL, NULL, 0, 0, NULL)) == NULL)
 			mexErrMsgTxt ("gmtmex_image_init: Failure to alloc GMT source image for input\n");
 
 		f = (char *)mxGetData (mx_ptr);
