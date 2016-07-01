@@ -122,28 +122,32 @@ int GMTMEX_print_func (FILE *fp, const char *message) {
 	return 0;
 }
 
-int getNK (const mxArray *p, int which) {
+int getMNK (const mxArray *p, int which) {
 	/* Get number of columns or number of bands of a mxArray.
-	   which = 1 to inquire n_columns
+	   which = 0 to inquire n_rows
+	         = 1 to inquire n_columns
 	         = 2 to inquire n_bands
 	         = ? ERROR
 	*/
-	int nx, nBands, nDims;
+	int nx, ny, nBands, nDims;
 	const mwSize *dim_array;
 
 	nDims     = mxGetNumberOfDimensions(p);
 	dim_array = mxGetDimensions(p);
+	ny = dim_array[0];
 	nx = dim_array[1];
 	nBands = dim_array[2];
 	if (nDims == 2) 	/* Otherwise it would stay undefined */
 		nBands = 1;
 
-	if (which == 1)
+	if (which == 0)
+		return ny;
+	else if (which == 1)
 		return nx;
 	else if (which == 2)
 		return nBands;
 	else
-		mexErrMsgTxt("getNK: Bad dimension number!");
+		mexErrMsgTxt("getMNK: Bad dimension number!");
 	return -1;
 }
 
@@ -783,7 +787,7 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 	 * If direction is GMT_OUT then we allocate an empty GMT image as a destination. */
 	struct GMT_IMAGE *I = NULL;
 	if (direction == GMT_IN) {	/* Dimensions are known from the input pointer */
-		unsigned int n_bands;
+		uint64_t dim[3];
 		unsigned int family = (module_input) ? GMT_IS_IMAGE|GMT_VIA_MODULE_INPUT : GMT_IS_IMAGE;
 		char x_unit[GMT_GRID_VARNAME_LEN80] = { "" }, y_unit[GMT_GRID_VARNAME_LEN80] = { "" },
 		     z_unit[GMT_GRID_VARNAME_LEN80] = { "" };
@@ -814,19 +818,9 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 		if (!mxIsUint8(mx_ptr))
 			mexErrMsgTxt("gmtmex_image_init: The only data type supported by now is UInt8, and this image is not.\n");
 
-		/* ------------------------ Temporary hack ----------------------------------
-		   Because when creating an image, the GMT_Create_Data() does the same as for a grid we end up with
-		   the default value of n_bands = 1; There is no choice to select a different value. So we are forced
-		   to create the header first, update the number of bands in header and finaly allocate the image.
-		*/
-		n_bands = getNK (mx_ptr, 2);		/* Get number of bands */
-		if ((I = GMT_Create_Data (API, family, GMT_IS_SURFACE, GMT_GRID_HEADER_ONLY,
-			                      NULL, range, inc, 0, GMT_NOTSET, NULL)) == NULL)
-			mexErrMsgTxt ("gmtmex_image_init: Failure to alloc GMT source image for input\n");
-		if (n_bands != 1)
-			I->header->n_bands = n_bands;
-		if ((I = GMT_Create_Data (API, family, GMT_IS_SURFACE, GMT_GRID_DATA_ONLY,
-			                      NULL, range, inc, 0, GMT_NOTSET, I)) == NULL)
+		dim[0] = getMNK (mx_ptr, 1);	dim[1] = getMNK (mx_ptr, 0);	dim[2] = getMNK (mx_ptr, 2);
+		if ((I = GMT_Create_Data (API, family, GMT_IS_SURFACE, GMT_GRID_ALL, dim,
+			                      NULL, NULL, 0, GMT_NOTSET, NULL)) == NULL)
 			mexErrMsgTxt ("gmtmex_image_init: Failure to alloc GMT source image for input\n");
 
 		f = (char *)mxGetData (mx_ptr);
