@@ -294,20 +294,20 @@ void *GMTMEX_Get_Dataset (void *API, struct GMT_DATASET *D) {
 	fieldnames[0] = mxstrdup ("data");
 	fieldnames[1] = mxstrdup ("text");
 	fieldnames[2] = mxstrdup ("header");
-	D_struct = mxCreateStructMatrix (D->n_segments, 1, N_MEX_FIELDNAMES_DATASET, (const char **)fieldnames);
+	D_struct = mxCreateStructMatrix ((mwSize)D->n_segments, 1, N_MEX_FIELDNAMES_DATASET, (const char **)fieldnames);
 
 	for (tbl = seg_out = 0; tbl < D->n_tables; tbl++) {
 		for (seg = 0; seg < D->table[tbl]->n_segments; seg++, seg_out++) {
 			S = D->table[tbl]->segment[seg];	/* Shorthand */
 			mxheader = mxCreateString (S->header);
 			mxtext   = mxCreateCellMatrix (0, 0);	/* Empty */
-			mxdata   = mxCreateNumericMatrix (S->n_rows, S->n_columns, mxDOUBLE_CLASS, mxREAL);
+			mxdata   = mxCreateNumericMatrix ((mwSize)S->n_rows, (mwSize)S->n_columns, mxDOUBLE_CLASS, mxREAL);
 			data      = mxGetPr (mxdata);
 			for (col = start = 0; col < S->n_columns; col++, start += S->n_rows) /* Copy the data columns */
 				memcpy (&data[start], S->data[col], S->n_rows * sizeof (double));
-			mxSetField (D_struct, seg_out, "data", mxdata);
-			mxSetField (D_struct, seg_out, "text", mxtext);
-			mxSetField (D_struct, seg_out, "header", mxheader);
+			mxSetField (D_struct, (mwSize)seg_out, "data", mxdata);
+			mxSetField (D_struct, (mwSize)seg_out, "text", mxtext);
+			mxSetField (D_struct, (mwSize)seg_out, "header", mxheader);
 		}
 	}
 	return (D_struct);
@@ -359,7 +359,7 @@ void *GMTMEX_Get_Textset (void *API, struct GMT_TEXTSET *T) {
 	fieldnames[0] = mxstrdup ("data");
 	fieldnames[1] = mxstrdup ("text");
 	fieldnames[2] = mxstrdup ("header");
-	D_struct = mxCreateStructMatrix (T->n_segments, 1, N_MEX_FIELDNAMES_DATASET, (const char **)fieldnames);
+	D_struct = mxCreateStructMatrix ((mwSize)T->n_segments, 1, N_MEX_FIELDNAMES_DATASET, (const char **)fieldnames);
 
 	for (tbl = seg_out = 0; tbl < T->n_tables; tbl++) {
 		for (seg = 0; seg < T->table[tbl]->n_segments; seg++, seg_out++) {
@@ -367,22 +367,22 @@ void *GMTMEX_Get_Textset (void *API, struct GMT_TEXTSET *T) {
 			mxheader = mxCreateString (ST->header);
 			if (D) {
 				SD = D->table[tbl]->segment[seg];	/* Shorthand */
-				mxdata   = mxCreateNumericMatrix (ST->n_rows, n_colums, mxDOUBLE_CLASS, mxREAL);
+				mxdata   = mxCreateNumericMatrix ((mwSize)ST->n_rows, (mwSize)n_colums, mxDOUBLE_CLASS, mxREAL);
 				data      = mxGetPr (mxdata);
 				for (col = start = 0; col < n_colums; col++, start += SD->n_rows) /* Copy the data columns */
 					memcpy (&data[start], SD->data[col], SD->n_rows * sizeof (double));
 			}
 			else
 				mxdata   = mxCreateNumericMatrix (0, 0, mxDOUBLE_CLASS, mxREAL);
-			mxtext   = mxCreateCellMatrix (ST->n_rows, 1);
+			mxtext   = mxCreateCellMatrix ((mwSize)ST->n_rows, 1);
 			for (row = 0; row < ST->n_rows; row++) {
 				start = scan_to_start_of_text (ST->data[row], n_colums);
 				mxstring = mxCreateString (&ST->data[row][start]);
 				mxSetCell (mxtext, (int)row, mxstring);
 			}
-			mxSetField (D_struct, seg_out, "data",   mxdata);
-			mxSetField (D_struct, seg_out, "text",   mxtext);
-			mxSetField (D_struct, seg_out, "header", mxheader);
+			mxSetField (D_struct, (mwSize)seg_out, "data",   mxdata);
+			mxSetField (D_struct, (mwSize)seg_out, "text",   mxtext);
+			mxSetField (D_struct, (mwSize)seg_out, "header", mxheader);
 		}
 	}
 	if (D && GMT_Destroy_Data (API, &D))
@@ -1050,6 +1050,7 @@ static void *gmtmex_dataset_init (void *API, unsigned int direction, unsigned in
 		mxArray *mx_ptr = NULL;
 		double *data = NULL;
 		struct GMT_DATASEGMENT *S = NULL;
+
 		if (!ptr) mexErrMsgTxt ("gmtmex_dataset_init: Input is empty where it can't be.\n");
 		if (mxIsNumeric (ptr)) {	/* Got a MATLAB matrix as input */
 			mxClassID type;
@@ -1092,12 +1093,13 @@ static void *gmtmex_dataset_init (void *API, unsigned int direction, unsigned in
 		if ((D = GMT_Create_Data (API, GMT_IS_DATASET, GMT_IS_PLP, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
 			mexErrMsgTxt ("gmtmex_dataset_init: Failure to alloc GMT destination dataset\n");
 		GMT_Report (API, GMT_MSG_DEBUG, "gmtmex_dataset_init: Allocated GMT dataset %lx\n", (long)D);
+
 		for (seg = 0; seg < dim[GMT_SEG]; seg++) {	/* Each incoming structure is a new segment */
-			mx_ptr = mxGetField (ptr, seg, "header");	/* Segment header */
+			mx_ptr = mxGetField (ptr, (mwSize)seg, "header");	/* Segment header */
 			buffer[0] = 0;
 			if ((length = mxGetN (mx_ptr)))
 				mxGetString (mx_ptr, buffer, (mwSize)(length+1));
-			mx_ptr = mxGetField (ptr, seg, "data");	/* Data table for this segment */
+			mx_ptr = mxGetField (ptr, (mwSize)seg, "data");	/* Data table for this segment */
 			data = mxGetData (mx_ptr);
 			dim[GMT_ROW] = mxGetM (mx_ptr);	/* Number of rows */
 			/* Allocate new segment */
@@ -1141,12 +1143,12 @@ static struct GMT_TEXTSET *gmtmex_textset_init (void *API, unsigned int directio
 				mexErrMsgTxt ("gmtmex_textset_init: Failure to alloc GMT destination dataset\n");
 			GMT_Report (API, GMT_MSG_DEBUG, "gmtmex_textset_init: Allocated GMT textset %lx\n", (long)T);
 			for (seg = 0; seg < dim[GMT_SEG]; seg++) {	/* Each incoming structure is a new segment */
-				mx_ptr = mxGetField (ptr, seg, "header");	/* Segment header */
+				mx_ptr = mxGetField (ptr, (mwSize)seg, "header");	/* Segment header */
 				buffer[0] = 0;
 				if ((length = mxGetN (mx_ptr)))
 					mxGetString (mx_ptr, buffer, (mwSize)(length+1));
-				mx_ptr_d = mxGetField (ptr, seg, "data");	/* Data table for this segment */
-				mx_ptr_t = mxGetField (ptr, seg, "text");	/* Text table for this segment */
+				mx_ptr_d = mxGetField (ptr, (mwSize)seg, "data");	/* Data table for this segment */
+				mx_ptr_t = mxGetField (ptr, (mwSize)seg, "text");	/* Text table for this segment */
 				dim[GMT_ROW] = mxGetM (mx_ptr_d);	/* Number of rows */
 				if (dim[GMT_ROW] == 0)	/* No data array */
 					dim[GMT_ROW] = mxGetM (mx_ptr_t);	/* Number of rows */
@@ -1160,7 +1162,7 @@ static struct GMT_TEXTSET *gmtmex_textset_init (void *API, unsigned int directio
 						sprintf (word, "\t%.16g", data[row+col*S->n_rows]);
 						strcat (buffer, word);
 					}
-					mx_ptr = mxGetCell (mx_ptr_t, row);
+					mx_ptr = mxGetCell (mx_ptr_t, (mwSize)row);
 					txt = mxArrayToString (mx_ptr);
 					if (txt) {
 						strcat (buffer, "\t");
