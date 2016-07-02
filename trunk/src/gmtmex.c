@@ -280,15 +280,8 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	}
 
 	/* Make sure this is a valid module */
-	if ((status = GMT_Call_Module (API, module, GMT_MODULE_EXIST, NULL)) != 0) {	/* No, not found */
-		char gmt_module[MODULE_LEN] = "gmt";	/* Alternate module name that starts with "gmt" */
-		/* module does not contain a valid module name; try prepending gmt: */
-		strncat (gmt_module, module, MODULE_LEN-4U);
-		status = GMT_Call_Module (API, gmt_module, GMT_MODULE_EXIST, NULL); /* either GMT_NOERROR or GMT_NOT_A_VALID_MODULE */
-		if (status)
-			mexErrMsgTxt ("GMT: No module by that name was found.\n"); 
-		strcpy (module, gmt_module);	/* Use the prepended module name since that one worked */
-	}
+	if ((status = GMT_Call_Module (API, module, GMT_MODULE_EXIST, NULL)) != 0) 	/* No, not found */
+		mexErrMsgTxt ("GMT: No module by that name was found.\n"); 
 	
 	/* 2+ Add -F to psconvert if user requested a return image but did not explicitly give -F */
 	if (!strncmp (module, "psconvert", 9U) && nlhs == 1 && (!opt_args || !strstr ("-F", opt_args))) {	/* OK, add -F */
@@ -297,9 +290,9 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		else
 			opt_args = "-F";
 	}
-	/* 2+ If gmtwrite then add -T? with correct object type */
 	
-	if (!strncmp (module, "gmtwrite", 8U) && opt_args && n_in_objects == 1) {	/* Add type for writing to disk */
+	/* 2++ If gmtwrite then add -T? with correct object type */
+	if (strstr(module, "write") && opt_args && !strstr(opt_args, "-T") && n_in_objects == 1) {	/* Add type for writing to disk */
 		char targ[5] = {" -T?"};
 		gmtmex_objecttype (targ, prhs[nrhs-1]);
 		strcat (opt_args, targ);
@@ -309,29 +302,8 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	if (opt_args && (options = GMT_Create_Options (API, 0, opt_args)) == NULL)
 		mexErrMsgTxt ("GMT: Failure to parse GMT5 command options\n");
 
-	/* 3+ Add -T to gmtwrite if user did not explicitly give -T. Also check that first arg is not mem API address */
-	if (!strncmp(module, "gmtwrite", 8U) && !strstr(opt_args, "-T") && !mxIsScalar_(prhs[0]) && nrhs > (int)first+1) {
-		mxArray *mx_ptr = NULL;
-		 
-		if ((mx_ptr = mxGetField (prhs[first+1], 0, "image")) != NULL)
-			opt = GMT_Create_Options (API, 0, "-Ti");
-		else if ((mx_ptr = mxGetField (prhs[first+1], 0, "z")) != NULL)
-			opt = GMT_Create_Options (API, 0, "-Tg");
-		else if ((mx_ptr = mxGetField (prhs[first+1], 0, "postscript")) != NULL)
-			opt = GMT_Create_Options (API, 0, "-Tp");
-		else if ((mx_ptr = mxGetField (prhs[first+1], 0, "bfn")) != NULL)
-			opt = GMT_Create_Options (API, 0, "-Tc");
-		else if (mxIsNumeric(prhs[first+1]))
-			opt = GMT_Create_Options (API, 0, "-Td");
-		else if (mxIsChar(prhs[first+1]))
-			opt = GMT_Create_Options (API, 0, "-Tt");
-
-		if (opt) GMT_Append_Option (API, opt, options);
-	}
-
-	if (!options && nlhs == 0 && nrhs == 1) {	/* Just requesting usage message, so add -? to options */
+	if (!options && nlhs == 0 && nrhs == 1) 	/* Just requesting usage message, so add -? to options */
 		options = GMT_Create_Options (API, 0, "-?");
-	}
 	
 	/* 4. Preprocess to update GMT option lists and return info array X */
 	if ((X = GMT_Encode_Options (API, module, n_in_objects, &options, &n_items)) == NULL) {
