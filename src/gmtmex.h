@@ -116,7 +116,7 @@ typedef int mwSize;
 
 EXTERN_MSC int GMTMEX_print_func        (FILE *fp, const char *message);
 EXTERN_MSC void * GMTMEX_Get_Grid       (void *API, struct GMT_GRID *G);
-EXTERN_MSC void * GMTMEX_Get_Dataset    (void *API, struct GMT_VECTOR *V);
+EXTERN_MSC void * GMTMEX_Get_Dataset    (void *API, struct GMT_DATASET *D);
 EXTERN_MSC void * GMTMEX_Get_Textset    (void *API, struct GMT_TEXTSET *M);
 EXTERN_MSC void * GMTMEX_Get_CPT        (void *API, struct GMT_PALETTE *P);
 EXTERN_MSC void * GMTMEX_Get_Image      (void *API, struct GMT_IMAGE *I);
@@ -126,4 +126,7 @@ EXTERN_MSC void GMTMEX_Free_Textset     (void *API, struct GMT_TEXTSET *T);
 EXTERN_MSC void * GMTMEX_Get_POSTSCRIPT (void *API, struct GMT_POSTSCRIPT *P);
 #endif
 mxClassID GMTMEX_type (void *API);
+#endif
+#if 0
+EXTERN_MSC void * GMTMEX_Get_Dataset    (void *API, struct GMT_VECTOR *V);
 #endif
