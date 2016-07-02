@@ -1681,9 +1681,7 @@ function [ps, d_path] = ex42(g_root_dir, out_path, verbose)
 	% curl http://www.antarctica.ac.uk//bas_research/data/access/bedmap/download/bedelev.asc.gz
 	% gunzip bedelev.asc.gz
 	% grdreformat bedelev.asc BEDMAP_elevation.nc=ns -V
-	cpt1 = gmt('makecpt -Cbathy -T-7000/0 -N');
-	cpt2 = gmt('makecpt -Cdem4 -T0/4000 -N');
-	t_cpt = gmt('_cptjoin', cpt1, cpt2);
+	t_cpt = gmt('makecpt -Cearth -T-7000/4000 -N');
 	gmt(['grdimage -C ' d_path 'BEDMAP_elevation.nc -Jx1:60000000 -Q -P -K > ' ps], t_cpt)
 	gmt(['pscoast -R-180/180/-90/-60 -Js0/-90/-71/1:60000000 -Bafg -Di -W0.25p -O -K >> ' ps])
 	gmt(['psscale -C -DjRM+w2.5i/0.2i+o0.5i/0+jLM+mc -R -J -O -K -F+p+i -Bxa1000+lELEVATION -By+lm >> ' ps], t_cpt)
