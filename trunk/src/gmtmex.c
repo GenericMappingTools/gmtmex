@@ -297,6 +297,13 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		else
 			opt_args = "-F";
 	}
+	/* 2+ If gmtwrite then add -T? with correct object type */
+	
+	if (!strncmp (module, "gmtwrite", 8U) && opt_args && n_in_objects == 1) {	/* Add type for writing to disk */
+		char targ[5] = {" -T?"};
+		gmtmex_objecttype (targ, prhs[nrhs-1]);
+		strcat (opt_args, targ);
+	}
 
 	/* 3. Convert mex command line arguments to a linked GMT option list */
 	if (opt_args && (options = GMT_Create_Options (API, 0, opt_args)) == NULL)

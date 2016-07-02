@@ -126,6 +126,7 @@ EXTERN_MSC void GMTMEX_Free_Textset     (void *API, struct GMT_TEXTSET *T);
 EXTERN_MSC void * GMTMEX_Get_POSTSCRIPT (void *API, struct GMT_POSTSCRIPT *P);
 #endif
 mxClassID GMTMEX_type (void *API);
+void gmtmex_objecttype (char *type, const mxArray *ptr);
 #endif
 #if 0
 EXTERN_MSC void * GMTMEX_Get_Dataset    (void *API, struct GMT_VECTOR *V);
