@@ -176,24 +176,31 @@ function [ps, d_path] = ex03(g_root_dir, out_path, verbose)
 	% most closely fitting the x,y points in "sat.xyg":
 
 	report = gmt(['fitcircle ' d_path 'sat.xyg -L2']);
-	[cposx,cposy] = strread(report{2}, '%s %s', 1);
-	cposx = cposx{1};	cposy = cposy{1};
-	[pposx,pposy] = strread(report{3}, '%s %s', 1);
-	pposx = pposx{1};	pposy = pposy{1};
+% 	[cposx,cposy] = strread(report{2}, '%s %s', 1);
+% 	cposx = cposx{1};	cposy = cposy{1};
+% 	[pposx,pposy] = strread(report{3}, '%s %s', 1);
+% 	pposx = pposx{1};	pposy = pposy{1};
+	cposx = report.data(2,1);	cposy = report.data(2,2);
+	pposx = report.data(3,1);	pposy = report.data(3,2);
 
 	% Now we use "gmt project" to gmt project the data in both sat.xyg and ship.xyg
 	% into data.pg, where g is the same and p is the oblique longitude around
 	% the great circle.  We use -Q to get the p distance in kilometers, and -S
 	% to sort the output into increasing p values.
 
-	sat_pg  = gmt(['project  ' d_path 'sat.xyg -C' cposx '/' cposy ' -T' pposx '/' pposy ' -S -Fpz -Q']);
-	ship_pg = gmt(['project ' d_path 'ship.xyg -C' cposx '/' cposy ' -T' pposx '/' pposy ' -S -Fpz -Q']);
+% 	sat_pg  = gmt(['project  ' d_path 'sat.xyg -C' cposx '/' cposy ' -T' pposx '/' pposy ' -S -Fpz -Q']);
+% 	ship_pg = gmt(['project ' d_path 'ship.xyg -C' cposx '/' cposy ' -T' pposx '/' pposy ' -S -Fpz -Q']);
+	sat_pg  = gmt(sprintf('project %ssat.xyg -C%f/%f -T%f/%f -S -Fpz -Q', d_path, cposx, cposy, pposx, pposy));
+	ship_pg = gmt(sprintf('project %sship.xyg -C%f/%f -T%f/%f -S -Fpz -Q', d_path, cposx, cposy, pposx, pposy));
+	sat_pg  = sat_pg.data;
+	ship_pg = ship_pg.data;
 
 	% The gmtinfo utility will report the minimum and maximum values for all columns. 
 	% We use this information first with a large -I value to find the appropriate -R
 	% to use to plot the .pg data. 
 	R = gmt('gmtinfo -I100/25', [sat_pg; ship_pg]);
-	R = R{1}(1:end-1);		% It's now coming with a \n
+% 	R = R{1}(1:end-1);		% It's now coming with a \n
+	R = R.text{1};
 	gmt(['psxy ' R ' -UL/-1.75i/-1.25i/"Example 3a in Cookbook" -BWeSn' ...
 		' -Bxa500f100+l"Distance along great circle" -Bya100f25+l"Gravity anomaly (mGal)"' ...
 		' -JX8i/5i -X2i -Y1.5i -K -Wthick > ' ps], sat_pg)
