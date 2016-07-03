@@ -548,7 +548,7 @@ void *GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C) {
 	fieldnames[4] = mxstrdup ("bfn");
 	fieldnames[5] = mxstrdup ("depth");
 	fieldnames[6] = mxstrdup ("hinge");
-	fieldnames[6] = mxstrdup ("cpt");
+	fieldnames[7] = mxstrdup ("cpt");
 	C_struct = mxCreateStructMatrix (1, 1, N_MEX_FIELDNAMES_CPT, (const char **)fieldnames );
 
 	n_colors = (C->is_continuous) ? C->n_colors + 1 : C->n_colors;
@@ -574,8 +574,8 @@ void *GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C) {
 		for (k = 0; k < 3; k++) bfn[j+k*3] = C->bfn[j].rgb[k];
 	}
 	for (j = 0; j < C->n_colors; j++) {	/* Copy r/g/b from palette to MATLAB colormap and cpt */
-		for (k = 0; k < 3; k++) color[j+k*n_colors] = cpt[j+k*n_colors] = C->data[j].rgb_low[k];
-		for (k = 0; k < 3; k++) cpt[j+(k+3)*n_colors] = C->data[j].rgb_high[k];
+		for (k = 0; k < 3; k++) color[j+k*n_colors] = cpt[j+k*C->n_colors] = C->data[j].rgb_low[k];
+		for (k = 0; k < 3; k++) cpt[j+(k+3)*C->n_colors] = C->data[j].rgb_high[k];
 		alpha[j] = C->data[j].rgb_low[3];
 		range[j] = C->data[j].z_low;
 		range[j+C->n_colors] = C->data[j].z_high;
