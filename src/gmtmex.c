@@ -140,7 +140,6 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	size_t str_length = 0, k = 0;   /* Misc. counters */
 	void *API = NULL;               /* GMT API control structure */
 	struct GMT_OPTION *options = NULL; /* Linked list of module options */
-	struct GMT_OPTION *opt = NULL;  /* Another LL used to hold only one option */
 	struct GMT_RESOURCE *X = NULL;  /* Array of information about MATLAB args */
 	char *cmd = NULL;               /* Pointer used to get the user's MATLAB command */
 	char *gtxt = NULL;              /* For debug printing of revised command */
