@@ -919,8 +919,8 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 		unsigned int family = (module_input) ? GMT_IS_IMAGE|GMT_VIA_MODULE_INPUT : GMT_IS_IMAGE;
 		char x_unit[GMT_GRID_VARNAME_LEN80] = { "" }, y_unit[GMT_GRID_VARNAME_LEN80] = { "" },
 		     z_unit[GMT_GRID_VARNAME_LEN80] = { "" };
-		char *f = NULL;
-		double *inc = NULL, *range = NULL;
+		char    *f = NULL;
+		double  *reg, *inc = NULL, *range = NULL;
 		mxArray *mx_ptr = NULL;
 
 		if (mxIsEmpty (ptr))
@@ -939,6 +939,11 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 			mexErrMsgTxt ("gmtmex_image_init: Could not find inc array with Image increments\n");
 		inc = mxGetData (mx_ptr);
 
+		mx_ptr = mxGetField(ptr, 0, "registration");
+		if (mx_ptr == NULL)
+			mexErrMsgTxt("gmtmex_image_init: Could not find registration info in Image struct\n");
+		reg = mxGetData(mx_ptr);
+
 		mx_ptr = mxGetField (ptr, 0, "image");
 		if (mx_ptr == NULL)
 			mexErrMsgTxt ("gmtmex_image_init: Could not find data array for Image\n");
@@ -948,7 +953,7 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 
 		dim[0] = getMNK (mx_ptr, 1);	dim[1] = getMNK (mx_ptr, 0);	dim[2] = getMNK (mx_ptr, 2);
 		if ((I = GMT_Create_Data (API, family, GMT_IS_SURFACE, GMT_GRID_ALL, dim,
-			                      NULL, NULL, 0, 0, NULL)) == NULL)
+			                      NULL, NULL, (unsigned int)reg[0], 0, NULL)) == NULL)
 			mexErrMsgTxt ("gmtmex_image_init: Failure to alloc GMT source image for input\n");
 
 		f = (char *)mxGetData (mx_ptr);
