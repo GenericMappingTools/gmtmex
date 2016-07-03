@@ -1117,8 +1117,8 @@ static void *gmtmex_dataset_init (void *API, unsigned int direction, unsigned in
 			mx_ptr = mxGetField (ptr, (mwSize)seg, "data");	/* Data table for this segment */
 			data = mxGetData (mx_ptr);
 			dim[GMT_ROW] = mxGetM (mx_ptr);	/* Number of rows */
-			/* Allocate new segment */
-			S = GMT_Alloc_DataSegment (API, dim[GMT_ROW], dim[GMT_COL], buffer);
+			/* Allocate new data segment */
+			S = GMT_Alloc_Segment (API, GMT_IS_DATASET, dim[GMT_ROW], dim[GMT_COL], buffer, NULL);
 			for (col = start = 0; col < S->n_columns; col++, start += S->n_rows) /* Copy the data columns */
 				memcpy (S->data[col], &data[start], S->n_rows * sizeof (double));
 			D->table[0]->segment[seg] = S;	/* Hook up to table */
@@ -1165,12 +1165,13 @@ static struct GMT_TEXTSET *gmtmex_textset_init (void *API, unsigned int directio
 				mx_ptr_d = mxGetField (ptr, (mwSize)seg, "data");	/* Data table for this segment */
 				mx_ptr_t = mxGetField (ptr, (mwSize)seg, "text");	/* Text table for this segment */
 				dim[GMT_ROW] = mxGetM (mx_ptr_d);	/* Number of rows */
-				if (dim[GMT_ROW] == 0)	/* No data array */
-					dim[GMT_ROW] = mxGetM (mx_ptr_t);	/* Number of rows */
-				n_cols = mxGetN (mx_ptr_d);		/* Number of data cols, if any */
-				/* Allocate new segment */
-				S = GMT_Alloc_TextSegment (API, dim[GMT_ROW], buffer);
+				if (dim[GMT_ROW] == 0)	/* No data array present, hope there is a cell array... */
+					dim[GMT_ROW] = mxGetM (mx_ptr_t);	/* Number of rows found */
+				n_cols = mxGetN (mx_ptr_d);	/* Number of data cols, if any */
+				/* Allocate new text segment */
+				S = GMT_Alloc_Segment (API, GMT_IS_TEXTSET, dim[GMT_ROW], 0, buffer, NULL);
 				data = mxGetData (mx_ptr_d);
+				/* Combine any data and cell arrays into text records */
 				for (row = 0; row < S->n_rows; row++) {
 					if (n_cols) sprintf (buffer, "%.16g", data[row]);
 					for (col = 1; col < n_cols; col++) {
@@ -1189,12 +1190,12 @@ static struct GMT_TEXTSET *gmtmex_textset_init (void *API, unsigned int directio
 				T->table[0]->segment[seg] = S;	/* Hook up to table */
 			}
 		}
-		else {	/* Get here when either cell array or a single string */
+		else {	/* Get here when given either a cell array or a single string */
 			unsigned int got_text = 0;
 			dim[DIM_ROW] = mxGetM (ptr);	/* Number of records */
-			if (mxIsNumeric (ptr)) {	/* Got matrix instead, must convert to text first */
+			if (mxIsNumeric (ptr)) {	/* Got matrix instead, must convert to text first (below) */
 				n_cols = mxGetN (ptr);	/* Number of columns */
-				data = mxGetData (ptr);
+				data = mxGetData (ptr);	/* Get pointer to data matrix */
 			}
 			else if (mxIsChar (ptr) && dim[DIM_ROW] == 1)	/* Special case: Got a single text record */
 				got_text = 1;
@@ -1206,7 +1207,7 @@ static struct GMT_TEXTSET *gmtmex_textset_init (void *API, unsigned int directio
 			}
 			if ((T = GMT_Create_Data (API, family, GMT_IS_NONE, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
 				mexErrMsgTxt ("gmtmex_textset_init: Failure to alloc GMT source TEXTSET for input\n");
-			S = T->table[0]->segment[0];	/* Only one segment being returned by MATLAB */
+			S = T->table[0]->segment[0];	/* Only one segment will be returned by MATLAB */
 			S->n_rows = dim[DIM_ROW];
 			T->alloc_mode = GMT_ALLOC_EXTERNALLY;
 			if (got_text)	/* Just got that single record */
