@@ -520,7 +520,7 @@ void *GMTMEX_Get_POSTSCRIPT (void *API, struct GMT_POSTSCRIPT *P) {
 }
 #endif
 
-#define N_MEX_FIELDNAMES_CPT	7
+#define N_MEX_FIELDNAMES_CPT	8
 
 void *GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C) {
 	/* Given a GMT CPT C, build a MATLAB structure and assign values.
@@ -530,8 +530,8 @@ void *GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C) {
 	 * out from MATLAB cannot represent these changes accurately. */
 
 	unsigned int k, j, n_colors, *depth = NULL;
-	double *color = NULL, *alpha = NULL, *minmax = NULL, *range = NULL, *hinge = NULL, *bfn = NULL;
-	mxArray *mxcolormap = NULL, *mxalpha = NULL, *mxminmax = NULL, *mxrange = NULL;
+	double *color = NULL, *cpt = NULL, *alpha = NULL, *minmax = NULL, *range = NULL, *hinge = NULL, *bfn = NULL;
+	mxArray *mxcolormap = NULL, *mxcpt = NULL, *mxalpha = NULL, *mxminmax = NULL, *mxrange = NULL;
 	mxArray *C_struct = NULL, *mxbfn = NULL, *mxdepth = NULL, *mxhinge = NULL;
 	char *fieldnames[N_MEX_FIELDNAMES_CPT];	/* Array with the names of the fields of the output grid structure. */
 
@@ -548,6 +548,7 @@ void *GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C) {
 	fieldnames[4] = mxstrdup ("bfn");
 	fieldnames[5] = mxstrdup ("depth");
 	fieldnames[6] = mxstrdup ("hinge");
+	fieldnames[6] = mxstrdup ("cpt");
 	C_struct = mxCreateStructMatrix (1, 1, N_MEX_FIELDNAMES_CPT, (const char **)fieldnames );
 
 	n_colors = (C->is_continuous) ? C->n_colors + 1 : C->n_colors;
@@ -565,13 +566,16 @@ void *GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C) {
 	depth      = (uint32_t *)mxGetData (mxdepth);
 	mxhinge    = mxCreateNumericMatrix (1, 1, mxDOUBLE_CLASS, mxREAL);
 	hinge      = mxGetPr (mxhinge);
+	mxcpt      = mxCreateNumericMatrix (C->n_colors, 6, mxDOUBLE_CLASS, mxREAL);
+	cpt        = mxGetPr (mxcpt);
 	depth[0] = (C->is_bw) ? 1 : ((C->is_gray) ? 8 : 24);
 	hinge[0] = (C->has_hinge) ? C->hinge : mxGetNaN ();
 	for (j = 0; j < 3; j++) {	/* Copy r/g/b from palette bfn to MATLAB array */
 		for (k = 0; k < 3; k++) bfn[j+k*3] = C->bfn[j].rgb[k];
 	}
-	for (j = 0; j < C->n_colors; j++) {	/* Copy r/g/b from palette to MATLAB array */
-		for (k = 0; k < 3; k++) color[j+k*n_colors] = C->data[j].rgb_low[k];
+	for (j = 0; j < C->n_colors; j++) {	/* Copy r/g/b from palette to MATLAB colormap and cpt */
+		for (k = 0; k < 3; k++) color[j+k*n_colors] = cpt[j+k*n_colors] = C->data[j].rgb_low[k];
+		for (k = 0; k < 3; k++) cpt[j+(k+3)*n_colors] = C->data[j].rgb_high[k];
 		alpha[j] = C->data[j].rgb_low[3];
 		range[j] = C->data[j].z_low;
 		range[j+C->n_colors] = C->data[j].z_high;
@@ -590,6 +594,7 @@ void *GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C) {
 	mxSetField (C_struct, 0, "bfn",      mxbfn);
 	mxSetField (C_struct, 0, "depth",    mxdepth);
 	mxSetField (C_struct, 0, "hinge",    mxhinge);
+	mxSetField (C_struct, 0, "cpt",      mxcpt);
 	return (C_struct);
 }
 
@@ -1313,7 +1318,7 @@ static struct GMT_PALETTE *gmtmex_cpt_init (void *API, unsigned int direction, u
 		uint64_t dim[2];
 		unsigned int family = (module_input) ? GMT_IS_PALETTE|GMT_VIA_MODULE_INPUT : GMT_IS_PALETTE;
 		mxArray *mx_ptr = NULL;
-		double dz = 0, *colormap = NULL, *range = NULL, *minmax = NULL, *alpha = NULL, *bfn = NULL, *hinge = NULL;
+		double dz = 0, *colormap = NULL, *range = NULL, *minmax = NULL, *alpha = NULL, *bfn = NULL, *hinge = NULL, *cpt = NULL;
 
 		if (mxIsEmpty (ptr))
 			mexErrMsgTxt ("gmtmex_cpt_init: The input that was supposed to contain the CPT, is empty\n");
@@ -1362,6 +1367,10 @@ static struct GMT_PALETTE *gmtmex_cpt_init (void *API, unsigned int direction, u
 		if (mx_ptr == NULL)
 			mexErrMsgTxt ("gmtmex_cpt_init: Could not find hinge entry for hinged CPT\n");
 		hinge = mxGetData (mx_ptr);
+		mx_ptr = mxGetField (ptr, 0, "cpt");
+		if (mx_ptr == NULL)
+			mexErrMsgTxt ("gmtmex_cpt_init: Could not find CPT entry\n");
+		cpt = mxGetData (mx_ptr);
 
 		if ((P = GMT_Create_Data (API, family, GMT_IS_NONE, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
 			mexErrMsgTxt ("gmtmex_cpt_init: Failure to alloc GMT source CPT for input\n");
@@ -1375,8 +1384,8 @@ static struct GMT_PALETTE *gmtmex_cpt_init (void *API, unsigned int direction, u
 		}
 		for (j = 0; j < P->n_colors; j++) {	/* OK to access j+1'th elemenent since length of colormap is P->n_colors+1 */
 			for (k = 0; k < 3; k++) {
-				P->data[j].rgb_low[k]  = colormap[j+k*dim[1]];
-				P->data[j].rgb_high[k] = colormap[(j+one)+k*dim[1]];
+				P->data[j].rgb_low[k]  = cpt[j+k*dim[0]];
+				P->data[j].rgb_high[k] = cpt[j+(k+3)*dim[0]];
 			}
 			P->data[j].rgb_low[3]  = alpha[j];
 			P->data[j].rgb_high[3] = alpha[j+one];
