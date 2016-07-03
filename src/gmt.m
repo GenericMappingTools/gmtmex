@@ -13,6 +13,8 @@ function varargout = gmt(cmd, varargin)
 						 '       and CMAP is a color palette structure or a Matlab Mx3 cmap array (not yet).\n\n']))
 		fprintf(sprintf(['       To join two color palette structures\n\t' ...
 		                 'cpt = gmt(''_cptjoin'', cpt1, cpt2)\n']))
+		fprintf(sprintf(['       To merge all segments across an array of structures\n\t' ...
+		                 'all = gmt(''_merge'', segments)\n']))
 		return
 	end
 
@@ -20,6 +22,36 @@ function varargout = gmt(cmd, varargin)
 		[varargout{1:nargout}] = feval(cmd(2:end), varargin{:});
 	else
 		[varargout{1:nargout}] = gmtmex(cmd, varargin{:});
+	end
+
+% -------------------------------------------------------------------------------------------------
+function all = merge (A, ~)
+% MERGE  Combine all segment arrays to a single array
+%   all = merge (A, opt)
+%
+% Concatenate all data segment arrays in the structures A
+% into a single array.  If the optional argument opt is given
+% the we start each segment with a NaN record.
+
+n_segments = length(A); n = 0;
+	[~, nc] = size (A(1).data);
+	for k = 1:n_segments
+	    n = n + length(A(k).data);
+	end
+	if nargin == 2
+	    all = zeros (n+n_segments, nc);
+	else
+	    all = zeros (n, nc);
+	end
+	n = 1;
+	for k = 1:n_segments
+	    [nr, ~] = size (A(k).data);
+	    if nargin == 2 % Add NaN-record
+	        all(n,:) = NaN;
+	        n = n + 1;
+	    end
+	    all(n:(n+nr-1),:) = A(k).data;
+	    n = n + nr;
 	end
 
 % -------------------------------------------------------------------------------------------------
