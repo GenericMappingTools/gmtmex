@@ -86,7 +86,7 @@ static void *Initiate_Session (unsigned int verbose) {
 	return (API);
 }
 
-#define N_MEX_FIELDNAMES_IMAGE	18
+#define N_MEX_FIELDNAMES_IMAGE	19
 #define N_MEX_FIELDNAMES_GRID	16
 #define N_MEX_FIELDNAMES_CPT	7
 #define N_MEX_FIELDNAMES_PS	3

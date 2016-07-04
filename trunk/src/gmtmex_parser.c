@@ -598,7 +598,7 @@ void *GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C) {
 	return (C_struct);
 }
 
-#define N_MEX_FIELDNAMES_IMAGE	18
+#define N_MEX_FIELDNAMES_IMAGE	19
 
 void *GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I) {
 	unsigned int n;
@@ -635,6 +635,7 @@ void *GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I) {
 	fieldnames[15] = mxstrdup ("z_unit");
 	fieldnames[16] = mxstrdup ("colormap");
 	fieldnames[17] = mxstrdup ("alpha");
+	fieldnames[18] = mxstrdup ("layout");
 	I_struct = mxCreateStructMatrix (1, 1, N_MEX_FIELDNAMES_IMAGE, (const char **)fieldnames );
 	/* Now update the various fields with information from I */
 	mxtmp = mxCreateString (I->header->ProjRefPROJ4);
@@ -678,6 +679,9 @@ void *GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I) {
 
 	mxtmp = mxCreateString (I->header->z_units);
 	mxSetField (I_struct, 0, (const char *) "z_unit", mxtmp);
+
+	mxtmp = mxCreateString ("TCBa");						/* MUST BE CHANGED TO INQUIRE THE CONTENTS OF GMT_IMAGE_LAYOUT */
+	mxSetField (I_struct, 0, (const char *) "layout", mxtmp);
 
 	if (I->colormap != NULL) {	/* Indexed image has a color map */
 		mxcolormap = mxCreateNumericMatrix (I->n_indexed_colors, 3, mxDOUBLE_CLASS, mxREAL);
@@ -923,7 +927,7 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 		uint64_t dim[3];
 		unsigned int family = (module_input) ? GMT_IS_IMAGE|GMT_VIA_MODULE_INPUT : GMT_IS_IMAGE;
 		char x_unit[GMT_GRID_VARNAME_LEN80] = { "" }, y_unit[GMT_GRID_VARNAME_LEN80] = { "" },
-		     z_unit[GMT_GRID_VARNAME_LEN80] = { "" };
+		     z_unit[GMT_GRID_VARNAME_LEN80] = { "" }, layout[4];
 		char    *f = NULL;
 		double  *reg, *inc = NULL, *range = NULL;
 		mxArray *mx_ptr = NULL;
@@ -971,6 +975,12 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 			}
 		}
 */
+		mx_ptr = mxGetField (ptr, 0, "alpha");
+		I->alpha = NULL;
+		if (mx_ptr != NULL) {
+			if (mxGetNumberOfDimensions(mx_ptr) == 2)
+				I->alpha = (char *)mxGetData (mx_ptr);		/* Sending in the Matlab owned memory. Risked right now. */
+		}
 
 		I->header->z_min = range[4];
 		I->header->z_max = range[5];
@@ -1030,6 +1040,14 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 			mxGetString(mx_ptr, z_unit, (mwSize)mxGetN(mx_ptr));
 			strncpy(I->header->z_units, z_unit, GMT_GRID_VARNAME_LEN80 - 1);
 		}
+		mx_ptr = mxGetField (ptr, 0, "layout");
+		if (mx_ptr != NULL) {
+			mxGetString(mx_ptr, layout, (mwSize)mxGetN(mx_ptr));
+			strncpy(I->layout, layout, 4);
+		}
+		else
+			strncpy(I->layout, "TCBa", 4);
+
 		GMT_Report (API, GMT_MSG_DEBUG, "gmtmex_image_init: Allocated GMT Image %lx\n", (long)I);
 		GMT_Report (API, GMT_MSG_DEBUG,
 		            "gmtmex_image_init: Registered GMT Image array %lx via memory reference from MATLAB\n",
