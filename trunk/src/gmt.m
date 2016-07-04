@@ -1,51 +1,58 @@
-function varargout = gmt(cmd, varargin)
+function varargout = gmt (cmd, varargin)
 % Helper function to call the gmtmex MEX function
-
 %	$Id$
 
 	if (nargin == 0)
-		fprintf(sprintf('Usage: to call a GMT program\n\tgmt(''module_name options'', numeric_opts)\n\n'))
-		fprintf(sprintf(['       To create a Grid struct from a 2d Z array and a 1x9 header vector\n\t' ...
-		                 'G = gmt(''_fill_grid_struct'', Z, head)\n\n']))
-		fprintf(sprintf(['       To create an Image struct from a 2d img array and a 1x9 header vector\n\t' ...
-		                 'I = gmt(''_fill_img_struct'', img, head [,cmap])\n' ...
-						 '       Here, and above, HEAD is a vector with [x_min x_max, y_min y_max z_min z_max reg x_inc y_inc]\n' ...
-						 '       and CMAP is a color palette structure or a Matlab Mx3 cmap array (not yet).\n\n']))
-		fprintf(sprintf(['       To join two color palette structures\n\t' ...
-		                 'cpt = gmt(''_cptjoin'', cpt1, cpt2)\n']))
-		fprintf(sprintf(['       To merge all segments across an array of structures\n\t' ...
-		                 'all = gmt(''_merge'', segments)\n']))
+		fprintf (sprintf(['\n\t\tGMT - The Generic Mapping Tools, Version 5.3 API\n']))
+		fprintf (sprintf(['Copyright 1991-2016 Paul Wessel, Walter H. F. Smith, R. Scharroo, J. Luis, and F. Wobbe\n\n']))
+	
+		fprintf (sprintf('Usage:\tTo call a GMT module:\n\t    output = gmt (''module_name'', ''options'', numeric_input)\n\n'))
+		fprintf (sprintf(['\tTo create a Grid structure from a 2-D Z array and a 1x9 header vector:\n\t' ...
+		                 '    G = gmt (''wrapgrid'', Z, head)\n' ...
+				 '\theader is a vector with [x_min x_max, y_min y_max z_min z_max reg x_inc y_inc]\n\n']))
+		fprintf (sprintf(['\tTo create an Image structure from a 2-D img array and a 1x9 header vector:\n\t' ...
+		                 '    I = gmt (''wrapimage'', img, header [, cmap])\n' ...
+						 '\theader is a vector with [x_min x_max, y_min y_max z_min z_max reg x_inc y_inc].\n' ...
+						 '\tcmap is an optional color palette structure or a Matlab Mx3 cmap array (not yet).\n\n']))
+		fprintf (sprintf(['\tTo join two color palette structures:\n\t' ...
+		                 '    cpt = gmt (''catcpt'', cpt1, cpt2)\n\n']))
+		fprintf (sprintf(['\tTo merge all data segments from an array of Data structures:\n\t' ...
+		                 '    all = gmt (''catsegment'', segments[, 1])\n\t' ...
+		                        'The optional 2nd argument will insert a NaN-record at the start of each segment.\n']))
 		return
 	end
 
-	if (cmd(1) == '_')
-		[varargout{1:nargout}] = feval(cmd(2:end), varargin{:});
+	if (strcmp(cmd,'wrapgrid') || strcmp(cmd,'wrapimage') || strcmp(cmd,'catcpt') || strncmp(cmd,'catseg',6))
+		[varargout{1:nargout}] = feval (cmd, varargin{:});
 	else
-		[varargout{1:nargout}] = gmtmex(cmd, varargin{:});
+		[varargout{1:nargout}] = gmtmex (cmd, varargin{:});
 	end
 
 % -------------------------------------------------------------------------------------------------
-function all = merge (A, ~)
+function all = catseg (varargin)
+	all = catsegment (varargin{:});
+
+function all = catsegment (A, header)
 % MERGE  Combine all segment arrays to a single array
-%   all = merge (A, opt)
+%   all = catsegment (A, opt)
 %
 % Concatenate all data segment arrays in the structures A
 % into a single array.  If the optional argument opt is given
 % the we start each segment with a NaN record.
 
 n_segments = length(A); n = 0;
-	[~, nc] = size (A(1).data);
-	for k = 1:n_segments
+	[nr, nc] = size (A(1).data);	% Get # columns from first segment
+	for k = 1:n_segments		% Count total rows
 	    n = n + length(A(k).data);
 	end
-	if nargin == 2
+	if nargin == 2 % Need to add a NaN-record per segment
 	    all = zeros (n+n_segments, nc);
 	else
 	    all = zeros (n, nc);
 	end
 	n = 1;
 	for k = 1:n_segments
-	    [nr, ~] = size (A(k).data);
+	    [nr, nc] = size (A(k).data);
 	    if nargin == 2 % Add NaN-record
 	        all(n,:) = NaN;
 	        n = n + 1;
@@ -55,14 +62,14 @@ n_segments = length(A); n = 0;
 	end
 
 % -------------------------------------------------------------------------------------------------
-function cpt = cptjoin(cpt1, cpt2)
+function cpt = catcpt(cpt1, cpt2)
 % Join two CPT1 and CPT2 color palette structures. 
-% Note, the two palettes should be continuous across its common border. No testing on that is donne here
+% Note, the two palettes must be continuous across its common border. No testing on that is done here.
 
 	if (nargin ~= 2)
 		error('    Must provide 2 input arguments.')
 	elseif (cpt1.depth ~= cpt2.depth)
-		error('    Cannot join two palletes that have different bit depths.')
+		error('    Cannot join two palettes that have different bit depths.')
 	end
 	if (size(cpt1.colormap,1) ~= size(cpt1.range))
 		% A continuous palette so the join would have one color in excess. We could average
@@ -80,15 +87,15 @@ function cpt = cptjoin(cpt1, cpt2)
 	cpt.depth  = cpt1.depth;
 
 % -------------------------------------------------------------------------------------------------
-function G = fill_grid_struct(Z, head)
+function G = wrapgrid(Z, head)
 % Fill the Grid struct used in gmtmex. HEAD is the old 1x9 header vector.
 
 	if (nargin ~= 2)
 		error('    Must provide 2 input arguments.')
 	elseif (size(Z,1) < 2 || size(Z,2) < 2)
-		error('    First argin must be a decent 2D array.')
+		error('    First argument must be a decent 2D array.')
 	elseif (any(size(head) ~= [1 9]))
-		error('    Second argin must be a 1x9 header vector.')
+		error('    Second argument must be a 1x9 header vector.')
 	end
 
 	if (~isa(head, 'double')),	head = double(head);	end
@@ -110,16 +117,16 @@ function G = fill_grid_struct(Z, head)
 	G.z_unit = '';	
 
 % -------------------------------------------------------------------------------------------------
-function I = fill_img_struct(img, head, cmap)
+function I = wrapimage(img, head, cmap)
 % Fill the Image struct used in gmtmex. HEAD is the old 1x9 header vector.
 
 	if (nargin < 2)
 		error('    Must provide at least 2 input arguments.')
 	end
 	if (size(img,1) < 2 || size(img,2) < 2)
-		error('    First argin must be a decent 2D image array.')
+		error('    First argument must be a decent 2D image array.')
 	elseif (any(size(head) ~= [1 9]))
-		error('    Second argin must be a 1x9 header vector.')
+		error('    Second argument must be a 1x9 header vector.')
 	end
 
 	if (~isa(head, 'double')),	head = double(head);	end
