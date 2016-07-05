@@ -570,7 +570,7 @@ function [ps, d_path] = ex12(g_root_dir, out_path, verbose)
 	% Then contour the data and draw triangles using dashed pen; use "gmt gmtinfo" and "gmt makecpt" to make a
 	% color palette (.cpt) file
 	T = gmt(['info -T25/2 ' d_path 'table_5.11']);
-	topo_cpt = gmt(['makecpt -Cjet ' T{1}]);
+	topo_cpt = gmt(['makecpt -Cjet ' T.text{1}]);
 	gmt(['pscontour -R -J ' d_path 'table_5.11 -B2f1 -BWSne -Wthin -C -Lthinnest,-' ...
 		' -Gd1i -X-3.25i -Y-3.65i -O -K >> ' ps], topo_cpt)
 
@@ -616,7 +616,7 @@ function [ps, d_path] = ex14(g_root_dir, out_path, verbose)
 	gmt(['psbasemap -R0.5/7.5/0.5/7.5 -J -O -K -Bg1 -X3.25i >> ' ps])
 	gmt(['psxy -R0/7/0/7 -J -B2f1 -BeSNw -Ss0.05i -Gblack -O -K >> ' ps], mean_xyz)
 	% Reformat to one decimal for annotation purposes
-	t = cellstr(num2str(mean_xyz,'%g %g %.1f'));	% Round to nearest 0.1 and convert to cells
+	t = cellstr(num2str(mean_xyz.data,'%g %g %.1f'));	% Round to nearest 0.1 and convert to cells
 	gmt(['pstext -R -J -D0.15c/0 -F+f6p+jLM -O -K -Gwhite -W -C0.01i -N >> ' ps], t)
 
 	% Then gmt surface and contour the data
