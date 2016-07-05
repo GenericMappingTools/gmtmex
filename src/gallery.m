@@ -414,8 +414,10 @@ function [ps, d_path] = ex09(g_root_dir, out_path, verbose)
 	gmt(['psxy -R -J -O -K ' d_path 'ridge.xy -Wthicker >> ' ps])
 	gmt(['psxy -R -J -O -K ' d_path 'fz.xy    -Wthinner,- >> ' ps])
 	% Take label from segment header and plot near coordinates of last record of each track
-	t = cellstr(num2str(gmt(['gmtconvert -El ' d_path 'tracks.txt'])));
-	gmt(['pstext -R -J -F+f10p,Helvetica-Bold+a50+jRM+h -D-0.05i/-0.05i -O >> ' ps], t)
+	resp = gmt(['gmtconvert -El ' d_path 'tracks.txt']);
+	% Here we have to copy the header text into the text member, and remembering that we are dealing with a struct array
+	for (k = 1:length(resp)),	resp(k).text{k} = resp(k).header;	end
+	gmt(['pstext -R -J -F+f10p,Helvetica-Bold+a50+jRM+h -D-0.05i/-0.05i -O >> ' ps], resp)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
