@@ -1189,6 +1189,10 @@ static struct GMT_TEXTSET *gmtmex_textset_init (void *API, unsigned int directio
 					mxGetString (mx_ptr, buffer, (mwSize)(length+1));
 				mx_ptr_d = mxGetField (ptr, (mwSize)seg, "data");	/* Data table for this segment */
 				mx_ptr_t = mxGetField (ptr, (mwSize)seg, "text");	/* Text table for this segment */
+				if (mxIsEmpty(mx_ptr_t)) {
+					mexPrintf("gmtmex_textset_init: Warning, text for segment %d is empty.\n", seg);
+					continue;
+				}
 				dim[GMT_ROW] = mxGetM (mx_ptr_d);	/* Number of rows */
 				if (dim[GMT_ROW] == 0)	/* No data array present, hope there is a cell array... */
 					dim[GMT_ROW] = mxGetM (mx_ptr_t);	/* Number of rows found */
