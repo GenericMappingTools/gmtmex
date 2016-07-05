@@ -1168,8 +1168,13 @@ static struct GMT_TEXTSET *gmtmex_textset_init (void *API, unsigned int directio
 		mxArray *mx_ptr = NULL;
 		double *data = NULL;
 		struct GMT_TEXTSEGMENT *S = NULL;
-		if (!ptr) mexErrMsgTxt ("gmtmex_textset_init: Input is empty where it can't be.\n");
-		
+		if (!ptr)
+			mexErrMsgTxt("gmtmex_textset_init: Input pointer is NULL where it can't be.\n");
+		else if (mxIsEmpty(ptr)) {
+			mexPrintf("gmtmex_textset_init: Input text is empty, unknown consequence.\n");
+			return NULL;
+		}
+
 		if (mxIsStruct (ptr)) {	/* Regular structure for data/textsets */
 			mxArray *mx_ptr_d = NULL, *mx_ptr_t = NULL;
 			dim[GMT_SEG] = mxGetM (ptr);	/* Number of segments */
