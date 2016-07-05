@@ -928,7 +928,6 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 		unsigned int family = (module_input) ? GMT_IS_IMAGE|GMT_VIA_MODULE_INPUT : GMT_IS_IMAGE;
 		char x_unit[GMT_GRID_VARNAME_LEN80] = { "" }, y_unit[GMT_GRID_VARNAME_LEN80] = { "" },
 		     z_unit[GMT_GRID_VARNAME_LEN80] = { "" }, layout[4];
-		char    *f = NULL;
 		double  *reg, *inc = NULL, *range = NULL;
 		mxArray *mx_ptr = NULL;
 
@@ -961,12 +960,14 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 			mexErrMsgTxt("gmtmex_image_init: The only data type supported by now is UInt8, and this image is not.\n");
 
 		dim[0] = getMNK (mx_ptr, 1);	dim[1] = getMNK (mx_ptr, 0);	dim[2] = getMNK (mx_ptr, 2);
-		if ((I = GMT_Create_Data (API, family, GMT_IS_SURFACE, GMT_GRID_ALL, dim,
+		if ((I = GMT_Create_Data (API, family, GMT_IS_SURFACE, GMT_GRID_HEADER_ONLY, dim,
 			                      NULL, NULL, (unsigned int)reg[0], 0, NULL)) == NULL)
 			mexErrMsgTxt ("gmtmex_image_init: Failure to alloc GMT source image for input\n");
 
-		f = (char *)mxGetData (mx_ptr);
-		memcpy (I->data, f, I->header->nm * I->header->n_bands * sizeof (char));
+		I->data = (unsigned char *)mxGetData (mx_ptr);				/* Send in the Matlab owned memory. */
+		I->alloc_mode = GMT_ALLOC_EXTERNALLY;
+
+		//memcpy (I->data, (unsigned char *)mxGetData (mx_ptr), I->header->nm * I->header->n_bands * sizeof (char));
 /*
 		for (row = 0; row < I->header->n_rows; row++) {
 			for (col = 0; col < I->header->n_columns; col++) {
@@ -979,7 +980,7 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 		I->alpha = NULL;
 		if (mx_ptr != NULL) {
 			if (mxGetNumberOfDimensions(mx_ptr) == 2)
-				I->alpha = (char *)mxGetData (mx_ptr);		/* Sending in the Matlab owned memory. Risked right now. */
+				I->alpha = (unsigned char *)mxGetData (mx_ptr);		/* Send in the Matlab owned memory. */
 		}
 
 		I->header->z_min = range[4];
@@ -1043,10 +1044,10 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 		mx_ptr = mxGetField (ptr, 0, "layout");
 		if (mx_ptr != NULL) {
 			mxGetString(mx_ptr, layout, (mwSize)mxGetN(mx_ptr));
-			strncpy(I->layout, layout, 4);
+			strncpy(I->header->mem_layout, layout, 4);
 		}
 		else
-			strncpy(I->layout, "TCBa", 4);
+			strncpy(I->header->mem_layout, "TCBa", 4);
 
 		GMT_Report (API, GMT_MSG_DEBUG, "gmtmex_image_init: Allocated GMT Image %lx\n", (long)I);
 		GMT_Report (API, GMT_MSG_DEBUG,
@@ -1118,10 +1119,11 @@ static void *gmtmex_dataset_init (void *API, unsigned int direction, unsigned in
 		}
 		/* We come here if we did not pass back a matrix */
 		if (!mxIsStruct (ptr)) mexErrMsgTxt ("gmtmex_dataset_init: Expected a data structure for input\n");
-		dim[GMT_SEG] = mxGetM (ptr);	/* Number of segments */
+		dim[GMT_SEG] = mxGetM (ptr);                        /* Number of segments */
 		if (dim[GMT_SEG] == 0) mexErrMsgTxt ("gmtmex_dataset_init: Input has zero segments where it can't be.\n");
-		mx_ptr = mxGetField (ptr, 0, "data");	/* Get first segment's data matrix */
-		dim[GMT_COL] = mxGetN (mx_ptr);	/* Number of columns */
+		if ((mx_ptr = mxGetField (ptr, 0, "data")) == NULL) /* Get first segment's data matrix */
+			mexErrMsgTxt("gmtmex_dataset_init: The 'data' array is NULL where it can't be\n");
+		dim[GMT_COL] = mxGetN (mx_ptr);                     /* Number of columns */
 		if (dim[GMT_COL] == 0) mexErrMsgTxt ("gmtmex_dataset_init: Input has zero columns where it can't be.\n");
 		if ((D = GMT_Create_Data (API, GMT_IS_DATASET, GMT_IS_PLP, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
 			mexErrMsgTxt ("gmtmex_dataset_init: Failure to alloc GMT destination dataset\n");
@@ -1130,7 +1132,7 @@ static void *gmtmex_dataset_init (void *API, unsigned int direction, unsigned in
 		for (seg = 0; seg < dim[GMT_SEG]; seg++) {	/* Each incoming structure is a new segment */
 			mx_ptr = mxGetField (ptr, (mwSize)seg, "header");	/* Segment header */
 			buffer[0] = 0;
-			if ((length = mxGetN (mx_ptr)))
+			if ((length = mxGetN (mx_ptr)) != 0)
 				mxGetString (mx_ptr, buffer, (mwSize)(length+1));
 			mx_ptr = mxGetField (ptr, (mwSize)seg, "data");	/* Data table for this segment */
 			data = mxGetData (mx_ptr);
@@ -1178,7 +1180,7 @@ static struct GMT_TEXTSET *gmtmex_textset_init (void *API, unsigned int directio
 			for (seg = 0; seg < dim[GMT_SEG]; seg++) {	/* Each incoming structure is a new segment */
 				mx_ptr = mxGetField (ptr, (mwSize)seg, "header");	/* Segment header */
 				buffer[0] = 0;
-				if ((length = mxGetN (mx_ptr)))
+				if ((length = mxGetN (mx_ptr)) != 0)
 					mxGetString (mx_ptr, buffer, (mwSize)(length+1));
 				mx_ptr_d = mxGetField (ptr, (mwSize)seg, "data");	/* Data table for this segment */
 				mx_ptr_t = mxGetField (ptr, (mwSize)seg, "text");	/* Text table for this segment */
