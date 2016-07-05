@@ -1212,22 +1212,23 @@ static struct GMT_TEXTSET *gmtmex_textset_init (void *API, unsigned int directio
 		}
 		else {	/* Get here when given either a cell array or a single string */
 			unsigned int got_text = 0;
-			dim[DIM_ROW] = mxGetM (ptr);	/* Number of records */
-			if (mxIsNumeric (ptr)) {	/* Got matrix instead, must convert to text first (below) */
-				n_cols = mxGetN (ptr);	/* Number of columns */
-				data = mxGetData (ptr);	/* Get pointer to data matrix */
+			dim[GMT_ROW] = mxGetM(ptr); /* Number of records */
+			dim[GMT_SEG] = 1;           /* Only one segment is returned here */
+			if (mxIsNumeric (ptr)) {    /* Got matrix instead, must convert to text first (below) */
+				n_cols = mxGetN (ptr);  /* Number of columns */
+				data = mxGetData (ptr); /* Get pointer to data matrix */
 			}
-			else if (mxIsChar (ptr) && dim[DIM_ROW] == 1)	/* Special case: Got a single text record */
+			else if (mxIsChar(ptr) && dim[GMT_ROW] == 1)	/* Special case: Got a single text record */
 				got_text = 1;
 			else if (!mxIsCell (ptr))
 				mexErrMsgTxt ("gmtmex_textset_init: Expected either a Cell array, Matrix, or text string for input\n");
-			if (n_cols == 0 && dim[DIM_ROW] == 1 && !got_text) {	/* Check if we got a transpose arrangement or just one record */
-				row = mxGetN (ptr);	/* Also possibly number of records */
-				if (row > 1) dim[DIM_ROW] = row;	/* User gave row-vector of cells */
+			if (n_cols == 0 && dim[GMT_ROW] == 1 && !got_text) {	/* Check if we got a transpose arrangement or just one record */
+				row = mxGetN (ptr);                 /* Also possibly number of records */
+				if (row > 1) dim[GMT_ROW] = row;    /* User gave row-vector of cells */
 			}
 			if ((T = GMT_Create_Data (API, family, GMT_IS_NONE, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
 				mexErrMsgTxt ("gmtmex_textset_init: Failure to alloc GMT source TEXTSET for input\n");
-			S = T->table[0]->segment[0];	/* Only one segment will be returned by MATLAB */
+			S = T->table[0]->segment[0];            /* Only one segment will be returned by MATLAB */
 			S->n_rows = dim[DIM_ROW];
 			T->alloc_mode = GMT_ALLOC_EXTERNALLY;
 			if (got_text)	/* Just got that single record */
