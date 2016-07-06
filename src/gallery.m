@@ -950,6 +950,7 @@ function [ps, d_path] = ex22(g_root_dir, out_path, verbose)
 	ps = [out_path 'example_22.ps'];
 	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
+	gmt('destroy')
 	gmt(['set FONT_ANNOT_PRIMARY 10p FONT_TITLE 18p FORMAT_GEO_MAP ddd:mm:ssF' ...
 		' PROJ_LENGTH_UNIT inch PS_CHAR_ENCODING Standard+ PS_MEDIA letter'])
 	gmt('destroy')
