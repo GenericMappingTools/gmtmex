@@ -65,7 +65,7 @@ function  [ps_, t_path_] = gallery(varargin)
 		opt = varargin(1);		% Make it a cell to fit the other branch
 	end
 
-%	try
+	try
 		for (k = 1: numel(opt))
 			switch opt{k}
 				case 'ex01',   [ps, t_path] = ex01(g_root_dir, out_path, verbose);
@@ -116,9 +116,9 @@ function  [ps_, t_path_] = gallery(varargin)
 				case 'ex46',   [ps, t_path] = ex46(g_root_dir, out_path, verbose);
 			end
 		end
-% 	catch
-% 		sprintf('Error in test: %s\n%s', opt{k}, lasterr)
-% 	end
+	catch
+		sprintf('Error in test: %s\n%s', opt{k}, lasterr)
+	end
 
 	if (nargout)
 		ps_ = ps;	t_path_ = t_path;
@@ -414,10 +414,8 @@ function [ps, d_path] = ex09(g_root_dir, out_path, verbose)
 	gmt(['psxy -R -J -O -K ' d_path 'ridge.xy -Wthicker >> ' ps])
 	gmt(['psxy -R -J -O -K ' d_path 'fz.xy    -Wthinner,- >> ' ps])
 	% Take label from segment header and plot near coordinates of last record of each track
-	resp = gmt(['gmtconvert -El ' d_path 'tracks.txt']);
-	% Here we have to copy the header text into the text member, and remembering that we are dealing with a struct array
-	for (k = 1:length(resp)),	resp(k).text{k} = resp(k).header;	end
-	gmt(['pstext -R -J -F+f10p,Helvetica-Bold+a50+jRM+h -D-0.05i/-0.05i -O >> ' ps], resp)
+	t = cellstr(num2str(gmt(['gmtconvert -El ' d_path 'tracks.txt'])));
+	gmt(['pstext -R -J -F+f10p,Helvetica-Bold+a50+jRM+h -D-0.05i/-0.05i -O >> ' ps], t)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
@@ -570,7 +568,7 @@ function [ps, d_path] = ex12(g_root_dir, out_path, verbose)
 	% Then contour the data and draw triangles using dashed pen; use "gmt gmtinfo" and "gmt makecpt" to make a
 	% color palette (.cpt) file
 	T = gmt(['info -T25/2 ' d_path 'table_5.11']);
-	topo_cpt = gmt(['makecpt -Cjet ' T.text{1}]);
+	topo_cpt = gmt(['makecpt -Cjet ' T{1}]);
 	gmt(['pscontour -R -J ' d_path 'table_5.11 -B2f1 -BWSne -Wthin -C -Lthinnest,-' ...
 		' -Gd1i -X-3.25i -Y-3.65i -O -K >> ' ps], topo_cpt)
 
@@ -616,7 +614,7 @@ function [ps, d_path] = ex14(g_root_dir, out_path, verbose)
 	gmt(['psbasemap -R0.5/7.5/0.5/7.5 -J -O -K -Bg1 -X3.25i >> ' ps])
 	gmt(['psxy -R0/7/0/7 -J -B2f1 -BeSNw -Ss0.05i -Gblack -O -K >> ' ps], mean_xyz)
 	% Reformat to one decimal for annotation purposes
-	t = cellstr(num2str(mean_xyz.data,'%g %g %.1f'));	% Round to nearest 0.1 and convert to cells
+	t = cellstr(num2str(mean_xyz,'%g %g %.1f'));	% Round to nearest 0.1 and convert to cells
 	gmt(['pstext -R -J -D0.15c/0 -F+f6p+jLM -O -K -Gwhite -W -C0.01i -N >> ' ps], t)
 
 	% Then gmt surface and contour the data
@@ -634,7 +632,7 @@ function [ps, d_path] = ex14(g_root_dir, out_path, verbose)
 	data  = gmt('grdtrack -G -o2,3', track, Gdata);
 	trend = gmt('grdtrack -G -o2,3', track, Gtrend);
 	t = gmt('info -I0.5/25', data, trend);
-	gmt(['psxy -JX6.3i/1.4i ' t.text{1} ' -Wthick -O -K -X-3.25i -Y-1.9i -Bx1 -By50 -BWSne >> ' ps], data)
+	gmt(['psxy -JX6.3i/1.4i ' t{1} ' -Wthick -O -K -X-3.25i -Y-1.9i -Bx1 -By50 -BWSne >> ' ps], data)
 	gmt(['psxy -R -J -Wthinner,- -O >> ' ps], trend)
 	builtin('delete','gmt.conf');
 
@@ -649,7 +647,7 @@ function [ps, d_path] = ex15(g_root_dir, out_path, verbose)
 	ship_d = gmt(['read -Td ' d_path '/ship.xyz']);
 
 	region = gmt('info -I1', ship_d);
-	region = region.text{1};				% We want this to be astring, not a cell
+	region = region{1};				% We want this to be astring, not a cell
 	Gship  = gmt(['nearneighbor ' region ' -I10m -S40k'], ship_d);
 	gmt(['grdcontour -JM3i -P -B2 -BWSne -C250 -A1000 -Gd2i -K > ' ps], Gship)
 
@@ -666,8 +664,8 @@ function [ps, d_path] = ex15(g_root_dir, out_path, verbose)
 	gmt(['grdcontour -J -B -C250 -A1000 -L-8000/0 -Gd2i -O -K -X3.6i >> ' ps], Gship_clipped)
 	gmt(['pscoast ' region ' -J -O -K -Ggray -Wthinnest >> ' ps])
 	info = gmt('grdinfo -C -M', Gship);
-	gmt(['psxy -R -J -O -K -Sa0.15i -Wthick >> ' ps], info.data(11:12))
-	gmt(['pstext -R0/3/0/4 -Jx1i -F+f24p,Helvetica-Bold+jCB -O -N >> ' ps], '-0.3 3.6 Gridding with missing data')
+	gmt(['psxy -R -J -O -K -Sa0.15i -Wthick >> ' ps], info(11:12))
+	gmt(['pstext -R0/3/0/4 -Jx1i -F+f24p,Helvetica-Bold+jCB -O -N >> ' ps], {'-0.3 3.6 Gridding with missing data'})
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
@@ -792,8 +790,8 @@ function [ps, d_path] = ex18(g_root_dir, out_path, verbose)
 		-148.5	53.75])
 
 	gmt(['pstext -R -J -O -F+f14p,Helvetica-Bold+jLM >> ' ps], ...
-		{sprintf('-148 53.08 Areas: %.2f km@+2@+', area.data(2))
-		 sprintf('-148 53.42 Volumes: %.0f mGal\264km@+2@+', volume.data(3))})
+		{sprintf('-148 53.08 Areas: %.2f km@+2@+', area(2))
+		 sprintf('-148 53.42 Volumes: %.0f mGal\264km@+2@+', volume(3))})
 	builtin('delete', 'sm_*.txt')
 	builtin('delete','gmt.conf');
 
@@ -879,7 +877,7 @@ function [ps, d_path] = ex21(g_root_dir, out_path, verbose)
 
 	% Pull out a suitable region string in yyy-mm-dd format
 	R = gmt(['info -fT -I50 ' d_path 'RHAT_price.csv']);		% The output is a cell
-	R = R.text{1};
+	R = R{1};
 	ind = strfind(R, '/');
 	wT = R(3:ind(1)-1);				% West and East in T time coordinates (to be used later)
 	eT = R(ind(1)+1:ind(2)-1);
@@ -998,7 +996,7 @@ function [ps, d_path] = ex22(g_root_dir, out_path, verbose)
 	gmt(['pscoast -Rg -JK180/9i -B45g30 -B+t"World-wide earthquake activity" -Gbrown -Slightblue -Dc -A1000 -K -Y2.75i > ' ps])
 	%gawk -F, "{ print $4, $3, $6, $5*0.02}" neic_quakes.txt |
 	t = gmt(['gmtconvert -h ' d_path 'neic_quakes.txt -i3,2,5,4']);
-	gmt(['psxy -R -JK -O -K -Cneis.cpt -Sci -Wthin >> ' ps], [t.data(:,1:3) t.data(:,4)*0.02])
+	gmt(['psxy -R -JK -O -K -Cneis.cpt -Sci -Wthin >> ' ps], [t(:,1:3) t(:,4)*0.02])
 
 	% Create legend input file for NEIS quake plot
 	neis_legend = ...
@@ -1091,7 +1089,7 @@ function [ps, d_path] = ex23(g_root_dir, out_path, verbose)
 	dist = gmt('grdtrack cities.txt -G', Gdist);
 	t = cell(5,1);
 	for (k = 1:5)
-		t{k} = sprintf('%f %f %d', dist.data(k,1), dist.data(k,2), round(dist.data(k,end)));
+		t{k} = sprintf('%f %f %d', dist(k,1), dist(k,2), round(dist(k,end)));
 	end
 	gmt(['pstext -R -J -O -D0/-0.2i -N -Gwhite -W -C0.02i -F+f12p,Helvetica-Bold+jCT >> ' ps], t)
 	builtin('delete','cities.txt');
@@ -1115,7 +1113,7 @@ function [ps, d_path] = ex24(g_root_dir, out_path, verbose)
 
 	gmt('set -Du')
 	R = gmt(['info -I10 ' d_path 'oz_quakes.txt']);
-	gmt(['pscoast ' R.text{1} ' -JM9i -K -Gtan -Sdarkblue -Wthin,white -Dl -A500 -Ba20f10g10 -BWeSn > ' ps])
+	gmt(['pscoast ' R{1} ' -JM9i -K -Gtan -Sdarkblue -Wthin,white -Dl -A500 -Ba20f10g10 -BWeSn > ' ps])
 	gmt(['psxy -R -J -O -K ' d_path 'oz_quakes.txt -Sc0.05i -Gred >> ' ps])
 	t = gmt(['gmtselect ' d_path 'oz_quakes.txt -Ldateline.txt+d1000k -Nk/s -Cpoint.txt+d3000k -fg -R -Il']);
 	gmt(['psxy -R -JM -O -K -Sc0.05i -Ggreen >> ' ps], t)
@@ -1164,9 +1162,9 @@ function [ps, d_path] = ex25(g_root_dir, out_path, verbose)
 	% Place an explanatory legend below
 	gmt(['pslegend -R -J -O -DJBC+w6i -Y-0.2i -F+pthick >> ' ps], { ...
 		'N 3'
-		sprintf('S 0.15i s 0.2i red  0.25p 0.3i Terrestrial Antipodes [%d %%]', land.data)
-		sprintf('S 0.15i s 0.2i blue 0.25p 0.3i Oceanic Antipodes [%d %%]', ocean.data)
-		sprintf('S 0.15i s 0.2i gray 0.25p 0.3i Mixed Antipodes [%d %%]', mixed.data)})
+		sprintf('S 0.15i s 0.2i red  0.25p 0.3i Terrestrial Antipodes [%d %%]', land)
+		sprintf('S 0.15i s 0.2i blue 0.25p 0.3i Oceanic Antipodes [%d %%]', ocean)
+		sprintf('S 0.15i s 0.2i gray 0.25p 0.3i Mixed Antipodes [%d %%]', mixed)})
 	builtin('delete','gmt.conf', 'key.cpt');
 
 % -------------------------------------------------------------------------------------------------
@@ -1211,7 +1209,7 @@ function [ps, d_path] = ex27(g_root_dir, out_path, verbose)
 
 	R = gmt(['grdinfo ' d_path 'tasman_grav.nc']);
 	% Here we need to fish the last word of the third (the 'Remark') line issued by grdinfo
-	R = R.text{3};	k = numel(R);
+	R = R{3};	k = numel(R);
 	while (R(k) ~= ' ')
 		k = k - 1;
 	end
@@ -1389,8 +1387,8 @@ function [ps, d_path] = ex32(g_root_dir, out_path, verbose)
 	% The color map assigns "Reflex Blue" to the lower half of the 0-255 range and
 	% "Yellow" to the upper half.
 	fid = fopen('euflag.cpt','w');
-	fprintf(fid, '0	0/51/153	127	0/51/153\n');
-	fprintf(fid, '127	255/204/0	255	255/204/0\n');
+	fprintf(fid, '0\t0/51/153\t127\t0/51/153\n');
+	fprintf(fid, '127\t255/204/0\t255\t255/204/0\n');
 	fclose(fid);
 
 	% The next step is the plotting of the image.
@@ -1405,7 +1403,7 @@ function [ps, d_path] = ex32(g_root_dir, out_path, verbose)
 	% So we write out the borders, pipe them through grdtack and then plot them with psxyz.
 
 	t = gmt(['pscoast ' Rflag ' -Df -M -N1']);
-	t = gmt(['grdtrack -G' d_path 'topo.nc -sa'], t.data);
+	t = gmt(['grdtrack -G' d_path 'topo.nc -sa'], t);
 	gmt(['psxyz ' Rplot ' -J -JZ -p -W1p,white -O -K >> ' ps], t)
 
 	% Finally, we add dots and names for three cities.
@@ -1534,7 +1532,7 @@ function [ps, d_path] = ex37(g_root_dir, out_path, verbose)
 	bbox_t = gmt(['grdinfo ' T ' -Ib']);			% Trouble here bbox_t is a cell array of text and we need it to be a matrix
 	bbox = zeros(4,2);
 	for (k = 1:4)
-		bbox(k,:) = str2num(bbox_t.text{k+1});
+		bbox(k,:) = str2num(bbox_t{k+1});
 	end
 	GG_int = gmt(['grdgradient ' G ' -A0 -Nt1 -G']);
 	GT_int = gmt(['grdgradient ' T ' -A0 -Nt1 -G']);
@@ -1640,10 +1638,10 @@ function [ps, d_path] = ex40(g_root_dir, out_path, verbose)
 	gmt(['psxy ' d_path 'GSHHS_h_Australia.txt -R -J -O -Sc0.01c -Gred -K >> ' ps])
 	T500k = gmt(['gmtsimplify ' d_path 'GSHHS_h_Australia.txt -T500k']);
 	t = gmt(['gmtspatial ' d_path 'GSHHS_h_Australia.txt -fg -Qk']);
-	area = sprintf('Full area = %.0f km@+2@+\n', t.data(3));
+	area = sprintf('Full area = %.0f km@+2@+\n', t(3));
 	%| awk '{printf "Full area = %.0f km@+2@+\n", $3}' > area.txt
 	t = gmt('gmtspatial -fg -Qk', T500k); 
-	area_T500k = sprintf('Reduced area = %.0f km@+2@+\n', t.data(3));
+	area_T500k = sprintf('Reduced area = %.0f km@+2@+\n', t(3));
 	%| awk '{printf "Reduced area = %.0f km@+2@+\n", $3}' > area_T500k.txt
 	gmt(['psxy -R -J -O -K -W1p,blue >> ' ps], T500k)
 	gmt(['psxy -R -J -O -K -Sx0.3i -W3p >> ' ps], centroid)
@@ -1655,7 +1653,7 @@ function [ps, d_path] = ex40(g_root_dir, out_path, verbose)
 	gmt(['psxy ' d_path 'GSHHS_h_Australia.txt -R -J -O -Sc0.01c -Gred -K >> ' ps])
 	T100k = gmt(['gmtsimplify ' d_path 'GSHHS_h_Australia.txt -T100k']);
 	t = gmt('gmtspatial -fg -Qk', T100k);
-	area_T100k = sprintf('Reduced area = %.0f km@+2@+\n', t.data(3));
+	area_T100k = sprintf('Reduced area = %.0f km@+2@+\n', t(3));
 	%| awk '{printf "Reduced area = %.0f km@+2@+\n", $3}' > area_T100k.txt
 	gmt(['psxy -R -J -O -K -W1p,blue >> ' ps], T100k)
 	gmt(['psxy -R -J -O -K -Sx0.3i -W3p >> ' ps], centroid)
@@ -1748,7 +1746,7 @@ function [ps, d_path] = ex44(g_root_dir, out_path, verbose)
 	t = gmt('mapproject -R15W/35E/30N/48N -JM2i -W');	% w h
 	gmt(['pscoast -R10W/5E/35N/44N -JM6i -Baf -BWSne -EES+gbisque -Gbrown -Wfaint -N1/1p -Sazure1' ...
 		' -Df -O -K -Y4.5i --FORMAT_GEO_MAP=dddF >> ' ps])
-	gmt(sprintf('psbasemap -R -J -O -K -DjTR+w%f/%f+o0.15i/0.1i+sxx000 -F+gwhite+p1p+c0.1c+s >> %s', t.data(1), t.data(2), ps))
+	gmt(sprintf('psbasemap -R -J -O -K -DjTR+w%f/%f+o0.15i/0.1i+sxx000 -F+gwhite+p1p+c0.1c+s >> %s', t(1), t(2), ps))
 	t = load('xx000');		% x0 y0 w h
 	cmd = sprintf('pscoast -R15W/35E/30N/48N -JM%f -Da -Gbrown -B0 -EES+gbisque -O -K -X%f -Y%f ', t(3), t(1), t(2));
 	gmt([cmd '--MAP_FRAME_TYPE=plain >> ' ps])
