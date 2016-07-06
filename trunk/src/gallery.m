@@ -866,10 +866,10 @@ function [ps, d_path] = ex21(g_root_dir, out_path, verbose)
 	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	% File has time stored as dd-Mon-yy so set input format to match it
-	%gmt('destroy')
+	gmt('destroy')
 	gmt(['set FORMAT_DATE_IN dd-o-yy FORMAT_DATE_MAP o FONT_ANNOT_PRIMARY +10p' ...
 		' FORMAT_TIME_PRIMARY_MAP abbreviated PS_CHAR_ENCODING ISOLatin1+ PROJ_LENGTH_UNIT inch PS_MEDIA letter'])
-	%gmt('destroy')
+	gmt('destroy')
 
 	% Pull out a suitable region string in yyy-mm-dd format
 	R = gmt(['info -fT -I50 ' d_path 'RHAT_price.csv']);		% The output is a cell
