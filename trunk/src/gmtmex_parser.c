@@ -1164,6 +1164,7 @@ static struct GMT_TEXTSET *gmtmex_textset_init (void *API, unsigned int directio
 	if (direction == GMT_IN) {	/* Dimensions are known, extract them and set dim array for a GMT_MATRIX resource */
 		uint64_t seg, col, row, n_cols = 0, dim[3] = {1, 0, 0};	/* Only return one table */
 		size_t length = 0;
+		int add_text = 0;
 		char buffer[BUFSIZ] = {""}, word[64] = {""}, *txt = NULL;
 		mxArray *mx_ptr = NULL;
 		double *data = NULL;
@@ -1189,13 +1190,14 @@ static struct GMT_TEXTSET *gmtmex_textset_init (void *API, unsigned int directio
 					mxGetString (mx_ptr, buffer, (mwSize)(length+1));
 				mx_ptr_d = mxGetField (ptr, (mwSize)seg, "data");	/* Data table for this segment */
 				mx_ptr_t = mxGetField (ptr, (mwSize)seg, "text");	/* Text table for this segment */
-				if (mxIsEmpty(mx_ptr_t)) {
-					mexPrintf("gmtmex_textset_init: Warning, text for segment %d is empty.\n", seg);
-					continue;
-				}
-				dim[GMT_ROW] = mxGetM (mx_ptr_d);	/* Number of rows */
-				if (dim[GMT_ROW] == 0)	/* No data array present, hope there is a cell array... */
+				if (mxIsEmpty(mx_ptr_t))
+					add_text = 0;
+				else {
 					dim[GMT_ROW] = mxGetM (mx_ptr_t);	/* Number of rows found */
+					add_text = 1;
+				}
+				if (dim[GMT_ROW] == 0)	/* No text array present, rely on data array. */
+					dim[GMT_ROW] = mxGetM (mx_ptr_d);	/* Number of rows */
 				n_cols = mxGetN (mx_ptr_d);	/* Number of data cols, if any */
 				/* Allocate new text segment */
 				S = GMT_Alloc_Segment (API, GMT_IS_TEXTSET, dim[GMT_ROW], 0, buffer, NULL);
@@ -1207,12 +1209,14 @@ static struct GMT_TEXTSET *gmtmex_textset_init (void *API, unsigned int directio
 						sprintf (word, "\t%.16g", data[row+col*S->n_rows]);
 						strcat (buffer, word);
 					}
-					mx_ptr = mxGetCell (mx_ptr_t, (mwSize)row);
-					txt = mxArrayToString (mx_ptr);
-					if (txt) {
-						strcat (buffer, "\t");
-						strcat (buffer, txt);
-						mxFree (txt);
+					if (add_text) {
+						mx_ptr = mxGetCell (mx_ptr_t, (mwSize)row);
+						txt = mxArrayToString (mx_ptr);
+						if (txt) {
+							strcat (buffer, "\t");
+							strcat (buffer, txt);
+							mxFree (txt);
+						}
 					}
 					S->data[row] = GMT_Duplicate_String (API, buffer);
 				}
