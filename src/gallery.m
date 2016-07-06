@@ -554,13 +554,7 @@ function [ps, d_path] = ex12(g_root_dir, out_path, verbose)
 	net_xy = gmt(['triangulate ' d_path 'table_5.11 -M']);
 	gmt(['psxy -R0/6.5/-0.2/6.5 -JX3.06i/3.15i -B2f1 -BWSNe -Wthinner -P -K -X0.9i -Y4.65i > ' ps], net_xy)
 	gmt(['psxy ' d_path 'table_5.11 -R -J -O -K -Sc0.12i -Gwhite -Wthinnest >> ' ps])
-	t = load([d_path 'table_5.11']);
-	nl = size(t,1);
-	c = cell(nl,1);
-	for (k = 1:nl)
-		c{k} = sprintf('%f %f %d\n', t(k,1:2), k-1);
-	end
-	gmt(['pstext -R -J -F+f6p -O -K >> ' ps], c)
+	gmt(['pstext -R -J -F+f6p+r -O -K ' d_path 'table_5.11 >> ' ps])
 
 	% Then draw network and print the node values
 	gmt(['psxy -R -J -B2f1 -BeSNw -Wthinner -O -K -X3.25i >> ' ps], net_xy)
