@@ -414,7 +414,7 @@ function [ps, d_path] = ex09(g_root_dir, out_path, verbose)
 	gmt(['psxy -R -J -O -K ' d_path 'ridge.xy -Wthicker >> ' ps])
 	gmt(['psxy -R -J -O -K ' d_path 'fz.xy    -Wthinner,- >> ' ps])
 	% Take label from segment header and plot near coordinates of last record of each track
-	t = cellstr(num2str(gmt(['gmtconvert -El ' d_path 'tracks.txt'])));
+	t = gmt(['gmtconvert -El ' d_path 'tracks.txt']);
 	gmt(['pstext -R -J -F+f10p,Helvetica-Bold+a50+jRM+h -D-0.05i/-0.05i -O >> ' ps], t)
 	builtin('delete','gmt.conf');
 
