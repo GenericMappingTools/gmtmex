@@ -1199,7 +1199,7 @@ static struct GMT_TEXTSET *gmtmex_textset_init (void *API, unsigned int directio
 					dim[GMT_ROW] = mxGetM (mx_ptr_d);	/* Number of rows */
 				n_cols = mxGetN (mx_ptr_d);	/* Number of data cols, if any */
 				/* Allocate new text segment */
-				S = GMT_Alloc_Segment (API, GMT_IS_TEXTSET, dim[GMT_ROW], 0, buffer, NULL);
+				S = GMT_Alloc_Segment (API, GMT_IS_TEXTSET, dim[GMT_ROW], 0, buffer, T->table[0]->segment[seg]);
 				data = mxGetData (mx_ptr_d);
 				/* Combine any data and cell arrays into text records */
 				for (row = 0; row < S->n_rows; row++) {
@@ -1219,7 +1219,6 @@ static struct GMT_TEXTSET *gmtmex_textset_init (void *API, unsigned int directio
 					}
 					S->data[row] = GMT_Duplicate_String (API, buffer);
 				}
-				T->table[0]->segment[seg] = S;	/* Hook up to table */
 			}
 		}
 		else {	/* Get here when given either a cell array or a single string */
