@@ -1138,10 +1138,9 @@ static void *gmtmex_dataset_init (void *API, unsigned int direction, unsigned in
 			data = mxGetData (mx_ptr);
 			dim[GMT_ROW] = mxGetM (mx_ptr);	/* Number of rows */
 			/* Allocate new data segment */
-			S = GMT_Alloc_Segment (API, GMT_IS_DATASET, dim[GMT_ROW], dim[GMT_COL], buffer, NULL);
+			S = GMT_Alloc_Segment (API, GMT_IS_DATASET, dim[GMT_ROW], dim[GMT_COL], buffer, D->table[0]->segment[seg]);
 			for (col = start = 0; col < S->n_columns; col++, start += S->n_rows) /* Copy the data columns */
 				memcpy (S->data[col], &data[start], S->n_rows * sizeof (double));
-			D->table[0]->segment[seg] = S;	/* Hook up to table */
 		}
 	}
 	else {	/* Receive data from GMT */
