@@ -176,10 +176,6 @@ function [ps, d_path] = ex03(g_root_dir, out_path, verbose)
 	% most closely fitting the x,y points in "sat.xyg":
 
 	report = gmt(['fitcircle ' d_path 'sat.xyg -L2']);
-% 	[cposx,cposy] = strread(report{2}, '%s %s', 1);
-% 	cposx = cposx{1};	cposy = cposy{1};
-% 	[pposx,pposy] = strread(report{3}, '%s %s', 1);
-% 	pposx = pposx{1};	pposy = pposy{1};
 	cposx = report.data(2,1);	cposy = report.data(2,2);
 	pposx = report.data(3,1);	pposy = report.data(3,2);
 
@@ -188,8 +184,6 @@ function [ps, d_path] = ex03(g_root_dir, out_path, verbose)
 	% the great circle.  We use -Q to get the p distance in kilometers, and -S
 	% to sort the output into increasing p values.
 
-% 	sat_pg  = gmt(['project  ' d_path 'sat.xyg -C' cposx '/' cposy ' -T' pposx '/' pposy ' -S -Fpz -Q']);
-% 	ship_pg = gmt(['project ' d_path 'ship.xyg -C' cposx '/' cposy ' -T' pposx '/' pposy ' -S -Fpz -Q']);
 	sat_pg  = gmt(sprintf('project %ssat.xyg -C%f/%f -T%f/%f -S -Fpz -Q', d_path, cposx, cposy, pposx, pposy));
 	ship_pg = gmt(sprintf('project %sship.xyg -C%f/%f -T%f/%f -S -Fpz -Q', d_path, cposx, cposy, pposx, pposy));
 	sat_pg  = sat_pg.data;
@@ -199,7 +193,6 @@ function [ps, d_path] = ex03(g_root_dir, out_path, verbose)
 	% We use this information first with a large -I value to find the appropriate -R
 	% to use to plot the .pg data. 
 	R = gmt('gmtinfo -I100/25', [sat_pg; ship_pg]);
-% 	R = R{1}(1:end-1);		% It's now coming with a \n
 	R = R.text{1};
 	gmt(['psxy ' R ' -UL/-1.75i/-1.25i/"Example 3a in Cookbook" -BWeSn' ...
 		' -Bxa500f100+l"Distance along great circle" -Bya100f25+l"Gravity anomaly (mGal)"' ...
@@ -236,7 +229,7 @@ function [ps, d_path] = ex03(g_root_dir, out_path, verbose)
 	sampr2 = gmt('gmtmath ? -Ca -Sf -o0 LOWER FLOOR =', [ship_pg(end,:); sat_pg(end,:)]);
 	
 	% Now we can use sampr1|2 in gmt gmtmath to make a sampling points file for gmt sample1d:
-	samp_x = gmt(['gmtmath ' sprintf('-T%d/%d/1', sampr1, sampr2) ' -N1/0 T =']);
+	samp_x = gmt(['gmtmath ' sprintf('-T%d/%d/1', sampr1.data(1), sampr2.data(1)) ' -N1/0 T =']);
 
 	% Now we can resample the gmt projected satellite data:
 	samp_sat_pg = gmt('sample1d -N', sat_pg, samp_x);
@@ -244,7 +237,7 @@ function [ps, d_path] = ex03(g_root_dir, out_path, verbose)
 	% For reasons above, we use gmt filter1d to pre-treat the ship data.  We also need to sample
 	% it because of the gaps > 1 km we found.  So we use gmt filter1d | gmt sample1d.  We also
 	% use the -E on gmt filter1d to use the data all the way out to sampr1/sampr2 :
-	t = gmt(['filter1d -Fm1 ' sprintf('-T%d/%d/1', sampr1, sampr2) ' -E'], ship_pg); 
+	t = gmt(['filter1d -Fm1 ' sprintf('-T%d/%d/1', sampr1.data(1), sampr2.data(1)) ' -E'], ship_pg); 
 	samp_ship_pg = gmt('sample1d -N', t, samp_x);
 
 	ps = [out_path 'example_03c.ps'];
@@ -257,7 +250,7 @@ function [ps, d_path] = ex03(g_root_dir, out_path, verbose)
 
 	% Now to do the cross-spectra, assuming that the ship is the input and the sat is the output 
 	% data, we do this:
-	t = [samp_ship_pg(:,2) samp_sat_pg(:,2)];
+	t = [samp_ship_pg.data(:,2) samp_sat_pg.data(:,2)];
 	spects = gmt('spectrum1d -S256 -D1 -W -C -N', t);
  
 	% Now we want to plot the spectra. The following commands will plot the ship and sat 
@@ -267,12 +260,12 @@ function [ps, d_path] = ex03(g_root_dir, out_path, verbose)
 
 	ps = [out_path 'example_03.ps'];	ps_out = ps;
 	gmt(['psxy -Bxa1f3p+l"Wavelength (km)" -Bya0.25f0.05+l"Coherency@+2@+" -BWeSn+g240/255/240' ...
-		' -JX-4il/3.75i -R1/1000/0/1 -P -K -X2.5i -Sc0.07i -Gpurple -Ey/0.5p -Y1.5i > ' ps], spects(:,[1 16 17]))
+		' -JX-4il/3.75i -R1/1000/0/1 -P -K -X2.5i -Sc0.07i -Gpurple -Ey/0.5p -Y1.5i > ' ps], spects.data(:,[1 16 17]))
 
 	gmt(['pstext -R0/4/0/3.75 -Jx1i -F+f18p,Helvetica-Bold+jTR -O -K >> ' ps], {'3.85 3.6 Coherency@+2@+'})
 	gmt(['psxy -Bxa1f3p -Bya1f3p+l"Power (mGal@+2@+km)" -BWeSn+t"Ship and Satellite Gravity"+g240/255/240' ...
-		' -Gred -ST0.07i -O -R1/1000/0.1/10000 -JX-4il/3.75il -Y4.2i -K -Ey/0.5p >> ' ps], spects(:,1:3))
-	gmt(['psxy -R -JX -O -K -Gblue -Sc0.07i -Ey/0.5p >> ' ps], spects(:,[1 4 5]))
+		' -Gred -ST0.07i -O -R1/1000/0.1/10000 -JX-4il/3.75il -Y4.2i -K -Ey/0.5p >> ' ps], spects.data(:,1:3))
+	gmt(['psxy -R -JX -O -K -Gblue -Sc0.07i -Ey/0.5p >> ' ps], spects.data(:,[1 4 5]))
 	gmt(['pstext -R0/4/0/3.75 -Jx -F+f18p,Helvetica-Bold+jTR -O -K >> ' ps], {'3.9 3.6 Input Power'})
 	gmt(['psxy -R -Jx -O -K -Gwhite -L -Wthicker >> ' ps], ...
 		[0.25 0.25
@@ -297,7 +290,7 @@ function [ps, d_path] = ex03(g_root_dir, out_path, verbose)
 		' -Bxa500f100+l"Distance along great circle" -Bya100f25+l"Gravity anomaly (mGal)"' ...
 		' -BWeSn -UL/-1.75i/-1.25i/"Example 3d in Cookbook" > ' ps], samp_ship_pg)
 	R = gmt('gmtinfo -I100/1.1', samp_ship_xw);
-	R = R{1}(1:end-1);		% It's now coming with a \n
+	R = R.text{1};
 	gmt(['psxy ' R ' -JX8i/1.1i -O -Y4.25i -Bxf100 -Bya0.5f0.1+l"Weight" -BWesn -Sp0.03i >> ' ps], samp_ship_xw)
 
 	ps = ps_out;	% This the one we want to return
