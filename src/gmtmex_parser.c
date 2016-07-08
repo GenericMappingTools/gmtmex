@@ -1240,7 +1240,7 @@ static struct GMT_TEXTSET *gmtmex_textset_init (void *API, unsigned int directio
 			if ((T = GMT_Create_Data (API, family, GMT_IS_NONE, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
 				mexErrMsgTxt ("gmtmex_textset_init: Failure to alloc GMT source TEXTSET for input\n");
 			S = T->table[0]->segment[0];            /* Only one segment will be returned by MATLAB */
-			S->n_rows = dim[DIM_ROW];
+			S->n_rows = dim[GMT_ROW];
 			T->alloc_mode = GMT_ALLOC_EXTERNALLY;
 			if (got_text)	/* Just got that single record */
 				S->data[0] = mxArrayToString (ptr);
@@ -1249,7 +1249,7 @@ static struct GMT_TEXTSET *gmtmex_textset_init (void *API, unsigned int directio
 					if (n_cols) {	/* Create text string from matrix */
 						sprintf (buffer, "%.16g", data[row]);
 						for (col = 1; col < n_cols; col++) {
-							sprintf (word, "\t%.16g", data[row+col*dim[DIM_ROW]]);
+							sprintf (word, "\t%.16g", data[row+col*dim[GMT_ROW]]);
 							strcat (buffer, word);
 						}
 						txt = mxstrdup (buffer);

@@ -55,7 +55,7 @@ function  [ps_, t_path_] = gallery(varargin)
 	ps = [];	t_path = [];	% Defaults for the case we have an error
 
 	all_exs = {'ex01' 'ex02' 'ex04' 'ex05' 'ex06' 'ex07' 'ex08' 'ex09' 'ex10' 'ex12' 'ex13' 'ex14' ...
-		'ex15' 'ex16' 'ex17' 'ex18' 'ex19' 'ex20' 'ex21' 'ex22' 'ex23' 'ex24' 'ex26' 'ex27' 'ex28' ...
+		'ex15' 'ex16' 'ex17' 'ex18' 'ex19' 'ex20' 'ex21' 'ex22' 'ex23' 'ex24' 'ex25' 'ex26' 'ex27' 'ex28' ...
 		'ex29' 'ex30' 'ex33' 'ex34' 'ex35' 'ex36' 'ex37' 'ex38' 'ex39' 'ex40' 'ex41' 'ex42' ...
 		'ex44' 'ex45'}; 
 
@@ -115,6 +115,9 @@ function  [ps_, t_path_] = gallery(varargin)
 				case 'ex45',   [ps, t_path] = ex45(g_root_dir, out_path, verbose);
 				case 'ex46',   [ps, t_path] = ex46(g_root_dir, out_path, verbose);
 			end
+			if (verbose)
+				go = input ('==> Hit return to continue', 's');
+			end
 		end
 	catch
 		sprintf('Error in test: %s\n%s', opt{k}, lasterr)
@@ -163,7 +166,7 @@ function [ps, d_path] = ex02(g_root_dir, out_path, verbose)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex03(g_root_dir, out_path, verbose)
+function [ps, d_path] = ex03(e, out_path, verbose)
 % THIS EXAMPLE CRASH IN THE project CALL
 % It crashes in project/#L1013 because pdata.z, when pure_ascii == true, was never initialized 
 	d_path = [g_root_dir 'doc/examples/ex03/'];
@@ -1116,7 +1119,6 @@ function [ps, d_path] = ex24(g_root_dir, out_path, verbose)
 
 % -------------------------------------------------------------------------------------------------
 function [ps, d_path] = ex25(g_root_dir, out_path, verbose)
-% THIS EXAMPLE FAILS BECAUSE OF AN ASSERT FAILURE
 	d_path = [g_root_dir 'doc/examples/ex25/'];
 	ps = [out_path 'example_25.ps'];
 	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
@@ -1140,9 +1142,9 @@ function [ps, d_path] = ex25(g_root_dir, out_path, verbose)
  
  	% Generate corresponding color table
 	fid = fopen('key.cpt','w');
-	fprintf(fid, '-1.5	blue	-0.5	blue\n');
-	fprintf(fid, '-0.5	gray	0.5	gray\n');
-	fprintf(fid, '0.5	red	1.5	red\n');
+	fprintf(fid, '-1.5\tblue\t-0.5\tblue\n');
+	fprintf(fid, '-0.5\tgray\t0.5\tgray\n');
+	fprintf(fid, '0.5\tred\t1.5\tred\n');
 	fclose(fid);
 
  	% Create the final plot and overlay coastlines
