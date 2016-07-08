@@ -1343,6 +1343,7 @@ function [ps, d_path] = ex30(g_root_dir, out_path, verbose)
 
 % -------------------------------------------------------------------------------------------------
 function [ps, d_path] = ex31(g_root_dir, out_path, verbose)
+	% TOO HARD GIVEN THE MESSY DATA FILE FORMAT
 	d_path = [g_root_dir 'doc/examples/ex31/'];
 	ps = [out_path 'example_31.ps'];
 	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
