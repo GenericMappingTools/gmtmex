@@ -294,11 +294,18 @@ void *GMTMEX_Get_Dataset (void *API, struct GMT_DATASET *D) {
 	fieldnames[0] = mxstrdup ("data");
 	fieldnames[1] = mxstrdup ("text");
 	fieldnames[2] = mxstrdup ("header");
-	D_struct = mxCreateStructMatrix ((mwSize)D->n_segments, 1, N_MEX_FIELDNAMES_DATASET, (const char **)fieldnames);
+	
+	for (tbl = seg_out = 0; tbl < D->n_tables; tbl++)	/* Count non-zero segments */
+		for (seg = 0; seg < D->table[tbl]->n_segments; seg++)
+			if (D->table[tbl]->segment[seg]->n_rows)
+				seg_out++;
+	
+	D_struct = mxCreateStructMatrix ((mwSize)seg_out, 1, N_MEX_FIELDNAMES_DATASET, (const char **)fieldnames);
 
 	for (tbl = seg_out = 0; tbl < D->n_tables; tbl++) {
-		for (seg = 0; seg < D->table[tbl]->n_segments; seg++, seg_out++) {
+		for (seg = 0; seg < D->table[tbl]->n_segments; seg++) {
 			S = D->table[tbl]->segment[seg];	/* Shorthand */
+			if (S->n_rows == 0) continue;	/* Skip empty segments */
 			mxheader = mxCreateString (S->header);
 			mxtext   = mxCreateCellMatrix (0, 0);	/* Empty */
 			mxdata   = mxCreateNumericMatrix ((mwSize)S->n_rows, (mwSize)S->n_columns, mxDOUBLE_CLASS, mxREAL);
@@ -308,6 +315,7 @@ void *GMTMEX_Get_Dataset (void *API, struct GMT_DATASET *D) {
 			mxSetField (D_struct, (mwSize)seg_out, "data", mxdata);
 			mxSetField (D_struct, (mwSize)seg_out, "text", mxtext);
 			mxSetField (D_struct, (mwSize)seg_out, "header", mxheader);
+			seg_out++;
 		}
 	}
 	return (D_struct);
@@ -359,11 +367,18 @@ void *GMTMEX_Get_Textset (void *API, struct GMT_TEXTSET *T) {
 	fieldnames[0] = mxstrdup ("data");
 	fieldnames[1] = mxstrdup ("text");
 	fieldnames[2] = mxstrdup ("header");
-	D_struct = mxCreateStructMatrix ((mwSize)T->n_segments, 1, N_MEX_FIELDNAMES_DATASET, (const char **)fieldnames);
+
+	for (tbl = seg_out = 0; tbl < T->n_tables; tbl++)	/* Count non-zero segments */
+		for (seg = 0; seg < T->table[tbl]->n_segments; seg++)
+			if (T->table[tbl]->segment[seg]->n_rows)
+				seg_out++;
+
+	D_struct = mxCreateStructMatrix ((mwSize)seg_out, 1, N_MEX_FIELDNAMES_DATASET, (const char **)fieldnames);
 
 	for (tbl = seg_out = 0; tbl < T->n_tables; tbl++) {
-		for (seg = 0; seg < T->table[tbl]->n_segments; seg++, seg_out++) {
+		for (seg = 0; seg < T->table[tbl]->n_segments; seg++) {
 			ST = T->table[tbl]->segment[seg];	/* Shorthand */
+			if (ST->n_rows == 0) continue;	/* Skip empty segments */
 			mxheader = mxCreateString (ST->header);
 			if (D) {
 				SD = D->table[tbl]->segment[seg];	/* Shorthand */
@@ -383,6 +398,7 @@ void *GMTMEX_Get_Textset (void *API, struct GMT_TEXTSET *T) {
 			mxSetField (D_struct, (mwSize)seg_out, "data",   mxdata);
 			mxSetField (D_struct, (mwSize)seg_out, "text",   mxtext);
 			mxSetField (D_struct, (mwSize)seg_out, "header", mxheader);
+			seg_out++;
 		}
 	}
 	if (D && GMT_Destroy_Data (API, &D))
@@ -1141,7 +1157,9 @@ static void *gmtmex_dataset_init (void *API, unsigned int direction, unsigned in
 			S = GMT_Alloc_Segment (API, GMT_IS_DATASET, dim[GMT_ROW], dim[GMT_COL], buffer, D->table[0]->segment[seg]);
 			for (col = start = 0; col < S->n_columns; col++, start += S->n_rows) /* Copy the data columns */
 				memcpy (S->data[col], &data[start], S->n_rows * sizeof (double));
+			D->table[0]->n_records += S->n_rows;
 		}
+		D->n_records = D->table[0]->n_records;
 	}
 	else {	/* Receive data from GMT */
 		/* There are no dimensions and we are just getting an empty container for output */
