@@ -56,7 +56,7 @@ function  [ps_, t_path_] = gallery(varargin)
 
 	all_exs = {'ex01' 'ex02' 'ex04' 'ex05' 'ex06' 'ex07' 'ex08' 'ex09' 'ex10' 'ex12' 'ex13' 'ex14' ...
 		'ex15' 'ex16' 'ex17' 'ex18' 'ex19' 'ex20' 'ex21' 'ex22' 'ex23' 'ex24' 'ex25' 'ex26' 'ex27' 'ex28' ...
-		'ex29' 'ex30' 'ex33' 'ex34' 'ex35' 'ex36' 'ex37' 'ex38' 'ex39' 'ex40' 'ex41' 'ex42' ...
+		'ex29' 'ex30' 'ex32' 'ex33' 'ex34' 'ex35' 'ex36' 'ex37' 'ex38' 'ex39' 'ex40' 'ex41' 'ex42' ...
 		'ex44' 'ex45'}; 
 
 	if (n_args == 0 || isempty(varargin{1}))
@@ -1395,7 +1395,7 @@ function [ps, d_path] = ex32(g_root_dir, out_path, verbose)
 	% So we write out the borders, pipe them through grdtack and then plot them with psxyz.
 
 	t = gmt(['pscoast ' Rflag ' -Df -M -N1']);
-	t = gmt(['grdtrack -G' d_path 'topo.nc -sa'], t.data);
+	t = gmt(['grdtrack -G' d_path 'topo.nc -sa'], t);
 	gmt(['psxyz ' Rplot ' -J -JZ -p -W1p,white -O -K >> ' ps], t)
 
 	% Finally, we add dots and names for three cities.
@@ -1405,8 +1405,8 @@ function [ps, d_path] = ex32(g_root_dir, out_path, verbose)
 	fprintf(fid, '04:21:00 50:51:00 Bruxelles\n');
 	fprintf(fid, '07:07:03 50:43:09 Bonn\n');
 	fclose(fid);
-	t = gmt(['grdtrack -G' d_path 'topo.nc cities.txt']); 
-	gmt(['psxyz -i0,1,3 ' Rplot ' -J -JZ -p -Sc7p -W1p,white -Gred -K -O >> ' ps], t)
+	d = gmt(['grdtrack -G' d_path 'topo.nc cities.txt']); 
+	gmt(['psxyz -i0,1,3 ' Rplot ' -J -JZ -p -Sc7p -W1p,white -Gred -K -O >> ' ps], d)
 	gmt(['pstext ' Rplot ' -J -JZ -p -F+f12p,Helvetica-Bold,red+jRM -Dj0.1i/0.0i -O cities.txt >> ' ps])
 	builtin('delete','cities.txt', 'euflag.cpt');
 	builtin('delete','gmt.conf');
