@@ -696,7 +696,10 @@ void *GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I) {
 	mxtmp = mxCreateString (I->header->z_units);
 	mxSetField (I_struct, 0, (const char *) "z_unit", mxtmp);
 
-	mxtmp = mxCreateString ("TCBa");						/* MUST BE CHANGED TO INQUIRE THE CONTENTS OF GMT_IMAGE_LAYOUT */
+	if (I->header->mem_layout)
+		mxtmp = mxCreateString(I->header->mem_layout);
+	else
+		mxtmp = mxCreateString ("TCBa");
 	mxSetField (I_struct, 0, (const char *) "layout", mxtmp);
 
 	if (I->colormap != NULL) {	/* Indexed image has a color map */
