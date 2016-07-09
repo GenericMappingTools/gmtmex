@@ -86,43 +86,27 @@ static void *Initiate_Session (unsigned int verbose) {
 	return (API);
 }
 
-#define N_MEX_FIELDNAMES_IMAGE	19
-#define N_MEX_FIELDNAMES_GRID	16
-#define N_MEX_FIELDNAMES_CPT	7
-#define N_MEX_FIELDNAMES_PS	3
 static void *alloc_default_plhs (void *API, struct GMT_RESOURCE *X) {
 	/* Allocate a default plhs when it was not stated in command line. That is, mimic the Matlab behavior
 	   when we do for example (i.e. no lhs):  sqrt([4 9])  
 	*/
-	int   k;
-	char *fnames_grd[N_MEX_FIELDNAMES_GRID];	/* This array contains the names of the fields of the output grid structure. */
-	char *fnames_img[N_MEX_FIELDNAMES_IMAGE];	/* This array contains the names of the fields of the output grid structure. */
-	char *fnames_cpt[N_MEX_FIELDNAMES_CPT];	/* Array with the names of the fields of the output grid structure. */
-	char *fnames_ps[N_MEX_FIELDNAMES_PS];	/* Array with the names of the fields of the output postscript structure. */
 	void *ptr = NULL;
-	mxClassID type;
 	switch (X->family) {
 		case GMT_IS_GRID:
-			for (k = 0; k < N_MEX_FIELDNAMES_GRID; k++) fnames_grd[k] = "";
-			ptr = (void *)mxCreateStructMatrix (0, 0, N_MEX_FIELDNAMES_GRID, (const char **)fnames_grd);
+			ptr = (void *)mxCreateStructMatrix (0, 0, N_MEX_FIELDNAMES_GRID, GMTMEX_fieldname_grid);
 			break;
 		case GMT_IS_IMAGE:
-			for (k = 0; k < N_MEX_FIELDNAMES_IMAGE; k++) fnames_img[k] = "";
-			ptr = (void *)mxCreateStructMatrix (0, 0, N_MEX_FIELDNAMES_IMAGE, (const char **)fnames_img);
+			ptr = (void *)mxCreateStructMatrix (0, 0, N_MEX_FIELDNAMES_IMAGE, GMTMEX_fieldname_image);
 			break;
 		case GMT_IS_DATASET:
-			type = GMTMEX_type (API);		/* Get GMT's default data type */
-			ptr = (void *)mxCreateNumericMatrix(0, 0, type, mxREAL);
-			break;
 		case GMT_IS_TEXTSET:
+			ptr = (void *)mxCreateStructMatrix (0, 0, N_MEX_FIELDNAMES_DATASET, GMTMEX_fieldname_dataset);
 			break;
 		case GMT_IS_PALETTE:
-			for (k = 0; k < N_MEX_FIELDNAMES_CPT; k++) fnames_cpt[k] = "";
-			ptr = (void *)mxCreateStructMatrix (0, 0, N_MEX_FIELDNAMES_CPT, (const char **)fnames_cpt);
+			ptr = (void *)mxCreateStructMatrix (0, 0, N_MEX_FIELDNAMES_CPT, GMTMEX_fieldname_cpt);
 			break;
 		case GMT_IS_POSTSCRIPT:
-			for (k = 0; k < N_MEX_FIELDNAMES_PS; k++) fnames_ps[k] = "";
-			ptr = (void *)mxCreateStructMatrix (0, 0, N_MEX_FIELDNAMES_PS, (const char **)fnames_cpt);
+			ptr = (void *)mxCreateStructMatrix (0, 0, N_MEX_FIELDNAMES_PS, GMTMEX_fieldname_ps);
 			break;
 		default:
 			break;
@@ -293,7 +277,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	/* 2++ If gmtwrite then add -T? with correct object type */
 	if (strstr(module, "write") && opt_args && !strstr(opt_args, "-T") && n_in_objects == 1) {	/* Add type for writing to disk */
 		char targ[5] = {" -T?"};
-		gmtmex_objecttype (targ, prhs[nrhs-1]);
+		GMTMEX_objecttype (targ, prhs[nrhs-1]);
 		strcat (opt_args, targ);
 	}
 
@@ -380,7 +364,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 				break;
 #if GMT_MINOR_VERSION > 2
 			case GMT_IS_POSTSCRIPT:		/* A GMT PostScript string; make it the pos'th output item  */
-				plhs[pos] = GMTMEX_Get_POSTSCRIPT (API, X[k].object);
+				plhs[pos] = GMTMEX_Get_Postscript (API, X[k].object);
 #if 0
 				{
 				char cmd[32] = {""};

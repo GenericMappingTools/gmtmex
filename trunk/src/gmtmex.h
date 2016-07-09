@@ -16,6 +16,7 @@
  *      Contact info: www.soest.hawaii.edu/pwessel
  *--------------------------------------------------------------------*/
 /* GMT convenience functions used by MATLAB/OCTAVE mex/oct API
+ * We also define the MEX structures used to pass data in/out of GMT.
  */
 
 #ifndef GMTMEX_H
@@ -109,25 +110,71 @@ typedef int mwSize;
 #	define MEXG_IJ(M,row,col) ((col)*M->header->ny + M->header->ny - (row) - 1)
 #endif
 
+/* Definitions of MEX structures used to hold GMT objects.
+ * DO NOT MODIFY THE ORDER OF THE FIELDNAMES */
+
+/* GMT_IS_DATASET/TEXTSET:
+ * Returned by GMT via the parser as a MEX structure with the
+ * fields listed below.  Pure datasets will only set the data
+ * matrix and leave the text cell array empty, while textsets
+ * will fill out both.  Only the first segment will have any
+ * information in the info and projection_ref_* items.  */
+
+#define N_MEX_FIELDNAMES_DATASET	6
+static const char *GMTMEX_fieldname_dataset[N_MEX_FIELDNAMES_DATASET] =
+	{"data", "text", "header", "info", "projection_ref_proj4", "projection_ref_wkt"};
+
+/* GMT_IS_GRID:
+ * Returned by GMT via the parser as a MEX structure with the
+ * fields listed below. */
+
+#define N_MEX_FIELDNAMES_GRID	16
+static const char *GMTMEX_fieldname_grid[N_MEX_FIELDNAMES_GRID] =
+	{"z", "x", "y", "range", "inc", "registration", "nodata", "title",
+	 "remark", "command", "datatype", "x_unit", "y_unit", "z_unit",
+	 "projection_ref_proj4", "projection_ref_wkt"};
+
+/* GMT_IS_IMAGE:
+ * Returned by GMT via the parser as a MEX structure with the
+ * fields listed below.  */
+
+#define N_MEX_FIELDNAMES_IMAGE	19
+static const char *GMTMEX_fieldname_image[N_MEX_FIELDNAMES_IMAGE] =
+	{"image", "x", "y", "range", "inc", "registration", "nodata", "title", "remark", "command",
+	 "datatype", "x_unit", "y_unit", "z_unit", "colormap", "alpha", "layout",
+	 "projection_ref_proj4", "projection_ref_wkt"};
+
+/* GMT_IS_PALETTE:
+ * Returned by GMT via the parser as a MEX structure with the
+ * fields listed below.  */
+
+#define N_MEX_FIELDNAMES_CPT	8
+static const char *GMTMEX_fieldname_cpt[N_MEX_FIELDNAMES_CPT] =
+	{"colormap", "alpha", "range", "minmax", "bfn", "depth", "hinge", "cpt"};
+	
+/* GMT_IS_POSTSCRIPT:
+ * Returned by GMT via the parser as a MEX structure with the
+ * fields listed below.  */
+
+#define N_MEX_FIELDNAMES_PS	3
+static const char *GMTMEX_fieldname_ps[N_MEX_FIELDNAMES_PS] =
+	{"postscript", "length", "mode"};
+
 /* Macro for indecing into a GMT grid [with pad] */
 #define GMT_IJP(h,row,col) ((uint64_t)(((int64_t)(row)+(int64_t)h->pad[GMT_YHI])*((int64_t)h->mx)+(int64_t)(col)+(int64_t)h->pad[GMT_XLO]))
 
 #define MODULE_LEN 	32	/* Max length of a GMT module name */
 
-EXTERN_MSC int GMTMEX_print_func        (FILE *fp, const char *message);
+/* These functions are used by gmtmex.c: */
+EXTERN_MSC void   GMTMEX_objecttype     (char *type, const mxArray *ptr);
+EXTERN_MSC int    GMTMEX_print_func     (FILE *fp, const char *message);
 EXTERN_MSC void * GMTMEX_Get_Grid       (void *API, struct GMT_GRID *G);
 EXTERN_MSC void * GMTMEX_Get_Dataset    (void *API, struct GMT_DATASET *D);
 EXTERN_MSC void * GMTMEX_Get_Textset    (void *API, struct GMT_TEXTSET *M);
 EXTERN_MSC void * GMTMEX_Get_CPT        (void *API, struct GMT_PALETTE *P);
 EXTERN_MSC void * GMTMEX_Get_Image      (void *API, struct GMT_IMAGE *I);
 EXTERN_MSC void * GMTMEX_Register_IO    (void *API, struct GMT_RESOURCE *X, const mxArray *ptr);
-EXTERN_MSC void GMTMEX_Free_Textset     (void *API, struct GMT_TEXTSET *T);
 #if GMT_MINOR_VERSION > 2
-EXTERN_MSC void * GMTMEX_Get_POSTSCRIPT (void *API, struct GMT_POSTSCRIPT *P);
+EXTERN_MSC void * GMTMEX_Get_Postscript (void *API, struct GMT_POSTSCRIPT *P);
 #endif
-mxClassID GMTMEX_type (void *API);
-void gmtmex_objecttype (char *type, const mxArray *ptr);
-#endif
-#if 0
-EXTERN_MSC void * GMTMEX_Get_Dataset    (void *API, struct GMT_VECTOR *V);
 #endif
