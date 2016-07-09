@@ -220,7 +220,7 @@ void *GMTMEX_Get_Dataset (void *API, struct GMT_DATASET *D) {
 	 * text:   An empty cell array (since datasets have no text)
 	 */
 
-	uint64_t tbl, seg, seg_out, col, start, k;
+	uint64_t tbl, seg, seg_out, col, start, k, n_headers;
 	double *data = NULL;
 	struct GMT_DATASEGMENT *S = NULL;
 	mxArray *D_struct = NULL, *mxheader = NULL, *mxdata = NULL, *mxtext = NULL, *mxstring = NULL;
@@ -235,6 +235,7 @@ void *GMTMEX_Get_Dataset (void *API, struct GMT_DATASET *D) {
 	
 	D_struct = mxCreateStructMatrix ((mwSize)seg_out, 1, N_MEX_FIELDNAMES_DATASET, GMTMEX_fieldname_dataset);
 
+	n_headers = D->table[0]->n_headers;
 	for (tbl = seg_out = 0; tbl < D->n_tables; tbl++) {
 		for (seg = 0; seg < D->table[tbl]->n_segments; seg++) {
 			S = D->table[tbl]->segment[seg];	/* Shorthand */
@@ -248,16 +249,13 @@ void *GMTMEX_Get_Dataset (void *API, struct GMT_DATASET *D) {
 			mxSetField (D_struct, (mwSize)seg_out, "data", mxdata);
 			mxSetField (D_struct, (mwSize)seg_out, "text", mxtext);
 			mxSetField (D_struct, (mwSize)seg_out, "header", mxheader);
-			if (tbl == 0 && seg == 0) {	/* For very first segment also do info and proj* */
-				if (D->table[0]->n_headers) {
-					mxtext   = mxCreateCellMatrix (D->table[0]->n_headers, 1);
-					for (k = 0; k < D->table[0]->n_headers; k++) {
-						mxstring = mxCreateString (D->table[0]->header[k]);
-						mxSetCell (mxtext, (int)k, mxstring);
-					}
-					mxSetField (D_struct, (mwSize)seg_out, "info",   mxtext);
-				}
+			mxtext = mxCreateCellMatrix (n_headers, n_headers ? 1 : 0);
+			for (k = 0; k < n_headers; k++) {
+				mxstring = mxCreateString (D->table[0]->header[k]);
+				mxSetCell (mxtext, (int)k, mxstring);
 			}
+			mxSetField (D_struct, (mwSize)seg_out, "comment", mxtext);
+			n_headers = 0;	/* No other segment will have a non-empty comment cell array */
 			seg_out++;
 		}
 	}
@@ -286,7 +284,7 @@ void *GMTMEX_Get_Textset (void *API, struct GMT_TEXTSET *T) {
 	 * text:   An cell array with the text items
 	 */
 
-	uint64_t tbl, seg, seg_out, col, row, start, k, n_columns = 0;
+	uint64_t tbl, seg, seg_out, col, row, start, k, n_headers, n_columns = 0;
 	unsigned int flag[3] = {GMT_LAX_CONVERSION, 0, 0};	/* We will try to convert most of the text to data */
 	double *data = NULL;
 	struct GMT_DATASET *D = NULL;
@@ -309,7 +307,7 @@ void *GMTMEX_Get_Textset (void *API, struct GMT_TEXTSET *T) {
 				seg_out++;
 
 	D_struct = mxCreateStructMatrix ((mwSize)seg_out, 1, N_MEX_FIELDNAMES_DATASET, GMTMEX_fieldname_dataset);
-
+	n_headers = T->table[0]->n_headers;
 	for (tbl = seg_out = 0; tbl < T->n_tables; tbl++) {
 		for (seg = 0; seg < T->table[tbl]->n_segments; seg++) {
 			ST = T->table[tbl]->segment[seg];	/* Shorthand to current text segment */
@@ -333,16 +331,13 @@ void *GMTMEX_Get_Textset (void *API, struct GMT_TEXTSET *T) {
 			mxSetField (D_struct, (mwSize)seg_out, "data",   mxdata);
 			mxSetField (D_struct, (mwSize)seg_out, "text",   mxtext);
 			mxSetField (D_struct, (mwSize)seg_out, "header", mxheader);
-			if (tbl == 0 && seg == 0) {	/* For very first segment also do info and proj* */
-				if (T->table[0]->n_headers) {	/* Have table headers */
-					mxtext = mxCreateCellMatrix (T->table[0]->n_headers, 1);
-					for (k = 0; k < T->table[0]->n_headers; k++) {
-						mxstring = mxCreateString (T->table[0]->header[k]);
-						mxSetCell (mxtext, (int)k, mxstring);
-					}
-					mxSetField (D_struct, (mwSize)seg_out, "info", mxtext);
-				}
+			mxtext = mxCreateCellMatrix (n_headers, n_headers ? 1 : 0);
+			for (k = 0; k < n_headers; k++) {
+				mxstring = mxCreateString (T->table[0]->header[k]);
+				mxSetCell (mxtext, (int)k, mxstring);
 			}
+			mxSetField (D_struct, (mwSize)seg_out, "comment", mxtext);
+			n_headers = 0;	/* No other segment will have a non-empty comment cell array */
 			seg_out++;	/* Go to next output segment */
 		}
 	}
@@ -357,7 +352,7 @@ void *GMTMEX_Get_Postscript (void *API, struct GMT_POSTSCRIPT *P) {
 	/* Given a GMT Postscript structure P, build a MATLAB Postscript structure */
 	uint64_t k, *length = NULL;
 	unsigned int *mode = NULL;
-	mxArray *P_struct = NULL, *mxptr[N_MEX_FIELDNAMES_PS];
+	mxArray *P_struct = NULL, *mxptr[N_MEX_FIELDNAMES_PS], *mxstring = NULL;
 	
 	if (P == NULL || !P->data)	/* Safety valve */
 		mexErrMsgTxt ("GMTMEX_Get_Postscript: programming error, input POSTSCRIPT struct P is NULL or data string is empty\n");
@@ -368,11 +363,18 @@ void *GMTMEX_Get_Postscript (void *API, struct GMT_POSTSCRIPT *P) {
 	mxptr[0] = mxCreateString (P->data);
 	mxptr[1] = mxCreateNumericMatrix (1, 1, mxUINT64_CLASS, mxREAL);
 	mxptr[2] = mxCreateNumericMatrix (1, 1, mxUINT32_CLASS, mxREAL);
+	mxptr[3] = mxCreateCellMatrix (P->n_headers, P->n_headers ? 1 : 0);
 	length   = (uint64_t *)mxGetData(mxptr[1]);
 	mode     = (uint32_t *)mxGetData(mxptr[2]);
 	
 	length[0] = (uint64_t)P->n_bytes;	/* Set length of the PS string */
 	mode[0]   = (uint32_t)P->mode;		/* Set mode of the PS string */
+	
+	for (k = 0; k < P->n_headers; k++) {
+		mxstring = mxCreateString (P->header[k]);
+		mxSetCell (mxptr[3], (int)k, mxstring);
+	}
+	
 	for (k = 0; k < N_MEX_FIELDNAMES_PS; k++)
 		mxSetField (P_struct, 0, GMTMEX_fieldname_ps[k], mxptr[k]);
 
@@ -389,7 +391,7 @@ void *GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C) {
 
 	unsigned int k, j, n_colors, *depth = NULL;
 	double *color = NULL, *cpt = NULL, *alpha = NULL, *minmax = NULL, *range = NULL, *hinge = NULL, *bfn = NULL;
-	mxArray *C_struct = NULL, *mxptr[N_MEX_FIELDNAMES_CPT];
+	mxArray *C_struct = NULL, *mxptr[N_MEX_FIELDNAMES_CPT], *mxstring = NULL;
 
 	if (C == NULL || !C->data)	/* Safety valve */
 		mexErrMsgTxt ("GMTMEX_Get_CPT: programming error, output CPT C is empty\n");
@@ -407,6 +409,8 @@ void *GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C) {
 	mxptr[5] = mxCreateNumericMatrix (1, 1, mxUINT32_CLASS, mxREAL);
 	mxptr[6] = mxCreateNumericMatrix (1, 1, mxDOUBLE_CLASS, mxREAL);
 	mxptr[7] = mxCreateNumericMatrix (C->n_colors, 6, mxDOUBLE_CLASS, mxREAL);
+	mxptr[8] = mxCreateCellMatrix (C->n_headers, C->n_headers ? 1 : 0);
+	
 	color    = mxGetPr (mxptr[0]);
 	alpha    = mxGetPr (mxptr[1]);
 	range    = mxGetPr (mxptr[2]);
@@ -434,6 +438,12 @@ void *GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C) {
 	}
 	minmax[0] = C->data[0].z_low;	/* Set min/max limits */
 	minmax[1] = C->data[C->n_colors-1].z_high;
+	if (C->n_headers) {
+		for (k = 0; k < C->n_headers; k++) {
+			mxstring = mxCreateString (C->header[k]);
+			mxSetCell (mxptr[8], (int)k, mxstring);
+		}
+	}
 	
 	for (k = 0; k < N_MEX_FIELDNAMES_CPT; k++)	/* Update all fields */
 		mxSetField (C_struct, 0, GMTMEX_fieldname_cpt[k], mxptr[k]);
@@ -613,14 +623,14 @@ static struct GMT_GRID *gmtmex_grid_init (void *API, unsigned int direction, uns
 			if (mx_ptr != NULL)
 				G->header->nan_value = *(float *)mxGetData (mx_ptr);
 
-			mx_ptr = mxGetField (ptr, 0, "projection_ref_proj4");
+			mx_ptr = mxGetField (ptr, 0, "proj4");
 			if (mx_ptr != NULL && mxGetN(mx_ptr) > 6) {		/* A true proj4 string will have at least this lenght */
 				char *str = malloc(mxGetN(mx_ptr) + 1);
 				mxGetString(mx_ptr, str, (mwSize)mxGetN(mx_ptr));
 				G->header->ProjRefPROJ4 = GMT_Duplicate_String (API, str);
 				free (str);
 			}
-			mx_ptr = mxGetField (ptr, 0, "projection_ref_wkt");
+			mx_ptr = mxGetField (ptr, 0, "wkt");
 			if (mx_ptr != NULL && mxGetN(mx_ptr) > 20) {	/* A true WTT string will have more thna this lenght */ 
 				char *str = malloc(mxGetN(mx_ptr)+1);
 				mxGetString(mx_ptr, str, (mwSize)mxGetN(mx_ptr));
@@ -641,7 +651,7 @@ static struct GMT_GRID *gmtmex_grid_init (void *API, unsigned int direction, uns
 				strncpy(G->header->command, str, GMT_GRID_COMMAND_LEN320 - 1);
 				free (str);
 			}
-			mx_ptr = mxGetField (ptr, 0, "remark");
+			mx_ptr = mxGetField (ptr, 0, "comment");
 			if (mx_ptr != NULL) {
 				char *str = malloc(mxGetN(mx_ptr)+1);
 				mxGetString(mx_ptr, str, (mwSize)mxGetN(mx_ptr));
@@ -781,14 +791,14 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 		if (mx_ptr != NULL)
 			I->header->nan_value = *(float *)mxGetData (mx_ptr);
 
-		mx_ptr = mxGetField (ptr, 0, "projection_ref_proj4");
+		mx_ptr = mxGetField (ptr, 0, "proj4");
 		if (mx_ptr != NULL && mxGetN(mx_ptr) > 6) {		/* A true proj4 string will have at least this lenght */
 			char *str = malloc(mxGetN(mx_ptr) + 1);
 			mxGetString(mx_ptr, str, (mwSize)mxGetN(mx_ptr));
 			I->header->ProjRefPROJ4 = GMT_Duplicate_String (API, str);
 			free (str);
 		}
-		mx_ptr = mxGetField (ptr, 0, "projection_ref_wkt");
+		mx_ptr = mxGetField (ptr, 0, "wkt");
 		if (mx_ptr != NULL && mxGetN(mx_ptr) > 20) {	/* A true WTT string will have more thna this lenght */ 
 			char *str = malloc(mxGetN(mx_ptr)+1);
 			mxGetString(mx_ptr, str, (mwSize)mxGetN(mx_ptr));
@@ -810,7 +820,7 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 			strncpy(I->header->command, str, GMT_GRID_COMMAND_LEN320 - 1);
 			free (str);
 		}
-		mx_ptr = mxGetField (ptr, 0, "remark");
+		mx_ptr = mxGetField (ptr, 0, "comment");
 		if (mx_ptr != NULL) {
 			char *str = malloc(mxGetN(mx_ptr)+1);
 			mxGetString(mx_ptr, str, (mwSize)mxGetN(mx_ptr));
@@ -934,7 +944,7 @@ static void *gmtmex_dataset_init (void *API, unsigned int direction, unsigned in
 				memcpy (S->data[col], &data[start], S->n_rows * sizeof (double));
 			D->table[0]->n_records += S->n_rows;	/* Must manually keep track of totals */
 			if (seg == 0) {	/* First segment may have table information */
-				mxArray *mx_ptr_t = mxGetField (ptr, (mwSize)seg, "info");	/* Table headers */
+				mxArray *mx_ptr_t = mxGetField (ptr, (mwSize)seg, "comment");	/* Table headers */
 				if (mx_ptr_t && (n_headers = mxGetM (mx_ptr_t))) {	/* Number of headers found */
 					char *txt = NULL;
 					for (k = 0; k < n_headers; k++) {
@@ -1025,7 +1035,7 @@ static struct GMT_TEXTSET *gmtmex_textset_init (void *API, unsigned int directio
 					S->data[row] = GMT_Duplicate_String (API, buffer);
 				}
 				if (seg == 0) {	/* First segment may have dataset information */
-					mx_ptr_t = mxGetField (ptr, (mwSize)seg, "info");	/* Table headers */
+					mx_ptr_t = mxGetField (ptr, (mwSize)seg, "comment");	/* Table headers */
 					if (mx_ptr_t && (n_headers = mxGetM (mx_ptr_t))) {	/* Number of headers found */
 						for (k = 0; k < n_headers; k++) {	/* Add each header as a text comment to the textset */
 							mx_ptr = mxGetCell (mx_ptr_t, (mwSize)row);
@@ -1095,7 +1105,7 @@ static struct GMT_PALETTE *gmtmex_cpt_init (void *API, unsigned int direction, u
 	 * If direction is GMT_OUT then we allocate an empty GMT CPT as a destination. */
 	struct GMT_PALETTE *P = NULL;
 	if (direction == GMT_IN) {	/* Dimensions are known from the input pointer */
-		unsigned int k, j, one = 1, *depth = NULL;
+		unsigned int k, j, one = 1, n_headers, *depth = NULL;
 		uint64_t dim[2] = {0, 0};
 		unsigned int flag = (module_input) ? GMT_VIA_MODULE_INPUT : 0;
 		mxArray *mx_ptr[N_MEX_FIELDNAMES_CPT];
@@ -1133,6 +1143,16 @@ static struct GMT_PALETTE *gmtmex_cpt_init (void *API, unsigned int direction, u
 		if ((P = GMT_Create_Data (API, GMT_IS_PALETTE|flag, GMT_IS_NONE, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
 			mexErrMsgTxt ("gmtmex_cpt_init: Failure to alloc GMT source CPT for input\n");
 
+		if ((n_headers = mxGetM (mx_ptr[8]))) {	/* Number of headers found */
+			char *txt = NULL;
+			mxArray *ptr = NULL;
+			for (k = 0; k < n_headers; k++) {
+				ptr = mxGetCell (mx_ptr[8], (mwSize)k);
+				txt = mxArrayToString (ptr);
+				if (GMT_Set_Comment (API, GMT_IS_PALETTE, GMT_COMMENT_IS_TEXT, txt, P))
+					mexErrMsgTxt("gmtmex_cpt_init: Failed to set a CPT header\n");
+			}
+		}
 		for (j = 0; j < 3; j++) {	/* Do the bfn first */
 			for (k = 0; k < 3; k++)
 				P->bfn[j].rgb[k] = bfn[j+k*3];
@@ -1175,7 +1195,7 @@ static struct GMT_POSTSCRIPT *gmtmex_ps_init (void *API, unsigned int direction,
 	struct GMT_POSTSCRIPT *P = NULL;
 	if (direction == GMT_IN) {	/* Dimensions are known from the MATLAB input pointer */
 		uint64_t dim[1] = {0}, *length = NULL;
-		unsigned int k, *mode = NULL, flag = (module_input) ? GMT_VIA_MODULE_INPUT : 0;
+		unsigned int k, n_headers, *mode = NULL, flag = (module_input) ? GMT_VIA_MODULE_INPUT : 0;
 		mxArray *mx_ptr[N_MEX_FIELDNAMES_PS];
 		char *PS = NULL;
 
@@ -1192,7 +1212,7 @@ static struct GMT_POSTSCRIPT *gmtmex_ps_init (void *API, unsigned int direction,
 		if (length[0] == 0)
 			mexErrMsgTxt ("gmtmex_ps_init: Dimension of PostScript given as zero\n");
 		PS = malloc (mxGetN(mx_ptr[0])+1);
-		mxGetString(mx_ptr[0], PS, (mwSize)mxGetN(mx_ptr[0]));
+		mxGetString (mx_ptr[0], PS, (mwSize)mxGetN(mx_ptr[0]));
 		mode = mxGetData (mx_ptr[2]);
 		/* Passing dim[0] = 0 since we dont want any allocation of a PS string */
 		if ((P = GMT_Create_Data (API, GMT_IS_POSTSCRIPT|flag, GMT_IS_NONE, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
@@ -1202,6 +1222,16 @@ static struct GMT_POSTSCRIPT *gmtmex_ps_init (void *API, unsigned int direction,
 		P->n_bytes = length[0];	/* Length of the actual PS string */
 		P->n_alloc = 0;		/* But nothing was actually allocated here - just passing pointer from MATLAB */
 		P->mode = mode[0];	/* Inherit the mode */
+		if ((n_headers = mxGetM (mx_ptr[3]))) {	/* Number of headers found */
+			char *txt = NULL;
+			mxArray *ptr = NULL;
+			for (k = 0; k < n_headers; k++) {
+				ptr = mxGetCell (mx_ptr[3], (mwSize)k);
+				txt = mxArrayToString (ptr);
+				if (GMT_Set_Comment (API, GMT_IS_POSTSCRIPT, GMT_COMMENT_IS_TEXT, txt, P))
+					mexErrMsgTxt("gmtmex_ps_init: Failed to set a PostScript header\n");
+			}
+		}
 		GMT_Report (API, GMT_MSG_DEBUG, "gmtmex_ps_init: Allocated GMT POSTSCRIPT %lx\n", (long)P);
 	}
 	else {	/* Just allocate an empty container to hold an output PS object (signal this by passing 0s and NULLs) */

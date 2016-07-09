@@ -122,7 +122,7 @@ typedef int mwSize;
 
 #define N_MEX_FIELDNAMES_DATASET	6
 static const char *GMTMEX_fieldname_dataset[N_MEX_FIELDNAMES_DATASET] =
-	{"data", "text", "header", "info", "projection_ref_proj4", "projection_ref_wkt"};
+	{"data", "text", "header", "comment", "proj4", "wkt"};
 
 /* GMT_IS_GRID:
  * Returned by GMT via the parser as a MEX structure with the
@@ -130,9 +130,8 @@ static const char *GMTMEX_fieldname_dataset[N_MEX_FIELDNAMES_DATASET] =
 
 #define N_MEX_FIELDNAMES_GRID	16
 static const char *GMTMEX_fieldname_grid[N_MEX_FIELDNAMES_GRID] =
-	{"z", "x", "y", "range", "inc", "registration", "nodata", "title",
-	 "remark", "command", "datatype", "x_unit", "y_unit", "z_unit",
-	 "projection_ref_proj4", "projection_ref_wkt"};
+	{"z", "x", "y", "range", "inc", "registration", "nodata", "title", "comment",
+	 "command", "datatype", "x_unit", "y_unit", "z_unit", "proj4", "wkt"};
 
 /* GMT_IS_IMAGE:
  * Returned by GMT via the parser as a MEX structure with the
@@ -140,25 +139,24 @@ static const char *GMTMEX_fieldname_grid[N_MEX_FIELDNAMES_GRID] =
 
 #define N_MEX_FIELDNAMES_IMAGE	19
 static const char *GMTMEX_fieldname_image[N_MEX_FIELDNAMES_IMAGE] =
-	{"image", "x", "y", "range", "inc", "registration", "nodata", "title", "remark", "command",
-	 "datatype", "x_unit", "y_unit", "z_unit", "colormap", "alpha", "layout",
-	 "projection_ref_proj4", "projection_ref_wkt"};
+	{"image", "x", "y", "range", "inc", "registration", "nodata", "title", "comment", "command",
+	 "datatype", "x_unit", "y_unit", "z_unit", "colormap", "alpha", "layout", "proj4", "wkt"};
 
 /* GMT_IS_PALETTE:
  * Returned by GMT via the parser as a MEX structure with the
  * fields listed below.  */
 
-#define N_MEX_FIELDNAMES_CPT	8
+#define N_MEX_FIELDNAMES_CPT	9
 static const char *GMTMEX_fieldname_cpt[N_MEX_FIELDNAMES_CPT] =
-	{"colormap", "alpha", "range", "minmax", "bfn", "depth", "hinge", "cpt"};
+	{"colormap", "alpha", "range", "minmax", "bfn", "depth", "hinge", "cpt", "comment"};
 	
 /* GMT_IS_POSTSCRIPT:
  * Returned by GMT via the parser as a MEX structure with the
  * fields listed below.  */
 
-#define N_MEX_FIELDNAMES_PS	3
+#define N_MEX_FIELDNAMES_PS	4
 static const char *GMTMEX_fieldname_ps[N_MEX_FIELDNAMES_PS] =
-	{"postscript", "length", "mode"};
+	{"postscript", "length", "mode", "comment"};
 
 /* Macro for indecing into a GMT grid [with pad] */
 #define GMT_IJP(h,row,col) ((uint64_t)(((int64_t)(row)+(int64_t)h->pad[GMT_YHI])*((int64_t)h->mx)+(int64_t)(col)+(int64_t)h->pad[GMT_XLO]))
