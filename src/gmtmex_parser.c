@@ -762,14 +762,14 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 
 		dim[0] = gmtmex_getMNK (mx_ptr, 1);	dim[1] = gmtmex_getMNK (mx_ptr, 0);	dim[2] = gmtmex_getMNK (mx_ptr, 2);
 		if ((I = GMT_Create_Data (API, GMT_IS_IMAGE|flag, GMT_IS_SURFACE, GMT_GRID_HEADER_ONLY, dim,
-			                      NULL, NULL, (unsigned int)reg[0], 0, NULL)) == NULL)
+			                      range, inc, (unsigned int)reg[0], 0, NULL)) == NULL)
 			mexErrMsgTxt ("gmtmex_image_init: Failure to alloc GMT source image for input\n");
 
 		I->data = (unsigned char *)mxGetData (mx_ptr);				/* Send in the Matlab owned memory. */
 		I->alloc_mode = GMT_ALLOC_EXTERNALLY;
 
-		//memcpy (I->data, (unsigned char *)mxGetData (mx_ptr), I->header->nm * I->header->n_bands * sizeof (char));
 /*
+		memcpy (I->data, (unsigned char *)mxGetData (mx_ptr), I->header->nm * I->header->n_bands * sizeof (char));
 		for (row = 0; row < I->header->n_rows; row++) {
 			for (col = 0; col < I->header->n_columns; col++) {
 				gmt_ij = GMT_IJP (I->header, row, col);
@@ -786,6 +786,16 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 
 		I->header->z_min = range[4];
 		I->header->z_max = range[5];
+
+		mx_ptr = mxGetField(ptr, 0, "x");
+		if (mx_ptr == NULL)
+			mexErrMsgTxt("gmtmex_image_init: Could not find x-coords vector for Image\n");
+		I->x = mxGetData(mx_ptr);
+
+		mx_ptr = mxGetField(ptr, 0, "y");
+		if (mx_ptr == NULL)
+			mexErrMsgTxt("gmtmex_image_init: Could not find y-coords vector for Image\n");
+		I->y = mxGetData(mx_ptr);
 
 		mx_ptr = mxGetField (ptr, 0, "nodata");
 		if (mx_ptr != NULL)
