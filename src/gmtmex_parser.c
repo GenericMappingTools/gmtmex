@@ -67,13 +67,13 @@ enum MEX_dim {
  *		  + A text string for the segment header
  *		  + A cell array with strings, [] since no text in datasets
  *		  + A 2-D matrix with rows and columns (double precision)
- *		  + First segment may also have dataset information
+ *		  + First segment may also have dataset comment and proj4/wtk strings
  * GMT_TEXTSET: Handled with an array of MATLAB data structures and we use GMT's GMT_TEXTSET for passing in and out of GMT.
  *		Each MEX structure contain data for one segment:
  *		  + A text string for the segment header
  *		  + A 2-D matrix with rows and columns (double precision) if there is numerical data in the first columns (or empty)
  *		  + A cell array with strings from columns that could not be deciphered as data.
- *		  + First segment may also have dataset information
+ *		  + First segment may also have textset comment and proj4/wtk strings
  * GMT_PALETTE: Handled with a MATLAB structure and we use GMT's native GMT_PALETTE for the passing.
  *		  + colormap is the N*3 matrix for MATLAB colormaps
  *		  + range is a N-element array with z-values at color changes
@@ -83,10 +83,12 @@ enum MEX_dim {
  *		  + depth is a 1-element matrix with color depth (1, 8, 24 bits)
  *		  + hinge is a 1-element matrix with hinge z-value (or NaN)
  *		  + cpt is a N*6-element matrix with original CPT slice values
+ *		  + comment holds any Palette comments
  * GMT_POSTSCRIPT: Handled with a MATLAB structure and we use GMT's native GMT_POSTSCRIPT for the passing.
  *		  + postscript is the single string with all the PostScript code
  *		  + length is the number of bytes in the string
  *		  + mode is the overlay/trailer indicator
+ *		  + comment holds any PostScript comments
  */
 
 static char *mxstrdup (const char *s) {
@@ -156,11 +158,10 @@ void *GMTMEX_Get_Grid (void *API, struct GMT_GRID *G) {
 	if (!G->data)	/* Safety valve */
 		mexErrMsgTxt ("GMTMEX_Get_Grid: programming error, output matrix G is empty\n");
 
-	/* Return grids via a float (mxSINGLE_CLASS) matrix in a struct */
-	/* Create a MATLAB struct to hold this grid. */
+	/* Create a MATLAB struct to hold this grid [matrix will be a float (mxSINGLE_CLASS)]. */
 	G_struct = mxCreateStructMatrix (1, 1, N_MEX_FIELDNAMES_GRID, GMTMEX_fieldname_grid);
 
-	/* Then get pointers and populate structure from the information in G */
+	/* Get pointers and populate structure from the information in G */
 	mxptr[0]  = mxCreateNumericMatrix (G->header->n_rows, G->header->n_columns, mxSINGLE_CLASS, mxREAL);
 	mxptr[1]  = mxCreateNumericMatrix (1, G->header->n_columns, mxDOUBLE_CLASS, mxREAL);
 	mxptr[2]  = mxCreateNumericMatrix (1, G->header->n_rows,    mxDOUBLE_CLASS, mxREAL);
@@ -214,10 +215,13 @@ void *GMTMEX_Get_Grid (void *API, struct GMT_GRID *G) {
 
 void *GMTMEX_Get_Dataset (void *API, struct GMT_DATASET *D) {
 	/* Given a GMT DATASET D, build a MATLAB array of segment structure and assign values.
-	 * Each segment will have 3 items:
-	 * header: A text string with the segment header (could be empty)
-	 * data:   A matrix with the data for this segment (n_rows by n_columns)
-	 * text:   An empty cell array (since datasets have no text)
+	 * Each segment will have 6 items:
+	 * header:	Text string with the segment header (could be empty)
+	 * data:	Matrix with the data for this segment (n_rows by n_columns)
+	 * text:	Empty cell array (since datasets have no text)
+	 * comment:	Cell array with any comments
+	 * proj4:	String with any proj4 information
+	 * wkt:		String with any WKT information
 	 */
 
 	uint64_t tbl, seg, seg_out, col, start, k, n_headers;
@@ -278,10 +282,13 @@ int scan_to_start_of_text (char *text, uint64_t n_col) {
 
 void *GMTMEX_Get_Textset (void *API, struct GMT_TEXTSET *T) {
 	/* Given a GMT GMT_TEXTSET T, build a MATLAB array of segment structure and assign values.
-	 * Each segment will have 3 items:
-	 * header: A text string with the segment header (could be empty)
-	 * data:   A matrix with any converted data for this segment (n_rows by n_columns)
-	 * text:   An cell array with the text items
+	 * Each segment will have 6 items:
+	 * header:	Text string with the segment header (could be empty)
+	 * data:	Matrix with any converted data for this segment (n_rows by n_columns)
+	 * text:	Cell array with the text items
+	 * comment:	Cell array with any comments
+	 * proj4:	String with any proj4 information
+	 * wkt:		String with any WKT information
 	 */
 
 	uint64_t tbl, seg, seg_out, col, row, start, k, n_headers, n_columns = 0;
@@ -349,7 +356,13 @@ void *GMTMEX_Get_Textset (void *API, struct GMT_TEXTSET *T) {
 #if GMT_MINOR_VERSION > 2
 
 void *GMTMEX_Get_Postscript (void *API, struct GMT_POSTSCRIPT *P) {
-	/* Given a GMT Postscript structure P, build a MATLAB Postscript structure */
+	/* Given a GMT GMT_POSTSCRIPT P, build a MATLAB array of segment structure and assign values.
+	 * Each segment will have 4 items:
+	 * postscript:	Text string with the entire PostScript plot
+	 * length:	Byte length of postscript
+	 * mode:	1 has header, 2 has trailer, 3 is complete
+	 * comment:	Cell array with any comments
+	 */
 	uint64_t k, *length = NULL;
 	unsigned int *mode = NULL;
 	mxArray *P_struct = NULL, *mxptr[N_MEX_FIELDNAMES_PS], *mxstring = NULL;
@@ -383,7 +396,18 @@ void *GMTMEX_Get_Postscript (void *API, struct GMT_POSTSCRIPT *P) {
 #endif
 
 void *GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C) {
-	/* Given a GMT CPT C, build a MATLAB structure and assign values.
+	/* Given a GMT GMT_PALETTE C, build a MATLAB structure and assign values.
+	 * Each segment will have 9 items:
+	 * colormap:	Nx3 array of colors usable in Matlab' colormap
+	 * alpha:	Nx1 array with transparency values
+	 * range:	Nx1 arran with z-values at color changes
+	 * minmax:	2x1 array with min/max zvalues
+	 * bfn:		3x3 array with colors for background, forground, nan
+	 * depth	Color depth 24, 8, 1
+	 * hinge:	Z-value at discontinuous color break, or NaN
+	 * cpt:		Nx6 full GMT CPT array
+	 * comment:	Cell array with any comments
+	 *
 	 * Limitation: MATLAB's colormap format can either hold discrete
 	 * or continuous colormaps, but not a mixture of these, which GMT
 	 * can do.  Thus, mixed-mode GMT cpts being used in MATLAB or passed
