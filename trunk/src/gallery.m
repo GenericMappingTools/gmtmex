@@ -775,15 +775,10 @@ function [ps, d_path] = ex18(g_root_dir, out_path, verbose)
 	area = gmt('grdvolume -C50 -Sk', Gtmp); % | cut -f2`
 	volume = gmt('grdvolume -C50 -Sk', Gtmp); % | cut -f3`
 
-	gmt(['psxy -R -J -A -O -K -L -Wthin -Gwhite >> ' ps], ...
-		[-148.5	52.75
-		-141	52.75
-		-141	53.75
-		-148.5	53.75])
-
-	gmt(['pstext -R -J -O -F+f14p,Helvetica-Bold+jLM >> ' ps], ...
-		{sprintf('-148 53.08 Areas: %.2f km@+2@+', area.data(2))
-		 sprintf('-148 53.42 Volumes: %.0f mGal\264km@+2@+', volume.data(3))})
+	gmt(['pstext -R -J -O -M -Gwhite -Wthin -Dj0.3i -F+f14p,Helvetica-Bold+jLB -C0.1i >> ' ps], ...
+ 		{sprintf('Volumes: %.0f mGal\264km@+2@+', volume.data(3))
+ 		''
+		sprintf('Areas: %.2f km@+2@+', area.data(2))})
 	builtin('delete', 'sm_*.txt')
 	builtin('delete','gmt.conf');
 
@@ -804,9 +799,9 @@ function [ps, d_path] = ex19(g_root_dir, out_path, verbose)
 	gmt(['grdimage -J -C -O -K -nl >> ' ps], Glon, lon_cpt)
 	gmt(['pscoast -R -J -O -K -Q >> ' ps])
 	gmt(['pscoast -R -J -O -K -Dc -A5000 -Wthinnest >> ' ps])
-	gmt(['pstext -R -J -O -K -F+f32p,Helvetica-Bold,red=thinner >> ' ps], {'0 20 12TH INTERNATIONAL'})
+	gmt(['pstext -R -J -O -K -F+f32p,Helvetica-Bold,red=thinner >> ' ps], {'0 20 13TH INTERNATIONAL'})
 	gmt(['pstext -R -J -O -K -F+f32p,Helvetica-Bold,red=thinner >> ' ps], {'0 -10 GMT CONFERENCE'})
-	gmt(['pstext -R -J -O -K -F+f18p,Helvetica-Bold,green=thinnest >> ' ps], {'0 -30 Honolulu, Hawaii, April 1, 2016'})
+	gmt(['pstext -R -J -O -K -F+f18p,Helvetica-Bold,green=thinnest >> ' ps], {'0 -30 Honolulu, Hawaii, April 1, 2017'})
 
 	% Then show example of color patterns and placing a PostScript image
 	gmt(['pscoast -R -J -O -K -Dc -A5000 -Gp100/86:FredByellow -Sp100/' d_path 'circuit.ras -B0 -Y-3.25i >> ' ps])
@@ -820,9 +815,9 @@ function [ps, d_path] = ex19(g_root_dir, out_path, verbose)
 	gmt(['grdimage -J -Clat.cpt -O -K -nl >> ' ps], Glat)
 	gmt(['pscoast -R -J -O -K -Q >> ' ps])
 	gmt(['pscoast -R -J -O -K -Dc -A5000 -Wthinnest >> ' ps])
-	gmt(['pstext -R -J -O -K -F+f32p,Helvetica-Bold,red=thinner >> ' ps], {'0 20 12TH INTERNATIONAL'})
+	gmt(['pstext -R -J -O -K -F+f32p,Helvetica-Bold,red=thinner >> ' ps], {'0 20 13TH INTERNATIONAL'})
 	gmt(['pstext -R -J -O -K -F+f32p,Helvetica-Bold,red=thinner >> ' ps], {'0 -10 GMT CONFERENCE'})
-	gmt(['pstext -R -J -O -F+f18p,Helvetica-Bold,green=thinnest >> ' ps], {'0 -30 Honolulu, Hawaii, April 1, 2016'})
+	gmt(['pstext -R -J -O -F+f18p,Helvetica-Bold,green=thinnest >> ' ps], {'0 -30 Honolulu, Hawaii, April 1, 2017'})
 	builtin('delete','lat.cpt');
 	builtin('delete','gmt.conf');
 
@@ -1231,7 +1226,7 @@ function [ps, d_path] = ex28(g_root_dir, out_path, verbose)
 	gmt(['pscoast -R' d_path 'Kilauea.utm.nc -Ju5Q/1:160000 -O -K -Df+ -Slightblue -W0.5p -B5mg5m -BNE' ...
 		' --FONT_ANNOT_PRIMARY=12p --FORMAT_GEO_MAP=ddd:mmF >> ' ps])
 	gmt(['pstext -R -J -O -K -F+f12p,Helvetica-Bold+jCB >> ' ps], {'155:16:20W 19:26:20N KILAUEA'})
-	gmt(['psbasemap -R -J -O -K --FONT_ANNOT_PRIMARY=9p -Lg155:07:30W/19:15:40N+c19:23N+jTC+f+w5k+l1:16,000+u' ...
+	gmt(['psbasemap -R -J -O -K --FONT_ANNOT_PRIMARY=9p -LjRB+c19:23N+f+w5k+l1:16,000+u+o0.2i' ...
 		' --FONT_LABEL=10p >> ' ps])
 	% Annotate in km but append ,000m to annotations to get customized meter labels
 	gmt(['psbasemap -R' d_path 'Kilauea.utm.nc+Uk -Jx1:160 -B5g5+u"@:8:000m@::" -BWSne -O --FONT_ANNOT_PRIMARY=10p' ...

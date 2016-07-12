@@ -14,6 +14,9 @@ function out = gmtest(test, test_dir, family)
 
 	global g_root_dir out_path;
 	% Edit those two for your own needs
+	%g_root_dir = '/Users/pwessel/GMTdev/gmt5-dev/trunk/';
+	%out_path = '/Users/pwessel/GMTdev/gmt-mex/trunk/src/test/';		% Set this if you want to save the PS files in a prticular place
+	%GRAPHICSMAGICK = '/opt/local/bin/gm';
 	g_root_dir = 'C:/progs_cygw/GMTdev/gmt5/branches/5.2.0/';
 	out_path = 'V:/';		% Set this if you want to save the PS files in a prticular place
 	GRAPHICSMAGICK = 'C:/programs/GraphicsMagick/gm.exe';
