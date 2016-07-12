@@ -166,7 +166,7 @@ function [ps, d_path] = ex02(g_root_dir, out_path, verbose)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
-function [ps, d_path] = ex03(e, out_path, verbose)
+function [ps, d_path] = ex03(g_root_dir, out_path, verbose)
 % THIS EXAMPLE CRASH IN THE project CALL
 % It crashes in project/#L1013 because pdata.z, when pure_ascii == true, was never initialized 
 	d_path = [g_root_dir 'doc/examples/ex03/'];
