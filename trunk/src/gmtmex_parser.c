@@ -224,7 +224,8 @@ void *GMTMEX_Get_Dataset (void *API, struct GMT_DATASET *D) {
 	 * wkt:		String with any WKT information
 	 */
 
-	uint64_t tbl, seg, seg_out, col, start, k, n_headers;
+	int n_headers;
+	uint64_t tbl, seg, seg_out, col, start, k;
 	double *data = NULL;
 	struct GMT_DATASEGMENT *S = NULL;
 	mxArray *D_struct = NULL, *mxheader = NULL, *mxdata = NULL, *mxtext = NULL, *mxstring = NULL;
@@ -291,7 +292,8 @@ void *GMTMEX_Get_Textset (void *API, struct GMT_TEXTSET *T) {
 	 * wkt:		String with any WKT information
 	 */
 
-	uint64_t tbl, seg, seg_out, col, row, start, k, n_headers, n_columns = 0;
+	int n_headers;
+	uint64_t tbl, seg, seg_out, col, row, start, k, n_columns = 0;
 	unsigned int flag[3] = {GMT_LAX_CONVERSION, 0, 0};	/* We will try to convert most of the text to data */
 	double *data = NULL;
 	struct GMT_DATASET *D = NULL;
@@ -302,7 +304,7 @@ void *GMTMEX_Get_Textset (void *API, struct GMT_TEXTSET *T) {
 	if (T == NULL || T->n_records == 0)	/* Safety valve */
 		mexErrMsgTxt ("GMTMEX_Get_Textset: programming error, output GMT_TEXTSET T is empty\n");
 
-	if ((D = GMT_Convert_Data (API, T, GMT_IS_TEXTSET, NULL, GMT_IS_DATASET, flag))) {	/* Success */
+	if ((D = GMT_Convert_Data (API, T, GMT_IS_TEXTSET, NULL, GMT_IS_DATASET, flag)) != NULL) {	/* Success */
 		SD = D->table[0]->segment[0];	/* Shorthand, now determine number of non-NaN columns from first row */
 		for (col = 0; col < D->n_columns; col++)
 			if (!mxIsNaN (SD->data[col][0])) n_columns++;
@@ -540,6 +542,11 @@ void *GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I) {
 				u[k+m*I->header->nm] = (uint8_t)I->data[3*k+m];
 		*/
 		memcpy (u, I->data, 3 * I->header->nm * sizeof (uint8_t));
+		if (I->alpha) {
+			mxptr[15] = mxCreateNumericMatrix (I->header->n_rows, I->header->n_columns, mxUINT8_CLASS, mxREAL);
+			alpha = mxGetData (mxptr[15]);
+			memcpy (alpha, I->alpha, I->header->nm * sizeof (uint8_t)); 
+		}
 	}
 	else if (I->header->n_bands == 4) {	/* RGBA image, with a color map */
 		dim[0] = I->header->n_rows;	dim[1] = I->header->n_columns; dim[2] = 3;
@@ -979,7 +986,7 @@ static void *gmtmex_dataset_init (void *API, unsigned int direction, unsigned in
 			D->table[0]->n_records += S->n_rows;	/* Must manually keep track of totals */
 			if (seg == 0) {	/* First segment may have table information */
 				mxArray *mx_ptr_t = mxGetField (ptr, (mwSize)seg, "comment");	/* Table headers */
-				if (mx_ptr_t && (n_headers = mxGetM (mx_ptr_t))) {	/* Number of headers found */
+				if (mx_ptr_t && (n_headers = mxGetM (mx_ptr_t)) != 0) {	/* Number of headers found */
 					char *txt = NULL;
 					for (k = 0; k < n_headers; k++) {
 						mx_ptr = mxGetCell (mx_ptr_t, (mwSize)k);
@@ -1060,7 +1067,7 @@ static struct GMT_TEXTSET *gmtmex_textset_init (void *API, unsigned int directio
 					}
 					if (add_text) {	/* Then append the optional text strings */
 						mx_ptr = mxGetCell (mx_ptr_t, (mwSize)row);	/* Pointer to this cell */
-						if ((txt = mxArrayToString (mx_ptr))) {		/* Yes, there was a string there */
+						if ((txt = mxArrayToString (mx_ptr)) != NULL) {		/* Yes, there was a string there */
 							strcat (buffer, "\t");	/* Append the string after a tab */
 							strcat (buffer, txt);
 							mxFree (txt);
@@ -1070,7 +1077,7 @@ static struct GMT_TEXTSET *gmtmex_textset_init (void *API, unsigned int directio
 				}
 				if (seg == 0) {	/* First segment may have dataset information */
 					mx_ptr_t = mxGetField (ptr, (mwSize)seg, "comment");	/* Table headers */
-					if (mx_ptr_t && (n_headers = mxGetM (mx_ptr_t))) {	/* Number of headers found */
+					if (mx_ptr_t && (n_headers = mxGetM (mx_ptr_t)) != 0) {	/* Number of headers found */
 						for (k = 0; k < n_headers; k++) {	/* Add each header as a text comment to the textset */
 							mx_ptr = mxGetCell (mx_ptr_t, (mwSize)row);
 							txt = mxArrayToString (mx_ptr);
@@ -1177,7 +1184,7 @@ static struct GMT_PALETTE *gmtmex_cpt_init (void *API, unsigned int direction, u
 		if ((P = GMT_Create_Data (API, GMT_IS_PALETTE|flag, GMT_IS_NONE, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
 			mexErrMsgTxt ("gmtmex_cpt_init: Failure to alloc GMT source CPT for input\n");
 
-		if ((n_headers = mxGetM (mx_ptr[8]))) {	/* Number of headers found */
+		if ((n_headers = (unsigned int)mxGetM (mx_ptr[8])) != 0) {	/* Number of headers found */
 			char *txt = NULL;
 			mxArray *ptr = NULL;
 			for (k = 0; k < n_headers; k++) {
@@ -1256,7 +1263,7 @@ static struct GMT_POSTSCRIPT *gmtmex_ps_init (void *API, unsigned int direction,
 		P->n_bytes = length[0];	/* Length of the actual PS string */
 		P->n_alloc = 0;		/* But nothing was actually allocated here - just passing pointer from MATLAB */
 		P->mode = mode[0];	/* Inherit the mode */
-		if ((n_headers = mxGetM (mx_ptr[3]))) {	/* Number of headers found */
+		if ((n_headers = (unsigned int)mxGetM (mx_ptr[3])) != 0) {	/* Number of headers found */
 			char *txt = NULL;
 			mxArray *ptr = NULL;
 			for (k = 0; k < n_headers; k++) {
