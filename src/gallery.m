@@ -367,7 +367,7 @@ function [ps, d_path] = ex06(g_root_dir, out_path, verbose)
 
 % -------------------------------------------------------------------------------------------------
 function [ps, d_path] = ex07(g_root_dir, out_path, verbose)
-	d_path = [g_root_dir 'doc/examples/ex07'];
+	d_path = [g_root_dir 'doc/examples/ex07/'];
 	ps = [out_path 'example_07.ps'];
 	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
@@ -387,7 +387,7 @@ function [ps, d_path] = ex07(g_root_dir, out_path, verbose)
 
 % -------------------------------------------------------------------------------------------------
 function [ps, d_path] = ex08(g_root_dir, out_path, verbose)
-	d_path = [g_root_dir 'doc/examples/ex08'];
+	d_path = [g_root_dir 'doc/examples/ex08/'];
 	ps = [out_path 'example_08.ps'];
 	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
