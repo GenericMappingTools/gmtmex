@@ -22,16 +22,11 @@ function  [ps_, t_path_] = gallery(varargin)
 
 %	$Id$
 
-% For small cpts created on line it would be nice to have an alternative to (e.g)
-% 	fid = fopen('gray.cpt','w');	fprintf(fid, '-10000 150 10000 150\n');		fclose(fid);
-% Perhaps makecpt could accept a cell array as input?
-
-	%global g_root_dir out_path;
+	global GMT_ROOT_DIR GMT_PLOT_DIR GMT_GM_EXE
 	if (~exist('GMT_ROOT_DIR', 'var'))
 		GMT_ROOT_DIR = 'C:/progs_cygw/GMTdev/gmt5/trunk/';
 		GMT_PLOT_DIR = 'V:/';		% Set this if you want to save the PS files in a prticular place
 	end
-
 	% Check if any of the input args is a logical, if yes set verbose to true.
 	verbose = false;
 	c = false(1, numel(varargin));
@@ -60,7 +55,7 @@ function  [ps_, t_path_] = gallery(varargin)
 	all_exs = {'ex01' 'ex02' 'ex04' 'ex05' 'ex06' 'ex07' 'ex08' 'ex09' 'ex10' 'ex12' 'ex13' 'ex14' ...
 		'ex15' 'ex16' 'ex17' 'ex18' 'ex19' 'ex20' 'ex21' 'ex22' 'ex23' 'ex24' 'ex25' 'ex26' 'ex27' 'ex28' ...
 		'ex29' 'ex30' 'ex32' 'ex33' 'ex34' 'ex35' 'ex36' 'ex37' 'ex38' 'ex39' 'ex40' 'ex41' 'ex42' ...
-		'ex44' 'ex45'}; 
+		'ex44' 'ex45' 'ex46'}; 
 
 	if (n_args == 0 || isempty(varargin{1}))
 		opt = all_exs;
@@ -306,18 +301,14 @@ function [ps, d_path] = ex04(g_root_dir, out_path, verbose)
 
 	gmt('set -Du')
 	gmt('destroy')
-	fid = fopen('zero.cpt','w');
-	fprintf(fid, '%s\n', '-10  255   0  255');
-	fprintf(fid, '%s\n', '  0  100  10  100');
-	fclose(fid);
+	C = gmt ('makecpt -C255,100 -T-10/10/10 -N');
 
 	cmd = sprintf('grdcontour %sHI_geoid4.nc', d_path);
 	gmt([cmd ' -R195/210/18/25 -Jm0.45i -p60/30 -C1 -A5+o -Gd4i -K -P -X1.25i -Y1.25i > ' ps])
 	gmt(['pscoast -R -J -p -B2 -BNEsw -Gblack -O -K -TdjBR+o0.1i+w1i+l >> ' ps])
-	gmt([sprintf('grdview %s/HI_topo4.nc', d_path) ' -R195/210/18/25/-6/4 -J -Jz0.34i -p -Czero.cpt -O -K ' ...
-		' -N-6+glightgray -Qsm -B2 -Bz2+l"Topo (km)" -BneswZ -Y2.2i >> ' ps])
+	gmt([sprintf('grdview %s/HI_topo4.nc', d_path) ' -R195/210/18/25/-6/4 -J -Jz0.34i -p -C -O -K ' ...
+		' -N-6+glightgray -Qsm -B2 -Bz2+l"Topo (km)" -BneswZ -Y2.2i >> ' ps], C)
 	gmt(['pstext -R0/10/0/10 -Jx1i -F+f60p,ZapfChancery-MediumItalic+jCB -O >> ' ps], {'3.25 5.75 H@#awaiian@# R@#idge@#'})
-	builtin('delete','zero.cpt');
 
 	ps = [out_path 'example_04c.ps'];
 	Gg_intens = gmt(['grdgradient ' d_path 'HI_geoid4.nc -A0 -Nt0.75 -fg']);
@@ -342,15 +333,12 @@ function [ps, d_path] = ex05(g_root_dir, out_path, verbose)
 	gmt('set -Du')
 	gmt('destroy')
 	Gsombrero = gmt('grdmath -R-15/15/-15/15 -I0.3 X Y HYPOT DUP 2 MUL PI MUL 8 DIV COS EXCH NEG 10 DIV EXP MUL =');
-	fid = fopen('gray.cpt','w');
-	fprintf(fid, '%s\n', '-5 128 5 128');
-	fclose(fid);
+	C = gmt('makecpt -C128 -T-5,5 -N');
 	Gintensity = gmt('grdgradient -A225 -Nt0.75', Gsombrero);
 	gmt(['grdview -JX6i -JZ2i -B5 -Bz0.5 -BSEwnZ -N-1+gwhite -Qs -I -X1.5i' ...
-		' -Cgray.cpt -R-15/15/-15/15/-1/1 -K -p120/30 > ' ps], Gsombrero, Gintensity)
+		' -C -R-15/15/-15/15/-1/1 -K -p120/30 > ' ps], Gsombrero, Gintensity, C)
 	gmt(['pstext -R0/11/0/8.5 -Jx1i -F+f50p,ZapfChancery-MediumItalic+jBC -O >> ' ps], ...
 		{'4.1 5.5 z(r) = cos (2@~p@~r/8) @~\327@~e@+-r/10@+'})
-	builtin('delete','gray.cpt');
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
@@ -712,9 +700,9 @@ function [ps, d_path] = ex17(g_root_dir, out_path, verbose)
 	gmt(['pscoast -R' d_path 'india_geoid.nc -J -O -K -Dl -Gc >> ' ps])
 
 	% Now generate topography image w/shading
-	fid = fopen('gray.cpt','w');	fprintf(fid, '%s\n', '-10000 150 10000 150');	fclose(fid);
+	C = gmt('makecpt -C150 -T-10000,10000 -N');
 	Gindia_topo_i = gmt(['grdgradient ' d_path 'india_topo.nc -Nt1 -A45 -G']);
-	gmt(['grdimage ' d_path 'india_topo.nc -I -J -Cgray.cpt -O -K >> ' ps], Gindia_topo_i)
+	gmt(['grdimage ' d_path 'india_topo.nc -I -J -C -O -K >> ' ps], Gindia_topo_i, C)
 
 	% Finally undo clipping and overlay basemap
 	gmt(['pscoast -R -J -O -K -Q -B10f5 -B+t"Clipping of Images" >> ' ps])
@@ -728,7 +716,6 @@ function [ps, d_path] = ex17(g_root_dir, out_path, verbose)
 		'for the entire region, followed by a gray-shaded @#etopo5@#' ...
 		'image that is clipped so it is only visible inside the coastlines.'};
 	gmt(['pstext -R -J -O -M -Gwhite -Wthinner -TO -D-0.1i/0.1i -F+f12,Times-Roman+jRB >> ' ps], t)
-	builtin('delete','gray.cpt');
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
@@ -787,9 +774,10 @@ function [ps, d_path] = ex18(g_root_dir, out_path, verbose)
 	volume = gmt('grdvolume -C50 -Sk', Gtmp); % | cut -f3`
 
 	gmt(['pstext -R -J -O -M -Gwhite -Wthin -Dj0.3i -F+f14p,Helvetica-Bold+jLB -C0.1i >> ' ps], ...
- 		{sprintf('Volumes: %.0f mGal\264km@+2@+', volume.data(3))
- 		''
-		sprintf('Areas: %.2f km@+2@+', area.data(2))})
+ 		{'> -149 52.5 14p 2.6i j'
+		 sprintf('Volumes: %.0f mGal\264km@+2@+', volume.data(3))
+ 		 ''
+		 sprintf('Areas: %.2f km@+2@+', area.data(2))})
 	builtin('delete', 'sm_*.txt')
 	builtin('delete','gmt.conf');
 
@@ -804,9 +792,9 @@ function [ps, d_path] = ex19(g_root_dir, out_path, verbose)
 	gmt('destroy')
 	Glat = gmt('grdmath -Rd -I1 -r Y COSD 2 POW =');
 	Glon = gmt('grdmath -Rd -I1 -r X =');
-	fid = fopen('lat.cpt','w');		fprintf(fid, '0 white 1 blue\n');	fclose(fid);
+	Clat = gmt('makecpt -Cwhite,blue -T0,1 -Z -N');
 	lon_cpt = gmt('makecpt -Crainbow -T-180/180');
-	gmt(['grdimage -JI0/6.5i -Clat.cpt -P -K -Y7.5i -B0 -nl > ' ps], Glat)
+	gmt(['grdimage -JI0/6.5i -C -P -K -Y7.5i -B0 -nl > ' ps], Glat, Clat)
 	gmt(['pscoast -R -J -O -K -Dc -A5000 -Gc >> ' ps])
 	gmt(['grdimage -J -C -O -K -nl >> ' ps], Glon, lon_cpt)
 	gmt(['pscoast -R -J -O -K -Q >> ' ps])
@@ -824,13 +812,12 @@ function [ps, d_path] = ex19(g_root_dir, out_path, verbose)
 	% Finally repeat 1st plot but exchange the patterns
 	gmt(['grdimage -J -C -O -K -Y-3.25i -B0 -nl >> ' ps], Glon, lon_cpt)
 	gmt(['pscoast -R -J -O -K -Dc -A5000 -Gc >> ' ps])
-	gmt(['grdimage -J -Clat.cpt -O -K -nl >> ' ps], Glat)
+	gmt(['grdimage -J -C -O -K -nl >> ' ps], Glat, Clat)
 	gmt(['pscoast -R -J -O -K -Q >> ' ps])
 	gmt(['pscoast -R -J -O -K -Dc -A5000 -Wthinnest >> ' ps])
 	gmt(['pstext -R -J -O -K -F+f32p,Helvetica-Bold,red=thinner >> ' ps], {'0 20 13TH INTERNATIONAL'})
 	gmt(['pstext -R -J -O -K -F+f32p,Helvetica-Bold,red=thinner >> ' ps], {'0 -10 GMT CONFERENCE'})
 	gmt(['pstext -R -J -O -F+f18p,Helvetica-Bold,green=thinnest >> ' ps], {'0 -30 Honolulu, Hawaii, April 1, 2017'})
-	builtin('delete','lat.cpt');
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
@@ -984,18 +971,14 @@ function [ps, d_path] = ex22(g_root_dir, out_path, verbose)
 
 	% Create standard seismicity color table
 
-	fid = fopen('neis.cpt','w');
-	fprintf(fid, '0	red	100	red\n');
-	fprintf(fid, '100	green	300	green\n');
-	fprintf(fid, '300	blue	10000	blue\n');
-	fclose(fid);
+	neis = gmt('makecpt -Cred,green,blue -T0,100,300,10000 -N');
 
 	% Start plotting. First lay down map, then plot quakes with size = magintude/50":
 
 	gmt(['pscoast -Rg -JK180/9i -B45g30 -B+t"World-wide earthquake activity" -Gbrown -Slightblue -Dc -A1000 -K -Y2.75i > ' ps])
 	%gawk -F, "{ print $4, $3, $6, $5*0.02}" neic_quakes.txt |
 	t = gmt(['gmtconvert -h ' d_path 'neic_quakes.txt -i3,2,5,4']);
-	gmt(['psxy -R -JK -O -K -Cneis.cpt -Sci -Wthin >> ' ps], [t.data(:,1:3) t.data(:,4)*0.02])
+	gmt(['psxy -R -JK -O -K -C -Sci -Wthin >> ' ps], [t.data(:,1:3) t.data(:,4)*0.02], neis)
 
 	% Create legend input file for NEIS quake plot
 	neis_legend = ...
@@ -1036,7 +1019,7 @@ function [ps, d_path] = ex22(g_root_dir, out_path, verbose)
 	% OK, now we can actually run gmt pslegend.  We center the legend below the map.
 	% Trial and error shows that 1.7i is a good legend height:
 	gmt(['pslegend -DJBC+o0/0.4i+w7i/1.7i -R -J -O -F+p+glightyellow >> ' ps], neis_legend)
-	builtin('delete','gmt.conf', 'neis.cpt');
+	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
 function [ps, d_path] = ex23(g_root_dir, out_path, verbose)
@@ -1150,15 +1133,11 @@ function [ps, d_path] = ex25(g_root_dir, out_path, verbose)
 	mixed = gmt('gmtmath -bi1f -Ca -S ? SUM UPPER RINT =', key);
  
  	% Generate corresponding color table
-	fid = fopen('key.cpt','w');
-	fprintf(fid, '-1.5\tblue\t-0.5\tblue\n');
-	fprintf(fid, '-0.5\tgray\t0.5\tgray\n');
-	fprintf(fid, '0.5\tred\t1.5\tred\n');
-	fclose(fid);
+	Ckey = gmt('makecpt -Cblue,gray,red -T-1.5/1.5/1 -N');
 
  	% Create the final plot and overlay coastlines
 	gmt('set FONT_ANNOT_PRIMARY +10p FORMAT_GEO_MAP dddF PROJ_LENGTH_UNIT inch PS_CHAR_ENCODING Standard+ PS_MEDIA letter');
-	gmt(['grdimage -JKs180/9i -Bx60 -By30 -BWsNE+t"Antipodal comparisons" -K -Ckey.cpt -Y1.2i -nn > ' ps], Gkey)
+	gmt(['grdimage -JKs180/9i -Bx60 -By30 -BWsNE+t"Antipodal comparisons" -K -C -Y1.2i -nn > ' ps], Gkey, Ckey)
 	gmt(['pscoast -R -J -O -K -Wthinnest -Dc -A500 >> ' ps])
 	% Place an explanatory legend below
 	gmt(['pslegend -R -J -O -DJBC+w6i -Y-0.2i -F+pthick >> ' ps], { ...
@@ -1166,7 +1145,7 @@ function [ps, d_path] = ex25(g_root_dir, out_path, verbose)
 		sprintf('S 0.15i s 0.2i red  0.25p 0.3i Terrestrial Antipodes [%d %%]', land.data)
 		sprintf('S 0.15i s 0.2i blue 0.25p 0.3i Oceanic Antipodes [%d %%]', ocean.data)
 		sprintf('S 0.15i s 0.2i gray 0.25p 0.3i Mixed Antipodes [%d %%]', mixed.data)})
-	builtin('delete','gmt.conf', 'key.cpt');
+	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
 function [ps, d_path] = ex26(g_root_dir, out_path, verbose)
@@ -1394,18 +1373,15 @@ function [ps, d_path] = ex32(g_root_dir, out_path, verbose)
 
 	% The color map assigns "Reflex Blue" to the lower half of the 0-255 range and
 	% "Yellow" to the upper half.
-	fid = fopen('euflag.cpt','w');
-	fprintf(fid, '0\t0/51/153\t127\t0/51/153\n');
-	fprintf(fid, '127\t255/204/0\t255\t255/204/0\n');
-	fclose(fid);
-
+	Cflag = gmt('makecpt -C0/51/153,255/204/0 -T0,127,255 -N');
+	
 	% The next step is the plotting of the image.
 	% We use gmt grdview to plot the topography, euflag.nc to give the color, and illum.nc to give
 	% the shading.
 
 	Rplot = [Rflag '/-10/790'];
-	gmt(['grdview ' d_path 'topo.nc -JM13c ' Rplot ' -Ceuflag.cpt -G' d_path 'euflag.nc' ...
-		' -I -Qc -JZ1c -p157.5/30 -P -K > ' ps], Gillum)
+	gmt(['grdview ' d_path 'topo.nc -JM13c ' Rplot ' -C -G' d_path 'euflag.nc' ...
+		' -I -Qc -JZ1c -p157.5/30 -P -K > ' ps], Cflag, Gillum)
 
 	% We now add borders. Because we have a 3-D plot, we want them to be plotted "at elevation".
 	% So we write out the borders, pipe them through grdtack and then plot them with psxyz.
@@ -1424,7 +1400,7 @@ function [ps, d_path] = ex32(g_root_dir, out_path, verbose)
 	d = gmt(['grdtrack -G' d_path 'topo.nc cities.txt']); 
 	gmt(['psxyz -i0,1,3 ' Rplot ' -J -JZ -p -Sc7p -W1p,white -Gred -K -O >> ' ps], d)
 	gmt(['pstext ' Rplot ' -J -JZ -p -F+f12p,Helvetica-Bold,red+jRM -Dj0.1i/0.0i -O cities.txt >> ' ps])
-	builtin('delete','cities.txt', 'euflag.cpt');
+	builtin('delete','cities.txt');
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------

@@ -4,7 +4,7 @@ function run_tests(what)
 %      or a single example. e.g. run_tests('ex02')
 
 	if (strcmp(what, 'all_examples'))
-		for (k = 1:45)
+		for (k = 1:46)
 			ex = sprintf('ex%.2d', k);
 			gmtest(ex)
 		end
