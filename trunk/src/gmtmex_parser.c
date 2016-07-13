@@ -399,7 +399,7 @@ void *GMTMEX_Get_Postscript (void *API, struct GMT_POSTSCRIPT *P) {
 
 void *GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C) {
 	/* Given a GMT GMT_PALETTE C, build a MATLAB structure and assign values.
-	 * Each segment will have 9 items:
+	 * Each segment will have 10 items:
 	 * colormap:	Nx3 array of colors usable in Matlab' colormap
 	 * alpha:	Nx1 array with transparency values
 	 * range:	Nx1 arran with z-values at color changes
@@ -408,6 +408,7 @@ void *GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C) {
 	 * depth	Color depth 24, 8, 1
 	 * hinge:	Z-value at discontinuous color break, or NaN
 	 * cpt:		Nx6 full GMT CPT array
+	 * model:	String with color model rgb, hsv, or cmyk [rgb]
 	 * comment:	Cell array with any comments
 	 *
 	 * Limitation: MATLAB's colormap format can either hold discrete
@@ -435,7 +436,8 @@ void *GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C) {
 	mxptr[5] = mxCreateNumericMatrix (1, 1, mxUINT32_CLASS, mxREAL);
 	mxptr[6] = mxCreateNumericMatrix (1, 1, mxDOUBLE_CLASS, mxREAL);
 	mxptr[7] = mxCreateNumericMatrix (C->n_colors, 6, mxDOUBLE_CLASS, mxREAL);
-	mxptr[8] = mxCreateCellMatrix (C->n_headers, C->n_headers ? 1 : 0);
+	mxptr[8] = NULL;	/* Set below */
+	mxptr[9] = mxCreateCellMatrix (C->n_headers, C->n_headers ? 1 : 0);
 	
 	color    = mxGetPr (mxptr[0]);
 	alpha    = mxGetPr (mxptr[1]);
@@ -467,10 +469,16 @@ void *GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C) {
 	if (C->n_headers) {
 		for (k = 0; k < C->n_headers; k++) {
 			mxstring = mxCreateString (C->header[k]);
-			mxSetCell (mxptr[8], (int)k, mxstring);
+			mxSetCell (mxptr[9], (int)k, mxstring);
 		}
 	}
-	
+	if (C->model & GMT_HSV)
+		mxptr[8] = mxCreateString ("hsv");
+	else if (C->model & GMT_CMYK)
+		mxptr[8] = mxCreateString ("cmyk");
+	else
+		mxptr[8] = mxCreateString ("rgb");
+
 	for (k = 0; k < N_MEX_FIELDNAMES_CPT; k++)	/* Update all fields */
 		mxSetField (C_struct, 0, GMTMEX_fieldname_cpt[k], mxptr[k]);
 	return (C_struct);
@@ -1149,6 +1157,7 @@ static struct GMT_PALETTE *gmtmex_cpt_init (void *API, unsigned int direction, u
 		unsigned int k, j, one = 1, n_headers, *depth = NULL;
 		uint64_t dim[2] = {0, 0};
 		unsigned int flag = (module_input) ? GMT_VIA_MODULE_INPUT : 0;
+		char model[8] = {""};
 		mxArray *mx_ptr[N_MEX_FIELDNAMES_CPT];
 		double *colormap = NULL, *range = NULL, *minmax = NULL, *alpha = NULL, *bfn = NULL, *hinge = NULL, *cpt = NULL;
 
@@ -1184,11 +1193,11 @@ static struct GMT_PALETTE *gmtmex_cpt_init (void *API, unsigned int direction, u
 		if ((P = GMT_Create_Data (API, GMT_IS_PALETTE|flag, GMT_IS_NONE, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
 			mexErrMsgTxt ("gmtmex_cpt_init: Failure to alloc GMT source CPT for input\n");
 
-		if ((n_headers = (unsigned int)mxGetM (mx_ptr[8])) != 0) {	/* Number of headers found */
+		if ((n_headers = (unsigned int)mxGetM (mx_ptr[9])) != 0) {	/* Number of headers found */
 			char *txt = NULL;
 			mxArray *ptr = NULL;
 			for (k = 0; k < n_headers; k++) {
-				ptr = mxGetCell (mx_ptr[8], (mwSize)k);
+				ptr = mxGetCell (mx_ptr[9], (mwSize)k);
 				txt = mxArrayToString (ptr);
 				if (GMT_Set_Comment (API, GMT_IS_PALETTE, GMT_COMMENT_IS_TEXT, txt, P))
 					mexErrMsgTxt("gmtmex_cpt_init: Failed to set a CPT header\n");
@@ -1220,6 +1229,13 @@ static struct GMT_PALETTE *gmtmex_cpt_init (void *API, unsigned int direction, u
 			P->has_hinge = 1;
 			P->mode &= GMT_CPT_HINGED;
 		}
+		mxGetString (mx_ptr[8], model, (mwSize)mxGetN(mx_ptr[8])+1);
+		if (!strncmp (model, "hsv", 3U))
+			P->model = GMT_HSV;
+		else if (!strncmp (model, "cmyk", 4U))
+			P->model = GMT_CMYK;
+		else
+			P->model = GMT_RGB;
 	}
 	else {	/* Just allocate an empty container to hold an output grid (signal this by passing 0s and NULLs) */
 		if ((P = GMT_Create_Data (API, GMT_IS_PALETTE, GMT_IS_NONE, 0, NULL, NULL, NULL, 0, 0, NULL)) == NULL)

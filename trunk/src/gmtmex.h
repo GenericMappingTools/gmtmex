@@ -146,9 +146,9 @@ static const char *GMTMEX_fieldname_image[N_MEX_FIELDNAMES_IMAGE] =
  * Returned by GMT via the parser as a MEX structure with the
  * fields listed below.  */
 
-#define N_MEX_FIELDNAMES_CPT	9
+#define N_MEX_FIELDNAMES_CPT	10
 static const char *GMTMEX_fieldname_cpt[N_MEX_FIELDNAMES_CPT] =
-	{"colormap", "alpha", "range", "minmax", "bfn", "depth", "hinge", "cpt", "comment"};
+	{"colormap", "alpha", "range", "minmax", "bfn", "depth", "hinge", "cpt", "model", "comment"};
 	
 /* GMT_IS_POSTSCRIPT:
  * Returned by GMT via the parser as a MEX structure with the

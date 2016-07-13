@@ -12,21 +12,18 @@ function out = gmtest(test, test_dir, family)
 
 %	$Id$
 
-	global g_root_dir out_path;
+	%global g_root_dir out_path;
 	% Edit those two for your own needs
-	%g_root_dir = '/Users/pwessel/GMTdev/gmt5-dev/trunk/';
-	%out_path = '/Users/pwessel/GMTdev/gmt-mex/trunk/src/test/';		% Set this if you want to save the PS files in a prticular place
-	%GRAPHICSMAGICK = '/opt/local/bin/gm';
-	g_root_dir = 'C:/progs_cygw/GMTdev/gmt5/trunk/';
-	out_path = 'V:/';		% Set this if you want to save the PS files in a prticular place
-	GRAPHICSMAGICK = 'C:/programs/GraphicsMagick/gm.exe';
+	%GMT_ROOT_DIR = 'C:/progs_cygw/GMTdev/gmt5/branches/5.2.0/';
+	%GMT_PLOT_DIR = 'V:/';		% Set this if you want to save the PS files in a prticular place
+	%GMT_GM_EXE  = 'C:/programs/GraphicsMagick/gm.exe';
 
 	if (nargin < 3),	family = '';	end
 
 	if ((nargin == 1) && (numel(test) == 4) && strncmp(test, 'ex', 2))	% Run example from gallery
-		[ps, orig_path] = gallery(test, g_root_dir, out_path);
+		[ps, orig_path] = gallery(test, GMT_ROOT_DIR, GMT_PLOT_DIR);
 	else
-		[ps, orig_path] = call_test(test, test_dir, g_root_dir, out_path, family);
+		[ps, orig_path] = call_test(test, test_dir, GMT_ROOT_DIR, GMT_PLOT_DIR, family);
 		if (isa(ps, 'logical'))		% In this cases we have no PS files but only an error status from function
 			if (ps),		disp(['Test ' test ' PASS'])
 			else			disp(['Test ' test ' FAIL'])
@@ -44,7 +41,7 @@ function out = gmtest(test, test_dir, family)
 	ps_orig  = [orig_path fname '.ps'];
 
 	% Compare the ps file with its original.
-	cmd = [GRAPHICSMAGICK ' compare -density 200 -maximum-error 0.001 -highlight-color magenta -highlight-style' ...
+	cmd = [GMT_GM_EXE ' compare -density 200 -maximum-error 0.001 -highlight-color magenta -highlight-style' ...
 		' assign -metric rmse -file ' png_name ' ' ps_orig ' ' ps];
 	[status, cmdout] = system(cmd);
 	
@@ -55,7 +52,7 @@ function out = gmtest(test, test_dir, family)
 			ind = strfind(t, 'image');
 			disp(['Test ' test ' FAIL with: ' t(ind:end)])
 		else
-			disp(['GRAPHICSMAGICK failed to run test: ' test])
+			disp(['GMT_GM_EXE failed to run test: ' test])
 			disp(cmdout)
 		end
 	else

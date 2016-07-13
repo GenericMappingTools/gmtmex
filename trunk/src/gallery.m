@@ -16,9 +16,9 @@ function  [ps_, t_path_] = gallery(varargin)
 % If the last argin is a logical variable that the examples are run in verbose mode
 %
 % Examples:
-%	gallery([], true)			Run all examples in verbose mode and use JL's paths
-%	gallery('ex03', true)		Run example3 in verbose mode and use JL's paths
-%   gallery([], '/user/PW_GMT_location/', true)		Run all examples in verbose mode and set GMT location
+%	gallery([], true)		Run all examples in verbose mode and use GMT_{ROOT|PLOT}_DIR paths
+%	gallery('ex03', true)		Run example3 in verbose mode and use GMT_{ROOT|PLOT}_DIR paths
+%	gallery([], '/user/PW_GMT_location/', true)	Run all examples in verbose mode and set GMT_ROOT_DIR location
 
 %	$Id$
 
@@ -48,8 +48,8 @@ function  [ps_, t_path_] = gallery(varargin)
 		end
 	else
 		% Edit those two for your own needs
-		g_root_dir = 'C:/progs_cygw/GMTdev/gmt5/trunk/';
-		out_path = 'V:/';		% Set this if you want to save the PS files in a particular place
+		g_root_dir = GMT_ROOT_DIR;
+		out_path = GMT_PLOT_DIR;		% Set this if you want to save the PS files in a particular place
 	end
 
 	ps = [];	t_path = [];	% Defaults for the case we have an error
@@ -227,13 +227,13 @@ function [ps, d_path] = ex03(g_root_dir, out_path, verbose)
 	% data, we use a median filter to clean up the ship values.  We will want to use "paste"
 	% to put the two sampled data sets together, so they must start and end at the same
 	% point, without NaNs.  So we want to get a starting and ending point which works for
-	% both of them.  This is a job for gmt gmtmath UPPER/LOWER.
+	% both of them.  We use ceil/floor and min/max for that.
 
-	sampr1 = gmt('gmtmath ? -Ca -Sf -o0 UPPER CEIL =',  [ship_pg(1,:); sat_pg(1,:)]);
-	sampr2 = gmt('gmtmath ? -Ca -Sf -o0 LOWER FLOOR =', [ship_pg(end,:); sat_pg(end,:)]);
+	sampr1 = max([ceil(ship_pg(1,1))    ceil(sat_pg(1,1))]);
+	sampr2 = min([floor(ship_pg(end,1)) floor(sat_pg(end,1))]);
 	
 	% Now we can use sampr1|2 in gmt gmtmath to make a sampling points file for gmt sample1d:
-	samp_x = gmt(['gmtmath ' sprintf('-T%d/%d/1', sampr1.data(1), sampr2.data(1)) ' -N1/0 T =']);
+	samp_x = gmt(['gmtmath ' sprintf('-T%d/%d/1', sampr1, sampr2) ' -N1/0 T =']);
 
 	% Now we can resample the gmt projected satellite data:
 	samp_sat_pg = gmt('sample1d -N', sat_pg, samp_x);
@@ -241,7 +241,7 @@ function [ps, d_path] = ex03(g_root_dir, out_path, verbose)
 	% For reasons above, we use gmt filter1d to pre-treat the ship data.  We also need to sample
 	% it because of the gaps > 1 km we found.  So we use gmt filter1d | gmt sample1d.  We also
 	% use the -E on gmt filter1d to use the data all the way out to sampr1/sampr2 :
-	t = gmt(['filter1d -Fm1 ' sprintf('-T%d/%d/1', sampr1.data(1), sampr2.data(1)) ' -E'], ship_pg); 
+	t = gmt(['filter1d -Fm1 ' sprintf('-T%d/%d/1', sampr1, sampr2) ' -E'], ship_pg); 
 	samp_ship_pg = gmt('sample1d -N', t, samp_x);
 
 	ps = [out_path 'example_03c.ps'];
@@ -259,27 +259,22 @@ function [ps, d_path] = ex03(g_root_dir, out_path, verbose)
  
 	% Now we want to plot the spectra. The following commands will plot the ship and sat 
 	% power in one diagram and the coherency on another diagram, both on the same page.  
-	% Note the extended use of gmt pstext and gmt psxy to put labels and legends directly on the
-	% plots. For that purpose we often use -Jx1i and specify positions in inches directly:
+ 	% We end by adding a map legends and some labels on the plots.
+	% For that purpose we often use -Jx1i and specify positions in inches directly:
 
 	ps = [out_path 'example_03.ps'];	ps_out = ps;
 	gmt(['psxy -Bxa1f3p+l"Wavelength (km)" -Bya0.25f0.05+l"Coherency@+2@+" -BWeSn+g240/255/240' ...
 		' -JX-4il/3.75i -R1/1000/0/1 -P -K -X2.5i -Sc0.07i -Gpurple -Ey/0.5p -Y1.5i > ' ps], spects.data(:,[1 16 17]))
 
-	gmt(['pstext -R0/4/0/3.75 -Jx1i -F+f18p,Helvetica-Bold+jTR -O -K >> ' ps], {'3.85 3.6 Coherency@+2@+'})
+	gmt(['pstext -R -J -F+cTR+f18p,Helvetica-Bold -Dj0.1i -O -K >> ' ps], {'Coherency@+2@+'})
 	gmt(['psxy -Bxa1f3p -Bya1f3p+l"Power (mGal@+2@+km)" -BWeSn+t"Ship and Satellite Gravity"+g240/255/240' ...
 		' -Gred -ST0.07i -O -R1/1000/0.1/10000 -JX-4il/3.75il -Y4.2i -K -Ey/0.5p >> ' ps], spects.data(:,1:3))
 	gmt(['psxy -R -JX -O -K -Gblue -Sc0.07i -Ey/0.5p >> ' ps], spects.data(:,[1 4 5]))
-	gmt(['pstext -R0/4/0/3.75 -Jx -F+f18p,Helvetica-Bold+jTR -O -K >> ' ps], {'3.9 3.6 Input Power'})
-	gmt(['psxy -R -Jx -O -K -Gwhite -L -Wthicker >> ' ps], ...
-		[0.25 0.25
-		1.4  0.25
-		1.4  0.9
-		0.25 0.9])
-	gmt(['psxy   -R -Jx -O -K -ST0.07i -Gred >> ' ps], [0.4 0.7])
-	gmt(['pstext -R -Jx -F+f14p,Helvetica-Bold+jLM -O -K >> ' ps], {'0.5 0.7 Ship'})
-	gmt(['psxy   -R -Jx -O -K -Sc0.07i -Gblue >> ' ps], [0.4 0.4])
-	gmt(['pstext -R -Jx -F+f14p,Helvetica-Bold+jLM -O >> ' ps], {'0.5 0.4 Satellite'})
+	gmt(['pstext -R0/4/0/3.75 -Jx1i -F+cTR+f18p,Helvetica-Bold -Dj0.1i -O -K >> ' ps], {'Input Power'})
+	legend = {'S 0.1i T 0.07i red - 0.3i Ship',
+	   'S 0.1i c 0.07i blue - 0.3i Satellite'};
+	gmt(['pslegend -R -J -O -DjBL+w1.2i+o0.25i -F+gwhite+pthicker --FONT_ANNOT_PRIMARY=14p,Helvetica-Bold >> ' ps], legend)
+	
 
 	% Now we wonder if removing that large feature at 250 km would make any difference.
 	% We could throw away a section of data with $AWK or sed or head and tail, but we
