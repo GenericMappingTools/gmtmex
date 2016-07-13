@@ -152,6 +152,7 @@ function [ps, d_path] = ex02(g_root_dir, out_path, verbose)
 	ps = [out_path 'example_02.ps'];
 	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
+	gmt('destroy')
 	gmt('set FONT_TITLE 30p MAP_ANNOT_OBLIQUE 0 PROJ_LENGTH_UNIT inch PS_CHAR_ENCODING Standard+ PS_MEDIA letter')
 	g_cpt = gmt('makecpt -Crainbow -T-2/14/2');
 	gmt(['grdimage ' d_path 'HI_geoid2.nc -R160/20/220/30r -JOc190/25.5/292/69/4.5i -C' ...
@@ -295,6 +296,7 @@ function [ps, d_path] = ex03(g_root_dir, out_path, verbose)
 	R = gmt('gmtinfo -I100/1.1', samp_ship_xw);
 	R = R.text{1};
 	gmt(['psxy ' R ' -JX8i/1.1i -O -Y4.25i -Bxf100 -Bya0.5f0.1+l"Weight" -BWesn -Sp0.03i >> ' ps], samp_ship_xw)
+	builtin('delete','gmt.conf');
 
 	ps = ps_out;	% This the one we want to return
 
@@ -392,7 +394,7 @@ function [ps, d_path] = ex08(g_root_dir, out_path, verbose)
 	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
 	gmt('set -Du')
-	xyz = gmt(['grd2xyz ' d_path '/guinea_bay.nc']);
+	xyz = gmt(['grd2xyz ' d_path 'guinea_bay.nc']);
 	gmt(['psxyz -B1 -Bz1000+l"Topography (m)" -BWSneZ+b+tETOPO5' ...
 		' -R-0.1/5.1/-0.1/5.1/-5000/0 -JM5i -JZ6i -p200/30 -So0.0833333ub-5000 -P' ...
 		' -Wthinnest -Glightgreen -K > ' ps], xyz)
