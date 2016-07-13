@@ -12,7 +12,7 @@ function out = gmtest(test, test_dir, family)
 
 %	$Id$
 
-	%global g_root_dir out_path;
+	global GMT_ROOT_DIR GMT_PLOT_DIR GMT_GM_EXE
 	% Edit those two for your own needs
 	if (~exist('GMT_ROOT_DIR', 'var'))
 		GMT_ROOT_DIR = 'C:/progs_cygw/GMTdev/gmt5/trunk/';
