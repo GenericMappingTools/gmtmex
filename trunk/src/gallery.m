@@ -382,10 +382,8 @@ function [ps, d_path] = ex07(g_root_dir, out_path, verbose)
 	gmt(['psxy ' d_path '/quakes.xym -R -J -O -K -h1 -Sci -i0,1,2s0.01 -Gred -Wthinnest >> ' ps])
 	gmt(['psxy -R -J -O -K ' d_path '/isochron.xy -Wthin,blue >> ' ps])
 	gmt(['psxy -R -J -O -K ' d_path '/ridge.xy -Wthicker,orange >> ' ps])
-	gmt(['psxy -R -J -O -K -Gwhite -Wthick -A >> ' ps], [-14.5 15.2; -2 15.2; -2 17.8; -14.5 17.8])
-	gmt(['psxy -R -J -O -K -Gwhite -Wthinner -A >> ' ps], [-14.35 15.35; -2.15 15.35; -2.15 17.65; -14.35 17.65])
-	gmt(['psxy -R -J -O -K -Sc0.08i -Gred -Wthinner >> ' ps], [-13.5 16.5])
-	gmt(['pstext -R -J -F+f18p,Times-Italic+jLM -O -K >> ' ps], {'-12.5 16.5 ISC Earthquakes'})
+	gmt(['pslegend -R -J -O -K -DjTR+w2.2i+o0.2i -F+pthick+ithinner+gwhite --FONT_ANNOT_PRIMARY=18p,Times-Italic >> ' ps], ...
+		'S 0.1i c 0.08i red thinnest 0.3i ISC Earthquakes')
 	gmt(['pstext -R -J -O -F+f30,Helvetica-Bold,white=thin >> ' ps], {'-43 -5 SOUTH' '-43 -8 AMERICA' '-7 11 AFRICA'})
 	builtin('delete','gmt.conf');
 
