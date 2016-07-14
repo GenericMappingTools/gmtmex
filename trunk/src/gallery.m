@@ -78,10 +78,10 @@ function  [ps_, t_path_] = gallery(varargin)
 				case 'ex10',   [ps, t_path] = ex10(g_root_dir, out_path, verbose);
 				case 'ex11',   [ps, t_path] = ex11(g_root_dir, out_path, verbose);
 				case 'ex12',   [ps, t_path] = ex12(g_root_dir, out_path, verbose);
-				case 'ex13',   [ps, t_path] = ex13(g_root_dir, out_path, verbose);		% Have to call gmt('destroy') twice to PASS
-				case 'ex14',   [ps, t_path] = ex14(g_root_dir, out_path, verbose);
+				case 'ex13',   [ps, t_path] = ex13(g_root_dir, out_path, verbose);	% Have to call gmt('destroy') twice to PASS
+				case 'ex14',   [ps, t_path] = ex14(g_root_dir, out_path, verbose);	% Fails because 'grdtrack -G -o2,3' is not respected
 				case 'ex15',   [ps, t_path] = ex15(g_root_dir, out_path, verbose);
-				case 'ex16',   [ps, t_path] = ex16(g_root_dir, out_path, verbose);
+				case 'ex16',   [ps, t_path] = ex16(g_root_dir, out_path, verbose);	% Have to call gmt('destroy') twice to PASS
 				case 'ex17',   [ps, t_path] = ex17(g_root_dir, out_path, verbose);
 				case 'ex18',   [ps, t_path] = ex18(g_root_dir, out_path, verbose);
 				case 'ex19',   [ps, t_path] = ex19(g_root_dir, out_path, verbose);
@@ -679,6 +679,7 @@ function [ps, d_path] = ex16(g_root_dir, out_path, verbose)
 	Grawt = gmt(['triangulate ' d_path 'table_5.11 -G -R -I0.2']);
 	Gfiltered = gmt('grdfilter -G -D0 -Fc1', Grawt);
 	gmt(['grdview -R -J -B -C' d_path 'ex16.cpt -Qs -O -K -X3.5i >> ' ps], Gfiltered)
+	gmt('destroy')
 	gmt(['pstext -R -J -O -K -N -F+f18p,Times-Roman+jCB >> ' ps], {'3.25 7 triangulate @~\256@~ grdfilter'})
 	gmt(['pstext -R0/10/0/10 -Jx1i -O -K -N -F+f32p,Times-Roman+jCB -X-3.5i >> ' ps], {'3.2125 7.5 Gridding of Data'})
 	gmt(['psscale -Dx3.25i/0.35i+jTC+w5i/0.25i+h -C' d_path 'ex16.cpt -O -Y-0.75i >> ' ps])
@@ -918,7 +919,7 @@ function [ps, d_path] = ex21(g_root_dir, out_path, verbose)
 
 	% Again, plot close price as red line over yellow envelope of low/highs
 
-	gmt(['psxy -R -J -Gyellow -O -K >> ' ps], RHAT_env)
+	gmt(['psxy -R -J -Gyellow -O -K >> ' ps], RHAT_env(1).data)
 	gmt(['psxy -R -J ' d_path 'RHAT_price.csv -Wthin,red -O -K >> ' ps])
 
 	% Draw P Wessel's sales price as dashed line
@@ -1138,6 +1139,7 @@ function [ps, d_path] = ex25(g_root_dir, out_path, verbose)
 
  	% Create the final plot and overlay coastlines
 	gmt('set FONT_ANNOT_PRIMARY +10p FORMAT_GEO_MAP dddF PROJ_LENGTH_UNIT inch PS_CHAR_ENCODING Standard+ PS_MEDIA letter');
+	gmt('destroy')
 	gmt(['grdimage -JKs180/9i -Bx60 -By30 -BWsNE+t"Antipodal comparisons" -K -C -Y1.2i -nn > ' ps], Gkey, Ckey)
 	gmt(['pscoast -R -J -O -K -Wthinnest -Dc -A500 >> ' ps])
 	% Place an explanatory legend below
