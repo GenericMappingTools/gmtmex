@@ -14,7 +14,7 @@ function out = gmtest(test, test_dir, family)
 
 	global GMT_ROOT_DIR GMT_PLOT_DIR GMT_GM_EXE
 	% Edit those two for your own needs
-	if (~exist('GMT_ROOT_DIR', 'var'))
+	if (~exist('GMT_ROOT_DIR', 'var') || isempty(GMT_ROOT_DIR))
 		GMT_ROOT_DIR = 'C:/progs_cygw/GMTdev/gmt5/trunk/';
 		GMT_PLOT_DIR = 'V:/';		% Set this if you want to save the PS files in a prticular place
 		GMT_GM_EXE  = 'C:/programs/GraphicsMagick/gm.exe';
