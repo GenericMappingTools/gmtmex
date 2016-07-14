@@ -110,7 +110,7 @@ function  [ps_, t_path_] = gallery(varargin)
 				case 'ex42',   [ps, t_path] = ex42(g_root_dir, out_path, verbose);
 				case 'ex43',   [ps, t_path] = ex43(g_root_dir, out_path, verbose);	% Not yet
 				case 'ex44',   [ps, t_path] = ex44(g_root_dir, out_path, verbose);
-				case 'ex45',   [ps, t_path] = ex45(g_root_dir, out_path, verbose);
+				case 'ex45',   [ps, t_path] = ex45(g_root_dir, out_path, verbose);	% Have to call gmt('destroy') three times to PASS
 				case 'ex46',   [ps, t_path] = ex46(g_root_dir, out_path, verbose);
 			end
 			if (verbose)
@@ -1301,33 +1301,38 @@ function [ps, d_path] = ex30(g_root_dir, out_path, verbose)
 
 	 % Draw a circle and indicate the 0-70 degree angle
 	gmt(['psxy -R-1/1/-1/1 -Jx1.5i -O -K -X3.625i -Y2.75i -Sc2i -W1p -N >> ' ps], [0 0])
-	gmt(['psxy -R-1/1/-1/1 -J -O -K -W1p >> ' ps], ...
-		[
-		nan nan
-% 		> x-gridline  -Wdefault
-		-1 0
-		1 0
-		nan nan
-% 		> y-gridline  -Wdefault
-		0 -1
-		0 1
-		nan nan
-% 		> angle = 0
-		0 0
-		1 0
-		nan nan
-% 		> angle = 120
-		0 0
-		-0.5 0.866025
-		nan nan
-% 		> x-gmt projection -W2p
-		-0.3333	0
-		0	0
-		nan nan
-% 		> y-gmt projection -W2p
-		-0.3333 0.57735
-		-0.3333 0])
+	seg = {[-1 0; 1 0], [0 -1; 0 1], [0 0; 1 0], [0 0; -0.5 0.866025], [-0.3333	0; 0 0], [-0.3333 0.57735; -0.3333 0]};
+	hdr = {'x-gridline  -Wdefault', 'y-gridline  -Wdefault', 'angle = 0', 'angle = 120', 'x-gmt projection -W2p', 'y-gmt projection -W2p'};
+	D = gmt('wrapseg', seg, hdr);
+	gmt(['psxy -R-1/1/-1/1 -J -O -K -W1p >> ' ps], D)
+% 	gmt(['psxy -R-1/1/-1/1 -J -O -K -W1p >> ' ps], ...
+% 		[
+% 		nan nan
+% % 		> x-gridline  -Wdefault
+% 		-1 0
+% 		1 0
+% 		nan nan
+% % 		> y-gridline  -Wdefault
+% 		0 -1
+% 		0 1
+% 		nan nan
+% % 		> angle = 0
+% 		0 0
+% 		1 0
+% 		nan nan
+% % 		> angle = 120
+% 		0 0
+% 		-0.5 0.866025
+% 		nan nan
+% % 		> x-gmt projection -W2p
+% 		-0.3333	0
+% 		0	0
+% 		nan nan
+% % 		> y-gmt projection -W2p
+% 		-0.3333 0.57735
+% 		-0.3333 0])
 
+	gmt('destroy')
 	gmt(['pstext -R-1/1/-1/1 -J -O -K -Dj0.05i -F+f+a+j >> ' ps], ...
 		{'-0.16666 0 12p,Times-Roman 0 CT x'
 		 '-0.3333 0.2888675 12p,Times-Roman 0 RM y'
@@ -1626,17 +1631,15 @@ function [ps, d_path] = ex40(g_root_dir, out_path, verbose)
 	gmt('set -Du')
 	gmt('destroy')
 
-	centroid = [133.913549887	-22.9337944115	7592694.55567];
+	centroid = gmt(['spatial ' d_path 'GSHHS_h_Australia.txt -fg -Qk']);
 	gmt(['psbasemap -R112/154/-40/-10 -JM5.5i -P -K -B20 -BWSne+g240/255/240 -Xc > ' ps])
 	gmt(['psxy ' d_path 'GSHHS_h_Australia.txt -R -J -O -Wfaint -G240/240/255 -K >> ' ps])
 	gmt(['psxy ' d_path 'GSHHS_h_Australia.txt -R -J -O -Sc0.01c -Gred -K >> ' ps])
 	T500k = gmt(['gmtsimplify ' d_path 'GSHHS_h_Australia.txt -T500k']);
 	t = gmt(['gmtspatial ' d_path 'GSHHS_h_Australia.txt -fg -Qk']);
 	area = sprintf('Full area = %.0f km@+2@+\n', t.data(3));
-	%| awk '{printf "Full area = %.0f km@+2@+\n", $3}' > area.txt
 	t = gmt('gmtspatial -fg -Qk', T500k); 
 	area_T500k = sprintf('Reduced area = %.0f km@+2@+\n', t.data(3));
-	%| awk '{printf "Reduced area = %.0f km@+2@+\n", $3}' > area_T500k.txt
 	gmt(['psxy -R -J -O -K -W1p,blue >> ' ps], T500k)
 	gmt(['psxy -R -J -O -K -Sx0.3i -W3p >> ' ps], centroid)
 	gmt(['pstext -R -J -O -K -Dj0.1i/0.1i -F+jTL+f18p >> ' ps], {'112 -10 T = 500 km'})
@@ -1648,7 +1651,6 @@ function [ps, d_path] = ex40(g_root_dir, out_path, verbose)
 	T100k = gmt(['gmtsimplify ' d_path 'GSHHS_h_Australia.txt -T100k']);
 	t = gmt('gmtspatial -fg -Qk', T100k);
 	area_T100k = sprintf('Reduced area = %.0f km@+2@+\n', t.data(3));
-	%| awk '{printf "Reduced area = %.0f km@+2@+\n", $3}' > area_T100k.txt
 	gmt(['psxy -R -J -O -K -W1p,blue >> ' ps], T100k)
 	gmt(['psxy -R -J -O -K -Sx0.3i -W3p >> ' ps], centroid)
 	gmt(['pstext -R -J -O -K -Dj0.1i/0.1i -F+jTL+f18p >> ' ps], {'112 -10 T = 100 km'})
@@ -1773,11 +1775,13 @@ function [ps, d_path] = ex45(g_root_dir, out_path, verbose)
 	model = gmt(['trend1d -Fxmr ' d_path 'CO2.txt -Np2,f1+o1958+l1']);
 	gmt(['psxy -R -J -O -Bxaf -Byaf+u" ppm" -BWSne+gazure1 -Sc0.05c -Gred -K ' d_path 'CO2.txt -Y2.3i >> ' ps])
 	gmt(['psxy -R -J -O -K -W0.25p,blue >> ' ps], model)
+	gmt('destroy')
 	gmt(['pstext -R -J -O -K -F+f12p+cTL -Dj0.1i -Glightyellow >> ' ps], ...
 		{'m@-5@-(t) = a + b\264t + c\264t@+2@+ + d\264cos(2@~p@~t) + e\264sin(2@~p@~t)'})
 	% Plot residuals of last model
 	gmt(['psxy -R1958/2016/-4/4 -J -Bxaf -Byafg10+u" ppm" -BWSne+t"The Keeling Curve [CO@-2@- at Mauna Loa]"+gazure1' ...
 		' -Sc0.05c -Gred -O -K -i0,2 -Y2.3i >> ' ps], model)
+	gmt('destroy')
 	gmt(['pstext -R -J -O -F+f12p+cTL -Dj0.1i -Glightyellow >> ' ps], {'@~e@~(t) = y(t) - m@-5@-(t)'})
 	builtin('delete','gmt.conf');
 
