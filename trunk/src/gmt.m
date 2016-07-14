@@ -3,8 +3,8 @@ function varargout = gmt (cmd, varargin)
 %	$Id$
 
 	if (nargin == 0)
-		fprintf (sprintf(['\n\t\tGMT - The Generic Mapping Tools, Version 5.3 API\n']))
-		fprintf (sprintf(['Copyright 1991-2016 Paul Wessel, Walter H. F. Smith, R. Scharroo, J. Luis, and F. Wobbe\n\n']))
+		fprintf (sprintf('\n\t\tGMT - The Generic Mapping Tools, Version 5.3 API\n'))
+		fprintf (sprintf('Copyright 1991-2016 Paul Wessel, Walter H. F. Smith, R. Scharroo, J. Luis, and F. Wobbe\n\n'))
 	
 		fprintf (sprintf('Usage:\tTo call a GMT module:\n\t    output = gmt (''module_name'', ''options'', numeric_input)\n\n'))
 		fprintf (sprintf(['\tTo create a Grid structure from a 2-D Z array and a 1x9 header vector:\n\t' ...
@@ -14,6 +14,8 @@ function varargout = gmt (cmd, varargin)
 		                 '    I = gmt (''wrapimage'', img, header [, cmap])\n' ...
 						 '\theader is a vector with [x_min x_max, y_min y_max z_min z_max reg x_inc y_inc].\n' ...
 						 '\tcmap is an optional color palette structure or a Matlab Mx3 cmap array (not yet).\n\n']))
+		fprintf (sprintf(['\tTo create a structure for a multi-segment dataset:\n\t' ...
+		                 '    D = gmt (''wrapseg'', {[1 0; 1 1], [5 5; 56]}, {''Seg1'', ''Seg2''})\n\n']))
 		fprintf (sprintf(['\tTo join two color palette structures:\n\t' ...
 		                 '    cpt = gmt (''catcpt'', cpt1, cpt2)\n\n']))
 		fprintf (sprintf(['\tTo merge all data segments from an array of Data structures:\n\t' ...
@@ -22,7 +24,7 @@ function varargout = gmt (cmd, varargin)
 		return
 	end
 
-	if (strcmp(cmd,'wrapgrid') || strcmp(cmd,'wrapimage') || strcmp(cmd,'catcpt') || strncmp(cmd,'catseg',6))
+	if (strcmp(cmd,'wrapgrid') || strcmp(cmd,'wrapimage') || strcmp(cmd,'catcpt') || strncmp(cmd,'catseg',6) || strcmp(cmd,'wrapseg'))
 		[varargout{1:nargout}] = feval (cmd, varargin{:});
 	else
 		[varargout{1:nargout}] = gmtmex (cmd, varargin{:});
@@ -161,3 +163,63 @@ function I = wrapimage(img, head, cmap)
 	else
 		I.alpha = [];	
 	end
+
+% -------------------------------------------------------------------------------------------------
+function D = wrapseg(in, headers, text, comm, proj_s, wkt_s)
+% Fill the Dataset struct used in gmtmex.
+% IN -> A cell array of matrices where each matrix is a segment.
+% HEADERS, TEXT, COMM, PROJ_S & WKT_S are all optional and can either be empty, char strings or cell
+% arrays of text with the exact same size of input data IN which must also be a cell array (numeric).
+% HEADERS  -> multi-segment header info (a cell array of strings o a single text line)
+% TEXT     -> any text that may follow numeric columns (a cell array of strings or a single text line)
+% COMM     -> Commentary describing this datase (a text string)
+% PROJ_S   -> A text string with a PROJ4 projection string
+% WKT_S    -> A text string with a WKT projection string
+
+	if (nargin == 0),       error('Wrong number of input arguments'),	end
+	if (~isa(in, 'cell')),  error('Only cell arrays of matrices are accepted in first argument'),	end
+	if (~exist('headers', 'var') || isempty(headers)),  headers = cell(size(in));    end
+	if (~exist('text', 'var')    || isempty(text)),     text = cell(size(in));       end
+	if (~exist('comm', 'var')    || isempty(comm)),     comm = cell(size(in));       end
+	if (~exist('proj_s', 'var')  || isempty(proj_s)),   proj_s = cell(size(in));     end
+	if (~exist('wkt_s', 'var')   || isempty(wkt_s)),    wkt_s = cell(size(in));      end
+	if (isa(comm, 'char'))		% If allocated above this test is false
+		comment = cell(size(in));	comment{1} = comm;
+	else
+		comment = comm;
+	end
+	if (isa(proj_s, 'char'))
+		proj4 = cell(size(in));		proj4{1} = proj_s;
+	else
+		proj4 = proj_s;
+	end
+	if (isa(wkt_s, 'char'))
+		wkt = cell(size(in));		wkt{1} = wkt_s;
+	else
+		wkt = wkt_s;
+	end
+	if (~isequal(size(in), size(headers)) || ~isequal(size(headers), size(text)) || ~isequal(size(text), size(comm)) || ...
+			~isequal(size(comm), size(proj_s)) || ~isequal(size(proj_s), size(wkt_s)))
+		error('All cell arrays must be of the same size/shape. Can''t mix row and column cell vectors')
+	end
+	D = struct('data',in, 'header',headers, 'text',text, 'comment',comment, 'proj4',proj4, 'wkt',wkt);
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
