@@ -22,8 +22,8 @@ function  [ps_, t_path_] = gallery(varargin)
 
 %	$Id$
 
-	global GMT_ROOT_DIR GMT_PLOT_DIR GMT_GM_EXE
-	if (~exist('GMT_ROOT_DIR', 'var'))
+	global GMT_ROOT_DIR GMT_PLOT_DIR
+	if (~exist('GMT_ROOT_DIR', 'var') || isempty(GMT_ROOT_DIR))
 		GMT_ROOT_DIR = 'C:/progs_cygw/GMTdev/gmt5/trunk/';
 		GMT_PLOT_DIR = 'V:/';		% Set this if you want to save the PS files in a prticular place
 	end
@@ -78,7 +78,7 @@ function  [ps_, t_path_] = gallery(varargin)
 				case 'ex10',   [ps, t_path] = ex10(g_root_dir, out_path, verbose);
 				case 'ex11',   [ps, t_path] = ex11(g_root_dir, out_path, verbose);
 				case 'ex12',   [ps, t_path] = ex12(g_root_dir, out_path, verbose);
-				case 'ex13',   [ps, t_path] = ex13(g_root_dir, out_path, verbose);
+				case 'ex13',   [ps, t_path] = ex13(g_root_dir, out_path, verbose);		% Have to call gmt('destroy') twice to PASS
 				case 'ex14',   [ps, t_path] = ex14(g_root_dir, out_path, verbose);
 				case 'ex15',   [ps, t_path] = ex15(g_root_dir, out_path, verbose);
 				case 'ex16',   [ps, t_path] = ex16(g_root_dir, out_path, verbose);
@@ -579,6 +579,7 @@ function [ps, d_path] = ex13(g_root_dir, out_path, verbose)
 	gmt(['grdcontour -J -B -C0.05 -A0.1 -O -K -Gd2i -S4 -T+d0.1i/0.03i -Y3.45i >> ' ps], Gz)
 	gmt(['grdcontour -J -B -C0.05 -O -K -Gd2i -S4 -X3.45i >> ' ps], Gz)
 	gmt(['grdvector -I0.2 -J -O -K -Q0.1i+e+n0.25i -Gblack -W1p -S5i --MAP_VECTOR_SHAPE=0.5 >> ' ps], Gdzdx, Gdzdy)
+	gmt('destroy')
 	gmt(['pstext -R0/6/0/4.5 -Jx1i -F+f40p,Times-Italic+jCB -O -X-3.45i >> ' ps], ...
 		{'3.2 3.6 z(x,y) = x@~\327@~exp(-x@+2@+-y@+2@+)'})
 	builtin('delete','gmt.conf');
