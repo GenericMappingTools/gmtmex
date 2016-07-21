@@ -177,9 +177,10 @@ function [ps, d_path] = ex03(g_root_dir, out_path, verbose)
 	% First, we use "gmt fitcircle" to find the parameters of a great circle
 	% most closely fitting the x,y points in "sat.xyg":
 
-	report = gmt(['fitcircle ' d_path 'sat.xyg -L2']);
-	cposx = report.data(2,1);	cposy = report.data(2,2);
-	pposx = report.data(3,1);	pposy = report.data(3,2);
+	cpos = gmt(['fitcircle ' d_path 'sat.xyg -L2 -Fm']);
+	cposx = cpos.data(1,1);	cposy = cpos.data(1,2);
+	ppos = gmt(['fitcircle ' d_path 'sat.xyg -L2 -Fn']);
+	pposx = ppos.data(1,1);	pposy = ppos.data(1,2);
 
 	% Now we use "gmt project" to gmt project the data in both sat.xyg and ship.xyg
 	% into data.pg, where g is the same and p is the oblique longitude around
