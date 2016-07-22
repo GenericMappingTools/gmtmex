@@ -1,9 +1,9 @@
-function  [ps_, t_path_] = gallery(varargin)
+function  [ps_, t_path_] = gmt_gallery(varargin)
 %	The examples Gallery in GMT-MEX API
 %
-% gallery(OPT, R_DIR, O_PATH, VERBOSE)
+% gmt_gallery(OPT, R_DIR, O_PATH, VERBOSE)
 % or
-% [ps_, t_path_] = gallery(OPT, R_DIR, O_PATH, VERBOSE)
+% [ps_, t_path_] = gmt_gallery(OPT, R_DIR, O_PATH, VERBOSE)
 %
 % If R_DIR and O_PATH are not transmitted, the defaul value in this function is used (JL paths)
 % R_DIR is a string with the path to the root of your GMT installation. E.g.
@@ -16,9 +16,9 @@ function  [ps_, t_path_] = gallery(varargin)
 % If the last argin is a logical variable that the examples are run in verbose mode
 %
 % Examples:
-%	gallery([], true)           Run all examples in verbose mode and use GMT_{ROOT|PLOT}_DIR paths
-%	gallery('ex03', true)       Run example3 in verbose mode and use GMT_{ROOT|PLOT}_DIR paths
-%	gallery([], '/user/PW_GMT_location/', true)	Run all examples in verbose mode and set GMT_ROOT_DIR location
+%	gmt_gallery([], true)           Run all examples in verbose mode and use GMT_{ROOT|PLOT}_DIR paths
+%	gmt_gallery('ex03', true)       Run example3 in verbose mode and use GMT_{ROOT|PLOT}_DIR paths
+%	gmt_gallery([], '/user/PW_GMT_location/', true)	Run all examples in verbose mode and set GMT_ROOT_DIR location
 
 %	$Id$
 
