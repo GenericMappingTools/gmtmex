@@ -485,8 +485,8 @@ void *GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C) {
 }
 
 void *GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I) {
-	unsigned int k, row, col;
-	mwSize   dim[3], kk, m;
+	unsigned int k;
+	mwSize   dim[3];
 	uint8_t *u = NULL, *alpha = NULL;
 	double  *d = NULL, *I_x = NULL, *I_y = NULL, *x = NULL, *y = NULL, *color = NULL;
 	mxArray *I_struct = NULL, *mxptr[N_MEX_FIELDNAMES_IMAGE];
@@ -547,11 +547,7 @@ void *GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I) {
 		if (!strncmp(I->header->mem_layout, "TCBa", 4))
 			memcpy (u, I->data, 3 * I->header->nm * sizeof (uint8_t));
 		else if (!strncmp(I->header->mem_layout, "TRPa", 4)) {
-			kk = 0;
-			for (row = 0; row < I->header->n_rows; row++)
-				for (col = 0; col < I->header->n_columns; col++)
-					for (m = 0; m < 3; m++)
-						u[row + col*I->header->n_rows + m*I->header->nm] = (uint8_t)I->data[k++];
+			GMT_Change_Layout (API, GMT_IS_IMAGE, "TCB", 0, I, u);		/* Convert from TRP to TCB */
 			mxptr[16] = mxCreateString ("TCBa");	/* Because we just converted to it above */
 		}
 		if (I->alpha) {
