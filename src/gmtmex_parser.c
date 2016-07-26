@@ -485,8 +485,8 @@ void *GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C) {
 }
 
 void *GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I) {
-	unsigned int k;
-	mwSize   dim[3];
+	unsigned int k, row, col;
+	mwSize   dim[3], kk, m;
 	uint8_t *u = NULL, *alpha = NULL;
 	double  *d = NULL, *I_x = NULL, *I_y = NULL, *x = NULL, *y = NULL, *color = NULL;
 	mxArray *I_struct = NULL, *mxptr[N_MEX_FIELDNAMES_IMAGE];
@@ -544,12 +544,16 @@ void *GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I) {
 		dim[0] = I->header->n_rows;	dim[1] = I->header->n_columns; dim[2] = 3;
 		mxptr[0] = mxCreateNumericArray (3, dim, mxUINT8_CLASS, mxREAL);
 		u = mxGetData (mxptr[0]);
-		/*
-		for (k = 0; k < I->header->nm; k++)
-			for (m = 0; m < 3; m++)
-				u[k+m*I->header->nm] = (uint8_t)I->data[3*k+m];
-		*/
-		memcpy (u, I->data, 3 * I->header->nm * sizeof (uint8_t));
+		if (!strncmp(I->header->mem_layout, "TCBa", 4))
+			memcpy (u, I->data, 3 * I->header->nm * sizeof (uint8_t));
+		else if (!strncmp(I->header->mem_layout, "TRPa", 4)) {
+			kk = 0;
+			for (row = 0; row < I->header->n_rows; row++)
+				for (col = 0; col < I->header->n_columns; col++)
+					for (m = 0; m < 3; m++)
+						u[row + col*I->header->n_rows + m*I->header->nm] = (uint8_t)I->data[k++];
+			mxptr[16] = mxCreateString ("TCBa");	/* Because we just converted to it above */
+		}
 		if (I->alpha) {
 			mxptr[15] = mxCreateNumericMatrix (I->header->n_rows, I->header->n_columns, mxUINT8_CLASS, mxREAL);
 			alpha = mxGetData (mxptr[15]);
