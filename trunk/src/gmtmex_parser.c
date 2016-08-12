@@ -547,7 +547,7 @@ void *GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I) {
 		if (!strncmp(I->header->mem_layout, "TCBa", 4))
 			memcpy (u, I->data, 3 * I->header->nm * sizeof (uint8_t));
 		else if (!strncmp(I->header->mem_layout, "TRPa", 4)) {
-			GMT_Change_Layout (API, GMT_IS_IMAGE, "TCB", 0, I, u);		/* Convert from TRP to TCB */
+			GMT_Change_Layout (API, GMT_IS_IMAGE, "TCB", 0, I, u, alpha);		/* Convert from TRP to TCB */
 			mxptr[16] = mxCreateString ("TCBa");	/* Because we just converted to it above */
 		}
 		if (I->alpha) {
