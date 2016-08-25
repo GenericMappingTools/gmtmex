@@ -145,7 +145,7 @@ static void gmtmex_quit_if_missing (const char *function, const char *field) {
 	mexErrMsgTxt (buffer);
 }
 
-void *GMTMEX_Get_Grid (void *API, struct GMT_GRID *G) {
+static void *gmtmex_get_grid (void *API, struct GMT_GRID *G) {
 	/* Given an incoming GMT grid G, build a MATLAB structure and assign the output components.
  	 * Note: Incoming GMT grid has standard padding while MATLAB grid has none. */
 
@@ -156,7 +156,7 @@ void *GMTMEX_Get_Grid (void *API, struct GMT_GRID *G) {
 	mxArray *G_struct = NULL, *mxptr[N_MEX_FIELDNAMES_GRID];
 
 	if (!G->data)	/* Safety valve */
-		mexErrMsgTxt ("GMTMEX_Get_Grid: programming error, output matrix G is empty\n");
+		mexErrMsgTxt ("gmtmex_get_grid: programming error, output matrix G is empty\n");
 
 	/* Create a MATLAB struct to hold this grid [matrix will be a float (mxSINGLE_CLASS)]. */
 	G_struct = mxCreateStructMatrix (1, 1, N_MEX_FIELDNAMES_GRID, GMTMEX_fieldname_grid);
@@ -213,7 +213,7 @@ void *GMTMEX_Get_Grid (void *API, struct GMT_GRID *G) {
 	return (G_struct);
 }
 
-void *GMTMEX_Get_Dataset (void *API, struct GMT_DATASET *D) {
+static void *gmtmex_get_dataset (void *API, struct GMT_DATASET *D) {
 	/* Given a GMT DATASET D, build a MATLAB array of segment structure and assign values.
 	 * Each segment will have 6 items:
 	 * header:	Text string with the segment header (could be empty)
@@ -231,7 +231,7 @@ void *GMTMEX_Get_Dataset (void *API, struct GMT_DATASET *D) {
 	mxArray *D_struct = NULL, *mxheader = NULL, *mxdata = NULL, *mxtext = NULL, *mxstring = NULL;
 
 	if (D == NULL || D->n_records == 0)	/* Safety valve */
-		mexErrMsgTxt ("GMTMEX_Get_Dataset: programming error, output DATASET D is empty\n");
+		mexErrMsgTxt ("gmtmex_get_dataset: programming error, output DATASET D is empty\n");
 	
 	for (tbl = seg_out = 0; tbl < D->n_tables; tbl++)	/* Count non-zero segments */
 		for (seg = 0; seg < D->table[tbl]->n_segments; seg++)
@@ -281,7 +281,7 @@ int scan_to_start_of_text (char *text, uint64_t n_col) {
 	return k;
 }
 
-void *GMTMEX_Get_Textset (void *API, struct GMT_TEXTSET *T) {
+static void *gmtmex_get_textset (void *API, struct GMT_TEXTSET *T) {
 	/* Given a GMT GMT_TEXTSET T, build a MATLAB array of segment structure and assign values.
 	 * Each segment will have 6 items:
 	 * header:	Text string with the segment header (could be empty)
@@ -302,7 +302,7 @@ void *GMTMEX_Get_Textset (void *API, struct GMT_TEXTSET *T) {
 	mxArray *D_struct = NULL, *mxheader = NULL, *mxdata = NULL, *mxtext = NULL, *mxstring = NULL;
 
 	if (T == NULL || T->n_records == 0)	/* Safety valve */
-		mexErrMsgTxt ("GMTMEX_Get_Textset: programming error, output GMT_TEXTSET T is empty\n");
+		mexErrMsgTxt ("gmtmex_get_textset: programming error, output GMT_TEXTSET T is empty\n");
 
 	if ((D = GMT_Convert_Data (API, T, GMT_IS_TEXTSET, NULL, GMT_IS_DATASET, flag)) != NULL) {	/* Success */
 		SD = D->table[0]->segment[0];	/* Shorthand, now determine number of non-NaN columns from first row */
@@ -351,13 +351,13 @@ void *GMTMEX_Get_Textset (void *API, struct GMT_TEXTSET *T) {
 		}
 	}
 	if (D && GMT_Destroy_Data (API, &D))
-		mexPrintf("Warning: Failure to delete intermediate D in GMTMEX_Get_Textset\n");
+		mexPrintf("Warning: Failure to delete intermediate D in gmtmex_get_textset\n");
 	return (D_struct);
 }
 
 #if GMT_MINOR_VERSION > 2
 
-void *GMTMEX_Get_Postscript (void *API, struct GMT_POSTSCRIPT *P) {
+static void *gmtmex_get_postscript (void *API, struct GMT_POSTSCRIPT *P) {
 	/* Given a GMT GMT_POSTSCRIPT P, build a MATLAB array of segment structure and assign values.
 	 * Each segment will have 4 items:
 	 * postscript:	Text string with the entire PostScript plot
@@ -370,7 +370,7 @@ void *GMTMEX_Get_Postscript (void *API, struct GMT_POSTSCRIPT *P) {
 	mxArray *P_struct = NULL, *mxptr[N_MEX_FIELDNAMES_PS], *mxstring = NULL;
 	
 	if (P == NULL || !P->data)	/* Safety valve */
-		mexErrMsgTxt ("GMTMEX_Get_Postscript: programming error, input POSTSCRIPT struct P is NULL or data string is empty\n");
+		mexErrMsgTxt ("gmtmex_get_postscript: programming error, input POSTSCRIPT struct P is NULL or data string is empty\n");
 
 	/* Return PS with postscript and length in a struct */
 	P_struct = mxCreateStructMatrix (1, 1, N_MEX_FIELDNAMES_PS, GMTMEX_fieldname_ps);
@@ -397,7 +397,7 @@ void *GMTMEX_Get_Postscript (void *API, struct GMT_POSTSCRIPT *P) {
 }
 #endif
 
-void *GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C) {
+static void *gmtmex_get_palette (void *API, struct GMT_PALETTE *C) {
 	/* Given a GMT GMT_PALETTE C, build a MATLAB structure and assign values.
 	 * Each segment will have 10 items:
 	 * colormap:	Nx3 array of colors usable in Matlab' colormap
@@ -421,7 +421,7 @@ void *GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C) {
 	mxArray *C_struct = NULL, *mxptr[N_MEX_FIELDNAMES_CPT], *mxstring = NULL;
 
 	if (C == NULL || !C->data)	/* Safety valve */
-		mexErrMsgTxt ("GMTMEX_Get_CPT: programming error, output CPT C is empty\n");
+		mexErrMsgTxt ("gmtmex_get_palette: programming error, output CPT C is empty\n");
 
 	/* Return CPT via colormap, range, and alpha arrays in a struct */
 	/* Create a MATLAB struct for this CPT */
@@ -484,7 +484,7 @@ void *GMTMEX_Get_CPT (void *API, struct GMT_PALETTE *C) {
 	return (C_struct);
 }
 
-void *GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I) {
+static void *gmtmex_get_image (void *API, struct GMT_IMAGE *I) {
 	unsigned int k;
 	mwSize   dim[3];
 	uint8_t *u = NULL, *alpha = NULL;
@@ -492,7 +492,7 @@ void *GMTMEX_Get_Image (void *API, struct GMT_IMAGE *I) {
 	mxArray *I_struct = NULL, *mxptr[N_MEX_FIELDNAMES_IMAGE];
 
 	if (I == NULL || !I->data)	/* Safety valve */
-		mexErrMsgTxt ("GMTMEX_Get_Image: programming error, output image I is empty\n");
+		mexErrMsgTxt ("gmtmex_get_image: programming error, output image I is empty\n");
 
 	/* Return image via a uint8_t (mxUINT8_CLASS) matrix in a struct */
 	/* Create a MATLAB struct for this image */
@@ -1323,55 +1323,91 @@ void GMTMEX_objecttype (char *type, const mxArray *ptr) {
 		type[3] = 'd';
 }
 
-void *GMTMEX_Register_IO (void *API, struct GMT_RESOURCE *X, const mxArray *ptr) {
-	/* Create the grid or matrix container, register it, and return the ID */
-	void *obj = NULL;	/* Pointer to the container we created */
+void GMTMEX_Set_Object (void *API, struct GMT_RESOURCE *X, const mxArray *ptr) {
+	/* Create the object container and hook as X->object */
 	char *name[2] = {"Matrix", "CellArray"};
 	unsigned int module_input = (X->option->option == GMT_OPT_INFILE);
-	X->object_ID = GMT_NOTSET;
 
 	switch (X->family) {
 		case GMT_IS_GRID:	/* Get a grid from Matlab or a dummy one to hold GMT output */
-			obj = gmtmex_grid_init (API, X->direction, module_input, ptr);
-			X->object_ID = GMT_Get_ID (API, GMT_IS_GRID, X->direction, obj);
-			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Register_IO: Got Grid with Object ID %d\n", X->object_ID);
+			X->object = gmtmex_grid_init (API, X->direction, module_input, ptr);
+			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Set_Object: Got Grid\n");
 			break;
 		case GMT_IS_IMAGE:	/* Get an image from Matlab or a dummy one to hold GMT output */
-			obj = gmtmex_image_init (API, X->direction, module_input, ptr);
-			X->object_ID = GMT_Get_ID (API, GMT_IS_IMAGE, X->direction, obj);
-			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Register_IO: Got Image with Object ID %d\n", X->object_ID);
+			X->object = gmtmex_image_init (API, X->direction, module_input, ptr);
+			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Set_Object: Got Image\n");
 			break;
 		case GMT_IS_DATASET:	/* Get a dataset from Matlab or a dummy one to hold GMT output */
 			/* Ostensibly a DATASET, but it might be a TEXTSET passed via a cell array, so we must check */
 			if (X->direction == GMT_IN && (mxIsCell (ptr) || mxIsChar (ptr))) {	/* Got text input */
-				obj = gmtmex_textset_init (API, X->direction, module_input, GMT_IS_TEXTSET, ptr);
+				X->object = gmtmex_textset_init (API, X->direction, module_input, GMT_IS_TEXTSET, ptr);
 				X->family = GMT_IS_TEXTSET;
 			}
 			else	/* Got something for which a dataset container is appropriate */
-				obj = gmtmex_dataset_init (API, X->direction, module_input, ptr);
-			X->object_ID = GMT_Get_ID (API, X->family, X->direction, obj);
-			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Register_IO: Got %s with Object ID %d\n", name[X->family], X->object_ID);
+				X->object = gmtmex_dataset_init (API, X->direction, module_input, ptr);
+			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Set_Object: Got %s\n", name[X->family]);
 			break;
 		case GMT_IS_TEXTSET:	/* Get a textset from Matlab or a dummy one to hold GMT output */
-			obj = gmtmex_textset_init (API, X->direction, module_input, GMT_IS_TEXTSET, ptr);
-			X->object_ID = GMT_Get_ID (API, GMT_IS_TEXTSET, X->direction, obj);
-			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Register_IO: Got TEXTSET with Object ID %d\n", X->object_ID);
+			X->object = gmtmex_textset_init (API, X->direction, module_input, GMT_IS_TEXTSET, ptr);
+			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Set_Object: Got TEXTSET\n");
 			break;
 		case GMT_IS_PALETTE:	/* Get a palette from Matlab or a dummy one to hold GMT output */
-			obj = gmtmex_cpt_init (API, X->direction, module_input, ptr);
-			X->object_ID = GMT_Get_ID (API, GMT_IS_PALETTE, X->direction, obj);
-			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Register_IO: Got CPT with Object ID %d\n", X->object_ID);
+			X->object = gmtmex_cpt_init (API, X->direction, module_input, ptr);
+			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Set_Object: Got CPT\n");
 			break;
 #if GMT_MINOR_VERSION > 2
 		case GMT_IS_POSTSCRIPT:	/* Get a PostScript struct from Matlab or a dummy one to hold GMT output */
-			obj = gmtmex_ps_init (API, X->direction, module_input, ptr);
-			X->object_ID = GMT_Get_ID (API, GMT_IS_POSTSCRIPT, X->direction, obj);
-			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Register_IO: Got POSTSCRIPT with Object ID %d\n", X->object_ID);
+			X->object = gmtmex_ps_init (API, X->direction, module_input, ptr);
+			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Set_Object: Got POSTSCRIPT\n");
 			break;
 #endif
 		default:
-			GMT_Report (API, GMT_MSG_NORMAL, "GMTMEX_Register_IO: Bad data type (%d)\n", X->family);
+			GMT_Report (API, GMT_MSG_NORMAL, "GMTMEX_Set_Object: Bad data type (%d)\n", X->family);
 			break;
 	}
-	return (obj);
+	if (X->object == NULL)
+		mexErrMsgTxt("GMT: Failure to register the resource\n");
+	if (GMT_Open_VirtualFile (API, X->family, X->geometry, X->direction, X->object, X->name) != GMT_NOERROR) 	/* Make filename with embedded object ID */
+		mexErrMsgTxt ("GMT: Failure to open virtual file\n");
+	if (GMT_Expand_Option (API, X->option, X->name) != GMT_NOERROR)	/* Replace ? in argument with name */
+		mexErrMsgTxt ("GMT: Failure to expand filename marker (?)\n");
+}
+
+void *GMTMEX_Get_Object (void *API, struct GMT_RESOURCE *X) {
+	mxArray *ptr = NULL;
+	if ((X->object = GMT_Read_VirtualFile (API, X->name)) == NULL)
+		mexErrMsgTxt ("GMT: Error reading virtual file from GMT\n");
+	switch (X->family) {	/* Determine what container we got */
+		case GMT_IS_GRID:	/* A GMT grid; make it the pos'th output item */
+			ptr = gmtmex_get_grid (API, X->object);
+			break;
+		case GMT_IS_DATASET:	/* A GMT table; make it a matrix and the pos'th output item */
+			ptr = gmtmex_get_dataset (API, X->object);
+			break;
+		case GMT_IS_TEXTSET:	/* A GMT textset; make it a cell and the pos'th output item */
+			ptr = gmtmex_get_textset (API, X->object);
+			break;
+		case GMT_IS_PALETTE:	/* A GMT CPT; make it a colormap and the pos'th output item  */
+			ptr = gmtmex_get_palette (API, X->object);
+			break;
+		case GMT_IS_IMAGE:	/* A GMT Image; make it the pos'th output item  */
+			ptr = gmtmex_get_image (API, X->object);
+			break;
+#if GMT_MINOR_VERSION > 2
+		case GMT_IS_POSTSCRIPT:		/* A GMT PostScript string; make it the pos'th output item  */
+			ptr = gmtmex_get_postscript (API, X->object);
+#if 0
+			{
+			char cmd[32] = {""};
+			strcpy(cmd, name);		strcat(cmd, " -A -Tf");
+			GMT_Call_Module(API, "psconvert", GMT_MODULE_CMD, cmd);
+			}
+#endif
+			break;
+#endif
+		default:
+			mexErrMsgTxt ("GMT: Internal Error - unsupported data type\n");
+			break;
+	}
+	return ptr;
 }
