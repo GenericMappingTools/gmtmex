@@ -355,8 +355,6 @@ static void *gmtmex_get_textset (void *API, struct GMT_TEXTSET *T) {
 	return (D_struct);
 }
 
-#if GMT_MINOR_VERSION > 2
-
 static void *gmtmex_get_postscript (void *API, struct GMT_POSTSCRIPT *P) {
 	/* Given a GMT GMT_POSTSCRIPT P, build a MATLAB array of segment structure and assign values.
 	 * Each segment will have 4 items:
@@ -395,7 +393,6 @@ static void *gmtmex_get_postscript (void *API, struct GMT_POSTSCRIPT *P) {
 
 	return P_struct;
 }
-#endif
 
 static void *gmtmex_get_palette (void *API, struct GMT_PALETTE *C) {
 	/* Given a GMT GMT_PALETTE C, build a MATLAB structure and assign values.
@@ -1148,7 +1145,7 @@ static struct GMT_TEXTSET *gmtmex_textset_init (void *API, unsigned int directio
 	return (T);
 }
 
-static struct GMT_PALETTE *gmtmex_cpt_init (void *API, unsigned int direction, unsigned int module_input, const mxArray *ptr) {
+static struct GMT_PALETTE *gmtmex_palette_init (void *API, unsigned int direction, unsigned int module_input, const mxArray *ptr) {
 	/* Used to create an empty CPT container to hold a GMT Color Palette.
  	 * If direction is GMT_IN then we are given a MATLAB CPT struct and can determine its size, etc.
 	 * If direction is GMT_OUT then we allocate an empty GMT CPT as a destination. */
@@ -1162,17 +1159,17 @@ static struct GMT_PALETTE *gmtmex_cpt_init (void *API, unsigned int direction, u
 		double *colormap = NULL, *range = NULL, *minmax = NULL, *alpha = NULL, *bfn = NULL, *hinge = NULL, *cpt = NULL;
 
 		if (mxIsEmpty (ptr))
-			mexErrMsgTxt ("gmtmex_cpt_init: The input that was supposed to contain the CPT, is empty\n");
+			mexErrMsgTxt ("gmtmex_palette_init: The input that was supposed to contain the CPT, is empty\n");
 		if (!mxIsStruct (ptr))
-			mexErrMsgTxt ("gmtmex_cpt_init: Expected a CPT structure for input\n");
+			mexErrMsgTxt ("gmtmex_palette_init: Expected a CPT structure for input\n");
 		for (k = 0; k < N_MEX_FIELDNAMES_CPT; k++) {
 			if ((mx_ptr[k] = mxGetField (ptr, 0, GMTMEX_fieldname_cpt[k])) == NULL)
-				gmtmex_quit_if_missing ("gmtmex_cpt_init", GMTMEX_fieldname_cpt[k]);
+				gmtmex_quit_if_missing ("gmtmex_palette_init", GMTMEX_fieldname_cpt[k]);
 		}
 		
 		dim[0] = mxGetM (mx_ptr[0]);	/* Number of rows in colormap */
 		if (dim[0] < 1)
-			mexErrMsgTxt ("gmtmex_cpt_init: Colormap array has no CPT values\n");
+			mexErrMsgTxt ("gmtmex_palette_init: Colormap array has no CPT values\n");
 		colormap = mxGetData (mx_ptr[0]);
 		alpha    = mxGetData (mx_ptr[1]);
 		range    = mxGetData (mx_ptr[2]);
@@ -1191,7 +1188,7 @@ static struct GMT_PALETTE *gmtmex_cpt_init (void *API, unsigned int direction, u
 			one = 0;
 
 		if ((P = GMT_Create_Data (API, GMT_IS_PALETTE|flag, GMT_IS_NONE, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
-			mexErrMsgTxt ("gmtmex_cpt_init: Failure to alloc GMT source CPT for input\n");
+			mexErrMsgTxt ("gmtmex_palette_init: Failure to alloc GMT source CPT for input\n");
 
 		if ((n_headers = (unsigned int)mxGetM (mx_ptr[9])) != 0) {	/* Number of headers found */
 			char *txt = NULL;
@@ -1200,7 +1197,7 @@ static struct GMT_PALETTE *gmtmex_cpt_init (void *API, unsigned int direction, u
 				ptr = mxGetCell (mx_ptr[9], (mwSize)k);
 				txt = mxArrayToString (ptr);
 				if (GMT_Set_Comment (API, GMT_IS_PALETTE, GMT_COMMENT_IS_TEXT, txt, P))
-					mexErrMsgTxt("gmtmex_cpt_init: Failed to set a CPT header\n");
+					mexErrMsgTxt("gmtmex_palette_init: Failed to set a CPT header\n");
 			}
 		}
 		for (j = 0; j < 3; j++) {	/* Do the bfn first */
@@ -1224,7 +1221,7 @@ static struct GMT_PALETTE *gmtmex_cpt_init (void *API, unsigned int direction, u
 			P->is_bw = 1;
 		else if (depth[0] == 8)
 			P->is_gray = 1;
-		GMT_Report (API, GMT_MSG_DEBUG, "gmtmex_cpt_init: Allocated GMT CPT %lx\n", (long)P);
+		GMT_Report (API, GMT_MSG_DEBUG, "gmtmex_palette_init: Allocated GMT CPT %lx\n", (long)P);
 		if (mxIsNaN (hinge[0])) {
 			P->has_hinge = 1;
 			P->mode &= GMT_CPT_HINGED;
@@ -1239,12 +1236,11 @@ static struct GMT_PALETTE *gmtmex_cpt_init (void *API, unsigned int direction, u
 	}
 	else {	/* Just allocate an empty container to hold an output grid (signal this by passing 0s and NULLs) */
 		if ((P = GMT_Create_Data (API, GMT_IS_PALETTE, GMT_IS_NONE, 0, NULL, NULL, NULL, 0, 0, NULL)) == NULL)
-			mexErrMsgTxt ("gmtmex_cpt_init: Failure to alloc GMT blank CPT container for holding output CPT\n");
+			mexErrMsgTxt ("gmtmex_palette_init: Failure to alloc GMT blank CPT container for holding output CPT\n");
 	}
 	return (P);
 }
 
-#if GMT_MINOR_VERSION > 2
 static struct GMT_POSTSCRIPT *gmtmex_ps_init (void *API, unsigned int direction, unsigned int module_input, const mxArray *ptr) {
 	/* Used to Create an empty POSTSCRIPT container to hold a GMT POSTSCRIPT object.
  	 * If direction is GMT_IN then we are given a MATLAB structure with known sizes.
@@ -1297,7 +1293,6 @@ static struct GMT_POSTSCRIPT *gmtmex_ps_init (void *API, unsigned int direction,
 	}
 	return (P);
 }
-#endif
 
 void GMTMEX_objecttype (char *type, const mxArray *ptr) {
 	/* Determine what we are returning so gmt write can pass the correct -T? flag */
@@ -1352,15 +1347,13 @@ void GMTMEX_Set_Object (void *API, struct GMT_RESOURCE *X, const mxArray *ptr) {
 			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Set_Object: Got TEXTSET\n");
 			break;
 		case GMT_IS_PALETTE:	/* Get a palette from Matlab or a dummy one to hold GMT output */
-			X->object = gmtmex_cpt_init (API, X->direction, module_input, ptr);
+			X->object = gmtmex_palette_init (API, X->direction, module_input, ptr);
 			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Set_Object: Got CPT\n");
 			break;
-#if GMT_MINOR_VERSION > 2
 		case GMT_IS_POSTSCRIPT:	/* Get a PostScript struct from Matlab or a dummy one to hold GMT output */
 			X->object = gmtmex_ps_init (API, X->direction, module_input, ptr);
 			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Set_Object: Got POSTSCRIPT\n");
 			break;
-#endif
 		default:
 			GMT_Report (API, GMT_MSG_NORMAL, "GMTMEX_Set_Object: Bad data type (%d)\n", X->family);
 			break;
@@ -1393,7 +1386,6 @@ void *GMTMEX_Get_Object (void *API, struct GMT_RESOURCE *X) {
 		case GMT_IS_IMAGE:	/* A GMT Image; make it the pos'th output item  */
 			ptr = gmtmex_get_image (API, X->object);
 			break;
-#if GMT_MINOR_VERSION > 2
 		case GMT_IS_POSTSCRIPT:		/* A GMT PostScript string; make it the pos'th output item  */
 			ptr = gmtmex_get_postscript (API, X->object);
 #if 0
@@ -1404,7 +1396,6 @@ void *GMTMEX_Get_Object (void *API, struct GMT_RESOURCE *X) {
 			}
 #endif
 			break;
-#endif
 		default:
 			mexErrMsgTxt ("GMT: Internal Error - unsupported data type\n");
 			break;
