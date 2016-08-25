@@ -129,7 +129,6 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	char *gtxt = NULL;              /* For debug printing of revised command */
 	char *opt_args = NULL;          /* Pointer to the user's module options */
 	char module[MODULE_LEN] = {""}; /* Name of GMT module to call */
-	char name[GMT_STR16];           /* Name of GMT module to call */
 	void *ptr = NULL;
 	uintptr_t *pti = NULL;          /* To locally store the API address */
 
@@ -319,13 +318,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 				ptr = alloc_default_plhs (API, &X[k]);
 			}
 		}
-		X[k].object = GMTMEX_Register_IO (API, &X[k], ptr);	/* Get object pointer */
-		if (X[k].object == NULL || X[k].object_ID == GMT_NOTSET)
-			mexErrMsgTxt("GMT: Failure to register the resource\n");
-		if (GMT_Encode_ID (API, name, X[k].object_ID) != GMT_NOERROR) 	/* Make filename with embedded object ID */
-			mexErrMsgTxt ("GMT: Failure to encode string\n");
-		if (GMT_Expand_Option (API, X[k].option, name) != GMT_NOERROR)	/* Replace ? in argument with name */
-			mexErrMsgTxt ("GMT: Failure to expand filename marker (?)\n");
+		GMTMEX_Set_Object (API, &X[k], ptr);	/* Set object pointer */
 	}
 	
 	/* 6. Run GMT module; give usage message if errors arise during parsing */
@@ -342,48 +335,16 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	
 	for (k = 0; k < n_items; k++) {	/* Get results from GMT into MATLAB arrays */
 		if (X[k].direction == GMT_IN) continue;	/* Only looking for stuff coming OUT of GMT here */
-		
-		if ((X[k].object = GMT_Retrieve_Data (API, X[k].object_ID)) == NULL)
-			mexErrMsgTxt ("GMT: Error retrieving object from GMT\n");
-		pos = X[k].pos;	/* Short-hand for index into the plhs[] array being returned to MATLAB */
-		switch (X[k].family) {	/* Determine what container we got */
-			case GMT_IS_GRID:	/* A GMT grid; make it the pos'th output item */
-				plhs[pos] = GMTMEX_Get_Grid (API, X[k].object);
-				break;
-			case GMT_IS_DATASET:	/* A GMT table; make it a matrix and the pos'th output item */
-				plhs[pos] = GMTMEX_Get_Dataset (API, X[k].object);
-				break;
-			case GMT_IS_TEXTSET:	/* A GMT textset; make it a cell and the pos'th output item */
-				plhs[pos] = GMTMEX_Get_Textset (API, X[k].object);
-				break;
-			case GMT_IS_PALETTE:	/* A GMT CPT; make it a colormap and the pos'th output item  */
-				plhs[pos] = GMTMEX_Get_CPT (API, X[k].object);
-				break;
-			case GMT_IS_IMAGE:	/* A GMT Image; make it the pos'th output item  */
-				plhs[pos] = GMTMEX_Get_Image (API, X[k].object);
-				break;
-#if GMT_MINOR_VERSION > 2
-			case GMT_IS_POSTSCRIPT:		/* A GMT PostScript string; make it the pos'th output item  */
-				plhs[pos] = GMTMEX_Get_Postscript (API, X[k].object);
-#if 0
-				{
-				char cmd[32] = {""};
-				strcpy(cmd, name);		strcat(cmd, " -A -Tf");
-				GMT_Call_Module(API, "psconvert", GMT_MODULE_CMD, cmd);
-				}
-#endif
-				break;
-#endif
-			default:
-				mexErrMsgTxt ("GMT: Internal Error - unsupported data type\n");
-				break;
-		}
+		pos = X[k].pos;		/* Short-hand for index into the plhs[] array being returned to MATLAB */
+		plhs[pos] = GMTMEX_Get_Object (API, &X[k]);	/* Hook mex object onto rhs list */
 	}
 	
 	/* 8. Free all GMT containers involved in this module call */
 	
 	for (k = 0; k < n_items; k++) {
 		void *ppp = X[k].object;
+		if (GMT_Close_VirtualFile (API, X[k].name))
+			mexErrMsgTxt ("GMT: Failed to close virtual file\n");
 		if (GMT_Destroy_Data (API, &X[k].object) != GMT_NOERROR)
 			mexErrMsgTxt ("GMT: Failed to destroy object used in the interface between GMT and MATLAB\n");
 		else {	/* Success, now make sure we dont destroy the same pointer more than once */

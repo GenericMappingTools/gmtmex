@@ -163,16 +163,9 @@ static const char *GMTMEX_fieldname_ps[N_MEX_FIELDNAMES_PS] =
 
 #define MODULE_LEN 	32	/* Max length of a GMT module name */
 
-/* These functions are used by gmtmex.c: */
-EXTERN_MSC void   GMTMEX_objecttype     (char *type, const mxArray *ptr);
-EXTERN_MSC int    GMTMEX_print_func     (FILE *fp, const char *message);
-EXTERN_MSC void * GMTMEX_Get_Grid       (void *API, struct GMT_GRID *G);
-EXTERN_MSC void * GMTMEX_Get_Dataset    (void *API, struct GMT_DATASET *D);
-EXTERN_MSC void * GMTMEX_Get_Textset    (void *API, struct GMT_TEXTSET *M);
-EXTERN_MSC void * GMTMEX_Get_CPT        (void *API, struct GMT_PALETTE *P);
-EXTERN_MSC void * GMTMEX_Get_Image      (void *API, struct GMT_IMAGE *I);
-EXTERN_MSC void * GMTMEX_Register_IO    (void *API, struct GMT_RESOURCE *X, const mxArray *ptr);
-#if GMT_MINOR_VERSION > 2
-EXTERN_MSC void * GMTMEX_Get_Postscript (void *API, struct GMT_POSTSCRIPT *P);
-#endif
+/* These 4 functions are used by gmtmex.c: */
+EXTERN_MSC void   GMTMEX_objecttype (char *type, const mxArray *ptr);
+EXTERN_MSC int    GMTMEX_print_func (FILE *fp, const char *message);
+EXTERN_MSC void   GMTMEX_Set_Object (void *API, struct GMT_RESOURCE *X, const mxArray *ptr);
+EXTERN_MSC void * GMTMEX_Get_Object (void *API, struct GMT_RESOURCE *X);
 #endif
