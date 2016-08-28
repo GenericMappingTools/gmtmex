@@ -96,10 +96,10 @@ if test "X$GMT_in_path" = "X0" ; then
 else
 	gmajor=`gmt --version | awk '{print substr($1,1,1)}'`
 	gminor=`gmt --version | awk '{print substr($1,3,1)}'`
-	if test "X$gmajor" = "X5" && test $gminor -ge 2; then
-		AC_MSG_RESULT(GMT5.2.x or higher executables found)
+	if test "X$gmajor" = "X5" && test $gminor -ge 3; then
+		AC_MSG_RESULT(GMT5.3.x or higher executables found)
 	else
-		AC_MSG_RESULT(GMT5.2.x executables are not in your path - aborting)
+		AC_MSG_RESULT(GMT5.3.x executables are not in your path - aborting)
 		exit 1
 	fi
 fi
