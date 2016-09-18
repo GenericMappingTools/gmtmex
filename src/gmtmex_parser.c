@@ -547,6 +547,9 @@ static void *gmtmex_get_image (void *API, struct GMT_IMAGE *I) {
 			GMT_Change_Layout (API, GMT_IS_IMAGE, "TCB", 0, I, u, alpha);		/* Convert from TRP to TCB */
 			mxptr[16] = mxCreateString ("TCBa");	/* Because we just converted to it above */
 		}
+		else {
+			mexPrintf("WarnError: this image's' memory layout, %s, is not implemented. Expect random art.\n");
+		}
 		if (I->alpha) {
 			mxptr[15] = mxCreateNumericMatrix (I->header->n_rows, I->header->n_columns, mxUINT8_CLASS, mxREAL);
 			alpha = mxGetData (mxptr[15]);
