@@ -665,7 +665,7 @@ static struct GMT_GRID *gmtmex_grid_init (void *API, unsigned int direction, uns
 			mx_ptr = mxGetField (ptr, 0, "proj4");
 			if (mx_ptr != NULL && mxGetN(mx_ptr) > 6) {		/* A true proj4 string will have at least this lenght */
 				char *str = malloc(mxGetN(mx_ptr) + 1);
-				mxGetString(mx_ptr, str, (mwSize)mxGetN(mx_ptr));
+				mxGetString(mx_ptr, str, (mwSize)mxGetN(mx_ptr) + 1);
 				G->header->ProjRefPROJ4 = GMT_Duplicate_String (API, str);
 				free (str);
 			}
@@ -693,7 +693,7 @@ static struct GMT_GRID *gmtmex_grid_init (void *API, unsigned int direction, uns
 			mx_ptr = mxGetField (ptr, 0, "comment");
 			if (mx_ptr != NULL) {
 				char *str = malloc(mxGetN(mx_ptr)+2);
-				mxGetString(mx_ptr, str, (mwSize)mxGetN(mx_ptr));
+				mxGetString(mx_ptr, str, (mwSize)mxGetN(mx_ptr) + 1);
 				strncpy(G->header->remark, str, GMT_GRID_REMARK_LEN160 - 1);
 				free (str);
 			}
@@ -878,22 +878,22 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 		}
 		mx_ptr = mxGetField (ptr, 0, "x_unit");
 		if (mx_ptr != NULL) {
-			mxGetString(mx_ptr, x_unit, (mwSize)mxGetN(mx_ptr));
+			mxGetString(mx_ptr, x_unit, (mwSize)mxGetN(mx_ptr) + 1);
 			strncpy(I->header->x_units, x_unit, GMT_GRID_VARNAME_LEN80 - 1);
 		}
 		mx_ptr = mxGetField (ptr, 0, "y_unit");
 		if (mx_ptr != NULL) {
-			mxGetString(mx_ptr, y_unit, (mwSize)mxGetN(mx_ptr));
+			mxGetString(mx_ptr, y_unit, (mwSize)mxGetN(mx_ptr) + 1);
 			strncpy(I->header->y_units, y_unit, GMT_GRID_VARNAME_LEN80 - 1);
 		}
 		mx_ptr = mxGetField (ptr, 0, "z_unit");
 		if (mx_ptr != NULL) {
-			mxGetString(mx_ptr, z_unit, (mwSize)mxGetN(mx_ptr));
+			mxGetString(mx_ptr, z_unit, (mwSize)mxGetN(mx_ptr) + 1);
 			strncpy(I->header->z_units, z_unit, GMT_GRID_VARNAME_LEN80 - 1);
 		}
 		mx_ptr = mxGetField (ptr, 0, "layout");
 		if (mx_ptr != NULL) {
-			mxGetString(mx_ptr, layout, (mwSize)mxGetN(mx_ptr));
+			mxGetString(mx_ptr, layout, (mwSize)mxGetN(mx_ptr) + 1);
 			strncpy(I->header->mem_layout, layout, 4);
 		}
 		else
