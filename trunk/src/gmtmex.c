@@ -239,6 +239,10 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	/* See if info about instalation is required */
 	if (!strcmp(module, "gmt")) {
 		char t[256] = {""};
+		if (!opt_args) {
+			mexPrintf("Warning: calling the 'gmt' program by itself does nothing here.\n");
+			return;
+		}
 		if (!strcmp(opt_args, "--show-bindir")) 	/* Show the directory that contains the 'gmt' executable */
 			GMT_Get_Default (API, "BINDIR", t);
 		else if (!strcmp(opt_args, "--show-sharedir"))	/* Show share directory */
@@ -257,7 +261,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 				mexPrintf ("%s\n", t);
 		}
 		else
-			mexPrintf ("Warning: calling the 'gmt' program by itself does nothing here.\n");
+			mexPrintf ("Warning: called the 'gmt' program with unknow option.\n");
 		return;
 	}
 
