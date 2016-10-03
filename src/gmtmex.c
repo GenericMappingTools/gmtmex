@@ -55,7 +55,7 @@ static void force_Destroy_Session (void) {
 static void usage (int nlhs, int nrhs) {
 	/* Basic usage message */
 	if (nrhs == 0) {	/* No arguments at all results in the GMT banner message */
-		mexPrintf("\nGMT - The Generic Mapping Tools, Version 5.%d %s API\n", GMT_MINOR_VERSION, MEX_PROG);
+		mexPrintf("\nGMT - The Generic Mapping Tools, Version 5 %s API\n", MEX_PROG);
 		mexPrintf("Copyright 1991-2016 Paul Wessel, Walter H. F. Smith, R. Scharroo, J. Luis, and F. Wobbe\n\n");
 		mexPrintf("This program comes with NO WARRANTY, to the extent permitted by law.\n");
 		mexPrintf("You may redistribute copies of this program under the terms of the\n");

@@ -225,20 +225,20 @@ static void *gmtmex_get_dataset (void *API, struct GMT_DATASET *D) {
 	 */
 
 	int n_headers;
-	uint64_t tbl, seg, seg_out, col, start, k;
+	uint64_t tbl, seg, seg_out, col, start, k, n_items = 1;
 	double *data = NULL;
 	struct GMT_DATASEGMENT *S = NULL;
 	mxArray *D_struct = NULL, *mxheader = NULL, *mxdata = NULL, *mxtext = NULL, *mxstring = NULL;
 
-	if (D == NULL || D->n_records == 0)	/* Safety valve */
+	if (D == NULL)	/* Safety valve */
 		mexErrMsgTxt ("gmtmex_get_dataset: programming error, output DATASET D is empty\n");
 	
 	for (tbl = seg_out = 0; tbl < D->n_tables; tbl++)	/* Count non-zero segments */
 		for (seg = 0; seg < D->table[tbl]->n_segments; seg++)
 			if (D->table[tbl]->segment[seg]->n_rows)
 				seg_out++;
-	
-	D_struct = mxCreateStructMatrix ((mwSize)seg_out, 1, N_MEX_FIELDNAMES_DATASET, GMTMEX_fieldname_dataset);
+	if (seg_out == 0) n_items = 0;
+	D_struct = mxCreateStructMatrix ((mwSize)seg_out, n_items, N_MEX_FIELDNAMES_DATASET, GMTMEX_fieldname_dataset);
 
 	n_headers = D->table[0]->n_headers;
 	for (tbl = seg_out = 0; tbl < D->n_tables; tbl++) {
@@ -293,7 +293,7 @@ static void *gmtmex_get_textset (void *API, struct GMT_TEXTSET *T) {
 	 */
 
 	int n_headers;
-	uint64_t tbl, seg, seg_out, col, row, start, k, n_columns = 0;
+	uint64_t tbl, seg, seg_out, col, row, start, k, n_columns = 0, n_items = 1;
 	unsigned int flag[3] = {GMT_LAX_CONVERSION, 0, 0};	/* We will try to convert most of the text to data */
 	double *data = NULL;
 	struct GMT_DATASET *D = NULL;
@@ -301,10 +301,10 @@ static void *gmtmex_get_textset (void *API, struct GMT_TEXTSET *T) {
 	struct GMT_TEXTSEGMENT *ST = NULL;
 	mxArray *D_struct = NULL, *mxheader = NULL, *mxdata = NULL, *mxtext = NULL, *mxstring = NULL;
 
-	if (T == NULL || T->n_records == 0)	/* Safety valve */
+	if (T == NULL)	/* Safety valve */
 		mexErrMsgTxt ("gmtmex_get_textset: programming error, output GMT_TEXTSET T is empty\n");
 
-	if ((D = GMT_Convert_Data (API, T, GMT_IS_TEXTSET, NULL, GMT_IS_DATASET, flag)) != NULL) {	/* Success */
+	if ((D = GMT_Convert_Data (API, T, GMT_IS_TEXTSET, NULL, GMT_IS_DATASET, flag)) != NULL && D->n_records) {	/* Success, and have data records */
 		SD = D->table[0]->segment[0];	/* Shorthand, now determine number of non-NaN columns from first row */
 		for (col = 0; col < D->n_columns; col++)
 			if (!mxIsNaN (SD->data[col][0])) n_columns++;
@@ -314,8 +314,9 @@ static void *gmtmex_get_textset (void *API, struct GMT_TEXTSET *T) {
 		for (seg = 0; seg < T->table[tbl]->n_segments; seg++)
 			if (T->table[tbl]->segment[seg]->n_rows)
 				seg_out++;
+	if (seg_out == 0) n_items = 0;
 
-	D_struct = mxCreateStructMatrix ((mwSize)seg_out, 1, N_MEX_FIELDNAMES_DATASET, GMTMEX_fieldname_dataset);
+	D_struct = mxCreateStructMatrix ((mwSize)seg_out, n_items, N_MEX_FIELDNAMES_DATASET, GMTMEX_fieldname_dataset);
 	n_headers = T->table[0]->n_headers;
 	for (tbl = seg_out = 0; tbl < T->n_tables; tbl++) {
 		for (seg = 0; seg < T->table[tbl]->n_segments; seg++) {
@@ -367,9 +368,15 @@ static void *gmtmex_get_postscript (void *API, struct GMT_POSTSCRIPT *P) {
 	unsigned int *mode = NULL;
 	mxArray *P_struct = NULL, *mxptr[N_MEX_FIELDNAMES_PS], *mxstring = NULL;
 	
-	if (P == NULL || !P->data)	/* Safety valve */
+	if (P == NULL)	/* Safety valve */
 		mexErrMsgTxt ("gmtmex_get_postscript: programming error, input POSTSCRIPT struct P is NULL or data string is empty\n");
 
+	if (!P->data) {
+		/* Return empty PS struct */
+		P_struct = mxCreateStructMatrix (0, 0, N_MEX_FIELDNAMES_PS, GMTMEX_fieldname_ps);
+		return P_struct;
+	}
+	
 	/* Return PS with postscript and length in a struct */
 	P_struct = mxCreateStructMatrix (1, 1, N_MEX_FIELDNAMES_PS, GMTMEX_fieldname_ps);
 
@@ -417,9 +424,14 @@ static void *gmtmex_get_palette (void *API, struct GMT_PALETTE *C) {
 	double *color = NULL, *cpt = NULL, *alpha = NULL, *minmax = NULL, *range = NULL, *hinge = NULL, *bfn = NULL;
 	mxArray *C_struct = NULL, *mxptr[N_MEX_FIELDNAMES_CPT], *mxstring = NULL;
 
-	if (C == NULL || !C->data)	/* Safety valve */
+	if (C == NULL)	/* Safety valve */
 		mexErrMsgTxt ("gmtmex_get_palette: programming error, output CPT C is empty\n");
 
+	if (!C->data) {	/* Return empty struct */
+		C_struct = mxCreateStructMatrix (0, 0, N_MEX_FIELDNAMES_CPT, GMTMEX_fieldname_cpt);
+		return (C_struct);
+	}
+	
 	/* Return CPT via colormap, range, and alpha arrays in a struct */
 	/* Create a MATLAB struct for this CPT */
 	C_struct = mxCreateStructMatrix (1, 1, N_MEX_FIELDNAMES_CPT, GMTMEX_fieldname_cpt);
