@@ -67,6 +67,7 @@ n_segments = length(A); n = 0;
 function cpt = catcpt(cpt1, cpt2)
 % Join two CPT1 and CPT2 color palette structures. 
 % Note, the two palettes must be continuous across its common border. No testing on that is done here.
+% NOT COMPLETE. NEEDS THE CPT, MODEL & COMMENT FIELDS
 
 	if (nargin ~= 2)
 		error('    Must provide 2 input arguments.')
@@ -101,14 +102,14 @@ function G = wrapgrid(Z, head)
 	end
 
 	if (~isa(head, 'double')),	head = double(head);	end
-	G.projection_ref_proj4 = '';
-	G.projection_ref_wkt = '';	
+	G.proj4 = '';
+	G.wkt = '';	
 	G.range = head(1:6);
 	G.inc = head(8:9);
 	G.registration = head(7);
-	G.no_data_value = NaN;
+	G.nodata = NaN;
 	G.title = '';
-	G.remark = '';
+	G.comment = '';
 	G.command = '';
 	G.datatype = 'float32';
 	G.x = linspace(head(1), head(2), size(Z,2));
@@ -132,14 +133,14 @@ function I = wrapimage(img, head, cmap)
 	end
 
 	if (~isa(head, 'double')),	head = double(head);	end
-	I.projection_ref_proj4 = '';
-	I.projection_ref_wkt = '';	
+	I.proj4 = '';
+	I.wkt = '';	
 	I.range = head(1:6);
 	I.inc = head(8:9);
-	I.no_data_value = NaN;
+	I.nodata = NaN;
 	I.registration = head(7);
 	I.title = '';
-	I.remark = '';
+	I.comment = '';
 	I.command = '';
 	I.datatype = 'uint8';
 	I.x = linspace(head(1), head(2), size(img,2));
@@ -159,10 +160,10 @@ function I = wrapimage(img, head, cmap)
 	end
 	if (size(img,3) == 4)			% Not obvious that this is the best choice
 		I.alpha = img(:,:,4);
-		I.n_bands = 3;
 	else
 		I.alpha = [];	
 	end
+	I.layout = "TCBa";
 
 % -------------------------------------------------------------------------------------------------
 function D = wrapseg(in, headers, text, comm, proj_s, wkt_s)
@@ -203,23 +204,3 @@ function D = wrapseg(in, headers, text, comm, proj_s, wkt_s)
 		error('All cell arrays must be of the same size/shape. Can''t mix row and column cell vectors')
 	end
 	D = struct('data',in, 'header',headers, 'text',text, 'comment',comment, 'proj4',proj4, 'wkt',wkt);
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
