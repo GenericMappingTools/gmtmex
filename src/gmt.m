@@ -163,7 +163,7 @@ function I = wrapimage(img, head, cmap)
 	else
 		I.alpha = [];	
 	end
-	I.layout = "TCBa";
+	I.layout = 'TCBa';
 
 % -------------------------------------------------------------------------------------------------
 function D = wrapseg(in, headers, text, comm, proj_s, wkt_s)
