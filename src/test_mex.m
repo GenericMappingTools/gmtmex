@@ -183,3 +183,24 @@ function coasts()
 	plot(rivers(:,1), rivers(:,2))
 	hold off
 	pause(2.0);		delete(h);
+
+function grdcut()
+	G  = gmt('grdmath -R-10/10/-10/10 -I0.5 X =');
+	% Does not cut
+	Gc = gmt('grdcut -R0/10/-10/10',G); 
+
+function grdclip()
+	G  = gmt('grdmath -R-10/10/-10/10 -I0.5 X =');
+	% Leaves two top rows with Zeros
+	Gc = gmt('grdclip -Sa1e6/1e6 -R-9.5/0/-10/10',G); 
+	% Fails even worst
+	Gc = gmt('grdclip -Sa1e6/1e6 -R-10/0/-10/10',G); 
+
+function grdsample()
+	G1 = gmt('grdmath -R-10/10/-10/10 -I0.5 X =');
+	G2 = gmt('grdmath -R-5/5/-5/5 -I1 X =');
+	% Gets a wrong inc (0.5 instead of 1) and therefore a wrong number of row/cols
+	G3 = gmt('grdsample -R', G1, G2);
+	opt_R = sprintf(' -R%.12g/%.12g/%.12g/%.12g', G2.range(1:4));
+	opt_I = sprintf(' -I%.12g=/%.12g=', G2.inc);
+	G4 = gmt(['grdsample ' opt_R opt_I], G1);
