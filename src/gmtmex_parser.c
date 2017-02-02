@@ -917,12 +917,10 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 		            (long)I->data);
 	}
 	else {	/* Just allocate an empty container to hold an output image (signal this by passing 0s and NULLs) */
-		if ((I = GMT_Create_Data (API, GMT_IS_IMAGE, GMT_IS_SURFACE, 0,
-		                          NULL, NULL, NULL, 0, 0, NULL)) == NULL)
+		if ((I = GMT_Create_Data (API, GMT_IS_IMAGE, GMT_IS_SURFACE, 0, NULL, NULL, NULL, 0, 0, NULL)) == NULL)
 			mexErrMsgTxt ("gmtmex_image_init: Failure to alloc GMT blank image container for holding output image\n");
-#ifdef HAVE_GDAL
-		GMT_Set_Default (API, "API_IMAGE_LAYOUT", "TCS");	/* State how we wish to receive images from GDAL */
-#endif
+
+		GMT_Set_Default (API, "API_IMAGE_LAYOUT", "TCBa");	/* State how we wish to receive images from GDAL */
 	}
 	return (I);
 }
