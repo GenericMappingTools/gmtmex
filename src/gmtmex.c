@@ -284,6 +284,10 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		strcat (opt_args, targ);
 	}
 
+	/* 2+++ If gmtread -Ti than temporarily set pad to 0 since we don't want padding in image arrays */
+	if (strstr(module, "read") && opt_args && strstr(opt_args, "-Ti"))
+		GMT_Set_Default(API, "API_PAD", "0");
+
 	/* 3. Convert mex command line arguments to a linked GMT option list */
 	if (opt_args && (options = GMT_Create_Options (API, 0, opt_args)) == NULL)
 		mexErrMsgTxt ("GMT: Failure to parse GMT5 command options\n");
@@ -345,7 +349,11 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		pos = X[k].pos;		/* Short-hand for index into the plhs[] array being returned to MATLAB */
 		plhs[pos] = GMTMEX_Get_Object (API, &X[k]);	/* Hook mex object onto rhs list */
 	}
-	
+
+	/* 2++- If gmtread -Ti than reset the sessions pad value that was temporarily changed above (2+++) */
+	if (strstr(module, "read") && opt_args && strstr(opt_args, "-Ti"))
+		GMT_Set_Default(API, "API_PAD", "2");
+
 	/* 8. Free all GMT containers involved in this module call */
 	
 	for (k = 0; k < n_items; k++) {
