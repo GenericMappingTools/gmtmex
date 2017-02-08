@@ -22,6 +22,10 @@
 #ifndef GMTMEX_H
 #define GMTMEX_H
 
+#define GMTMEX_MAJOR_VERSION 1
+#define GMTMEX_MINOR_VERSION 0
+#define GMTMEX_PATCH_VERSION 0
+
 #include "gmt.h"
 #include <string.h>
 #include <ctype.h>
@@ -128,10 +132,10 @@ static const char *GMTMEX_fieldname_dataset[N_MEX_FIELDNAMES_DATASET] =
  * Returned by GMT via the parser as a MEX structure with the
  * fields listed below. */
 
-#define N_MEX_FIELDNAMES_GRID	16
+#define N_MEX_FIELDNAMES_GRID	17
 static const char *GMTMEX_fieldname_grid[N_MEX_FIELDNAMES_GRID] =
 	{"z", "x", "y", "range", "inc", "registration", "nodata", "title", "comment",
-	 "command", "datatype", "x_unit", "y_unit", "z_unit", "proj4", "wkt"};
+	 "command", "datatype", "x_unit", "y_unit", "z_unit", "layout", "proj4", "wkt"};
 
 /* GMT_IS_IMAGE:
  * Returned by GMT via the parser as a MEX structure with the
