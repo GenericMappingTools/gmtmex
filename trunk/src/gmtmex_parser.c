@@ -998,11 +998,11 @@ static void *gmtmex_dataset_init (void *API, unsigned int direction, unsigned in
 		GMT_Report (API, GMT_MSG_DEBUG, "gmtmex_dataset_init: Allocated GMT dataset %lx\n", (long)D);
 
 		for (seg = 0; seg < dim[GMT_SEG]; seg++) {	/* Each incoming structure is a new data segment */
-			mx_ptr = mxGetField (ptr, (mwSize)seg, "header");	/* Get pointer to MEX segment header */
+			mx_ptr = mxGetField (ptr, (mwSize)seg, "header");   /* Get pointer to MEX segment header */
 			buffer[0] = 0;	/* Reset our temporary text buffer */
-			if ((length = mxGetN (mx_ptr)) != 0)	/* These is a non-empty segment header to keep */
+			if (mx_ptr && (length = mxGetN (mx_ptr)) != 0)      /* These is a non-empty segment header to keep */
 				mxGetString (mx_ptr, buffer, (mwSize)(length+1));
-			mx_ptr = mxGetField (ptr, (mwSize)seg, "data");	/* Data matrix for this segment */
+			mx_ptr = mxGetField (ptr, (mwSize)seg, "data");     /* Data matrix for this segment */
 			data = mxGetData (mx_ptr);
 			dim[GMT_ROW] = mxGetM (mx_ptr);	/* Number of rows in matrix */
 			/* Allocate a new data segment and hook up to table */
