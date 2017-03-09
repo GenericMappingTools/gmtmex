@@ -1,24 +1,24 @@
-function varargout = gmt (cmd, varargin)
+function varargout = gmt(cmd, varargin)
 % Helper function to call the gmtmex MEX function
 %	$Id$
 
 	if (nargin == 0)
-		fprintf (sprintf('\n\t\tGMT - The Generic Mapping Tools, Version 5.3 API\n'))
-		fprintf (sprintf('Copyright 1991-2016 Paul Wessel, Walter H. F. Smith, R. Scharroo, J. Luis, and F. Wobbe\n\n'))
+		fprintf(sprintf('\n\t\tGMT - The Generic Mapping Tools, Version 5.3 API\n'))
+		fprintf(sprintf('Copyright 1991-2016 Paul Wessel, Walter H. F. Smith, R. Scharroo, J. Luis, and F. Wobbe\n\n'))
 	
-		fprintf (sprintf('Usage:\tTo call a GMT module:\n\t    output = gmt (''module_name'', ''options'', numeric_input)\n\n'))
-		fprintf (sprintf(['\tTo create a Grid structure from a 2-D Z array and a 1x9 header vector:\n\t' ...
+		fprintf(sprintf('Usage:\tTo call a GMT module:\n\t    output = gmt (''module_name'', ''options'', numeric_input)\n\n'))
+		fprintf(sprintf(['\tTo create a Grid structure from a 2-D Z array and a 1x9 header vector:\n\t' ...
 		                 '    G = gmt (''wrapgrid'', Z, head)\n' ...
 				 '\theader is a vector with [x_min x_max, y_min y_max z_min z_max reg x_inc y_inc]\n\n']))
-		fprintf (sprintf(['\tTo create an Image structure from a 2-D img array and a 1x9 header vector:\n\t' ...
+		fprintf(sprintf(['\tTo create an Image structure from a 2-D img array and a 1x9 header vector:\n\t' ...
 		                 '    I = gmt (''wrapimage'', img, header [, cmap])\n' ...
 						 '\theader is a vector with [x_min x_max, y_min y_max z_min z_max reg x_inc y_inc].\n' ...
 						 '\tcmap is an optional color palette structure or a Matlab Mx3 cmap array (not yet).\n\n']))
-		fprintf (sprintf(['\tTo create a structure for a multi-segment dataset:\n\t' ...
+		fprintf(sprintf(['\tTo create a structure for a multi-segment dataset:\n\t' ...
 		                 '    D = gmt (''wrapseg'', {[1 0; 1 1], [5 5; 56]}, {''Seg1'', ''Seg2''})\n\n']))
-		fprintf (sprintf(['\tTo join two color palette structures:\n\t' ...
+		fprintf(sprintf(['\tTo join two color palette structures:\n\t' ...
 		                 '    cpt = gmt (''catcpt'', cpt1, cpt2)\n\n']))
-		fprintf (sprintf(['\tTo merge all data segments from an array of Data structures:\n\t' ...
+		fprintf(sprintf(['\tTo merge all data segments from an array of Data structures:\n\t' ...
 		                 '    all = gmt (''catseg'', segments[, 1])\n\t' ...
 		                        'The optional 2nd argument will insert a NaN-record at the start of each segment.\n']))
 		return
@@ -31,10 +31,10 @@ function varargout = gmt (cmd, varargin)
 	end
 
 % -------------------------------------------------------------------------------------------------
-function all = catseg (varargin)
-	all = catsegment (varargin{:});
+function all = catseg(varargin)
+	all = catsegment(varargin{:});
 
-function all = catsegment (A, header)
+function all = catsegment(A, header)
 % MERGE  Combine all segment arrays to a single array
 %   all = catsegment (A, opt)
 %
@@ -42,7 +42,7 @@ function all = catsegment (A, header)
 % into a single array.  If the optional argument opt is given
 % the we start each segment with a NaN record.
 
-n_segments = length(A); n = 0;
+	n_segments = length(A); n = 0;
 	[nr, nc] = size (A(1).data);	% Get # columns from first segment
 	for k = 1:n_segments		% Count total rows
 	    n = n + length(A(k).data);
