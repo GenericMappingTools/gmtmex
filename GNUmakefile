@@ -21,7 +21,7 @@ help::
 #!
 #!opt     : Duplicate active GMT distro to /opt/gmt and re-baptize
 #!build   : Configure, build and install the gmt mex files into /opt/gmt/bin
-#!tar     : Create a tar ball of the TOOLS source codes
+#!tar     : Create a tar ball of the mex/gmt biinary distro
 #!update  : Call svn update
 #!wipe    : Remove mex-* tarballs
 #!latest-config : Update the configure include files
