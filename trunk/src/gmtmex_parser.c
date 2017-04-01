@@ -49,7 +49,7 @@
 #define GMT_CREATE_MODE	0
 #else
 #define GMT_CREATE_MODE	GMT_IS_OUTPUT
-endif
+#endif
 
 enum MEX_dim {
 	DIM_COL	= 0,	/* Holds the number of columns for vectors and x-nodes for matrix */
