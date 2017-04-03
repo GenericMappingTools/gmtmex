@@ -27,6 +27,7 @@
 #define GMTMEX_PATCH_VERSION 0
 
 #include "gmt.h"
+#include "gmt_version.h"
 #include <string.h>
 #include <ctype.h>
 #include <limits.h>
