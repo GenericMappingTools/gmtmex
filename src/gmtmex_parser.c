@@ -428,7 +428,7 @@ static void *gmtmex_get_palette (void *API, struct GMT_PALETTE *C) {
 	 * out from MATLAB cannot represent these changes accurately. */
 
 	unsigned int k, j, n_colors, *depth = NULL;
-	double *color = NULL, *cpt = NULL, *alpha = NULL, *minmax = NULL, *range = NULL, *hinge = NULL, *bfn = NULL;
+	double *color = NULL, *cpt = NULL, *alpha = NULL, *minmax = NULL, *range = NULL, *hinge = NULL, *cyclic = NULL, *bfn = NULL;
 	mxArray *C_struct = NULL, *mxptr[N_MEX_FIELDNAMES_CPT], *mxstring = NULL;
 
 	if (C == NULL)	/* Safety valve */
@@ -453,7 +453,8 @@ static void *gmtmex_get_palette (void *API, struct GMT_PALETTE *C) {
 	mxptr[6] = mxCreateNumericMatrix (1, 1, mxDOUBLE_CLASS, mxREAL);
 	mxptr[7] = mxCreateNumericMatrix (C->n_colors, 6, mxDOUBLE_CLASS, mxREAL);
 	mxptr[8] = NULL;	/* Set below */
-	mxptr[9] = mxCreateCellMatrix (C->n_headers, C->n_headers ? 1 : 0);
+	mxptr[9] = mxCreateNumericMatrix (1, 1, mxDOUBLE_CLASS, mxREAL);
+	mxptr[10] = mxCreateCellMatrix (C->n_headers, C->n_headers ? 1 : 0);
 	
 	color    = mxGetPr (mxptr[0]);
 	alpha    = mxGetPr (mxptr[1]);
@@ -463,8 +464,12 @@ static void *gmtmex_get_palette (void *API, struct GMT_PALETTE *C) {
 	depth    = (uint32_t *)mxGetData (mxptr[5]);
 	hinge    = mxGetPr (mxptr[6]);
 	cpt      = mxGetPr (mxptr[7]);
+	cyclic   = mxGetPr (mxptr[9]);
 	depth[0] = (C->is_bw) ? 1 : ((C->is_gray) ? 8 : 24);
 	hinge[0] = (C->has_hinge) ? C->hinge : mxGetNaN ();
+#if NEED_GMT_VERSIONTRUNK
+	cyclic[0] = (C->is_wrapping) ? 1.0 : 0.0;
+#endif
 	for (j = 0; j < 3; j++)	/* Copy r/g/b from palette bfn to MATLAB array */
 		for (k = 0; k < 3; k++) bfn[j+3*k] = C->bfn[j].rgb[k];
 	for (j = 0; j < C->n_colors; j++) {	/* Copy r/g/b from palette to MATLAB colormap and cpt */
@@ -485,7 +490,7 @@ static void *gmtmex_get_palette (void *API, struct GMT_PALETTE *C) {
 	if (C->n_headers) {
 		for (k = 0; k < C->n_headers; k++) {
 			mxstring = mxCreateString (C->header[k]);
-			mxSetCell (mxptr[9], (int)k, mxstring);
+			mxSetCell (mxptr[10], (int)k, mxstring);
 		}
 	}
 	if (C->model & GMT_HSV)
@@ -1183,7 +1188,7 @@ static struct GMT_PALETTE *gmtmex_palette_init (void *API, unsigned int directio
 		unsigned int flag = (module_input) ? GMT_VIA_MODULE_INPUT : 0;
 		char model[8] = {""};
 		mxArray *mx_ptr[N_MEX_FIELDNAMES_CPT];
-		double *colormap = NULL, *range = NULL, *minmax = NULL, *alpha = NULL, *bfn = NULL, *hinge = NULL, *cpt = NULL;
+		double *colormap = NULL, *range = NULL, *minmax = NULL, *alpha = NULL, *bfn = NULL, *hinge = NULL, *cpt = NULL, *cyclic = NULL;
 
 		if (mxIsEmpty (ptr))
 			mexErrMsgTxt ("gmtmex_palette_init: The input that was supposed to contain the CPT, is empty\n");
@@ -1205,6 +1210,7 @@ static struct GMT_PALETTE *gmtmex_palette_init (void *API, unsigned int directio
 		depth    = mxGetData (mx_ptr[5]);
 		hinge    = mxGetData (mx_ptr[6]);
 		cpt      = mxGetData (mx_ptr[7]);
+		cyclic   = mxGetData (mx_ptr[9]);
 
 		dim[1] = mxGetM (mx_ptr[2]);	/* Length of range array */
 		if (dim[0] > dim[1]) {	/* This only happens when we have a continuous color table */
@@ -1217,11 +1223,11 @@ static struct GMT_PALETTE *gmtmex_palette_init (void *API, unsigned int directio
 		if ((P = GMT_Create_Data (API, GMT_IS_PALETTE|flag, GMT_IS_NONE, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
 			mexErrMsgTxt ("gmtmex_palette_init: Failure to alloc GMT source CPT for input\n");
 
-		if ((n_headers = (unsigned int)mxGetM (mx_ptr[9])) != 0) {	/* Number of headers found */
+		if ((n_headers = (unsigned int)mxGetM (mx_ptr[10])) != 0) {	/* Number of headers found */
 			char *txt = NULL;
 			mxArray *ptr = NULL;
 			for (k = 0; k < n_headers; k++) {
-				ptr = mxGetCell (mx_ptr[9], (mwSize)k);
+				ptr = mxGetCell (mx_ptr[10], (mwSize)k);
 				txt = mxArrayToString (ptr);
 				if (GMT_Set_Comment (API, GMT_IS_PALETTE, GMT_COMMENT_IS_TEXT, txt, P))
 					mexErrMsgTxt("gmtmex_palette_init: Failed to set a CPT header\n");
@@ -1244,6 +1250,9 @@ static struct GMT_PALETTE *gmtmex_palette_init (void *API, unsigned int directio
 		}
 		P->is_continuous = one;
 		P->is_bw = P->is_gray = 0;
+#if NEED_GMT_VERSIONTRUNK
+		P->is_wrapping = (unsigned int)rint (cyclic[0]);
+#endif
 		if (depth[0] == 1)
 			P->is_bw = 1;
 		else if (depth[0] == 8)
