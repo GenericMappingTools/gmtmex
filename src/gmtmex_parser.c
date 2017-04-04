@@ -930,6 +930,12 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 		else
 			strncpy(I->header->mem_layout, "TCBa", 4);
 
+		I->colormap = NULL;		/* BUT IT SHOULD BE PROPERLY ASSIGNED IF IMAGE IS INDEXED */
+		if (dim[2] == 1)
+			I->color_interp = "Gray";
+		else
+			I->color_interp = "Unknown";	/* BUT WE CAN */
+
 		GMT_Report (API, GMT_MSG_DEBUG, "gmtmex_image_init: Allocated GMT Image %lx\n", (long)I);
 		GMT_Report (API, GMT_MSG_DEBUG,
 		            "gmtmex_image_init: Registered GMT Image array %lx via memory reference from MATLAB\n",
