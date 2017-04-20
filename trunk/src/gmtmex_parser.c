@@ -682,6 +682,20 @@ static struct GMT_GRID *gmtmex_grid_init (void *API, unsigned int direction, uns
 
 			G->header->registration = registration;
 
+			mx_ptr = mxGetField(ptr, 0, "pad");
+			if (mx_ptr != NULL) {
+				double *pad = mxGetData(mx_ptr);
+				if (mxGetN(mx_ptr) == 1) {
+					G->header->pad[0] = G->header->pad[1] = G->header->pad[2] = G->header->pad[3] = (unsigned int)pad[0];
+				}
+				else if (mxGetN(mx_ptr) == 4) {
+					G->header->pad[0] = (unsigned int)pad[0];		G->header->pad[1] = (unsigned int)pad[1];
+					G->header->pad[2] = (unsigned int)pad[2];		G->header->pad[3] = (unsigned int)pad[3];
+				}
+				else
+					mexPrintf("gmtmex_grid_init: Wrong padding. Values must be a const or a 1x4 vector. Ignoring it.\n");
+			}
+
 			mx_ptr = mxGetField (ptr, 0, "nodata");
 			if (mx_ptr != NULL)
 				G->header->nan_value = *(float *)mxGetData (mx_ptr);
@@ -852,6 +866,20 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 		if (mx_ptr != NULL) {
 			if (mxGetNumberOfDimensions(mx_ptr) == 2)
 				I->alpha = (unsigned char *)mxGetData (mx_ptr);		/* Send in the Matlab owned memory. */
+		}
+
+		mx_ptr = mxGetField(ptr, 0, "pad");
+		if (mx_ptr != NULL) {
+			double *pad = mxGetData(mx_ptr);
+			if (mxGetN(mx_ptr) == 1) {
+				I->header->pad[0] = I->header->pad[1] = I->header->pad[2] = I->header->pad[3] = (unsigned int)pad[0];
+			}
+			else if (mxGetN(mx_ptr) == 4) {
+				I->header->pad[0] = (unsigned int)pad[0];		I->header->pad[1] = (unsigned int)pad[1];
+				I->header->pad[2] = (unsigned int)pad[2];		I->header->pad[3] = (unsigned int)pad[3];
+			}
+			else
+				mexPrintf("gmtmex_image_init: Wrong padding. Values must be a const or a 1x4 vector. Ignoring it.\n");
 		}
 
 		I->header->z_min = range[4];
