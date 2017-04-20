@@ -650,6 +650,7 @@ static struct GMT_GRID *gmtmex_grid_init (void *API, unsigned int direction, uns
 
 		if (mxIsStruct(ptr)) {	/* Passed a regular MEX Grid structure */
 			double *inc = NULL, *range = NULL, *reg = NULL;
+			unsigned int pad = 0;
 			char x_unit[GMT_GRID_VARNAME_LEN80] = { "" }, y_unit[GMT_GRID_VARNAME_LEN80] = { "" },
 			     z_unit[GMT_GRID_VARNAME_LEN80] = { "" }, layout[3];
 			mx_ptr = mxGetField (ptr, 0, "inc");
@@ -673,28 +674,24 @@ static struct GMT_GRID *gmtmex_grid_init (void *API, unsigned int direction, uns
 				mexErrMsgTxt ("gmtmex_grid_init: Could not find registration array for Grid registration\n");
 			reg = mxGetData (mx_ptr);
 			registration = (unsigned int)lrint(reg[0]);
+
+
+			mx_ptr = mxGetField(ptr, 0, "pad");
+			if (mx_ptr != NULL) {
+				double *dpad = mxGetData(mx_ptr);
+				pad = (unsigned int)dpad[0];
+				if (pad > 2)
+					mexPrintf("gmtmex_grid_init:  This pad value (%d) is very probably wrong.\n");
+			}
+
 			if ((G = GMT_Create_Data (API, GMT_IS_GRID|flag, GMT_IS_SURFACE, GMT_GRID_ALL,
-			                          NULL, range, inc, registration, GMT_NOTSET, NULL)) == NULL)
+			                          NULL, range, inc, registration, pad, NULL)) == NULL)
 				mexErrMsgTxt ("gmtmex_grid_init: Failure to alloc GMT source matrix for input\n");
 
 			G->header->z_min = range[4];
 			G->header->z_max = range[5];
 
 			G->header->registration = registration;
-
-			mx_ptr = mxGetField(ptr, 0, "pad");
-			if (mx_ptr != NULL) {
-				double *pad = mxGetData(mx_ptr);
-				if (mxGetN(mx_ptr) == 1) {
-					G->header->pad[0] = G->header->pad[1] = G->header->pad[2] = G->header->pad[3] = (unsigned int)pad[0];
-				}
-				else if (mxGetN(mx_ptr) == 4) {
-					G->header->pad[0] = (unsigned int)pad[0];		G->header->pad[1] = (unsigned int)pad[1];
-					G->header->pad[2] = (unsigned int)pad[2];		G->header->pad[3] = (unsigned int)pad[3];
-				}
-				else
-					mexPrintf("gmtmex_grid_init: Wrong padding. Values must be a const or a 1x4 vector. Ignoring it.\n");
-			}
 
 			mx_ptr = mxGetField (ptr, 0, "nodata");
 			if (mx_ptr != NULL)
@@ -810,7 +807,7 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 	struct GMT_IMAGE *I = NULL;
 	if (direction == GMT_IN) {	/* Dimensions are known from the input pointer */
 		uint64_t dim[3];
-		unsigned int flag = (module_input) ? GMT_VIA_MODULE_INPUT : 0;
+		unsigned int flag = (module_input) ? GMT_VIA_MODULE_INPUT : 0, pad = 0;
 		char x_unit[GMT_GRID_VARNAME_LEN80] = { "" }, y_unit[GMT_GRID_VARNAME_LEN80] = { "" },
 		     z_unit[GMT_GRID_VARNAME_LEN80] = { "" }, layout[4];
 		double  *reg = NULL, *inc = NULL, *range = NULL;
@@ -837,6 +834,14 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 			mexErrMsgTxt("gmtmex_image_init: Could not find registration info in Image struct\n");
 		reg = mxGetData(mx_ptr);
 
+		mx_ptr = mxGetField(ptr, 0, "pad");
+		if (mx_ptr != NULL) {
+			double *dpad = mxGetData(mx_ptr);
+			pad = (unsigned int)dpad[0];
+			if (pad > 2)
+				mexPrintf("gmtmex_grid_init:  This pad value (%d) is very probably wrong.\n");
+		}
+
 		mx_ptr = mxGetField (ptr, 0, "image");
 		if (mx_ptr == NULL)
 			mexErrMsgTxt ("gmtmex_image_init: Could not find data array for Image\n");
@@ -846,7 +851,7 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 
 		dim[0] = gmtmex_getMNK (mx_ptr, 1);	dim[1] = gmtmex_getMNK (mx_ptr, 0);	dim[2] = gmtmex_getMNK (mx_ptr, 2);
 		if ((I = GMT_Create_Data (API, GMT_IS_IMAGE|flag, GMT_IS_SURFACE, GMT_GRID_HEADER_ONLY, dim,
-			                      range, inc, (unsigned int)reg[0], 0, NULL)) == NULL)
+			                      range, inc, (unsigned int)reg[0], pad, NULL)) == NULL)
 			mexErrMsgTxt ("gmtmex_image_init: Failure to alloc GMT source image for input\n");
 
 		I->data = (unsigned char *)mxGetData (mx_ptr);				/* Send in the Matlab owned memory. */
@@ -866,20 +871,6 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 		if (mx_ptr != NULL) {
 			if (mxGetNumberOfDimensions(mx_ptr) == 2)
 				I->alpha = (unsigned char *)mxGetData (mx_ptr);		/* Send in the Matlab owned memory. */
-		}
-
-		mx_ptr = mxGetField(ptr, 0, "pad");
-		if (mx_ptr != NULL) {
-			double *pad = mxGetData(mx_ptr);
-			if (mxGetN(mx_ptr) == 1) {
-				I->header->pad[0] = I->header->pad[1] = I->header->pad[2] = I->header->pad[3] = (unsigned int)pad[0];
-			}
-			else if (mxGetN(mx_ptr) == 4) {
-				I->header->pad[0] = (unsigned int)pad[0];		I->header->pad[1] = (unsigned int)pad[1];
-				I->header->pad[2] = (unsigned int)pad[2];		I->header->pad[3] = (unsigned int)pad[3];
-			}
-			else
-				mexPrintf("gmtmex_image_init: Wrong padding. Values must be a const or a 1x4 vector. Ignoring it.\n");
 		}
 
 		I->header->z_min = range[4];
