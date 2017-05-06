@@ -650,7 +650,7 @@ static struct GMT_GRID *gmtmex_grid_init (void *API, unsigned int direction, uns
 
 		if (mxIsStruct(ptr)) {	/* Passed a regular MEX Grid structure */
 			double *inc = NULL, *range = NULL, *reg = NULL;
-			unsigned int pad = 0;
+			unsigned int pad = (unsigned int)GMT_NOTSET;
 			char x_unit[GMT_GRID_VARNAME_LEN80] = { "" }, y_unit[GMT_GRID_VARNAME_LEN80] = { "" },
 			     z_unit[GMT_GRID_VARNAME_LEN80] = { "" }, layout[3];
 			mx_ptr = mxGetField (ptr, 0, "inc");
