@@ -156,12 +156,12 @@ function [ps, d_path] = ex02(g_root_dir, out_path, verbose)
 	g_cpt = gmt('makecpt -Crainbow -T-2/14/2');
 	gmt(['grdimage ' d_path 'HI_geoid2.nc -R160/20/220/30r -JOc190/25.5/292/69/4.5i -C' ...
 		' -E50 -K -P -B10 -X1.5i -Y1.25i > '  ps], g_cpt)
-	gmt(['psscale -DjRM+o0.6i/0+jLM+w2.88i/0.4i+mc+e -R -J -O -K -Bx2+lGEOID -By+lm >> ' ps], g_cpt)
+	gmt(['psscale -DJRM+o0.6i/0+e+mc -R -J -O -K -Bx2+lGEOID -By+lm >> ' ps], g_cpt)
 	t_cpt = gmt(['grd2cpt ' d_path 'HI_topo2.nc -Crelief -Z']);
 	GHI_topo2_int = gmt(['grdgradient ' d_path 'HI_topo2.nc -A0 -Nt']);
 	gmt(['grdimage ' d_path 'HI_topo2.nc -I -R -J -B+t"H@#awaiian@# T@#opo and @#G@#eoid@#"' ...
         ' -B10 -E50 -O -K -C -Y4.5i --MAP_TITLE_OFFSET=0.5i >> ' ps], GHI_topo2_int, t_cpt)
-	gmt(['psscale -DjRM+o0.6i/0+jLM+w2.88i/0.4i+mc -R -J -O -K -I0.3 -Bx2+lTOPO -By+lkm >> ' ps], t_cpt)
+	gmt(['psscale -DJRM+o0.6i/0+mc -R -J -O -K -I0.3 -Bx2+lTOPO -By+lkm >> ' ps], t_cpt)
 	gmt(['pstext -R0/8.5/0/11 -Jx1i -F+f30p,Helvetica-Bold+jCB -O -N -Y-4.5i >> ' ps], {'-0.4 7.5 a)' '-0.4 3.0 b)'})
 	builtin('delete','gmt.conf');
 
