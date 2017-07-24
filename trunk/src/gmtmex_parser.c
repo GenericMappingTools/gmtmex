@@ -1383,7 +1383,6 @@ void GMTMEX_objecttype (char *type, const mxArray *ptr) {
 
 void GMTMEX_Set_Object (void *API, struct GMT_RESOURCE *X, const mxArray *ptr) {
 	/* Create the object container and hook as X->object */
-	char *name[2] = {"Matrix", "CellArray"};
 	unsigned int module_input = (X->option->option == GMT_OPT_INFILE), actual_family;
 
 	switch (X->family) {
@@ -1403,7 +1402,6 @@ void GMTMEX_Set_Object (void *API, struct GMT_RESOURCE *X, const mxArray *ptr) {
 			}
 			else	/* Got something for which a dataset container is appropriate */
 				X->object = gmtmex_dataset_init (API, X->direction, module_input, ptr, &actual_family);
-			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Set_Object: Got %s\n", name[X->family]);
 			X->family = actual_family;
 			break;
 		case GMT_IS_TEXTSET:	/* Get a textset from Matlab or a dummy one to hold GMT output */
