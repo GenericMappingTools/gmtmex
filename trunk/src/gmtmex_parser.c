@@ -991,12 +991,15 @@ static void *gmtmex_dataset_init (void *API, unsigned int direction, unsigned in
 		if (mxIsNumeric (ptr)) {	/* Got a MATLAB matrix as input - pass data pointers via MATRIX to save memory */
 			struct GMT_MATRIX *M = NULL;
 			unsigned int flag = (module_input) ? GMT_VIA_MODULE_INPUT : 0;
+#if GMT_MAJOR_VERSION == 6
+			flag |= GMT_VIA_MATRIX;
+			*actual_family |= GMT_VIA_MATRIX;
+#endif
 			mxClassID type = mxGetClassID (ptr);	/* Storage type for this matrix */
 			dim[DIM_ROW] = mxGetM (ptr);		/* Number of rows */
 			dim[DIM_COL] = mxGetN (ptr);		/* Number of columns */
-			if ((M = GMT_Create_Data (API, GMT_IS_DATASET|GMT_VIA_MATRIX|flag, GMT_IS_PLP, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
+			if ((M = GMT_Create_Data (API, GMT_IS_DATASET|flag, GMT_IS_PLP, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
 				mexErrMsgTxt ("gmtmex_dataset_init: Failure to alloc GMT source matrix\n");
-			*actual_family |= GMT_VIA_MATRIX;
 			GMT_Report (API, GMT_MSG_DEBUG, "gmtmex_dataset_init: Allocated GMT Matrix %lx\n", (long)M);
 			switch (type) {	/* Assign ML type pointer to the corresponding GMT matrix union pointer */
 				case mxDOUBLE_CLASS: M->type = GMT_DOUBLE; M->data.f8  =             mxGetData (ptr); break;

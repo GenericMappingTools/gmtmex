@@ -25,7 +25,7 @@ dnl We also need to gather the following information
 dnl 1. Location of GMT5 include and library files
 dnl -----------------------------------------------------------------
 dnl
-AC_INIT(gmt-mex, 5, pwessel@hawaii.edu)
+AC_INIT(gmt-mex, 6, pwessel@hawaii.edu)
 dnl
 dnl -----------------------------------------------------------------
 dnl The remainder should need no editing
@@ -96,7 +96,9 @@ if test "X$GMT_in_path" = "X0" ; then
 else
 	gmajor=`gmt --version | awk '{print substr($1,1,1)}'`
 	gminor=`gmt --version | awk '{print substr($1,3,1)}'`
-	if test "X$gmajor" = "X5" && test $gminor -ge 3; then
+	if test "X$gmajor" = "X6"; then
+		AC_MSG_RESULT(GMT6.x.x or higher executables found)
+	elif test "X$gmajor" = "X5" && test $gminor -ge 3; then
 		AC_MSG_RESULT(GMT5.3.x or higher executables found)
 	else
 		AC_MSG_RESULT(GMT5.3.x executables are not in your path - aborting)
@@ -454,8 +456,9 @@ else
 	AC_MSG_CHECKING(Octave system install dir for .$MEX_EXT files)
 	AC_MSG_RESULT([$MEX_XDIR])
 fi
+GMT_MAJOR=`echo $GMT_VER | awk '{print substr($1,1,1)}'`
 GMT_MINOR=`echo $GMT_VER | awk '{print substr($1,3,1)}'`
-CFLAGS="$CFLAGS -DGMT_MINOR_VERSION=$GMT_MINOR"
+CFLAGS="$CFLAGS -DGMT_MAJOR_VERSION=$GMT_MAJOR -DGMT_MINOR_VERSION=$GMT_MINOR"
 if test "X$GMT_GDAL" = "yes" ; then
 	CFLAGS="$CFLAGS -DHAVE_GDAL"
 fi
