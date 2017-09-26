@@ -37,6 +37,9 @@ REM ------------- Set the compiler (set to 'icl' to use the Intel compiler) ----
 SET CC=cl
 REM --------------------------------------------------------------------------------------
 
+REM Set to 5 or 6 depending on the GMT version
+SET MAJOR_VER=5 
+
 REM Set it to 32 or 64 to build under 64-bits or 32-bits respectively.
 SET BITS=64
 
@@ -88,15 +91,14 @@ SET  GMT_LIB=c:\progs_cygw\GMTdev\gmt5\trunk\WIN%BITS%\lib\gmt.lib
 call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" x86
 )
 
-SET     GMT_INC=c:\progs_cygw\GMTdev\gmt5\trunk\WIN%BITS%\include\gmt
-REM SET    GMT_INC=C:\progs_cygw\GMTdev\gmt5\branches\5.2.2\src
+SET  GMT_INC=c:\progs_cygw\GMTdev\gmt5\trunk\WIN%BITS%\include\gmt
 REM ----------------------------------------------------------------------------
 
 REM ____________________________________________________________________________
 REM ___________________ STOP EDITING HERE ______________________________________
 
 
-SET COMPFLAGS=/Zp8 /GR /EHs /D_CRT_SECURE_NO_DEPRECATE /D_SCL_SECURE_NO_DEPRECATE /D_SECURE_SCL=0 /DMATLAB_MEX_FILE /nologo /MD
+SET COMPFLAGS=/Zp8 /GR /EHs /D_CRT_SECURE_NO_DEPRECATE /D_SCL_SECURE_NO_DEPRECATE /D_SECURE_SCL=0 /DMATLAB_MEX_FILE -DGMT_MAJOR_VERSION=%MAJOR_VER% /nologo /MD
 SET OPTIMFLAGS=/Ox /Oy- /DNDEBUG
 IF %DEBUG%=="yes" SET OPTIMFLAGS=/Z7
 
@@ -105,7 +107,7 @@ IF %BITS%==32 SET arc=X86
 SET LINKFLAGS=/dll /export:mexFunction /LIBPATH:%MATLIB% libmx.lib libmex.lib libmat.lib /MACHINE:%arc% kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /incremental:NO %LDEBUG%
 
 REM -------------------------------------------------------------------------------------------------------
-%CC% /c -DWIN32 %COMPFLAGS% -W4 -I%MATINC% -I%GMT_INC% %OPTIMFLAGS% %_MX_COMPAT% -DLIBRARY_EXPORTS -DGMT_MATLAB -DGMT_MINOR_VERSION=3 gmtmex_parser.c gmtmex.c
+%CC% /c -DWIN32 %COMPFLAGS% -W4 -I%MATINC% -I%GMT_INC% %OPTIMFLAGS% %_MX_COMPAT% -DLIBRARY_EXPORTS -DGMT_MATLAB gmtmex_parser.c gmtmex.c
 link  /out:"gmtmex.%MEX_EXT%" %LINKFLAGS% %GMT_LIB% /implib:templib.x gmtmex_parser.obj gmtmex.obj
 
 del *.obj *.exp templib.x
