@@ -338,7 +338,8 @@ function [ps, d_path] = ex05(g_root_dir, out_path, verbose)
 	gmt(['grdview -JX6i -JZ2i -B5 -Bz0.5 -BSEwnZ -N-1+gwhite -Qs -I -X1.5i' ...
 		' -C -R-15/15/-15/15/-1/1 -K -p120/30 > ' ps], Gsombrero, Gintensity, C)
 	gmt(['pstext -R0/11/0/8.5 -Jx1i -F+f50p,ZapfChancery-MediumItalic+jBC -O >> ' ps], ...
-		{'4.1 5.5 z(r) = cos (2@~p@~r/8) @~\327@~e@+-r/10@+'})
+		struct('data',[4.1 5.5], 'text', {'z(r) = cos (2@~p@~r/8) @~\327@~e@+-r/10@+'}))
+%		{'4.1 5.5 z(r) = cos (2@~p@~r/8) @~\327@~e@+-r/10@+'})
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
@@ -371,8 +372,11 @@ function [ps, d_path] = ex07(g_root_dir, out_path, verbose)
 	gmt(['psxy -R -J -O -K @isochron_07.txt -Wthin,blue >> ' ps])
 	gmt(['psxy -R -J -O -K @ridge_07.txt -Wthicker,orange >> ' ps])
 	gmt(['pslegend -R -J -O -K -DjTR+w2.2i+o0.2i -F+pthick+ithinner+gwhite --FONT_ANNOT_PRIMARY=18p,Times-Italic >> ' ps], ...
-		'S 0.1i c 0.08i red thinnest 0.3i ISC Earthquakes')
-	gmt(['pstext -R -J -O -F+f30,Helvetica-Bold,white=thin >> ' ps], {'-43 -5 SOUTH' '-43 -8 AMERICA' '-7 11 AFRICA'})
+		struct('text', 'S 0.1i c 0.08i red thinnest 0.3i ISC Earthquakes'))
+%		'S 0.1i c 0.08i red thinnest 0.3i ISC Earthquakes')
+%	gmt(['pstext -R -J -O -F+f30,Helvetica-Bold,white=thin >> ' ps], {'-43 -5 SOUTH' '-43 -8 AMERICA' '-7 11 AFRICA'})
+	gmt(['pstext -R -J -O -F+f30,Helvetica-Bold,white=thin >> ' ps], ...
+		struct('data',[-43 -5; -43 -8; -7 11], 'text',{'SOUTH' 'AMERICA' 'AFRICA'}))
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
