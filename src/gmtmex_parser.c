@@ -983,7 +983,11 @@ static void *gmtmex_dataset_init (void *API, unsigned int direction, unsigned in
 			mx_ptr_d = mxGetField (ptr, (mwSize)seg, "data");     /* Data matrix for this segment */
 			mx_ptr_t = mxGetField (ptr, (mwSize)seg, "text");     /* text cell array for this segment */
 			dim[GMT_ROW] = mxGetM (mx_ptr_d);	/* Number of rows in matrix */
-			if (mx_ptr_t && (((m = mxGetM (mx_ptr_t)) == dim[GMT_ROW] && ((n = mxGetN (mx_ptr_t)) == 1)) || (n == dim[GMT_ROW] && m == 1)))	/* This segment also has a cell array of strings */
+			if (mx_ptr_t)	/* This segment also has a cell array of strings */
+				m = mxGetM (mx_ptr_t),	n = mxGetN (mx_ptr_t);
+			else
+				m = n = 0;
+			if ((m == dim[GMT_ROW] && n == 1) || (n == dim[GMT_ROW] && m == 1))
 				mode = GMT_WITH_STRINGS;
 			else
 				mode = GMT_NO_STRINGS;
