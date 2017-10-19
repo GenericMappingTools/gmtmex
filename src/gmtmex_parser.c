@@ -908,7 +908,7 @@ static void *gmtmex_dataset_init (void *API, unsigned int direction, unsigned in
 
 	*actual_family = GMT_IS_DATASET;	/* Default but may change to matrix */
 	if (direction == GMT_IN) {	/* Data given, dimensions are know, create container for GMT */
-		uint64_t seg, col, row, start, k, n_headers, dim[4] = {1, 0, 0, 0};	/* We only return one table */
+		uint64_t seg, col, row, start, k, n_headers, dim[4] = {1, 0, 0, 0}, n, m;	/* We only return one table */
 		size_t length = 0;
 		unsigned int mode;
 		char buffer[BUFSIZ] = {""};
@@ -960,11 +960,18 @@ static void *gmtmex_dataset_init (void *API, unsigned int direction, unsigned in
 		if (!mxIsStruct (ptr)) mexErrMsgTxt ("gmtmex_dataset_init: Expected a data structure for input\n");
 		dim[GMT_SEG] = mxGetM (ptr);	/* Number of segments */
 		if (dim[GMT_SEG] == 0) mexErrMsgTxt ("gmtmex_dataset_init: Input has zero segments where it can't be.\n");
-		if ((mx_ptr = mxGetField (ptr, 0, "data")) == NULL)	/* Get first segment's data matrix */
-			mexErrMsgTxt("gmtmex_dataset_init: The 'data' array is NULL where it can't be\n");
-		dim[GMT_COL] = mxGetN (mx_ptr);	/* Number of columns */
-		if (dim[GMT_COL] == 0) mexErrMsgTxt ("gmtmex_dataset_init: Input has zero columns where it can't be.\n");
-		if ((D = GMT_Create_Data (API, GMT_IS_DATASET, GMT_IS_PLP, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
+		mx_ptr_d = mxGetField (ptr, 0, "data");	/* Get first segment's data matrix [if available] */
+		mx_ptr_t = mxGetField (ptr, 0, "text");	/* Get first segment's text matrix [if available] */
+		if (mx_ptr_d == NULL && mx_ptr_t == NULL)
+			mexErrMsgTxt("gmtmex_dataset_init: Both 'data' array and 'text' array are NULL!\n");
+		if (mx_ptr_d)
+			dim[GMT_COL] = mxGetN (mx_ptr_d);	/* Number of columns */
+		if (dim[GMT_COL] == 0 && mx_ptr_t == NULL) mexErrMsgTxt ("gmtmex_dataset_init: Input has zero columns where it can't be.\n");
+		if (mx_ptr_t)	/* This segment also has a cell array of strings */
+			mode = GMT_WITH_STRINGS;
+		else
+			mode = GMT_NO_STRINGS;
+		if ((D = GMT_Create_Data (API, GMT_IS_DATASET, GMT_IS_PLP, mode, dim, NULL, NULL, 0, 0, NULL)) == NULL)
 			mexErrMsgTxt ("gmtmex_dataset_init: Failure to alloc GMT destination dataset\n");
 		GMT_Report (API, GMT_MSG_DEBUG, "gmtmex_dataset_init: Allocated GMT dataset %lx\n", (long)D);
 
@@ -976,7 +983,7 @@ static void *gmtmex_dataset_init (void *API, unsigned int direction, unsigned in
 			mx_ptr_d = mxGetField (ptr, (mwSize)seg, "data");     /* Data matrix for this segment */
 			mx_ptr_t = mxGetField (ptr, (mwSize)seg, "text");     /* text cell array for this segment */
 			dim[GMT_ROW] = mxGetM (mx_ptr_d);	/* Number of rows in matrix */
-			if (mxGetM (mx_ptr_t) == dim[GMT_ROW])	/* This segment also has a cell array of strings */
+			if (mx_ptr_t && (((m = mxGetM (mx_ptr_t)) == dim[GMT_ROW] && ((n = mxGetN (mx_ptr_t)) == 1)) || (n == dim[GMT_ROW] && m == 1)))	/* This segment also has a cell array of strings */
 				mode = GMT_WITH_STRINGS;
 			else
 				mode = GMT_NO_STRINGS;
