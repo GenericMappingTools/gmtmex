@@ -982,7 +982,7 @@ static void *gmtmex_dataset_init (void *API, unsigned int direction, unsigned in
 				mxGetString (mx_ptr, buffer, (mwSize)(length+1));
 			mx_ptr_d = mxGetField (ptr, (mwSize)seg, "data");     /* Data matrix for this segment */
 			mx_ptr_t = mxGetField (ptr, (mwSize)seg, "text");     /* text cell array for this segment */
-			dim[GMT_ROW] = mxGetM (mx_ptr_d);	/* Number of rows in matrix */
+			dim[GMT_ROW] = (mx_ptr_d == NULL) ? 0 : mxGetM (mx_ptr_d);	/* Number of rows in matrix */
 			if (mx_ptr_t)	/* This segment also has a cell array of strings */
 				m = mxGetM (mx_ptr_t),	n = mxGetN (mx_ptr_t);
 			else
@@ -993,7 +993,7 @@ static void *gmtmex_dataset_init (void *API, unsigned int direction, unsigned in
 				mode = GMT_NO_STRINGS;
 			/* Allocate a new data segment and hook up to table */
 			S = GMT_Alloc_Segment (API, mode, dim[GMT_ROW], dim[GMT_COL], buffer, D->table[0]->segment[seg]);
-			data = mxGetData (mx_ptr_d);
+			if (mx_ptr_d != NULL) data = mxGetData (mx_ptr_d);
 			for (col = start = 0; col < S->n_columns; col++, start += S->n_rows) /* Copy the data columns */
 				memcpy (S->data[col], &data[start], S->n_rows * sizeof (double));
 			if (mode == GMT_WITH_STRINGS) {	/* Add in the trailing strings */
