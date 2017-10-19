@@ -227,7 +227,7 @@ static void *gmtmex_get_dataset (void *API, struct GMT_DATASET *D) {
 	 */
 
 	int n_headers;
-	uint64_t tbl, seg, seg_out, col, start, k, n_items = 1;
+	uint64_t tbl, seg, seg_out, col, row, start, k, n_items = 1;
 	double *data = NULL;
 	struct GMT_DATASEGMENT *S = NULL;
 	mxArray *D_struct = NULL, *mxheader = NULL, *mxdata = NULL, *mxtext = NULL, *mxstring = NULL;
@@ -248,7 +248,15 @@ static void *gmtmex_get_dataset (void *API, struct GMT_DATASET *D) {
 			S = D->table[tbl]->segment[seg];	/* Shorthand */
 			if (S->n_rows == 0) continue;		/* Skip empty segments */
 			mxheader = mxCreateString (S->header);
-			mxtext   = mxCreateCellMatrix (0, 0);	/* Empty */
+			if (S->text) {	/* Had trailing text */
+				mxtext   = mxCreateCellMatrix (S->n_rows, 1);
+				for (row = 0; row < S->n_rows; row++) {
+					mxstring = mxCreateString (S->text[row]);
+					mxSetCell (mxtext, (int)row, mxstring);
+				}
+			}
+			else
+				mxtext = mxCreateCellMatrix (0, 0);	/* Empty */
 			mxdata   = mxCreateNumericMatrix ((mwSize)S->n_rows, (mwSize)S->n_columns, mxDOUBLE_CLASS, mxREAL);
 			data      = mxGetPr (mxdata);
 			for (col = start = 0; col < S->n_columns; col++, start += S->n_rows) /* Copy the data columns */
