@@ -72,7 +72,7 @@
 		3F2ADA4717827DCB00E2675F /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0510;
+				LastUpgradeCheck = 0900;
 			};
 			buildConfigurationList = 3F2ADA4A17827DCB00E2675F /* Build configuration list for PBXProject "gmtmex" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -108,6 +108,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 3F2ADA5017827DCB00E2675F /* mex.xcconfig */;
 			buildSettings = {
+				ENABLE_TESTABILITY = YES;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;

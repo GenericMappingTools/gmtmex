@@ -908,10 +908,12 @@ static void *gmtmex_dataset_init (void *API, unsigned int direction, unsigned in
 
 	*actual_family = GMT_IS_DATASET;	/* Default but may change to matrix */
 	if (direction == GMT_IN) {	/* Data given, dimensions are know, create container for GMT */
-		uint64_t seg, col, start, k, n_headers, dim[4] = {1, 0, 0, 0};	/* We only return one table */
+		uint64_t seg, col, row, start, k, n_headers, dim[4] = {1, 0, 0, 0};	/* We only return one table */
 		size_t length = 0;
+		unsigned int mode;
 		char buffer[BUFSIZ] = {""};
-		mxArray *mx_ptr = NULL;
+		char *txt = NULL;
+		mxArray *mx_ptr = NULL, *mx_ptr_d = NULL, *mx_ptr_t = NULL;
 		double *data = NULL;
 		struct GMT_DATASEGMENT *S = NULL;
 
@@ -971,18 +973,29 @@ static void *gmtmex_dataset_init (void *API, unsigned int direction, unsigned in
 			buffer[0] = 0;	/* Reset our temporary text buffer */
 			if (mx_ptr && (length = mxGetN (mx_ptr)) != 0)      /* These is a non-empty segment header to keep */
 				mxGetString (mx_ptr, buffer, (mwSize)(length+1));
-			mx_ptr = mxGetField (ptr, (mwSize)seg, "data");     /* Data matrix for this segment */
-			data = mxGetData (mx_ptr);
-			dim[GMT_ROW] = mxGetM (mx_ptr);	/* Number of rows in matrix */
+			mx_ptr_d = mxGetField (ptr, (mwSize)seg, "data");     /* Data matrix for this segment */
+			mx_ptr_t = mxGetField (ptr, (mwSize)seg, "text");     /* text cell array for this segment */
+			dim[GMT_ROW] = mxGetM (mx_ptr_d);	/* Number of rows in matrix */
+			if (mxGetM (mx_ptr_t) == dim[GMT_ROW])	/* This segment also has a cell array of strings */
+				mode = GMT_WITH_STRINGS;
+			else
+				mode = GMT_NO_STRINGS;
 			/* Allocate a new data segment and hook up to table */
-			S = GMT_Alloc_Segment (API, GMT_IS_DATASET, dim[GMT_ROW], dim[GMT_COL], buffer, D->table[0]->segment[seg]);
+			S = GMT_Alloc_Segment (API, mode, dim[GMT_ROW], dim[GMT_COL], buffer, D->table[0]->segment[seg]);
+			data = mxGetData (mx_ptr_d);
 			for (col = start = 0; col < S->n_columns; col++, start += S->n_rows) /* Copy the data columns */
 				memcpy (S->data[col], &data[start], S->n_rows * sizeof (double));
+			if (mode == GMT_WITH_STRINGS) {	/* Add in the trailing strings */
+				for (row = 0; row < S->n_rows; row++) {
+					mx_ptr = mxGetCell (mx_ptr_t, (mwSize)row);
+					txt = mxArrayToString (mx_ptr);
+					S->text[row] = strdup (txt);
+				}
+			}
 			D->table[0]->n_records += S->n_rows;	/* Must manually keep track of totals */
 			if (seg == 0) {	/* First segment may have table information */
-				mxArray *mx_ptr_t = mxGetField (ptr, (mwSize)seg, "comment");	/* Table headers */
+				mx_ptr_t = mxGetField (ptr, (mwSize)seg, "comment");	/* Table headers */
 				if (mx_ptr_t && (n_headers = mxGetM (mx_ptr_t)) != 0) {	/* Number of headers found */
-					char *txt = NULL;
 					for (k = 0; k < n_headers; k++) {
 						mx_ptr = mxGetCell (mx_ptr_t, (mwSize)k);
 						txt = mxArrayToString (mx_ptr);
@@ -991,6 +1004,7 @@ static void *gmtmex_dataset_init (void *API, unsigned int direction, unsigned in
 					}
 				}
 			}
+			if (mode == GMT_WITH_STRINGS) D->type = GMT_READ_MIXED;
 		}
 		D->n_records = D->table[0]->n_records;
 	}
