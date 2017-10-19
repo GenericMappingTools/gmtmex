@@ -61,7 +61,7 @@ enum MEX_dim {
  * The packing up of GMT structures into MATLAB structures and vice versa happens after getting the
  * results out of the GMT API and before passing them back to MATLAB.
  *
- * All 6 GMT Resources are supported in this API, according to these rules:
+ * All 5 GMT Resources are supported in this API, according to these rules:
  *  GMT_GRID:	Handled with a MATLAB grid structure and we use GMT's GMT_GRID for the passing
  *		  + Basic header array of length 9 [xmin, xmax, ymin, ymax, zmin, zmax, reg, xinc, yinc]
  *		  + The 2-D grid array z (single precision)
@@ -73,13 +73,8 @@ enum MEX_dim {
  *		  + A text string for the segment header
  *		  + A cell array with strings, [] since no text in datasets
  *		  + A 2-D matrix with rows and columns (double precision)
+ *		  + An optional cell array with strings from trailing columns that could not be deciphered as data.
  *		  + First segment may also have dataset comment and proj4/wtk strings
- * GMT_TEXTSET: Handled with an array of MATLAB data structures and we use GMT's GMT_TEXTSET for passing in and out of GMT.
- *		Each MEX structure contain data for one segment:
- *		  + A text string for the segment header
- *		  + A 2-D matrix with rows and columns (double precision) if there is numerical data in the first columns (or empty)
- *		  + A cell array with strings from columns that could not be deciphered as data.
- *		  + First segment may also have textset comment and proj4/wtk strings
  * GMT_PALETTE: Handled with a MATLAB structure and we use GMT's native GMT_PALETTE for the passing.
  *		  + colormap is the N*3 matrix for MATLAB colormaps
  *		  + range is a N-element array with z-values at color changes
@@ -286,81 +281,6 @@ int scan_to_start_of_text (char *text, uint64_t n_col) {
 		while (text[k] && strchr (" ,;\t", text[k])) k++;	/* Scan past consecutive "white-space" */
 	}
 	return k;
-}
-
-static void *gmtmex_get_textset (void *API, struct GMT_TEXTSET *T) {
-	/* Given a GMT GMT_TEXTSET T, build a MATLAB array of segment structure and assign values.
-	 * Each segment will have 6 items:
-	 * header:	Text string with the segment header (could be empty)
-	 * data:	Matrix with any converted data for this segment (n_rows by n_columns)
-	 * text:	Cell array with the text items
-	 * comment:	Cell array with any comments
-	 * proj4:	String with any proj4 information
-	 * wkt:		String with any WKT information
-	 */
-
-	int n_headers;
-	uint64_t tbl, seg, seg_out, col, row, start, k, n_columns = 0, n_items = 1;
-	unsigned int flag[3] = {GMT_LAX_CONVERSION, 0, 0};	/* We will try to convert most of the text to data */
-	double *data = NULL;
-	struct GMT_DATASET *D = NULL;
-	struct GMT_DATASEGMENT *SD = NULL;
-	struct GMT_TEXTSEGMENT *ST = NULL;
-	mxArray *D_struct = NULL, *mxheader = NULL, *mxdata = NULL, *mxtext = NULL, *mxstring = NULL;
-
-	if (T == NULL)	/* Safety valve */
-		mexErrMsgTxt ("gmtmex_get_textset: programming error, output GMT_TEXTSET T is empty\n");
-
-	if ((D = GMT_Convert_Data (API, T, GMT_IS_TEXTSET, NULL, GMT_IS_DATASET, flag)) != NULL && D->n_records) {	/* Success, and have data records */
-		SD = D->table[0]->segment[0];	/* Shorthand, now determine number of non-NaN columns from first row */
-		for (col = 0; col < D->n_columns; col++)
-			if (!mxIsNaN (SD->data[col][0])) n_columns++;
-	}
-
-	for (tbl = seg_out = 0; tbl < T->n_tables; tbl++)	/* Count the non-empty segments */
-		for (seg = 0; seg < T->table[tbl]->n_segments; seg++)
-			if (T->table[tbl]->segment[seg]->n_rows)
-				seg_out++;
-	if (seg_out == 0) n_items = 0;
-
-	D_struct = mxCreateStructMatrix ((mwSize)seg_out, (mwSize)n_items, N_MEX_FIELDNAMES_DATASET, GMTMEX_fieldname_dataset);
-	n_headers = T->table[0]->n_headers;
-	for (tbl = seg_out = 0; tbl < T->n_tables; tbl++) {
-		for (seg = 0; seg < T->table[tbl]->n_segments; seg++) {
-			ST = T->table[tbl]->segment[seg];	/* Shorthand to current text segment */
-			if (ST->n_rows == 0) continue;		/* Skip empty segments */
-			mxheader = mxCreateString (ST->header);
-			if (D) {	/* We have numerial data to consider */
-				SD     = D->table[tbl]->segment[seg];	/* Shorthand to the corresponding data segment */
-				mxdata = mxCreateNumericMatrix ((mwSize)ST->n_rows, (mwSize)n_columns, mxDOUBLE_CLASS, mxREAL);
-				data   = mxGetPr (mxdata);
-				for (col = start = 0; col < n_columns; col++, start += SD->n_rows) /* Copy the data columns */
-					memcpy (&data[start], SD->data[col], SD->n_rows * sizeof (double));
-			}
-			else	/* No data matrix, create an empty one */
-				mxdata   = mxCreateNumericMatrix (0, 0, mxDOUBLE_CLASS, mxREAL);
-			mxtext = mxCreateCellMatrix ((mwSize)ST->n_rows, 1);	/* Create cell array for text */
-			for (row = 0; row < ST->n_rows; row++) {
-				start = scan_to_start_of_text (ST->data[row], n_columns);
-				mxstring = mxCreateString (&ST->data[row][start]);
-				mxSetCell (mxtext, (int)row, mxstring);
-			}
-			mxSetField (D_struct, (mwSize)seg_out, "data",   mxdata);
-			mxSetField (D_struct, (mwSize)seg_out, "text",   mxtext);
-			mxSetField (D_struct, (mwSize)seg_out, "header", mxheader);
-			mxtext = mxCreateCellMatrix (n_headers, n_headers ? 1 : 0);
-			for (k = 0; k < n_headers; k++) {
-				mxstring = mxCreateString (T->table[0]->header[k]);
-				mxSetCell (mxtext, (int)k, mxstring);
-			}
-			mxSetField (D_struct, (mwSize)seg_out, "comment", mxtext);
-			n_headers = 0;	/* No other segment will have a non-empty comment cell array */
-			seg_out++;	/* Go to next output segment */
-		}
-	}
-	if (D && GMT_Destroy_Data (API, &D))
-		mexPrintf("Warning: Failure to delete intermediate D in gmtmex_get_textset\n");
-	return (D_struct);
 }
 
 static void *gmtmex_get_postscript (void *API, struct GMT_POSTSCRIPT *P) {
@@ -1074,139 +994,6 @@ static void *gmtmex_dataset_init (void *API, unsigned int direction, unsigned in
 	return (D);
 }
 
-static struct GMT_TEXTSET *gmtmex_textset_init (void *API, unsigned int direction, unsigned int module_input, unsigned int family, const mxArray *ptr) {
-	/* Used to create containers to hold or receive mixed data/text tables:
-	 * direction == GMT_IN:  Create empty GMT_TEXTSET container, fill, and use as GMT input.
-	 *	input may be MEX segments, numerical matrix (will be converted to text), cell array of strings, or a single string.
-	 * direction == GMT_OUT: Create empty GMT_TEXTSET container, let GMT fill it out, and use for Mex output.
- 	 * If direction is GMT_IN then we are given a MATLAB struct and can determine dimension.
-	 * If output then we dont know size so all we do is specify data type. */
-	struct GMT_TEXTSET *T = NULL;
-	
-	if (direction == GMT_IN) {	/* Dimensions are known, extract them and set dim array for a GMT_MATRIX resource */
-		uint64_t seg, col, row, n_cols = 0, k, n_headers, dim[3] = {1, 0, 0};	/* Only return one table */
-		size_t length = 0;
-		int add_text = 0;
-		char buffer[BUFSIZ] = {""}, word[64] = {""}, *txt = NULL;
-		mxArray *mx_ptr = NULL;
-		double *data = NULL;
-		struct GMT_TEXTSEGMENT *S = NULL;
-		if (!ptr)
-			mexErrMsgTxt("gmtmex_textset_init: Input pointer is NULL where it can't be.\n");
-		else if (mxIsEmpty(ptr)) {
-			mexPrintf("gmtmex_textset_init: Input text is empty, unknown consequence.\n");
-			return NULL;
-		}
-
-		if (mxIsStruct (ptr)) {	/* Regular structure for data/textsets */
-			mxArray *mx_ptr_d = NULL, *mx_ptr_t = NULL;
-			dim[GMT_SEG] = mxGetM (ptr);	/* Number of segments */
-			if (dim[GMT_SEG] == 0) mexErrMsgTxt ("gmtmex_textset_init: Input has zero segments where it can't be.\n");
-			if ((T = GMT_Create_Data (API, GMT_IS_TEXTSET, GMT_IS_PLP, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
-				mexErrMsgTxt ("gmtmex_textset_init: Failure to alloc GMT destination dataset\n");
-			GMT_Report (API, GMT_MSG_DEBUG, "gmtmex_textset_init: Allocated GMT textset %lx\n", (long)T);
-			for (seg = 0; seg < dim[GMT_SEG]; seg++) {	/* Each incoming structure is a new segment */
-				mx_ptr = mxGetField (ptr, (mwSize)seg, "header");	/* Segment header */
-				buffer[0] = 0;	/* Reset our temporary buffer */
-				if ((length = mxGetN (mx_ptr)) != 0)
-					mxGetString (mx_ptr, buffer, (mwSize)(length+1));
-				mx_ptr_d = mxGetField (ptr, (mwSize)seg, "data");	/* Data table for this segment */
-				mx_ptr_t = mxGetField (ptr, (mwSize)seg, "text");	/* Text table for this segment */
-				if (mxIsEmpty(mx_ptr_t))	/* The cell array is empty so no text will be converted */
-					add_text = 0;
-				else {	/* Get pointer to cell array and get row count */
-					dim[GMT_ROW] = mxGetM (mx_ptr_t);	/* Number of rows found */
-					add_text = 1;
-				}
-				if (dim[GMT_ROW] == 0)	/* No text array present, rely on data array instead. */
-					dim[GMT_ROW] = mxGetM (mx_ptr_d);	/* Number of rows */
-				n_cols = mxGetN (mx_ptr_d);	/* Number of data cols, if any */
-				/* Allocate new text segment and hook it up to the table */
-				S = GMT_Alloc_Segment (API, GMT_IS_TEXTSET, dim[GMT_ROW], 0, buffer, T->table[0]->segment[seg]);
-				data = mxGetData (mx_ptr_d);
-				/* Combine any data and cell arrays into text records */
-				for (row = 0; row < S->n_rows; row++) {
-					/* First deal with the [optional] data matrix for leading columns */
-					if (n_cols) sprintf (buffer, "%.16g", data[row]);
-					for (col = 1; col < n_cols; col++) {
-						sprintf (word, "\t%.16g", data[row+col*S->n_rows]);
-						strcat (buffer, word);
-					}
-					if (add_text) {	/* Then append the optional text strings */
-						mx_ptr = mxGetCell (mx_ptr_t, (mwSize)row);	/* Pointer to this cell */
-						if ((txt = mxArrayToString (mx_ptr)) != NULL) {		/* Yes, there was a string there */
-							strcat (buffer, "\t");	/* Append the string after a tab */
-							strcat (buffer, txt);
-							mxFree (txt);
-						}
-					}
-					S->data[row] = GMT_Duplicate_String (API, buffer);
-				}
-				if (seg == 0) {	/* First segment may have dataset information */
-					mx_ptr_t = mxGetField (ptr, (mwSize)seg, "comment");	/* Table headers */
-					if (mx_ptr_t && (n_headers = mxGetM (mx_ptr_t)) != 0) {	/* Number of headers found */
-						for (k = 0; k < n_headers; k++) {	/* Add each header as a text comment to the textset */
-							mx_ptr = mxGetCell (mx_ptr_t, (mwSize)row);
-							txt = mxArrayToString (mx_ptr);
-							if (GMT_Set_Comment (API, GMT_IS_TEXTSET, GMT_COMMENT_IS_TEXT, txt, T))
-								mexErrMsgTxt("gmtmex_textset_init: Failed to set a textset header\n");
-						}
-					}
-				}
-			}
-		}
-		else {	/* Get here when given either a numerical matrix, a cell array or a single string */
-			unsigned int got_text = 0;
-			dim[GMT_ROW] = mxGetM(ptr); /* Number of records */
-			dim[GMT_SEG] = 1;           /* Only one segment is returned here */
-			if (mxIsNumeric (ptr)) {    /* Got data matrix instead, must convert to text first (below) */
-				n_cols = mxGetN (ptr);  /* Number of columns */
-				data = mxGetData (ptr); /* Get pointer to the data matrix */
-			}
-			else if (mxIsChar(ptr) && dim[GMT_ROW] == 1)	/* Special case: Got a single text record instead of cell array */
-				got_text = 1;
-			else if (!mxIsCell (ptr))	/* Merda */
-				mexErrMsgTxt ("gmtmex_textset_init: Expected either a Cell array, Matrix, or text string for input\n");
-			if (n_cols == 0 && dim[GMT_ROW] == 1 && !got_text) {	/* Check if we got a transpose arrangement or just one record */
-				row = mxGetN (ptr);                 /* Also possibly number of records */
-				if (row > 1) dim[GMT_ROW] = row;    /* User gave row-vector of cells */
-			}
-			if ((T = GMT_Create_Data (API, family, GMT_IS_NONE, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
-				mexErrMsgTxt ("gmtmex_textset_init: Failure to alloc GMT source TEXTSET for input\n");
-			S = T->table[0]->segment[0];	/* Only one segment (already allocated and hooked up) will be returned by MATLAB */
-			S->n_rows = dim[GMT_ROW];
-			T->alloc_mode = GMT_ALLOC_EXTERNALLY;
-			if (got_text)	/* Just got that single record */
-				S->data[0] = mxArrayToString (ptr);
-			else {	/* Must get strings out of the cell array or reformat data matrix */
-				for (row = 0; row < S->n_rows; row++) {
-					if (n_cols) {	/* Create text string from matrix */
-						sprintf (buffer, "%.16g", data[row]);
-						for (col = 1; col < n_cols; col++) {
-							sprintf (word, "\t%.16g", data[row+col*dim[GMT_ROW]]);
-							strcat (buffer, word);
-						}
-						txt = mxstrdup (buffer);
-					}
-					else {	/* Got cell array */
-						mx_ptr = mxGetCell (ptr, (mwSize)row);
-						txt = mxArrayToString (mx_ptr);
-					}
-					S->data[row] = txt;
-				}
-			}
-			T->n_records = T->table[0]->n_records = S->n_rows;
-		}
-		GMT_Report (API, GMT_MSG_DEBUG, "gmtmex_textset_init: Allocated GMT TEXTSET %lx\n", (long)T);
-	}
-	else {	/* Here we set up an empty container to receive a textset from GMT (signal this by passing 0s and NULLs [mode == GMT_IS_OUTPUT from 5.4]) */
-		if ((T = GMT_Create_Data (API, GMT_IS_TEXTSET, GMT_IS_NONE, GMT_CREATE_MODE, NULL, NULL, NULL, 0, 0, NULL)) == NULL)
-			mexErrMsgTxt ("gmtmex_textset_init: Failure to alloc GMT source textset\n");
-		GMT_Report (API, GMT_MSG_DEBUG, "gmtmex_textset_init: Allocated GMT Textset %lx\n", (long)T);
-	}
-	return (T);
-}
-
 static struct GMT_PALETTE *gmtmex_palette_init (void *API, unsigned int direction, unsigned int module_input, const mxArray *ptr) {
 	/* Used to create an empty CPT container to hold a GMT Color Palette.
  	 * If direction is GMT_IN then we are given a MATLAB CPT struct and can determine its size, etc.
@@ -1398,18 +1185,7 @@ void GMTMEX_Set_Object (void *API, struct GMT_RESOURCE *X, const mxArray *ptr) {
 			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Set_Object: Got Image\n");
 			break;
 		case GMT_IS_DATASET:	/* Get a dataset from Matlab or a dummy one to hold GMT output */
-			/* Ostensibly a DATASET, but it might be a TEXTSET passed via a cell array, so we must check */
-			if (X->direction == GMT_IN && (mxIsCell (ptr) || mxIsChar (ptr))) {	/* Got text input */
-				X->object = gmtmex_textset_init (API, X->direction, module_input, GMT_IS_TEXTSET, ptr);
-				X->family = actual_family = GMT_IS_TEXTSET;
-			}
-			else	/* Got something for which a dataset container is appropriate */
-				X->object = gmtmex_dataset_init (API, X->direction, module_input, ptr, &actual_family);
-			X->family = actual_family;
-			break;
-		case GMT_IS_TEXTSET:	/* Get a textset from Matlab or a dummy one to hold GMT output */
-			X->object = gmtmex_textset_init (API, X->direction, module_input, GMT_IS_TEXTSET, ptr);
-			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Set_Object: Got TEXTSET\n");
+			X->object = gmtmex_dataset_init (API, X->direction, module_input, ptr, &actual_family);
 			break;
 		case GMT_IS_PALETTE:	/* Get a palette from Matlab or a dummy one to hold GMT output */
 			X->object = gmtmex_palette_init (API, X->direction, module_input, ptr);
@@ -1441,9 +1217,6 @@ void *GMTMEX_Get_Object (void *API, struct GMT_RESOURCE *X) {
 			break;
 		case GMT_IS_DATASET:	/* A GMT table; make it a matrix and the pos'th output item */
 			ptr = gmtmex_get_dataset (API, X->object);
-			break;
-		case GMT_IS_TEXTSET:	/* A GMT textset; make it a cell and the pos'th output item */
-			ptr = gmtmex_get_textset (API, X->object);
 			break;
 		case GMT_IS_PALETTE:	/* A GMT CPT; make it a colormap and the pos'th output item  */
 			ptr = gmtmex_get_palette (API, X->object);

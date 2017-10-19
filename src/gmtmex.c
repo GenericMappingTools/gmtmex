@@ -100,7 +100,6 @@ static void *alloc_default_plhs (void *API, struct GMT_RESOURCE *X) {
 			ptr = (void *)mxCreateStructMatrix (0, 0, N_MEX_FIELDNAMES_IMAGE, GMTMEX_fieldname_image);
 			break;
 		case GMT_IS_DATASET:
-		case GMT_IS_TEXTSET:
 			ptr = (void *)mxCreateStructMatrix (0, 0, N_MEX_FIELDNAMES_DATASET, GMTMEX_fieldname_dataset);
 			break;
 		case GMT_IS_PALETTE:

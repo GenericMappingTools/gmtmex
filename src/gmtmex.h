@@ -118,7 +118,7 @@ typedef int mwSize;
 /* Definitions of MEX structures used to hold GMT objects.
  * DO NOT MODIFY THE ORDER OF THE FIELDNAMES */
 
-/* GMT_IS_DATASET/TEXTSET:
+/* GMT_IS_DATASET:
  * Returned by GMT via the parser as a MEX structure with the
  * fields listed below.  Pure datasets will only set the data
  * matrix and leave the text cell array empty, while textsets
@@ -163,7 +163,7 @@ static const char *GMTMEX_fieldname_cpt[N_MEX_FIELDNAMES_CPT] =
 static const char *GMTMEX_fieldname_ps[N_MEX_FIELDNAMES_PS] =
 	{"postscript", "length", "mode", "comment"};
 
-/* Macro for indecing into a GMT grid [with pad] */
+/* Macro for indexing into a GMT grid [with pad] */
 #define GMT_IJP(h,row,col) ((uint64_t)(((int64_t)(row)+(int64_t)h->pad[GMT_YHI])*((int64_t)h->mx)+(int64_t)(col)+(int64_t)h->pad[GMT_XLO]))
 
 #define MODULE_LEN 	32	/* Max length of a GMT module name */
