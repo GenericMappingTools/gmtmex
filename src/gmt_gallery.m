@@ -177,9 +177,9 @@ function [ps, d_path] = ex03(g_root_dir, out_path, verbose)
 	% First, we use "gmt fitcircle" to find the parameters of a great circle
 	% most closely fitting the x,y points in "sat.xyg":
 
-	cpos = gmt(['fitcircle @sat_03.xyg -L2 -Fm']);
+	cpos = gmt(['fitcircle @sat_03.txt -L2 -Fm']);
 	cposx = cpos.data(1,1);	cposy = cpos.data(1,2);
-	ppos = gmt(['fitcircle @sat_03.xyg -L2 -Fn']);
+	ppos = gmt(['fitcircle @sat_03.txt -L2 -Fn']);
 	pposx = ppos.data(1,1);	pposy = ppos.data(1,2);
 
 	% Now we use "gmt project" to gmt project the data in both sat.xyg and ship.xyg
@@ -187,8 +187,8 @@ function [ps, d_path] = ex03(g_root_dir, out_path, verbose)
 	% the great circle.  We use -Q to get the p distance in kilometers, and -S
 	% to sort the output into increasing p values.
 
-	sat_pg  = gmt(sprintf('project @sat_03.xyg -C%f/%f -T%f/%f -S -Fpz -Q', cposx, cposy, pposx, pposy));
-	ship_pg = gmt(sprintf('project @ship_03.xyg -C%f/%f -T%f/%f -S -Fpz -Q', cposx, cposy, pposx, pposy));
+	sat_pg  = gmt(sprintf('project @sat_03.txt -C%f/%f -T%f/%f -S -Fpz -Q', cposx, cposy, pposx, pposy));
+	ship_pg = gmt(sprintf('project @ship_03.txt -C%f/%f -T%f/%f -S -Fpz -Q', cposx, cposy, pposx, pposy));
 	sat_pg  = sat_pg.data;
 	ship_pg = ship_pg.data;
 
@@ -550,25 +550,25 @@ function [ps, d_path] = ex12(g_root_dir, out_path, verbose)
 
 	gmt('set -Du')
 	gmt('destroy')
-	net_xy = gmt('triangulate @table_5.11 -M');
+	net_xy = gmt('triangulate @Table_5_11.txt -M');
 	gmt(['psxy -R0/6.5/-0.2/6.5 -JX3.06i/3.15i -B2f1 -BWSNe -Wthinner -P -K -X0.9i -Y4.65i > ' ps], net_xy)
-	gmt(['psxy @table_5.11 -R -J -O -K -Sc0.12i -Gwhite -Wthinnest >> ' ps])
-	gmt(['pstext -R -J -F+f6p+r -O -K @table_5.11 >> ' ps])
+	gmt(['psxy @Table_5_11.txt -R -J -O -K -Sc0.12i -Gwhite -Wthinnest >> ' ps])
+	gmt(['pstext -R -J -F+f6p+r -O -K @Table_5_11.txt >> ' ps])
 
 	% Then draw network and print the node values
 	gmt(['psxy -R -J -B2f1 -BeSNw -Wthinner -O -K -X3.25i >> ' ps], net_xy)
-	gmt(['psxy -R -J -O -K @table_5.11 -Sc0.03i -Gblack >> ' ps])
-	gmt(['pstext @table_5.11 -R -J -F+f6p+jLM -O -K -Gwhite -W -C0.01i -D0.08i/0i -N >> ' ps])
+	gmt(['psxy -R -J -O -K @Table_5_11.txt -Sc0.03i -Gblack >> ' ps])
+	gmt(['pstext @Table_5_11.txt -R -J -F+f6p+jLM -O -K -Gwhite -W -C0.01i -D0.08i/0i -N >> ' ps])
 
 	% Then contour the data and draw triangles using dashed pen; use "gmt gmtinfo" and "gmt makecpt" to make a
 	% color palette (.cpt) file
-	T = gmt('info -T25+c2 @table_5.11');
+	T = gmt('info -T25+c2 @Table_5_11.txt');
 	topo_cpt = gmt(['makecpt -Cjet ' T.text{1}]);
-	gmt(['pscontour -R -J @table_5.11 -B2f1 -BWSne -Wthin -C -Lthinnest,-' ...
+	gmt(['pscontour -R -J @Table_5_11.txt -B2f1 -BWSne -Wthin -C -Lthinnest,-' ...
 		' -Gd1i -X-3.25i -Y-3.65i -O -K >> ' ps], topo_cpt)
 
 	% Finally color the topography
-	gmt(['pscontour -R -J @table_5.11 -B2f1 -BeSnw -C -I -X3.25i -O -K >> ' ps], topo_cpt)
+	gmt(['pscontour -R -J @Table_5_11.txt -B2f1 -BeSnw -C -I -X3.25i -O -K >> ' ps], topo_cpt)
 	gmt(['pstext -R0/8/0/11 -Jx1i -F+f30p,Helvetica-Bold+jCB -O -X-3.25i >> ' ps], ...
 		struct('data',[3.16 8], 'text', 'Delaunay Triangulation'))
 	builtin('delete','gmt.conf');
@@ -600,7 +600,7 @@ function [ps, d_path] = ex14(g_root_dir, out_path, verbose)
 	ps = [out_path 'example_14.ps'];
 	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
-	D = gmt('read @table_5.11 -Td');
+	D = gmt('read @Table_5_11.txt -Td');
 	% First draw network and label the nodes
 	gmt('set MAP_GRID_PEN_PRIMARY thinnest,- PROJ_LENGTH_UNIT inch PS_CHAR_ENCODING Standard+ PS_MEDIA letter')
 	gmt('destroy')
@@ -643,7 +643,7 @@ function [ps, d_path] = ex15(g_root_dir, out_path, verbose)
 
 	gmt('set -Du')
 	gmt('destroy')
-	ship_d = gmt('read -Td @ship_15.xyz');
+	ship_d = gmt('read -Td @ship_15.txt');
 
 	region = gmt('info -I1', ship_d);
 	region = region.text{1};				% We want this to be astring, not a cell
@@ -676,18 +676,18 @@ function [ps, d_path] = ex16(g_root_dir, out_path, verbose)
 
 	gmt('set FONT_ANNOT_PRIMARY 9p PROJ_LENGTH_UNIT inch PS_CHAR_ENCODING Standard+ PS_MEDIA letter')
 	gmt('destroy')
-	gmt(['pscontour -R0/6.5/-0.2/6.5 -Jx0.45i -P -K -Y5.5i -Ba2f1 -BWSne @table_5.11 -C' d_path 'ex16.cpt -I > ' ps])
+	gmt(['pscontour -R0/6.5/-0.2/6.5 -Jx0.45i -P -K -Y5.5i -Ba2f1 -BWSne @Table_5_11.txt -C' d_path 'ex16.cpt -I > ' ps])
 	gmt(['pstext -R -J -O -K -N -F+f18p,Times-Roman+jCB >> ' ps], {'3.25 7 pscontour (triangulate)'})
 
-	Graws0 = gmt('surface @table_5.11 -R -I0.2');
+	Graws0 = gmt('surface @Table_5_11.txt -R -I0.2');
 	gmt(['grdview -R -J -B -C' d_path 'ex16.cpt -Qs -O -K -X3.5i >> ' ps], Graws0)
 	gmt(['pstext -R -J -O -K -N -F+f18p,Times-Roman+jCB >> ' ps], {'3.25 7 surface (tension = 0)'})
 
-	Graws5 = gmt('surface @table_5.11 -R -I0.2 -G -T0.5');
+	Graws5 = gmt('surface @Table_5_11.txt -R -I0.2 -G -T0.5');
 	gmt(['grdview -R -J -B -C' d_path 'ex16.cpt -Qs -O -K -Y-3.75i -X-3.5i >> ' ps], Graws5)
 	gmt(['pstext -R -J -O -K -N -F+f18p,Times-Roman+jCB >> ' ps], {'3.25 7 surface (tension = 0.5)'})
 
-	Grawt = gmt(['triangulate @table_5.11 -G -R -I0.2']);
+	Grawt = gmt(['triangulate @Table_5_11.txt -G -R -I0.2']);
 	Gfiltered = gmt('grdfilter -G -D0 -Fc1', Grawt);
 	gmt(['grdview -R -J -B -C' d_path 'ex16.cpt -Qs -O -K -X3.5i >> ' ps], Gfiltered)
 	gmt('destroy')
@@ -814,7 +814,7 @@ function [ps, d_path] = ex19(g_root_dir, out_path, verbose)
 	gmt(['pstext -R -J -O -K -F+f18p,Helvetica-Bold,green=thinnest >> ' ps], {'0 -30 Honolulu, Hawaii, April 1, 2017'})
 
 	% Then show example of color patterns and placing a PostScript image
-	gmt(['pscoast -R -J -O -K -Dc -A5000 -Gp100/86:FredByellow -Sp100/' d_path 'circuit.ras -B0 -Y-3.25i >> ' ps])
+	gmt(['pscoast -R -J -O -K -Dc -A5000 -Gp100/86:FredByellow -Sp100/' d_path 'circuit.png -B0 -Y-3.25i >> ' ps])
 	gmt(['pstext -R -J -O -K -F+f32p,Helvetica-Bold,lightgreen=thinner >> ' ps], {'0 30 SILLY USES OF'})
 	gmt(['pstext -R -J -O -K -F+f32p,Helvetica-Bold,magenta=thinner >> ' ps], {'0 -30 COLOR PATTERNS'})
 	gmt(['psimage -DjCM+w3i -R -J @GMT_covertext.eps -O -K >> ' ps])
@@ -1022,7 +1022,7 @@ function [ps, d_path] = ex22(g_root_dir, out_path, verbose)
 	 'T This script can be called daily to update the latest information.'
 	 'G 0.4i'
 	 % Add USGS logo
-	 ['I ' d_path 'USGS.ras 1i RT']
+	 ['I ' d_path 'USGS.png 1i RT']
 	 'G -0.3i'
 	 sprintf('L 12 6 LB %s', me)};
 	 

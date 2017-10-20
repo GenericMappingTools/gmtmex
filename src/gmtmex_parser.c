@@ -1022,7 +1022,8 @@ static void *gmtmex_dataset_init (void *API, unsigned int direction, unsigned in
 					}
 				}
 			}
-			if (mode == GMT_WITH_STRINGS) D->type = GMT_READ_MIXED;
+			if (mode == GMT_WITH_STRINGS) D->type = (D->n_columns) ? GMT_READ_MIXED : GMT_READ_TEXT;
+			else D->type = GMT_READ_DATA;
 		}
 		D->n_records = D->table[0]->n_records;
 	}
