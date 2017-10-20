@@ -4,13 +4,4 @@
    <FileRef
       location = "absolute:/Users/pwessel/GMTdev/gmt-mex/trunk/src/xcode/gmtmex.xcodeproj">
    </FileRef>
-   <FileRef
-      location = "group:gmtmex_parser.c">
-   </FileRef>
-   <FileRef
-      location = "group:gmtmex.c">
-   </FileRef>
-   <FileRef
-      location = "group:gmtmex.h">
-   </FileRef>
 </Workspace>

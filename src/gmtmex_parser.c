@@ -910,6 +910,7 @@ static void *gmtmex_dataset_init (void *API, unsigned int direction, unsigned in
 	if (direction == GMT_IN) {	/* Data given, dimensions are know, create container for GMT */
 		uint64_t seg, col, row, start, k, n_headers, dim[4] = {1, 0, 0, 0}, n, m;	/* We only return one table */
 		size_t length = 0;
+		bool got_string;
 		unsigned int mode;
 		char buffer[BUFSIZ] = {""};
 		char *txt = NULL;
@@ -983,8 +984,14 @@ static void *gmtmex_dataset_init (void *API, unsigned int direction, unsigned in
 			mx_ptr_d = mxGetField (ptr, (mwSize)seg, "data");     /* Data matrix for this segment */
 			mx_ptr_t = mxGetField (ptr, (mwSize)seg, "text");     /* text cell array for this segment */
 			dim[GMT_ROW] = (mx_ptr_d == NULL) ? 0 : mxGetM (mx_ptr_d);	/* Number of rows in matrix */
-			if (mx_ptr_t)	/* This segment also has a cell array of strings */
-				m = mxGetM (mx_ptr_t),	n = mxGetN (mx_ptr_t);
+			if (mx_ptr_t) {	/* This segment also has a cell array of strings or possibly a single string if n_rows == 1 */
+				got_string = false;
+				m = mxGetM (mx_ptr_t);	n = mxGetN (mx_ptr_t);
+				if (!mxIsCell (mx_ptr_t) && (m == 1 || n == 1)) {
+					got_string = true;
+					m = n = 1;
+				}
+			}
 			else
 				m = n = 0;
 			if ((m == dim[GMT_ROW] && n == 1) || (n == dim[GMT_ROW] && m == 1))
@@ -997,10 +1004,16 @@ static void *gmtmex_dataset_init (void *API, unsigned int direction, unsigned in
 			for (col = start = 0; col < S->n_columns; col++, start += S->n_rows) /* Copy the data columns */
 				memcpy (S->data[col], &data[start], S->n_rows * sizeof (double));
 			if (mode == GMT_WITH_STRINGS) {	/* Add in the trailing strings */
-				for (row = 0; row < S->n_rows; row++) {
-					mx_ptr = mxGetCell (mx_ptr_t, (mwSize)row);
-					txt = mxArrayToString (mx_ptr);
-					S->text[row] = strdup (txt);
+				if (got_string) {	/* Only true when we got a single row with a single string isntead of a cell array */
+					txt = mxArrayToString (mx_ptr_t);
+					S->text[0] = strdup (txt);
+				}
+				else {	/* Must extract from the cell array */
+					for (row = 0; row < S->n_rows; row++) {
+						mx_ptr = mxGetCell (mx_ptr_t, (mwSize)row);
+						txt = mxArrayToString (mx_ptr);
+						S->text[row] = strdup (txt);
+					}
 				}
 			}
 			D->table[0]->n_records += S->n_rows;	/* Must manually keep track of totals */
