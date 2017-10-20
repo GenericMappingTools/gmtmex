@@ -92,15 +92,6 @@ enum MEX_dim {
  *		  + comment holds any PostScript comments
  */
 
-static char *mxstrdup (const char *s) {
-	/* A strdup replacement to be used in Mexs to avoid memory leaks since the MATLAB
-	   memory management will take care to free the memory allocated by this function */
-	char *d = mxMalloc (strlen (s) + 1);
-	if (d == NULL) return NULL;
-	strcpy (d, s);
-	return d;
-}
-
 int GMTMEX_print_func (FILE *fp, const char *message) {
 	/* Replacement for GMT's gmt_print_func.  It is being used indirectly via
 	 * API->print_func.  Purpose of this is to allow MATLAB (which cannot use
@@ -247,30 +238,34 @@ static void *gmtmex_get_dataset (void *API, struct GMT_DATASET *D) {
 		for (seg = 0; seg < D->table[tbl]->n_segments; seg++) {
 			S = D->table[tbl]->segment[seg];	/* Shorthand */
 			if (S->n_rows == 0) continue;		/* Skip empty segments */
-			mxheader = mxCreateString (S->header);
-			if (S->text) {	/* Had trailing text */
+			if (S->header) {	/* Has segment header */
+				mxheader = mxCreateString (S->header);
+				mxSetField (D_struct, (mwSize)seg_out, "header", mxheader);
+			}
+			if (S->text) {	/* Has trailing text */
 				mxtext   = mxCreateCellMatrix (S->n_rows, 1);
 				for (row = 0; row < S->n_rows; row++) {
 					mxstring = mxCreateString (S->text[row]);
 					mxSetCell (mxtext, (int)row, mxstring);
 				}
+				mxSetField (D_struct, (mwSize)seg_out, "text", mxtext);
 			}
-			else
-				mxtext = mxCreateCellMatrix (0, 0);	/* Empty */
-			mxdata   = mxCreateNumericMatrix ((mwSize)S->n_rows, (mwSize)S->n_columns, mxDOUBLE_CLASS, mxREAL);
-			data      = mxGetPr (mxdata);
-			for (col = start = 0; col < S->n_columns; col++, start += S->n_rows) /* Copy the data columns */
-				memcpy (&data[start], S->data[col], S->n_rows * sizeof (double));
-			mxSetField (D_struct, (mwSize)seg_out, "data", mxdata);
-			mxSetField (D_struct, (mwSize)seg_out, "text", mxtext);
-			mxSetField (D_struct, (mwSize)seg_out, "header", mxheader);
-			mxtext = mxCreateCellMatrix (n_headers, n_headers ? 1 : 0);
-			for (k = 0; k < n_headers; k++) {
-				mxstring = mxCreateString (D->table[0]->header[k]);
-				mxSetCell (mxtext, (int)k, mxstring);
+			if (S->n_columns) {	/* Has numerical data */
+				mxdata   = mxCreateNumericMatrix ((mwSize)S->n_rows, (mwSize)S->n_columns, mxDOUBLE_CLASS, mxREAL);
+				data      = mxGetPr (mxdata);
+				for (col = start = 0; col < S->n_columns; col++, start += S->n_rows) /* Copy the data columns */
+					memcpy (&data[start], S->data[col], S->n_rows * sizeof (double));
+				mxSetField (D_struct, (mwSize)seg_out, "data", mxdata);
 			}
-			mxSetField (D_struct, (mwSize)seg_out, "comment", mxtext);
-			n_headers = 0;	/* No other segment will have a non-empty comment cell array */
+			if (n_headers) {	/* First segment will get any headers, the rest nothigh */
+				mxtext = mxCreateCellMatrix (n_headers, n_headers ? 1 : 0);
+				for (k = 0; k < n_headers; k++) {
+					mxstring = mxCreateString (D->table[0]->header[k]);
+					mxSetCell (mxtext, (int)k, mxstring);
+				}
+				mxSetField (D_struct, (mwSize)seg_out, "comment", mxtext);
+				n_headers = 0;	/* No other segment will have a non-empty comment cell array */
+			}
 			seg_out++;
 		}
 	}
@@ -910,7 +905,7 @@ static void *gmtmex_dataset_init (void *API, unsigned int direction, unsigned in
 	if (direction == GMT_IN) {	/* Data given, dimensions are know, create container for GMT */
 		uint64_t seg, col, row, start, k, n_headers, dim[4] = {1, 0, 0, 0}, n, m;	/* We only return one table */
 		size_t length = 0;
-		bool got_string;
+		bool got_single_record;
 		unsigned int mode;
 		char buffer[BUFSIZ] = {""};
 		char *txt = NULL;
@@ -985,10 +980,10 @@ static void *gmtmex_dataset_init (void *API, unsigned int direction, unsigned in
 			mx_ptr_t = mxGetField (ptr, (mwSize)seg, "text");     /* text cell array for this segment */
 			dim[GMT_ROW] = (mx_ptr_d == NULL) ? 0 : mxGetM (mx_ptr_d);	/* Number of rows in matrix */
 			if (mx_ptr_t) {	/* This segment also has a cell array of strings or possibly a single string if n_rows == 1 */
-				got_string = false;
+				got_single_record = false;
 				m = mxGetM (mx_ptr_t);	n = mxGetN (mx_ptr_t);
 				if (!mxIsCell (mx_ptr_t) && (m == 1 || n == 1)) {
-					got_string = true;
+					got_single_record = true;
 					m = n = 1;
 				}
 			}
@@ -1004,7 +999,7 @@ static void *gmtmex_dataset_init (void *API, unsigned int direction, unsigned in
 			for (col = start = 0; col < S->n_columns; col++, start += S->n_rows) /* Copy the data columns */
 				memcpy (S->data[col], &data[start], S->n_rows * sizeof (double));
 			if (mode == GMT_WITH_STRINGS) {	/* Add in the trailing strings */
-				if (got_string) {	/* Only true when we got a single row with a single string isntead of a cell array */
+				if (got_single_record) {	/* Only true when we got a single row with a single string instead of a cell array */
 					txt = mxArrayToString (mx_ptr_t);
 					S->text[0] = strdup (txt);
 				}
