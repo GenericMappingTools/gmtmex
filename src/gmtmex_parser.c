@@ -39,7 +39,6 @@
 #endif
 
 #if defined(WIN32)
-#define strdup _strdup
 #if !defined(lrint)
 #	define lrint (int64_t)rint
 #endif
@@ -1001,13 +1000,13 @@ static void *gmtmex_dataset_init (void *API, unsigned int direction, unsigned in
 			if (mode == GMT_WITH_STRINGS) {	/* Add in the trailing strings */
 				if (got_single_record) {	/* Only true when we got a single row with a single string instead of a cell array */
 					txt = mxArrayToString (mx_ptr_t);
-					S->text[0] = strdup (txt);
+					S->text[0] = GMT_Duplicate_String (API, txt);
 				}
 				else {	/* Must extract from the cell array */
 					for (row = 0; row < S->n_rows; row++) {
 						mx_ptr = mxGetCell (mx_ptr_t, (mwSize)row);
 						txt = mxArrayToString (mx_ptr);
-						S->text[row] = strdup (txt);
+						S->text[row] = GMT_Duplicate_String (API, txt);
 					}
 				}
 			}
