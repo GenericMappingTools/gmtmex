@@ -161,8 +161,8 @@ function [ps, d_path] = ex02(g_root_dir, out_path, verbose)
 	gmt(['grdimage @HI_topo_02.nc -I+a0 -R -J -B+t"H@#awaiian@# T@#opo and @#G@#eoid@#"' ...
         ' -B10 -E50 -O -K -C -Y4.5i --MAP_TITLE_OFFSET=0.5i >> ' ps], t_cpt)
 	gmt(['psscale -DJRM+o0.6i/0+mc -R -J -O -K -I0.3 -Bx2+lTOPO -By+lkm >> ' ps], t_cpt)
-	gmt(['pstext -R0/8.5/0/11 -Jx1i -F+f30p,Helvetica-Bold+jCB -O -N -Y-4.5i >> ' ps], ...
-		record([-0.4 7.5; -0.4 3.0], {'a)'; 'b)'}))
+	T.data = [-0.4 7.5; -0.4 3.0];		T.text = {'a)'; 'b)'};
+	gmt(['pstext -R0/8.5/0/11 -Jx1i -F+f30p,Helvetica-Bold+jCB -O -N -Y-4.5i >> ' ps], T)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
@@ -270,10 +270,8 @@ function [ps, d_path] = ex03(g_root_dir, out_path, verbose)
 		' -Gred -ST0.07i -O -R1/1000/0.1/10000 -JX-4il/3.75il -Y4.2i -K -Ey/0.5p >> ' ps], spects.data(:,1:3))
 	gmt(['psxy -R -JX -O -K -Gblue -Sc0.07i -Ey/0.5p >> ' ps], spects.data(:,[1 4 5]))
 	gmt(['pstext -R0/4/0/3.75 -Jx1i -F+cTR+f18p,Helvetica-Bold -Dj0.1i -O -K >> ' ps], {'Input Power'})
-	legend = {'S 0.1i T 0.07i red - 0.3i Ship',
-	   'S 0.1i c 0.07i blue - 0.3i Satellite'};
+	legend = {'S 0.1i T 0.07i red - 0.3i Ship', 'S 0.1i c 0.07i blue - 0.3i Satellite'};
 	gmt(['pslegend -R -J -O -DjBL+w1.2i+o0.25i -F+gwhite+pthicker --FONT_ANNOT_PRIMARY=14p,Helvetica-Bold >> ' ps], legend)
-	
 
 	% Now we wonder if removing that large feature at 250 km would make any difference.
 	% We could throw away a section of data with $AWK or sed or head and tail, but we
@@ -375,10 +373,8 @@ function [ps, d_path] = ex07(g_root_dir, out_path, verbose)
 	gmt(['psxy -R -J -O -K @ridge_07.txt -Wthicker,orange >> ' ps])
 	gmt(['pslegend -R -J -O -K -DjTR+w2.2i+o0.2i -F+pthick+ithinner+gwhite --FONT_ANNOT_PRIMARY=18p,Times-Italic >> ' ps], ...
 		record([], 'S 0.1i c 0.08i red thinnest 0.3i ISC Earthquakes'))
-%		'S 0.1i c 0.08i red thinnest 0.3i ISC Earthquakes')
-	%gmt(['pstext -R -J -O -F+f30,Helvetica-Bold,white=thin >> ' ps], {'-43 -5 SOUTH' '-43 -8 AMERICA' '-7 11 AFRICA'})
-	gmt(['pstext -R -J -O -F+f30,Helvetica-Bold,white=thin >> ' ps], ...
-		record([-43 -5; -43 -8; -7 11], {'SOUTH' 'AMERICA' 'AFRICA'}))
+	T.data = [-43 -5; -43 -8; -7 11];		T.text = {'SOUTH' 'AMERICA' 'AFRICA'};
+	gmt(['pstext -R -J -O -F+f30,Helvetica-Bold,white=thin >> ' ps], T);
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
