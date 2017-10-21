@@ -44,11 +44,7 @@
 #endif
 #endif
 
-#if GMT_MAJOR_VERSION == 5 && GMT_MINOR_VERSION < 4
-#define GMT_CREATE_MODE	0
-#else
 #define GMT_CREATE_MODE	GMT_IS_OUTPUT
-#endif
 
 enum MEX_dim {
 	DIM_COL	= 0,	/* Holds the number of columns for vectors and x-nodes for matrix */
@@ -389,9 +385,7 @@ static void *gmtmex_get_palette (void *API, struct GMT_PALETTE *C) {
 	cyclic   = mxGetPr (mxptr[9]);
 	depth[0] = (C->is_bw) ? 1 : ((C->is_gray) ? 8 : 24);
 	hinge[0] = (C->has_hinge) ? C->hinge : mxGetNaN ();
-#if NEED_GMT_VERSIONTRUNK
 	cyclic[0] = (C->is_wrapping) ? 1.0 : 0.0;
-#endif
 	for (j = 0; j < 3; j++)	/* Copy r/g/b from palette bfn to MATLAB array */
 		for (k = 0; k < 3; k++) bfn[j+3*k] = C->bfn[j].rgb[k];
 	for (j = 0; j < C->n_colors; j++) {	/* Copy r/g/b from palette to MATLAB colormap and cpt */
@@ -916,10 +910,8 @@ static void *gmtmex_dataset_init (void *API, unsigned int direction, unsigned in
 		if (mxIsNumeric (ptr)) {	/* Got a MATLAB matrix as input - pass data pointers via MATRIX to save memory */
 			struct GMT_MATRIX *M = NULL;
 			unsigned int flag = (module_input) ? GMT_VIA_MODULE_INPUT : 0;
-#if GMT_MAJOR_VERSION == 6
 			flag |= GMT_VIA_MATRIX;
 			*actual_family |= GMT_VIA_MATRIX;
-#endif
 			mxClassID type = mxGetClassID (ptr);	/* Storage type for this matrix */
 			dim[DIM_ROW] = mxGetM (ptr);		/* Number of rows */
 			dim[DIM_COL] = mxGetN (ptr);		/* Number of columns */
@@ -1214,7 +1206,7 @@ void GMTMEX_objecttype (char *type, const mxArray *ptr) {
 
 void GMTMEX_Set_Object (void *API, struct GMT_RESOURCE *X, const mxArray *ptr) {
 	/* Create the object container and hook as X->object */
-	unsigned int module_input = (X->option->option == GMT_OPT_INFILE), actual_family;
+	unsigned int module_input = (X->option->option == GMT_OPT_INFILE), actual_family = X->family;
 
 	switch (X->family) {
 		case GMT_IS_GRID:	/* Get a grid from Matlab or a dummy one to hold GMT output */
@@ -1226,6 +1218,7 @@ void GMTMEX_Set_Object (void *API, struct GMT_RESOURCE *X, const mxArray *ptr) {
 			GMT_Report (API, GMT_MSG_DEBUG, "GMTMEX_Set_Object: Got Image\n");
 			break;
 		case GMT_IS_DATASET:	/* Get a dataset from Matlab or a dummy one to hold GMT output */
+			/* Because a dataset may appears as a matrix or vector we use the actual_family to open the virtual file */
 			X->object = gmtmex_dataset_init (API, X->direction, module_input, ptr, &actual_family);
 			break;
 		case GMT_IS_PALETTE:	/* Get a palette from Matlab or a dummy one to hold GMT output */
@@ -1242,7 +1235,7 @@ void GMTMEX_Set_Object (void *API, struct GMT_RESOURCE *X, const mxArray *ptr) {
 	}
 	if (X->object == NULL)
 		mexErrMsgTxt("GMT: Failure to register the resource\n");
-	if (GMT_Open_VirtualFile (API, X->family, X->geometry, X->direction, X->object, X->name) != GMT_NOERROR) 	/* Make filename with embedded object ID */
+	if (GMT_Open_VirtualFile (API, actual_family, X->geometry, X->direction, X->object, X->name) != GMT_NOERROR) 	/* Make filename with embedded object ID */
 		mexErrMsgTxt ("GMT: Failure to open virtual file\n");
 	if (GMT_Expand_Option (API, X->option, X->name) != GMT_NOERROR)	/* Replace ? in argument with name */
 		mexErrMsgTxt ("GMT: Failure to expand filename marker (?)\n");
