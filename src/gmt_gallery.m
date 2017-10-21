@@ -162,7 +162,7 @@ function [ps, d_path] = ex02(g_root_dir, out_path, verbose)
         ' -B10 -E50 -O -K -C -Y4.5i --MAP_TITLE_OFFSET=0.5i >> ' ps], t_cpt)
 	gmt(['psscale -DJRM+o0.6i/0+mc -R -J -O -K -I0.3 -Bx2+lTOPO -By+lkm >> ' ps], t_cpt)
 	gmt(['pstext -R0/8.5/0/11 -Jx1i -F+f30p,Helvetica-Bold+jCB -O -N -Y-4.5i >> ' ps], ...
-		struct('data',[-0.4 7.5; -0.4 3.0], 'text', {'a)'; ' b)'}))
+		struct('data',[-0.4 7.5; -0.4 3.0], 'text', {'a)'; 'b)'}))
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
@@ -1810,4 +1810,12 @@ function [ps, d_path] = ex46(g_root_dir, out_path, verbose)
 	gmt(['psxy -R -J -Sk' d_path 'sunglasses/1.5c -Gyellow -O >> ' ps], t)
 	builtin('delete','gmt.conf');
 
-
+function R = record (data, text)
+	% SImplifies creating one or more GMT records on the fly
+        R.data = data;
+        [n,m] = size(text);
+        if (n == 1)
+                R.text = text';
+        else
+                R.text = text;
+end
