@@ -162,7 +162,7 @@ function [ps, d_path] = ex02(g_root_dir, out_path, verbose)
         ' -B10 -E50 -O -K -C -Y4.5i --MAP_TITLE_OFFSET=0.5i >> ' ps], t_cpt)
 	gmt(['psscale -DJRM+o0.6i/0+mc -R -J -O -K -I0.3 -Bx2+lTOPO -By+lkm >> ' ps], t_cpt)
 	gmt(['pstext -R0/8.5/0/11 -Jx1i -F+f30p,Helvetica-Bold+jCB -O -N -Y-4.5i >> ' ps], ...
-		struct('data',[-0.4 7.5; -0.4 3.0], 'text', {'a)'; 'b)'}))
+		record([-0.4 7.5; -0.4 3.0], {'a)'; 'b)'}))
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
@@ -310,7 +310,7 @@ function [ps, d_path] = ex04(g_root_dir, out_path, verbose)
 	gmt(['grdview @HI_topo_04.nc -R195/210/18/25/-6/4 -J -Jz0.34i -p -C -O -K ' ...
 		' -N-6+glightgray -Qsm -B2 -Bz2+l"Topo (km)" -BneswZ -Y2.2i >> ' ps], C)
 	gmt(['pstext -R0/10/0/10 -Jx1i -F+f60p,ZapfChancery-MediumItalic+jCB -O >> ' ps], ...
-		struct('data', [3.25 5.75], 'text', 'H@#awaiian@# R@#idge@#'))
+		record([3.25 5.75], 'H@#awaiian@# R@#idge@#'))
 
 	ps = [out_path 'example_04c.ps'];
 	Gg_intens = gmt('grdgradient @HI_geoid_04.nc -A0 -Nt0.75 -fg');
@@ -324,7 +324,7 @@ function [ps, d_path] = ex04(g_root_dir, out_path, verbose)
 	gmt(['grdview @HI_topo_04.nc -I -R195/210/18/25/-6/4 -J -C@topo_04.cpt' ...
 		' -JZ3.4i -p60/30 -O -K -N-6+glightgray -Qc100 -B2 -Bz2+l"Topo (km)" -BneswZ -Y2.2i >> ' ps], Gt_intens)
 	gmt(['pstext -R0/10/0/10 -Jx1i -F+f60p,ZapfChancery-MediumItalic+jCB -O >> ' ps], ...
-		struct('data', [3.25 5.75], 'text', 'H@#awaiian@# R@#idge@#'))
+		record([3.25 5.75], 'H@#awaiian@# R@#idge@#'))
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
@@ -341,7 +341,7 @@ function [ps, d_path] = ex05(g_root_dir, out_path, verbose)
 	gmt(['grdview -JX6i -JZ2i -B5 -Bz0.5 -BSEwnZ -N-1+gwhite -Qs -I -X1.5i' ...
 		' -C -R-15/15/-15/15/-1/1 -K -p120/30 > ' ps], Gsombrero, Gintensity, C)
 	gmt(['pstext -R0/11/0/8.5 -Jx1i -F+f50p,ZapfChancery-MediumItalic+jBC -O >> ' ps], ...
-		struct('data',[4.1 5.5], 'text', 'z(r) = cos (2@~p@~r/8) @~\327@~e@+-r/10@+'))
+		record([4.1 5.5], 'z(r) = cos (2@~p@~r/8) @~\327@~e@+-r/10@+'))
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
@@ -374,11 +374,11 @@ function [ps, d_path] = ex07(g_root_dir, out_path, verbose)
 	gmt(['psxy -R -J -O -K @isochron_07.txt -Wthin,blue >> ' ps])
 	gmt(['psxy -R -J -O -K @ridge_07.txt -Wthicker,orange >> ' ps])
 	gmt(['pslegend -R -J -O -K -DjTR+w2.2i+o0.2i -F+pthick+ithinner+gwhite --FONT_ANNOT_PRIMARY=18p,Times-Italic >> ' ps], ...
-		struct('text', 'S 0.1i c 0.08i red thinnest 0.3i ISC Earthquakes'))
+		record([], 'S 0.1i c 0.08i red thinnest 0.3i ISC Earthquakes'))
 %		'S 0.1i c 0.08i red thinnest 0.3i ISC Earthquakes')
 	%gmt(['pstext -R -J -O -F+f30,Helvetica-Bold,white=thin >> ' ps], {'-43 -5 SOUTH' '-43 -8 AMERICA' '-7 11 AFRICA'})
 	gmt(['pstext -R -J -O -F+f30,Helvetica-Bold,white=thin >> ' ps], ...
-		struct('data',[-43 -5; -43 -8; -7 11], 'text',{'SOUTH' 'AMERICA' 'AFRICA'}))
+		record([-43 -5; -43 -8; -7 11], {'SOUTH' 'AMERICA' 'AFRICA'}))
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
@@ -394,7 +394,7 @@ function [ps, d_path] = ex08(g_root_dir, out_path, verbose)
 		' -R-0.1/5.1/-0.1/5.1/-5000/0 -JM5i -JZ6i -p200/30 -So0.0833333ub-5000 -P' ...
 		' -Wthinnest -Glightgreen -K > ' ps], xyz)
 	gmt(['pstext -R -J -JZ -Z0 -F+f24p,Helvetica-Bold+jTL -p -O >> ' ps], ...
-		struct('data', [0.1 4.9], 'text', 'This is the surface of cube'))
+		record([0.1 4.9], 'This is the surface of cube'))
 
 % -------------------------------------------------------------------------------------------------
 function [ps, d_path] = ex09(g_root_dir, out_path, verbose)
@@ -570,7 +570,7 @@ function [ps, d_path] = ex12(g_root_dir, out_path, verbose)
 	% Finally color the topography
 	gmt(['pscontour -R -J @Table_5_11.txt -B2f1 -BeSnw -C -I -X3.25i -O -K >> ' ps], topo_cpt)
 	gmt(['pstext -R0/8/0/11 -Jx1i -F+f30p,Helvetica-Bold+jCB -O -X-3.25i >> ' ps], ...
-		struct('data',[3.16 8], 'text', 'Delaunay Triangulation'))
+		record([3.16 8], 'Delaunay Triangulation'))
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
@@ -591,7 +591,7 @@ function [ps, d_path] = ex13(g_root_dir, out_path, verbose)
 	gmt(['grdvector -I0.2 -J -O -K -Q0.1i+e+n0.25i -Gblack -W1p -S5i --MAP_VECTOR_SHAPE=0.5 >> ' ps], Gdzdx, Gdzdy)
 	gmt('destroy')
 	gmt(['pstext -R0/6/0/4.5 -Jx1i -F+f40p,Times-Italic+jCB -O -X-3.45i >> ' ps], ...
-		struct('data', [3.2 3.6], 'text', 'z(x,y) = x@~\327@~exp(-x@+2@+-y@+2@+)'))
+		record([3.2 3.6], 'z(x,y) = x@~\327@~exp(-x@+2@+-y@+2@+)'))
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
@@ -605,15 +605,14 @@ function [ps, d_path] = ex14(g_root_dir, out_path, verbose)
 	gmt('set MAP_GRID_PEN_PRIMARY thinnest,- PROJ_LENGTH_UNIT inch PS_CHAR_ENCODING Standard+ PS_MEDIA letter')
 	gmt('destroy')
 	gmt(['psxy -R0/7/0/7 -JX3.06i/3.15i -B2f1 -BWSNe -Sc0.05i -Gblack -P -K -Y6.45i > ' ps], D)
-	gmt(['pstext -R -J -D0.1c/0 -F+f6p+jLM -O -K -N >> ' ps], D)
+	gmt(['pstext -R -J -D0.1c/0 -F+f6p+jLM+z -O -K -N >> ' ps], D)
 	mean_xyz = gmt('blockmean -R0/7/0/7 -I1', D);
 
 	% Then draw gmt blockmean cells
 	gmt(['psbasemap -R0.5/7.5/0.5/7.5 -J -O -K -Bg1 -X3.25i >> ' ps])
 	gmt(['psxy -R0/7/0/7 -J -B2f1 -BeSNw -Ss0.05i -Gblack -O -K >> ' ps], mean_xyz)
 	% Reformat to one decimal for annotation purposes
-	t = cellstr(num2str(mean_xyz.data,'%g %g %.1f'));	% Round to nearest 0.1 and convert to cells
-	gmt(['pstext -R -J -D0.15c/0 -F+f6p+jLM -O -K -Gwhite -W -C0.01i -N >> ' ps], t)
+	gmt(['pstext -R -J -D0.15c/0 -F+f6p+jLM+z%.1f -O -K -Gwhite -W -C0.01i -N >> ' ps], mean_xyz)
 
 	% Then gmt surface and contour the data
 	Gdata = gmt('surface -R -I1', mean_xyz);
@@ -665,7 +664,7 @@ function [ps, d_path] = ex15(g_root_dir, out_path, verbose)
 	info = gmt('grdinfo -C -M', Gship);
 	gmt(['psxy -R -J -O -K -Sa0.15i -Wthick >> ' ps], info.data(11:12))
 	gmt(['pstext -R0/3/0/4 -Jx1i -F+f24p,Helvetica-Bold+jCB -O -N >> ' ps], ...
-		struct('data', [-0.3 3.6], 'text', 'Gridding with missing data'))
+		record([-0.3 3.6], 'Gridding with missing data'))
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
@@ -676,24 +675,24 @@ function [ps, d_path] = ex16(g_root_dir, out_path, verbose)
 
 	gmt('set FONT_ANNOT_PRIMARY 9p PROJ_LENGTH_UNIT inch PS_CHAR_ENCODING Standard+ PS_MEDIA letter')
 	gmt('destroy')
-	gmt(['pscontour -R0/6.5/-0.2/6.5 -Jx0.45i -P -K -Y5.5i -Ba2f1 -BWSne @Table_5_11.txt -C' d_path 'ex16.cpt -I > ' ps])
+	gmt(['pscontour -R0/6.5/-0.2/6.5 -Jx0.45i -P -K -Y5.5i -Ba2f1 -BWSne @Table_5_11.txt -C@ex_16.cpt -I > ' ps])
 	gmt(['pstext -R -J -O -K -N -F+f18p,Times-Roman+jCB >> ' ps], {'3.25 7 pscontour (triangulate)'})
 
 	Graws0 = gmt('surface @Table_5_11.txt -R -I0.2');
-	gmt(['grdview -R -J -B -C' d_path 'ex16.cpt -Qs -O -K -X3.5i >> ' ps], Graws0)
+	gmt(['grdview -R -J -B -C@ex_16.cpt -Qs -O -K -X3.5i >> ' ps], Graws0)
 	gmt(['pstext -R -J -O -K -N -F+f18p,Times-Roman+jCB >> ' ps], {'3.25 7 surface (tension = 0)'})
 
 	Graws5 = gmt('surface @Table_5_11.txt -R -I0.2 -G -T0.5');
-	gmt(['grdview -R -J -B -C' d_path 'ex16.cpt -Qs -O -K -Y-3.75i -X-3.5i >> ' ps], Graws5)
+	gmt(['grdview -R -J -B -C@ex_16.cpt -Qs -O -K -Y-3.75i -X-3.5i >> ' ps], Graws5)
 	gmt(['pstext -R -J -O -K -N -F+f18p,Times-Roman+jCB >> ' ps], {'3.25 7 surface (tension = 0.5)'})
 
 	Grawt = gmt(['triangulate @Table_5_11.txt -G -R -I0.2']);
 	Gfiltered = gmt('grdfilter -G -D0 -Fc1', Grawt);
-	gmt(['grdview -R -J -B -C' d_path 'ex16.cpt -Qs -O -K -X3.5i >> ' ps], Gfiltered)
+	gmt(['grdview -R -J -B -C@ex_16.cpt -Qs -O -K -X3.5i >> ' ps], Gfiltered)
 	gmt('destroy')
 	gmt(['pstext -R -J -O -K -N -F+f18p,Times-Roman+jCB >> ' ps], {'3.25 7 triangulate @~\256@~ grdfilter'})
 	gmt(['pstext -R0/10/0/10 -Jx1i -O -K -N -F+f32p,Times-Roman+jCB -X-3.5i >> ' ps], {'3.2125 7.5 Gridding of Data'})
-	gmt(['psscale -Dx3.25i/0.35i+jTC+w5i/0.25i+h -C' d_path 'ex16.cpt -O -Y-0.75i >> ' ps])
+	gmt(['psscale -Dx3.25i/0.35i+jTC+w5i/0.25i+h -C@ex_16.cpt -O -Y-0.75i >> ' ps])
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
@@ -713,7 +712,7 @@ function [ps, d_path] = ex17(g_root_dir, out_path, verbose)
 
 	% Now generate topography image w/shading
 	C = gmt('makecpt -C150 -T-10000,10000 -N');
-	gmt(['grdimage ' d_path 'india_topo.nc -I+a45+nt1 -J -C -O -K >> ' ps], C)
+	gmt(['grdimage @india_topo.nc -I+a45+nt1 -J -C -O -K >> ' ps], C)
 
 	% Finally undo clipping and overlay basemap
 	gmt(['pscoast -R -J -O -K -Q -B10f5 -B+t"Clipping of Images" >> ' ps])

@@ -896,7 +896,7 @@ static void *gmtmex_dataset_init (void *API, unsigned int direction, unsigned in
 
 	*actual_family = GMT_IS_DATASET;	/* Default but may change to matrix */
 	if (direction == GMT_IN) {	/* Data given, dimensions are know, create container for GMT */
-		uint64_t seg, col, row, start, k, n_headers, dim[4] = {1, 0, 0, 0}, n, m;	/* We only return one table */
+		uint64_t seg, col, row, start, k, n_headers, dim[4] = {1, 0, 0, 0}, n, m, n_rows;	/* We only return one table */
 		size_t length = 0;
 		bool got_single_record;
 		unsigned int mode;
@@ -1023,18 +1023,50 @@ static void *gmtmex_dataset_init (void *API, unsigned int direction, unsigned in
 			}
 		}
 		else if (mxIsCell (ptr)) {	/* Got a cell array of strings */
+			uint64_t k2;
 			m = mxGetM (ptr);	n = mxGetN (ptr);
-			dim[GMT_ROW] = (m > n) ? m : n;	/* Number of rows in cell array */
-			dim[GMT_SEG] = 1;		/* Put all into a single segment */
+			n_rows = (m > n) ? m : n;	/* Number of items in cell array */
 			mode = GMT_WITH_STRINGS;	/* Since that is all we have */
-			if ((D = GMT_Create_Data (API, GMT_IS_DATASET, GMT_IS_TEXT, mode, dim, NULL, NULL, 0, 0, NULL)) == NULL)
+			/* Determine number of segments up front */
+			for (k = 0; k < n_rows; k++) {
+				mx_ptr = mxGetCell (ptr, (mwSize)k);
+				txt = mxArrayToString (mx_ptr);
+				if (txt[0] == '>') dim[GMT_SEG]++;	/* Found start of a new segment */
+			}
+			if (dim[GMT_SEG] == 0) dim[GMT_SEG] = 1;	/* No segment headers given - single segment */
+			if ((D = GMT_Create_Data (API, GMT_IS_DATASET, GMT_IS_TEXT, GMT_WITH_STRINGS, dim, NULL, NULL, 0, 0, NULL)) == NULL)
 				mexErrMsgTxt ("gmtmex_dataset_init: Failure to alloc GMT destination dataset\n");
 			GMT_Report (API, GMT_MSG_DEBUG, "gmtmex_dataset_init: Allocated GMT dataset %lx\n", (long)D);
-			S = D->table[0]->segment[0];	/* The lone segment */
-			for (row = 0; row < S->n_rows; row++) {
-				mx_ptr = mxGetCell (ptr, (mwSize)row);
+			k = seg = 0;
+			while (k < n_rows) {	/* Examine the input records and look for segments */
+				mx_ptr = mxGetCell (ptr, (mwSize)k);
 				txt = mxArrayToString (mx_ptr);
-				S->text[row] = GMT_Duplicate_String (API, txt);
+				buffer[0] = '\0';
+				if (txt[0] == '>' || (k == 0 && txt[0] != '>')) {	/* Found start of a new segment */
+					if (txt[0] == '>') strcpy (buffer, txt), k++;	/* Segment header */
+					k2 = k;	/* k and k2 point to the first row of current segment */
+					dim[GMT_ROW] = 0;
+					while (k2 < n_rows && dim[GMT_ROW] == 0) {
+						mx_ptr = mxGetCell (ptr, (mwSize)k2);
+						txt = mxArrayToString (mx_ptr);
+						if (txt[0] == '>')
+							dim[GMT_ROW] = k2 - k;
+						else
+							k2++;
+					}
+					if (dim[GMT_ROW] == 0) dim[GMT_ROW] = k2 - k;	/* Happens for last segment */
+				}
+				/* Now we know length of segment */
+				S = GMT_Alloc_Segment (API, GMT_WITH_STRINGS, dim[GMT_ROW], 0, buffer, D->table[0]->segment[seg]);
+				for (row = 0; row < S->n_rows; row++) {	/* Hook up the string records */
+					mx_ptr = mxGetCell (ptr, (mwSize)(k+row));
+					txt = mxArrayToString (mx_ptr);
+					S->text[row] = GMT_Duplicate_String (API, txt);
+				}
+				D->table[0]->n_records += S->n_rows;	/* Must manually keep track of totals */
+				seg++;	/* Got ourselves a new segment */
+				/* Move to next unused record */
+				k = k2;
 			}
 			D->type = GMT_READ_TEXT;
 		}
