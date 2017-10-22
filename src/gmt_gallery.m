@@ -1034,33 +1034,24 @@ function [ps, d_path] = ex23(g_root_dir, out_path, verbose)
 		' -Wcthinnest,white,- >> ' ps], Gdist)
 	
 	% Location info for 5 other cities + label justification
-	cities = cell(5,1);
-	cities{1} = '105.87 21.02 LM HANOI';
-	cities{2} = '282.95 -12.1 LM LIMA';
-	cities{3} = '178.42 -18.13 LM SUVA';
-	cities{4} = '237.67 47.58 RM SEATTLE';
-	cities{5} = '28.20 -25.75 LM PRETORIA';
+	cities = [105.87 21.02; 282.95  -12.1; 178.42 -18.13; 237.67 47.58; 28.20 -25.75];
+	just_names = {'LM HANOI', 'LM LIMA', 'LM SUVA', 'RM SEATTLE', 'LM PRETORIA'};
 	D = record([105.87 21.02; 282.95 -12.1; 178.42 -18.13; 237.67 47.58; 28.20 -25.75], ...
 		{'LM HANOI', 'LM LIMA', 'LM SUVA', 'RM SEATTLE', 'LM PRETORIA'});
 
 	% For each of the cities, plot great circle arc to Rome with gmt psxy
-	gmt(sprintf('psxy -R -J -O -K -Wthickest,red -Fr%f/%f', lon, lat), D);
+	gmt([sprintf('psxy -R -J -O -K -Wthickest,red -Fr%f/%f', lon, lat) ' >> ' ps], cities);
 
 	% Plot red squares at cities and plot names:
-	gmt(['psxy -R -J -O -K -Ss0.2 -Gred -Wthinnest >> ' ps], D)
+	gmt(['psxy -R -J -O -K -Ss0.2 -Gred -Wthinnest >> ' ps], cities)
 	gmt(['pstext -R -J -O -K -Dj0.15/0 -F+f12p,Courier-Bold,red+j -N >> ' ps], D)
 
 	% Place a yellow star at Rome
-	gmt(['psxy -R -J -O -K -Sa0.2i -Gyellow -Wthin >> ' ps], [12.5 41.99])
+	gmt(['psxy -R -J -O -K -Sa0.2i -Gyellow -Wthin >> ' ps], [lon lat])
 
 	% Sample the distance grid at the cities and use the distance in km for labels
 	dist = gmt('grdtrack -G', Gdist, D);
-	t = cell(5,1);
-	for (k = 1:5)
-		t{k} = sprintf('%f %f %d', dist.data(k,1), dist.data(k,2), round(dist.data(k,end)));
-	end
-	%T.data = dist.data(1:5,1:2);	T.text = 
-	gmt(['pstext -R -J -O -D0/-0.2i -N -Gwhite -W -C0.02i -F+f12p,Helvetica-Bold+jCT >> ' ps], t)
+	gmt(['pstext -R -J -O -D0/-0.2i -N -Gwhite -W -C0.02i -F+f12p,Helvetica-Bold+jCT+z%.0f >> ' ps], dist)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
@@ -1163,14 +1154,13 @@ function [ps, d_path] = ex27(g_root_dir, out_path, verbose)
 	gmt('destroy')
 
 	% Gravity in tasman_grav.nc is in 0.1 mGal increments and the grid
-	% is already in projected Mercator x/y units. First get gradients.
-	Gtasman_grav_i = gmt(['grdgradient ' d_path 'tasman_grav.nc -Nt1 -A45 -G']);
+	% is already in projected Mercator x/y units.
 
 	% Make a suitable cpt file for mGal
 	grav_cpt = gmt('makecpt -T-120/120 -Crainbow');
 
 	% Since this is a Mercator grid we use a linear projection
-	gmt(['grdimage @tasman_grav.nc=ns+s0.1 -I -Jx0.25i -C -P -K > ' ps], Gtasman_grav_i, grav_cpt)
+	gmt(['grdimage @tasman_grav.nc=ns+s0.1 -I+a45+nt1 -Jx0.25i -C -P -K > ' ps], grav_cpt)
 
 	% Then use gmt pscoast to plot land; get original -R from grid remark
 	% and use Mercator gmt projection with same scale as above on a spherical Earth
