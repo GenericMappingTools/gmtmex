@@ -1157,16 +1157,10 @@ function [ps, d_path] = ex27(g_root_dir, out_path, verbose)
 	% Since this is a Mercator grid we use a linear projection
 	gmt(['grdimage @tasman_grav.nc=ns+s0.1 -I+a45+nt1 -Jx0.25i -C -P -K > ' ps], grav_cpt)
 
-	% Then use gmt pscoast to plot land; get original -R from grid remark
+	% Then use gmt pscoast to plot land; get original -R from grid
 	% and use Mercator gmt projection with same scale as above on a spherical Earth
 
-	R = gmt('grdinfo @tasman_grav.nc');
-	% Here we need to fish the last word of the third (the 'Remark') line issued by grdinfo
-	R = R.text{3};	k = numel(R);
-	while (R(k) ~= ' ')
-		k = k - 1;
-	end
-	R = R(k+1:end);		% The result must be -R145/170/-50.0163575733/-24.9698584055
+	R = gmt('grdinfo @tasman_grav.nc -Ii');
 	gmt(['pscoast ' R ' -Jm0.25i -Ba10f5 -BWSne -O -K -Gblack --PROJ_ELLIPSOID=Sphere' ...
 		' -Cwhite -Dh+ --FORMAT_GEO_MAP=dddF >> ' ps])
 
