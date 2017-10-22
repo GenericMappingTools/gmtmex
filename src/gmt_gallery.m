@@ -1252,12 +1252,15 @@ function [ps, d_path] = ex30(g_root_dir, out_path, verbose)
 
 	% Indicate the x-angle = 120 degrees
 	gmt(['psxy   -R -J -O -K -W0.5p,- >> ' ps], [120 -1.25; 120 1.25])
-	gmt(['pstext -R -J -O -K -Dj0.2c -N -F+f+j >> ' ps], ...
-		{'360 1 18p,Times-Roman RB x = cos(@%12%a@%%)'
-		 '360 0 18p,Times-Roman RB y = sin(@%12%a@%%)'
-		 '120 -1.25 14p,Times-Roman LB 120\312'
-		 '370 -1.35 24p,Symbol LT a'
-		 '-5 1.85 24p,Times-Roman RT x,y'})
+	T.data = [360 1; 360 0; 120 -1.25; 370 -1.35; -5 1.85];
+	T.text = {'18p,Times-Roman RB x = cos(@%12%a@%%)', '18p,Times-Roman RB y = sin(@%12%a@%%)', ...
+		'14p,Times-Roman LB 120\312', '24p,Symbol LT a', '24p,Times-Roman RT x,y'};
+	gmt(['pstext -R -J -O -K -Dj0.2c -N -F+f+j >> ' ps], T)
+% 		{'360 1 18p,Times-Roman RB x = cos(@%12%a@%%)'
+% 		 '360 0 18p,Times-Roman RB y = sin(@%12%a@%%)'
+% 		 '120 -1.25 14p,Times-Roman LB 120\312'
+% 		 '370 -1.35 24p,Symbol LT a'
+% 		 '-5 1.85 24p,Times-Roman RT x,y'})
 
 	 % Draw a circle and indicate the 0-70 degree angle
 	gmt(['psxy -R-1/1/-1/1 -Jx1.5i -O -K -X3.625i -Y2.75i -Sc2i -W1p -N >> ' ps], [0 0])
@@ -1293,11 +1296,13 @@ function [ps, d_path] = ex30(g_root_dir, out_path, verbose)
 % 		-0.3333 0])
 
 	gmt('destroy')
-	gmt(['pstext -R-1/1/-1/1 -J -O -K -Dj0.05i -F+a+f+j >> ' ps], ...
-		{'-0.16666 0 0 12p,Times-Roman CT x'
-		 '-0.3333 0.2888675 0 12p,Times-Roman RM y'
-		 '0.22 0.27 -30 12p,Symbol CB a'
-		 '-0.33333 0.6 30 12p,Times-Roman LB 120\312'})
+	T.data = [-0.16666 0; -0.3333 0.2888675; 0.22 0.27; -0.33333 0.6];
+	T.text = {'0 12p,Times-Roman CT x', '0 12p,Times-Roman RM y', '-30 12p,Symbol CB a', '30 12p,Times-Roman LB 120\312'};
+	gmt(['pstext -R-1/1/-1/1 -J -O -K -Dj0.05i -F+a+f+j >> ' ps], T)
+% 		{'-0.16666 0 0 12p,Times-Roman CT x'
+% 		 '-0.3333 0.2888675 0 12p,Times-Roman RM y'
+% 		 '0.22 0.27 -30 12p,Symbol CB a'
+% 		 '-0.33333 0.6 30 12p,Times-Roman LB 120\312'})
 
 	gmt(['psxy -R -J -O -Sm0.15i+e -W1p -Gblack --PROJ_LENGTH_UNIT=cm >> ' ps], [0 0 1.26 0 120])
 	builtin('delete','gmt.conf');
@@ -1359,13 +1364,11 @@ function [ps, d_path] = ex32(g_root_dir, out_path, verbose)
 
 	% Finally, we add dots and names for three cities.
 	% Again, gmt grdtrack is used to put the dots "at elevation".
-	t = cell(3,1);
-	t{1} = '05:41:27 50:51:05 Maastricht';
-	t{2} = '04:21:00 50:51:00 Bruxelles';
-	t{3} = '07:07:03 50:43:09 Bonn';
-	d = gmt('grdtrack -G@topo_32.nc', t); 
+	T.data = [5.69083333333333 50.8513888888889; 4.35 50.85; 7.11722222222222 50.7191666666667];
+	T.text = {'Maastricht'; 'Bruxelles'; 'Bonn'};
+	d = gmt('grdtrack -G@topo_32.nc', T); 
 	gmt(['psxyz -i0,1,3 ' Rplot ' -J -JZ -p -Sc7p -W1p,white -Gred -K -O >> ' ps], d)
-	gmt(['pstext ' Rplot ' -J -JZ -p -F+f12p,Helvetica-Bold,red+jRM -Dj0.1i/0.0i -O >> ' ps], t)
+	gmt(['pstext ' Rplot ' -J -JZ -p -F+f12p,Helvetica-Bold,red+jRM -Dj0.1i/0.0i -O >> ' ps], T)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
