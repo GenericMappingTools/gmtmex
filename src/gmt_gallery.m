@@ -473,21 +473,21 @@ function [ps, d_path] = ex11(g_root_dir, out_path, verbose)
 
 	gmt(['grdimage -JX2.5i/-2.5i -R -K -O -X0.5i >> ' ps], x_nc, y_nc, c_nc)
 	gmt(['psxy -Wthinner,white,- @rays_11.txt -J -R -K -O >> ' ps])
-	gmt(['pstext --FONT=white -J -R -K -O -F+f+a >> ' ps], ...
-		{'128 128 12p -45 60\217'
-		 '102  26 12p -90 0.4'
-		 '204  26 12p -90 0.8'
-		 '10  140 16p 180 G'})
+	gmt(['pstext --FONT=white -J -R -K -O -F+a+f >> ' ps], ...
+		{'128 128 -45 12p 60\217'
+		 '102  26 -90 12p 0.4'
+		 '204  26 -90 12p 0.8'
+		 '10  140 180 16p G'})
 	gmt(['psxy -N -Sv0.15i+s+e -Gwhite -W2p,white -J -R -K -O >> ' ps], [0 0 0 128])
 
 	gmt(['grdimage -JX2.5i/2.5i -R -K -O -Y2.5i >> ' ps], x_nc, c_nc, y_nc)
 	gmt(['psxy -Wthinner,white,- @rays_11.txt -J -R -K -O >> ' ps])
-	gmt(['pstext --FONT=white -J -R -K -O -F+f+a >> ' ps], ...
-		{'128 128 12p  45 300\217'
-		 '26  102 12p   0 0.4'
-		 '26  204 12p   0 0.8'
-		 '140  10 16p -90 R'
-		 '100 100 16p -45 V'})
+	gmt(['pstext --FONT=white -J -R -K -O -F+a+f >> ' ps], ...
+		{'128 128  45 12p 300\217'
+		 '26  102   0 12p 0.4'
+		 '26  204   0 12p 0.8'
+		 '140  10 -90 16p R'
+		 '100 100 -45 16p V'})
 
 	gmt(['psxy -N -Sv0.15i+s+e -Gwhite -W2p,white -J -R -K -O >> ' ps], [0 0 128 0])
 	gmt(['psxy -N -Sv0.15i+s+e -Gwhite -W2p,white -J -R -K -O >> ' ps], [0 0 90 90])
@@ -518,7 +518,7 @@ function [ps, d_path] = ex11(g_root_dir, out_path, verbose)
 		 '204  26 270 12p 0.8'})
 
 	gmt(['grdimage -JX2.5i/-2.5i -R -K -O -X2.5i >> ' ps], c_nc, y_nc, x_nc)
-	gmt(['psxy -Wthinner,black,- ' d_path 'rays.txt -J -R -K -O >> ' ps])
+	gmt(['psxy -Wthinner,black,- @rays_11.txt -J -R -K -O >> ' ps])
 	gmt(['pstext -J -R -K -O -F+a+f >> ' ps], ...
 		{'128 128 -45 12p 0\217'
 		 '26  102   0 12p 0.4'
@@ -531,7 +531,7 @@ function [ps, d_path] = ex11(g_root_dir, out_path, verbose)
 
 	gmt(['grdimage -JX-2.5i/2.5i -R -K -O -X-2.5i -Y2.5i >> ' ps], x_nc, c_nc, y_nc)
 	gmt(['psxy -Wthinner,black,- @rays_11.txt -J -R -K -O >> ' ps])
-	gmt(['pstext -J -R -O -F+f+a >> ' ps], ...
+	gmt(['pstext -J -R -O -F+a+f >> ' ps], ...
 		{'128 128 135 12p 120\217'
 		 '26  102 180 12p 0.4'
 		 '26  204 180 12p 0.8'
@@ -657,7 +657,7 @@ function [ps, d_path] = ex15(g_root_dir, out_path, verbose)
 	Gship_clipped = gmt('grdclip -Sa-1/NaN', Gship);
 	gmt(['grdcontour -J -B -C250 -A1000 -L-8000/0 -Gd2i -O -K -X3.6i >> ' ps], Gship_clipped)
 	gmt(['pscoast ' region ' -J -O -K -Ggray -Wthinnest >> ' ps])
-	info = gmt('grdinfo -C -M', Gship);
+	info = gmt('grdinfo -Cn -M', Gship);
 	gmt(['psxy -R -J -O -K -Sa0.15i -Wthick >> ' ps], info.data(11:12))
 	gmt(['pstext -R0/3/0/4 -Jx1i -F+f24p,Helvetica-Bold+jCB -O -N >> ' ps], ...
 		record([-0.3 3.6], 'Gridding with missing data'))
@@ -1161,6 +1161,7 @@ function [ps, d_path] = ex27(g_root_dir, out_path, verbose)
 	% and use Mercator gmt projection with same scale as above on a spherical Earth
 
 	R = gmt('grdinfo @tasman_grav.nc -Ii');
+	R = R(1).text{1};
 	gmt(['pscoast ' R ' -Jm0.25i -Ba10f5 -BWSne -O -K -Gblack --PROJ_ELLIPSOID=Sphere' ...
 		' -Cwhite -Dh+ --FORMAT_GEO_MAP=dddF >> ' ps])
 
@@ -1213,8 +1214,8 @@ function [ps, d_path] = ex29(g_root_dir, out_path, verbose)
 	Gproj_ellipsoid = gmt(sprintf(['grdmath -Rg -I4 -r X COSD %f DIV DUP MUL X SIND %f DIV DUP MUL ADD' ...
 		' Y COSD DUP MUL MUL Y SIND %f DIV DUP MUL ADD SQRT INV ='], a, b, c));
 	%  Do both Parker and Wessel/Becker solutions (tension = 0.9975)
-	Gmars  = gmt('greenspline -R@mars370.txt  -D4 -Sp -G', Gproj_ellipsoid);
-	Gmars2 = gmt('greenspline -R@mars370.txt  -D4 -Sq0.9975 -G', Gproj_ellipsoid);
+	Gmars  = gmt('greenspline -R@mars370.txt -D4 -Sp -G', Gproj_ellipsoid);
+	Gmars2 = gmt('greenspline -R@mars370.txt -D4 -Sq0.9975 -G', Gproj_ellipsoid);
 	% Scale to km and remove PROJ_ELLIPSOID
 	Gmars  = gmt('grdmath ? 1000 DIV ? SUB =', Gmars, Gproj_ellipsoid);
 	Gmars2 = gmt('grdmath ? 1000 DIV ? SUB =', Gmars2, Gproj_ellipsoid);
@@ -1260,7 +1261,7 @@ function [ps, d_path] = ex30(g_root_dir, out_path, verbose)
 
 	 % Draw a circle and indicate the 0-70 degree angle
 	gmt(['psxy -R-1/1/-1/1 -Jx1.5i -O -K -X3.625i -Y2.75i -Sc2i -W1p -N >> ' ps], [0 0])
-	seg = {[-1 0; 1 0], [0 -1; 0 1], [0 0; 1 0], [0 0; -0.5 0.866025], [-0.3333	0; 0 0], [-0.3333 0.57735; -0.3333 0]};
+	seg = {[-1 0; 1 0], [0 -1; 0 1], [0 0; 1 0], [0 0; -0.5 0.866025], [-0.3333 0; 0 0], [-0.3333 0.57735; -0.3333 0]};
 	hdr = {'x-gridline  -Wdefault', 'y-gridline  -Wdefault', 'angle = 0', 'angle = 120', 'x-gmt projection -W2p', 'y-gmt projection -W2p'};
 	D = gmt('wrapseg', seg, hdr);
 	gmt(['psxy -R-1/1/-1/1 -J -O -K -W1p >> ' ps], D)
