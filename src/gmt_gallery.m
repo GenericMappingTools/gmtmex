@@ -1036,8 +1036,7 @@ function [ps, d_path] = ex23(g_root_dir, out_path, verbose)
 	% Location info for 5 other cities + label justification
 	cities = [105.87 21.02; 282.95  -12.1; 178.42 -18.13; 237.67 47.58; 28.20 -25.75];
 	just_names = {'LM HANOI', 'LM LIMA', 'LM SUVA', 'RM SEATTLE', 'LM PRETORIA'};
-	D = record([105.87 21.02; 282.95 -12.1; 178.42 -18.13; 237.67 47.58; 28.20 -25.75], ...
-		{'LM HANOI', 'LM LIMA', 'LM SUVA', 'RM SEATTLE', 'LM PRETORIA'});
+	D = record([105.87 21.02; 282.95 -12.1; 178.42 -18.13; 237.67 47.58; 28.20 -25.75], just_names);
 
 	% For each of the cities, plot great circle arc to Rome with gmt psxy
 	gmt([sprintf('psxy -R -J -O -K -Wthickest,red -Fr%f/%f', lon, lat) ' >> ' ps], cities);
@@ -1050,7 +1049,7 @@ function [ps, d_path] = ex23(g_root_dir, out_path, verbose)
 	gmt(['psxy -R -J -O -K -Sa0.2i -Gyellow -Wthin >> ' ps], [lon lat])
 
 	% Sample the distance grid at the cities and use the distance in km for labels
-	dist = gmt('grdtrack -G', Gdist, D);
+	dist = gmt('grdtrack -G', D, Gdist);
 	gmt(['pstext -R -J -O -D0/-0.2i -N -Gwhite -W -C0.02i -F+f12p,Helvetica-Bold+jCT+z%.0f >> ' ps], dist)
 	builtin('delete','gmt.conf');
 
@@ -1066,22 +1065,18 @@ function [ps, d_path] = ex24(g_root_dir, out_path, verbose)
 	fprintf(fid, '180 0\n180 -90\n');
 	fclose(fid);
 
-	fid = fopen('point.txt', 'w');
-	fprintf(fid, '147:13 -42:48 6000 Hobart');
-	fclose(fid);
-
 	gmt('set -Du')
 	gmt('destroy')
 	R = gmt('info -I10 @oz_quakes_24.txt');
 	gmt(['pscoast ' R.text{1} ' -JM9i -K -Gtan -Sdarkblue -Wthin,white -Dl -A500 -Ba20f10g10 -BWeSn > ' ps])
 	gmt(['psxy -R -J -O -K @oz_quakes_24.txt -Sc0.05i -Gred >> ' ps])
-	t = gmt('gmtselect @oz_quakes_24.txt -Ldateline.txt+d1000k -Nk/s -Cpoint.txt+d3000k -fg -R -Il');
+	t = gmt('gmtselect @oz_quakes_24.txt -Ldateline.txt+d1000k -Nk/s -C+d3000k -fg -R -Il', [147.216666666667 -42.8]);
 	gmt(['psxy -R -JM -O -K -Sc0.05i -Ggreen >> ' ps], t)
-	gmt(['psxy point.txt -R -J -O -K -SE- -Wfat,white >> ' ps])
-	gmt(['pstext -R -J -O -K -F+f14p,Helvetica-Bold,white+jLT -D0.1i/-0.1i >> ' ps], {'147:13 -42:48 Hobart'})
-	gmt(['psxy -R -J -O -K point.txt -Wfat,white -S+0.2i >> ' ps])
+	gmt(['psxy -R -J -O -K -SE- -Wfat,white >> ' ps], [147.216666666667 -42.8 6000])
+	gmt(['pstext -R -J -O -K -F+f14p,Helvetica-Bold,white+jLT -D0.1i/-0.1i >> ' ps], record([147.216666666667 -42.8], 'Hobart'))
+	gmt(['psxy -R -J -O -K -Wfat,white -S+0.2i >> ' ps], [147.216666666667 -42.8])
 	gmt(['psxy dateline.txt -R -J -O -Wfat,white -A >> ' ps])
-	builtin('delete','point.txt', 'dateline.txt');
+	builtin('delete','dateline.txt');
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
