@@ -494,11 +494,11 @@ function [ps, d_path] = ex11(g_root_dir, out_path, verbose)
 
 	gmt(['grdimage -JX-2.5i/2.5i -R -K -O -X-2.5i >> ' ps], c_nc, x_nc, y_nc)
 	gmt(['psxy -Wthinner,white,- @rays_11.txt -J -R -K -O >> ' ps])
-	gmt(['pstext --FONT=white -J -R -K -O -F+f+a >> ' ps], ...
-		{'128 128 12p 135 180\217'
-		 '102  26 12p  90 0.4'
-		 '204  26 12p  90 0.8'
-		 '10  140 16p   0 B'})
+	gmt(['pstext --FONT=white -J -R -K -O -F+a+f >> ' ps], ...
+		{'128 128 135 12p 180\217'
+		 '102  26 90 12p 0.4'
+		 '204  26 90 12p 0.8'
+		 '10  140  0 16p B'})
 
 	gmt(['psxy -N -Sv0.15i+s+e -Gwhite -W2p,white -J -R -K -O >> ' ps], [0 0 0 128])
 	gmt(['psxy -N -Sv0.15i+s+e -Gwhite -W2p,white -J -R -K -O >> ' ps], [0 0 128 0])
@@ -512,19 +512,19 @@ function [ps, d_path] = ex11(g_root_dir, out_path, verbose)
 
 	gmt(['grdimage -JX-2.5i/-2.5i -R -K -O -X2.5i -Y2.5i >> ' ps], x_nc, y_nc, c_nc)
 	gmt(['psxy -Wthinner,black,- @rays_11.txt -J -R -K -O >> ' ps])
-	gmt(['pstext -J -R -K -O -F+f+a >> ' ps], ...
-		{'128 128 12p 225 240\217'
-		 '102  26 12p 270 0.4'
-		 '204  26 12p 270 0.8'})
+	gmt(['pstext -J -R -K -O -F+a+f >> ' ps], ...
+		{'128 128 225 12p 240\217'
+		 '102  26 270 12p 0.4'
+		 '204  26 270 12p 0.8'})
 
 	gmt(['grdimage -JX2.5i/-2.5i -R -K -O -X2.5i >> ' ps], c_nc, y_nc, x_nc)
 	gmt(['psxy -Wthinner,black,- ' d_path 'rays.txt -J -R -K -O >> ' ps])
-	gmt(['pstext -J -R -K -O -F+f+a >> ' ps], ...
-		{'128 128 12p -45 0\217'
-		 '26  102 12p   0 0.4'
-		 '26  204 12p   0 0.8'
-		 '100 100 16p  45 S'
-		 '204  66 16p  90 H'})
+	gmt(['pstext -J -R -K -O -F+a+f >> ' ps], ...
+		{'128 128 -45 12p 0\217'
+		 '26  102   0 12p 0.4'
+		 '26  204   0 12p 0.8'
+		 '100 100  45 16p S'
+		 '204  66  90 16p H'})
 
 	gmt(['psxy -N -Sv0.15i+s+e -Gblack -W2p -J -R -K -O >> ' ps], [0 0 90 90])
 	gmt(['psxy -N -Sv0.15i+s+e -Gblack -W2p -J -R -K -O >> ' ps], [204 204 204 76])
@@ -532,10 +532,10 @@ function [ps, d_path] = ex11(g_root_dir, out_path, verbose)
 	gmt(['grdimage -JX-2.5i/2.5i -R -K -O -X-2.5i -Y2.5i >> ' ps], x_nc, c_nc, y_nc)
 	gmt(['psxy -Wthinner,black,- @rays_11.txt -J -R -K -O >> ' ps])
 	gmt(['pstext -J -R -O -F+f+a >> ' ps], ...
-		{'128 128 12p 135 120\217'
-		 '26  102 12p 180 0.4'
-		 '26  204 12p 180 0.8'
-		 '200 200 16p 225 GMT 5'})
+		{'128 128 135 12p 120\217'
+		 '26  102 180 12p 0.4'
+		 '26  204 180 12p 0.8'
+		 '200 200 225 16p GMT 6'})
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
@@ -1292,11 +1292,11 @@ function [ps, d_path] = ex30(g_root_dir, out_path, verbose)
 % 		-0.3333 0])
 
 	gmt('destroy')
-	gmt(['pstext -R-1/1/-1/1 -J -O -K -Dj0.05i -F+f+a+j >> ' ps], ...
-		{'-0.16666 0 12p,Times-Roman 0 CT x'
-		 '-0.3333 0.2888675 12p,Times-Roman 0 RM y'
-		 '0.22 0.27 12p,Symbol -30 CB a'
-		 '-0.33333 0.6 12p,Times-Roman 30 LB 120\312'})
+	gmt(['pstext -R-1/1/-1/1 -J -O -K -Dj0.05i -F+a+f+j >> ' ps], ...
+		{'-0.16666 0 0 12p,Times-Roman CT x'
+		 '-0.3333 0.2888675 0 12p,Times-Roman RM y'
+		 '0.22 0.27 -30 12p,Symbol CB a'
+		 '-0.33333 0.6 30 12p,Times-Roman LB 120\312'})
 
 	gmt(['psxy -R -J -O -Sm0.15i+e -W1p -Gblack --PROJ_LENGTH_UNIT=cm >> ' ps], [0 0 1.26 0 120])
 	builtin('delete','gmt.conf');
