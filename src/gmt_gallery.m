@@ -1722,9 +1722,14 @@ function [ps, d_path] = ex46(g_root_dir, out_path, verbose)
 function R = record (data, text)
 	% Simplifies creating one or more GMT records on the fly
 	R.data = data;
-	[n,m] = size(text);
-	if (n == 1)
-		R.text = text';
-	else
+	if (ischar(text))
 		R.text = text;
+	else
+		[n,m] = size(text);
+		if (n == 1)
+			R.text = text';
+		else
+			R.text = text;
+		end
 	end
+
