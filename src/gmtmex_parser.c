@@ -952,7 +952,10 @@ static void *gmtmex_dataset_init (void *API, unsigned int direction, unsigned in
 			dim[GMT_SEG] = mxGetM (ptr);	/* Number of segments */
 			if (dim[GMT_SEG] == 0) mexErrMsgTxt ("gmtmex_dataset_init: Input has zero segments where it can't be.\n");
 			mx_ptr_d = mxGetField (ptr, 0, "data");	/* Get first segment's data matrix [if available] */
+			if (mx_ptr_d && mxIsEmpty(mx_ptr_d)) mx_ptr_d = NULL;		/* Got one but was empty */
 			mx_ptr_t = mxGetField (ptr, 0, "text");	/* Get first segment's text matrix [if available] */
+			if (mx_ptr_t && mxIsEmpty(mx_ptr_t)) mx_ptr_t = NULL;		/* Got one but was empty */
+
 			if (mx_ptr_d == NULL && mx_ptr_t == NULL)
 				mexErrMsgTxt("gmtmex_dataset_init: Both 'data' array and 'text' array are NULL!\n");
 			if (mx_ptr_d)
@@ -975,7 +978,10 @@ static void *gmtmex_dataset_init (void *API, unsigned int direction, unsigned in
 				if (mx_ptr && (length = mxGetN (mx_ptr)) != 0)              /* These is a non-empty segment header to keep */
 					mxGetString (mx_ptr, buffer, (mwSize)(length+1));
 				mx_ptr_d = mxGetField (ptr, (mwSize)seg, "data");           /* Data matrix for this segment */
+				if (mx_ptr_d && mxIsEmpty(mx_ptr_d)) mx_ptr_d = NULL;		/* Got one but was empty */
 				mx_ptr_t = mxGetField (ptr, (mwSize)seg, "text");           /* text cell array for this segment */
+				if (mx_ptr_t && mxIsEmpty(mx_ptr_t)) mx_ptr_t = NULL;		/* Got one but was empty */
+
 				if (mx_ptr_t) {	/* This segment also has a cell array of strings or possibly a single string if n_rows == 1 */
 					got_single_record = false;
 					m = mxGetM (mx_ptr_t);	n = mxGetN (mx_ptr_t);
