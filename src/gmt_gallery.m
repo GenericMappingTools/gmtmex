@@ -1214,8 +1214,8 @@ function [ps, d_path] = ex29(g_root_dir, out_path, verbose)
 	Gproj_ellipsoid = gmt(sprintf(['grdmath -Rg -I4 -r X COSD %f DIV DUP MUL X SIND %f DIV DUP MUL ADD' ...
 		' Y COSD DUP MUL MUL Y SIND %f DIV DUP MUL ADD SQRT INV ='], a, b, c));
 	%  Do both Parker and Wessel/Becker solutions (tension = 0.9975)
-	Gmars  = gmt('greenspline -R@mars370.txt -D4 -Sp -G', Gproj_ellipsoid);
-	Gmars2 = gmt('greenspline -R@mars370.txt -D4 -Sq0.9975 -G', Gproj_ellipsoid);
+	Gmars  = gmt('greenspline -R? @mars370.txt -D4 -Sp -G', Gproj_ellipsoid);
+	Gmars2 = gmt('greenspline -R? @mars370.txt -D4 -Sq0.9975 -G', Gproj_ellipsoid);
 	% Scale to km and remove PROJ_ELLIPSOID
 	Gmars  = gmt('grdmath ? 1000 DIV ? SUB =', Gmars, Gproj_ellipsoid);
 	Gmars2 = gmt('grdmath ? 1000 DIV ? SUB =', Gmars2, Gproj_ellipsoid);
@@ -1256,11 +1256,6 @@ function [ps, d_path] = ex30(g_root_dir, out_path, verbose)
 	T.text = {'18p,Times-Roman RB x = cos(@%12%a@%%)', '18p,Times-Roman RB y = sin(@%12%a@%%)', ...
 		'14p,Times-Roman LB 120\312', '24p,Symbol LT a', '24p,Times-Roman RT x,y'};
 	gmt(['pstext -R -J -O -K -Dj0.2c -N -F+f+j >> ' ps], T)
-% 		{'360 1 18p,Times-Roman RB x = cos(@%12%a@%%)'
-% 		 '360 0 18p,Times-Roman RB y = sin(@%12%a@%%)'
-% 		 '120 -1.25 14p,Times-Roman LB 120\312'
-% 		 '370 -1.35 24p,Symbol LT a'
-% 		 '-5 1.85 24p,Times-Roman RT x,y'})
 
 	 % Draw a circle and indicate the 0-70 degree angle
 	gmt(['psxy -R-1/1/-1/1 -Jx1.5i -O -K -X3.625i -Y2.75i -Sc2i -W1p -N >> ' ps], [0 0])
@@ -1268,42 +1263,11 @@ function [ps, d_path] = ex30(g_root_dir, out_path, verbose)
 	hdr = {'x-gridline  -Wdefault', 'y-gridline  -Wdefault', 'angle = 0', 'angle = 120', 'x-gmt projection -W2p', 'y-gmt projection -W2p'};
 	D = gmt('wrapseg', seg, hdr);
 	gmt(['psxy -R-1/1/-1/1 -J -O -K -W1p >> ' ps], D)
-% 	gmt(['psxy -R-1/1/-1/1 -J -O -K -W1p >> ' ps], ...
-% 		[
-% 		nan nan
-% % 		> x-gridline  -Wdefault
-% 		-1 0
-% 		1 0
-% 		nan nan
-% % 		> y-gridline  -Wdefault
-% 		0 -1
-% 		0 1
-% 		nan nan
-% % 		> angle = 0
-% 		0 0
-% 		1 0
-% 		nan nan
-% % 		> angle = 120
-% 		0 0
-% 		-0.5 0.866025
-% 		nan nan
-% % 		> x-gmt projection -W2p
-% 		-0.3333	0
-% 		0	0
-% 		nan nan
-% % 		> y-gmt projection -W2p
-% 		-0.3333 0.57735
-% 		-0.3333 0])
 
 	gmt('destroy')
-	T.data = [-0.16666 0; -0.3333 0.2888675; 0.22 0.27; -0.33333 0.6];
-	T.text = {'0 12p,Times-Roman CT x', '0 12p,Times-Roman RM y', '-30 12p,Symbol CB a', '30 12p,Times-Roman LB 120\312'};
+	T.data = [-0.16666 0 0; -0.3333 0.2888675 0; 0.22 0.27 -30; -0.33333 0.6 30];
+	T.text = {'12p,Times-Roman CT x', '12p,Times-Roman RM y', '12p,Symbol CB a', '12p,Times-Roman LB 120\312'};
 	gmt(['pstext -R-1/1/-1/1 -J -O -K -Dj0.05i -F+a+f+j >> ' ps], T)
-% 		{'-0.16666 0 0 12p,Times-Roman CT x'
-% 		 '-0.3333 0.2888675 0 12p,Times-Roman RM y'
-% 		 '0.22 0.27 -30 12p,Symbol CB a'
-% 		 '-0.33333 0.6 30 12p,Times-Roman LB 120\312'})
-
 	gmt(['psxy -R -J -O -Sm0.15i+e -W1p -Gblack --PROJ_LENGTH_UNIT=cm >> ' ps], [0 0 1.26 0 120])
 	builtin('delete','gmt.conf');
 
