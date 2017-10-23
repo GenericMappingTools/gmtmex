@@ -1483,11 +1483,7 @@ function [ps, d_path] = ex37(g_root_dir, out_path, verbose)
 
 	z_cpt = gmt('makecpt -Crainbow -T-5000/-3000');
 	g_cpt = gmt('makecpt -Crainbow -T-50/25');
-	bbox_t = gmt(['grdinfo ' T ' -Ib']);			% Trouble here bbox_t is a cell array of text and we need it to be a matrix
-	bbox = zeros(4,2);
-	for (k = 1:4)
-		bbox(k,:) = str2num(bbox_t.text{k+1});
-	end
+	bbox = gmt(['grdinfo ' T ' -Ib']);
 	scl   = '1.4e-5';
 	sclkm = '1.4e-2';
 	gmt(['grdimage ' T ' -I+a0+nt1 -Jx' scl 'i -C -P -K -X1.474i -Y1i > ' ps], z_cpt)
@@ -1621,7 +1617,7 @@ function [ps, d_path] = ex41(g_root_dir, out_path, verbose)
 	gmt(['pscoast -R130W/50W/8N/56N -JM5.6i -B0 -P -K -Glightgray -Sazure1 -A1000 -Wfaint -Xc -Y1.2i --MAP_FRAME_TYPE=plain > ' ps])
 	gmt(['pscoast -R -J -O -K -EUS+glightyellow+pfaint -ECU+glightred+pfaint -EMX+glightgreen+pfaint -ECA+glightblue+pfaint >> ' ps])
 	gmt(['pscoast -R -J -O -K -N1/1p,darkred -A1000/2/2 -Wfaint -Cazure1 >> ' ps])
-	gmt(['psxy -R -J -O -K -Sk@symbol_41/0.1i -C -W0.25p -: @table_41.txt >> ' ps], C)
+	gmt(['psxy -R -J -O -K -Sk@symbol_41/0.1i -C -W0.25p -: @data_41.txt >> ' ps], C)
 	gmt(['pslegend -R0/6/0/9.1 -Jx1i -Dx3i/4.5i+w5.6i+jBC+l1.2 -C0.05i -F+p+gsnow1 -B0 -O @table_41.txt -X-0.2i -Y-0.2i >> ' ps])
 	builtin('delete','gmt.conf');
 
