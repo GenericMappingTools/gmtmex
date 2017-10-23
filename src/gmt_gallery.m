@@ -1364,8 +1364,9 @@ function [ps, d_path] = ex33(g_root_dir, out_path, verbose)
 	table = gmt('grdtrack -G@spac_33.nc -C400k/2k/10k -Sm+sstack.txt', ridge_pts);
 	gmt(['psxy -R -J -O -K -W0.5p >> ' ps], table)
 	% Show upper/lower values encountered as an envelope
-	env = gmt('gmtconvert stack.txt -o0,5');
-	env = [env; gmt('gmtconvert stack.txt -o0,6 -I -T')];		% Concat the two matrices
+	env1 = gmt('gmtconvert stack.txt -o0,5');
+	env2 = gmt('gmtconvert stack.txt -o0,6 -I -T');		% Concat the two matrices
+	env  = [env1.data; env2.data];		% Concat the two matrices
 	gmt(['psxy -R-200/200/-3500/-2000 -Bxafg1000+l"Distance from ridge (km)" -Byaf+l"Depth (m)" -BWSne' ...
 		' -JX6i/3i -O -K -Glightgray -Y6.5i >> ' ps], env)
 	gmt(['psxy -R -J -O -K -W3p stack.txt >> ' ps])
