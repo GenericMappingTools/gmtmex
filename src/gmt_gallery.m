@@ -1709,18 +1709,18 @@ function [ps, d_path] = ex45(g_root_dir, out_path, verbose)
 	% Basic LS line y = a + bx
 	gmt('set -Du')
 	gmt('destroy')
-	model = gmt('trend1d -Fxm @CO2.txt -Np1');
-	gmt(['psxy -R1958/2016/310/410 -JX6i/1.9i -P -Bxaf -Byaf+u" ppm" -BWSne+gazure1 -Sc0.05c -Gred -K ' d_path 'CO2.txt -X1.5i > ' ps])
+	model = gmt('trend1d -Fxm @MaunaLoa_CO2.txt -Np1');
+	gmt(['psxy -R1958/2016/310/410 -JX6i/1.9i -P -Bxaf -Byaf+u" ppm" -BWSne+gazure1 -Sc0.05c -Gred -K @MaunaLoa_CO2.txt -X1.5i > ' ps])
 	gmt(['psxy -R -J -O -K -W0.5p,blue >> ' ps], model)
 	gmt(['pstext -R -J -O -K -F+f12p+cTL -Dj0.1i -Glightyellow >> ' ps], struct('text','m@-2@-(t) = a + b\264t'))
 	% Basic LS line y = a + bx + cx^2
-	model = gmt('trend1d -Fxm @CO2.txt -Np2');
-	gmt(['psxy -R -J -O -Bxaf -Byaf+u" ppm" -BWSne+gazure1 -Sc0.05c -Gred -K @CO2.txt -Y2.3i >> ' ps])
+	model = gmt('trend1d -Fxm @MaunaLoa_CO2.txt -Np2');
+	gmt(['psxy -R -J -O -Bxaf -Byaf+u" ppm" -BWSne+gazure1 -Sc0.05c -Gred -K @MaunaLoa_CO2.txt -Y2.3i >> ' ps])
 	gmt(['psxy -R -J -O -K -W0.5p,blue >> ' ps], model)
 	gmt(['pstext -R -J -O -K -F+f12p+cTL -Dj0.1i -Glightyellow >> ' ps], struct('text','m@-3@-(t) = a + b\264t + c\264t@+2@+'))
 	% Basic LS line y = a + bx + cx^2 + seasonal change
-	model = gmt('trend1d -Fxmr @CO2.txt -Np2,f1+o1958+l1');
-	gmt(['psxy -R -J -O -Bxaf -Byaf+u" ppm" -BWSne+gazure1 -Sc0.05c -Gred -K @CO2.txt -Y2.3i >> ' ps])
+	model = gmt('trend1d -Fxmr @MaunaLoa_CO2.txt -Np2,f1+o1958+l1');
+	gmt(['psxy -R -J -O -Bxaf -Byaf+u" ppm" -BWSne+gazure1 -Sc0.05c -Gred -K @MaunaLoa_CO2.txt -Y2.3i >> ' ps])
 	gmt(['psxy -R -J -O -K -W0.25p,blue >> ' ps], model)
 	gmt('destroy')
 	gmt(['pstext -R -J -O -K -F+f12p+cTL -Dj0.1i -Glightyellow >> ' ps], ...
