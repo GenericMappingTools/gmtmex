@@ -1367,7 +1367,7 @@ function [ps, d_path] = ex32(g_root_dir, out_path, verbose)
 	T.data = [5.69083333333333 50.8513888888889; 4.35 50.85; 7.11722222222222 50.7191666666667];
 	T.text = {'Maastricht'; 'Bruxelles'; 'Bonn'};
 	d = gmt('grdtrack -G@topo_32.nc', T); 
-	gmt(['psxyz -i0,1,3 ' Rplot ' -J -JZ -p -Sc7p -W1p,white -Gred -K -O >> ' ps], d)
+	gmt(['psxyz ' Rplot ' -J -JZ -p -Sc7p -W1p,white -Gred -K -O >> ' ps], d)
 	gmt(['pstext ' Rplot ' -J -JZ -p -F+f12p,Helvetica-Bold,red+jRM -Dj0.1i/0.0i -O >> ' ps], T)
 	builtin('delete','gmt.conf');
 
