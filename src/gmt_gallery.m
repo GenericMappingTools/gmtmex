@@ -875,7 +875,7 @@ function [ps, d_path] = ex21(g_root_dir, out_path, verbose)
 
 	RHAT1_env = gmt('gmtconvert -o0,2 -f0T @RHAT_price.csv');
 	RHAT2_env = gmt('gmtconvert -o0,3 -f0T -I -T @RHAT_price.csv');
-	RHAT_env = [RHAT1_env; RHAT2_env];
+	RHAT_env = [RHAT1_env.data; RHAT2_env.data];
 	gmt(['psxy -R -J -Gyellow -O -K >> ' ps], RHAT_env)
 	gmt(['psxy -R -J @RHAT_price.csv -Wthin,red -O -K >> ' ps])
 
@@ -917,7 +917,7 @@ function [ps, d_path] = ex21(g_root_dir, out_path, verbose)
 
 	% Again, plot close price as red line over yellow envelope of low/highs
 
-	gmt(['psxy -R -J -Gyellow -O -K >> ' ps], RHAT_env(1).data)
+	gmt(['psxy -R -J -Gyellow -O -K >> ' ps], RHAT_env)
 	gmt(['psxy -R -J @RHAT_price.csv -Wthin,red -O -K >> ' ps])
 
 	% Draw P Wessel's sales price as dashed line
