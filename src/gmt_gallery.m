@@ -1553,9 +1553,9 @@ function [ps, d_path] = ex40(g_root_dir, out_path, verbose)
 	gmt(['psxy @GSHHS_h_Australia.txt -R -J -O -Sc0.01c -Gred -K >> ' ps])
 	T500k = gmt('gmtsimplify @GSHHS_h_Australia.txt -T500k');
 	t = gmt('gmtspatial @GSHHS_h_Australia.txt -fg -Qk');
-	area = sprintf('Full area = %.0f km@+2@+\n', t.data(3));
+	area = sprintf('Full area = %.0f km@+2@+', t.data(3));
 	t = gmt('gmtspatial -fg -Qk', T500k); 
-	area_T500k = sprintf('Reduced area = %.0f km@+2@+\n', t.data(3));
+	area_T500k = sprintf('Reduced area = %.0f km@+2@+', t.data(3));
 	gmt(['psxy -R -J -O -K -W1p,blue >> ' ps], T500k)
 	gmt(['psxy -R -J -O -K -Sx0.3i -W3p >> ' ps], centroid)
 	gmt(['pstext -R -J -O -K -Dj0.1i/0.1i -F+jTL+f18p >> ' ps], record([112 -10], 'T = 500 km'))
@@ -1566,7 +1566,7 @@ function [ps, d_path] = ex40(g_root_dir, out_path, verbose)
 	gmt(['psxy @GSHHS_h_Australia.txt -R -J -O -Sc0.01c -Gred -K >> ' ps])
 	T100k = gmt('gmtsimplify @GSHHS_h_Australia.txt -T100k');
 	t = gmt('gmtspatial -fg -Qk', T100k);
-	area_T100k = sprintf('Reduced area = %.0f km@+2@+\n', t.data(3));
+	area_T100k = sprintf('Reduced area = %.0f km@+2@+', t.data(3));
 	gmt(['psxy -R -J -O -K -W1p,blue >> ' ps], T100k)
 	gmt(['psxy -R -J -O -K -Sx0.3i -W3p >> ' ps], centroid)
 	gmt(['pstext -R -J -O -K -Dj0.1i/0.1i -F+jTL+f18p >> ' ps], record([112 -10], 'T = 100 km'))
@@ -1720,7 +1720,7 @@ function [ps, d_path] = ex46(g_root_dir, out_path, verbose)
 	builtin('delete','gmt.conf');
 
 function R = record (data, text)
-	% SImplifies creating one or more GMT records on the fly
+	% Simplifies creating one or more GMT records on the fly
 	R.data = data;
 	[n,m] = size(text);
 	if (n == 1)
