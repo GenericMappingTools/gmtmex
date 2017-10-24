@@ -386,9 +386,10 @@ function [ps, d_path] = ex08(g_root_dir, out_path, verbose)
 	gmt('set -Du')
 	gmt('destroy')
 	xyz = gmt('grd2xyz @guinea_bay.nc');
+	cpt = gmt('makecpt -Ccubhelix -T-5000/0');
 	gmt(['psxyz -B1 -Bz1000+l"Topography (m)" -BWSneZ+b+tETOPO5' ...
 		' -R-0.1/5.1/-0.1/5.1/-5000/0 -JM5i -JZ6i -p200/30 -So0.0833333ub-5000 -P' ...
-		' -Wthinnest -Glightgreen -K > ' ps], xyz)
+		' -Wthinnest -C -K -i0-2,2 > ' ps], xyz, cpt)
 	gmt(['pstext -R -J -JZ -Z0 -F+f24p,Helvetica-Bold+jTL -p -O >> ' ps], ...
 		record([0.1 4.9], 'This is the surface of cube'))
 
