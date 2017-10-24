@@ -536,7 +536,7 @@ function [ps, d_path] = ex11(g_root_dir, out_path, verbose)
 
 	gmt(['grdimage -JX-2.5i/2.5i -R -K -O -X-2.5i -Y2.5i >> ' ps], x_nc, c_nc, y_nc)
 	gmt(['psxy -Wthinner,black,- @rays_11.txt -J -R -K -O >> ' ps])
-	T = record([128 128 135; 26  102 180; 26  204 180; 200 200 225], {'12p 120\217'; '0.4'; '0.8'; 'GMT 6'});
+	T = record([128 128 135; 26  102 180; 26  204 180; 200 200 225], {'12p 120\217'; '12p 0.4'; '12p 0.8'; '16p GMT 5'});
 	gmt(['pstext -J -R -O -F+a+f >> ' ps], T)
 % 		{'128 128 135 12p 120\217'
 % 		 '26  102 180 12p 0.4'
@@ -1078,9 +1078,9 @@ function [ps, d_path] = ex24(g_root_dir, out_path, verbose)
 	gmt(['psxy -R -J -O -K @oz_quakes_24.txt -Sc0.05i -Gred >> ' ps])
 	t = gmt('gmtselect @oz_quakes_24.txt -Ldateline.txt+d1000k -Nk/s -C+d3000k -fg -R -Il', [147.216666666667 -42.8]);
 	gmt(['psxy -R -JM -O -K -Sc0.05i -Ggreen >> ' ps], t)
-	gmt(['psxy -R -J -O -K -SE- -Wfat,white >> ' ps], [147.216666666667 -42.8])
+	gmt(['psxy -R -J -O -K -SE- -Wfat,white >> ' ps], [147.216666666667 -42.8 6000])
 	gmt(['pstext -R -J -O -K -F+f14p,Helvetica-Bold,white+jLT -D0.1i/-0.1i >> ' ps], record([147.216666666667 -42.8], 'Hobart'))
-	gmt(['psxy -R -J -O -K -Wfat,white -S+0.2i >> ' ps], [147.216666666667 -42.8])
+	gmt(['psxy -R -J -O -K -Wfat,white -S+0.2i >> ' ps], [147.216666666667 -42.8 6000])
 	gmt(['psxy dateline.txt -R -J -O -Wfat,white -A >> ' ps])
 	builtin('delete','dateline.txt');
 	builtin('delete','gmt.conf');
@@ -1428,11 +1428,11 @@ function [ps, d_path] = ex36(g_root_dir, out_path, verbose)
 	gmt('destroy')
 	tt_cpt = gmt('makecpt -Crainbow -T-7000/15000');
 	% Piecewise linear interpolation; no tension
-	Gtt = gmt('sphinterpolate @mars370.txt -Rg -I1 -Q0 -G');
+	Gtt = gmt('sphinterpolate @mars370d.txt -Rg -I1 -Q0 -G');
 	gmt(['grdimage -JH0/6i -Bag -C -P -Xc -Y7.25i -K > ' ps], Gtt, tt_cpt)
-	gmt(['psxy -Rg -J -O -K @mars370.txt -Sc0.05i -G0 -B30g30 -Y-3.25i >> ' ps])
+	gmt(['psxy -Rg -J -O -K @mars370d.txt -Sc0.05i -G0 -B30g30 -Y-3.25i >> ' ps])
 	% Smoothing
-	Gtt = gmt('sphinterpolate @mars370.txt -Rg -I1 -Q3 -G');
+	Gtt = gmt('sphinterpolate @mars370d.txt -Rg -I1 -Q3 -G');
 	gmt(['grdimage -J -Bag -C -Y-3.25i -O -K >> ' ps], Gtt, tt_cpt)
 	gmt(['psxy -Rg -J -O -T >> ' ps])
 	builtin('delete','gmt.conf');
