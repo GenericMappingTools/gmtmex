@@ -791,7 +791,7 @@ function [ps, d_path] = ex20(g_root_dir, out_path, verbose)
 
 	gmt('set -Du')
 	gmt('destroy')
-	gmt(['pscoast -Rg -JR9i -Baf -B+t"Hotspot Islands and Hot Cities" -Gdarkgreen -Slightblue -Dc -A5000 -K > ' ps])
+	gmt(['pscoast -Rg -JR9i -Bx60 -By30 -B+t"Hotspot Islands and Hot Cities" -Gdarkgreen -Slightblue -Dc -A5000 -K > ' ps])
 	gmt(['psxy -R -J -Skvolcano -O -K -Wthinnest -Gred @hotspots.txt >> ' ps])
 
 	% Overlay a few bullseyes at NY, Cairo, and Perth
@@ -889,13 +889,13 @@ function [ps, d_path] = ex22(g_root_dir, out_path, verbose)
 	% URL="${SITE}?${TIME}&${MAG}&${ORDER}"
 	% curl -s $URL > usgs_quakes_22.txt
 
-	n = gmt ('info @usgs_quakes_22.txt -h1 -Fi -o2');
+	n = gmt('info @usgs_quakes_22.txt -h1 -Fi -o2');
 	n = n.data;
 	
 	% Pull out the first and last timestamp to use in legend title. Must handle as strings
 
-	gmt ('info -h1 -f0T -i0 @usgs_quakes_22.txt -C --TIME_UNIT=d -I1 -o0 --FORMAT_CLOCK_OUT=- > F.txt')
-	gmt ('info -h1 -f0T -i0 @usgs_quakes_22.txt -C --TIME_UNIT=d -I1 -o1 --FORMAT_CLOCK_OUT=- > L.txt')
+	gmt('info -h1 -f0T -i0 @usgs_quakes_22.txt -C --TIME_UNIT=d -I1 -o0 --FORMAT_CLOCK_OUT=- > F.txt')
+	gmt('info -h1 -f0T -i0 @usgs_quakes_22.txt -C --TIME_UNIT=d -I1 -o1 --FORMAT_CLOCK_OUT=- > L.txt')
 	first = fileread('F.txt');	first(11) = [];	% Chop off \n
 	last  = fileread('L.txt');	last(11)  = [];	% Chop off \n
 
@@ -906,11 +906,9 @@ function [ps, d_path] = ex22(g_root_dir, out_path, verbose)
 	me = 'GMT guru @@ GMTbox';
 
 	% Create standard seismicity color table
-
 	neis = gmt('makecpt -Cred,green,blue -T0,100,300,10000 -N');
 
 	% Start plotting. First lay down map, then plot quakes with size = magintude/50":
-
 	gmt(['pscoast -Rg -JK180/9i -B45g30 -B+t"World-wide earthquake activity" -Gbrown -Slightblue -Dc -A1000 -K -Y2.75i > ' ps])
 	gmt(['psxy -R -JK -O -K -C -Sci -Wfaint -hi1 -i2,1,3,4+s0.015 @usgs_quakes_22.txt >> ' ps], neis)
 
