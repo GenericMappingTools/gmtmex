@@ -4,7 +4,7 @@ function varargout = gmt(cmd, varargin)
 
 	if (nargin == 0)
 		fprintf(sprintf('\n\t\tGMT - The Generic Mapping Tools, Version 5.3 API\n'))
-		fprintf(sprintf('Copyright 1991-2016 Paul Wessel, Walter H. F. Smith, R. Scharroo, J. Luis, and F. Wobbe\n\n'))
+		fprintf(sprintf('Copyright 1991-2017 Paul Wessel, Walter H. F. Smith, R. Scharroo, J. Luis, and F. Wobbe\n\n'))
 	
 		fprintf(sprintf('Usage:\tTo call a GMT module:\n\t    output = gmt (''module_name'', ''options'', numeric_input)\n\n'))
 		fprintf(sprintf(['\tTo create a Grid structure from a 2-D Z array and a 1x9 header vector:\n\t' ...
@@ -16,6 +16,8 @@ function varargout = gmt(cmd, varargin)
 						 '\tcmap is an optional color palette structure or a Matlab Mx3 cmap array (not yet).\n\n']))
 		fprintf(sprintf(['\tTo create a structure for a multi-segment dataset:\n\t' ...
 		                 '    D = gmt (''wrapseg'', {[1 0; 1 1], [5 5; 56]}, {''Seg1'', ''Seg2''})\n\n']))
+		fprintf(sprintf(['\tTo create a structure with numeric and text good for use in pstext:\n\t' ...
+		                 '    R = gmt (''record'', [1 0; 1 1], {''Text1'', ''Text2''})\n\n']))
 		fprintf(sprintf(['\tTo join two color palette structures:\n\t' ...
 		                 '    cpt = gmt (''catcpt'', cpt1, cpt2)\n\n']))
 		fprintf(sprintf(['\tTo merge all data segments from an array of Data structures:\n\t' ...
@@ -24,7 +26,8 @@ function varargout = gmt(cmd, varargin)
 		return
 	end
 
-	if (strcmp(cmd,'wrapgrid') || strcmp(cmd,'wrapimage') || strcmp(cmd,'catcpt') || strncmp(cmd,'catseg',6) || strcmp(cmd,'wrapseg'))
+	if (strcmp(cmd,'wrapgrid') || strcmp(cmd,'wrapimage') || strcmp(cmd,'catcpt') || strncmp(cmd,'catseg',6) || ...
+			strcmp(cmd,'wrapseg') || strcmp(cmd,'record'))
 		[varargout{1:nargout}] = feval (cmd, varargin{:});
 	else
 		[varargout{1:nargout}] = gmtmex (cmd, varargin{:});
@@ -204,3 +207,18 @@ function D = wrapseg(in, headers, text, comm, proj_s, wkt_s)
 		error('All cell arrays must be of the same size/shape. Can''t mix row and column cell vectors')
 	end
 	D = struct('data',in, 'header',headers, 'text',text, 'comment',comment, 'proj4',proj4, 'wkt',wkt);
+
+% -------------------------------------------------------------------------------------------------
+function R = record(data, text)
+% Simplifies creating one or more GMT records on the fly
+	R.data = data;
+	if (ischar(text))
+		R.text = text;
+	else
+		[n,m] = size(text);
+		if (n == 1)
+			R.text = text';
+		else
+			R.text = text;
+		end
+	end
