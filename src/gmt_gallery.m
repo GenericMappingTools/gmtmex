@@ -365,15 +365,15 @@ function [ps, d_path] = ex07(g_root_dir, out_path, verbose)
 
 	gmt('set -Du')
 	gmt('destroy')
-	gmt(['pscoast -R-50/0/-10/20 -JM9i -K -Slightblue -GP300/26:FtanBdarkbrown -Dl -Wthinnest' ...
+	gmt(['pscoast -R-50/0/-10/20 -JM9i -K -Slightblue -GP26+r300+ftan+bdarkbrown -Dl -Wthinnest' ...
 		' -B10 --FORMAT_GEO_MAP=dddF > ' ps])
 	gmt(['psxy -R -J -O -K @fz_07.txt -Wthinner,- >> ' ps])
 	gmt(['psxy @quakes_07.txt -R -J -O -K -h1 -Sci -i0,1,2s0.01 -Gred -Wthinnest >> ' ps])
 	gmt(['psxy -R -J -O -K @isochron_07.txt -Wthin,blue >> ' ps])
 	gmt(['psxy -R -J -O -K @ridge_07.txt -Wthicker,orange >> ' ps])
 	gmt(['pslegend -R -J -O -K -DjTR+w2.2i+o0.2i -F+pthick+ithinner+gwhite --FONT_ANNOT_PRIMARY=18p,Times-Italic >> ' ps], ...
-		record([], 'S 0.1i c 0.08i red thinnest 0.3i ISC Earthquakes'))
-	T.data = [-43 -5; -43 -8; -7 11];		T.text = {'SOUTH' 'AMERICA' 'AFRICA'};
+		'S 0.1i c 0.08i red thinnest 0.3i ISC Earthquakes')
+	T = record ([-43 -5; -43 -8; -7 11], {'SOUTH' 'AMERICA' 'AFRICA'});
 	gmt(['pstext -R -J -O -F+f30,Helvetica-Bold,white=thin >> ' ps], T);
 	builtin('delete','gmt.conf');
 
@@ -407,8 +407,6 @@ function [ps, d_path] = ex09(g_root_dir, out_path, verbose)
 	gmt(['psxy -R -J -O -K @fz_09.txt  -Wthinner,- >> ' ps])
 	% Take label from segment header and plot near coordinates of last record of each track
 	resp = gmt('gmtconvert -El @tracks_09.txt');
-	% Here we have to copy the header text into the text member, and remembering that we are dealing with a struct array
-	for (k = 1:length(resp)),	resp(k).text = resp(k).header;	end
 	gmt(['pstext -R -J -F+f10p,Helvetica-Bold+a50+jRM+h -D-0.05i/-0.05i -O >> ' ps], resp)
 	builtin('delete','gmt.conf');
 
@@ -420,37 +418,17 @@ function [ps, d_path] = ex10(g_root_dir, out_path, verbose)
 
 	gmt('set -Du')
 	gmt('destroy')
-	gmt(['pscoast -Rd -JX8id/5id -Dc -Sazure2 -Gwheat -Wfaint -A5000 -p200/40 -K > ' ps])
-	fid = fopen([d_path 'languages.txt']);
-	str = fread(fid,'*char');
-	fclose(fid);
-	str = strread(str','%s','delimiter','\n');
-	k = 1;
-	while (str{k}(1) == '#')
-		k = k + 1;
-	end
-	str = str(k:end);		% Remove the comment lines
-	nl = numel(str);
-	array = zeros(nl, 7);
-	for (k = 1:nl)
-		array(k,:) = strread(str{k}, '%f', 7);
-	end
-	t = cell(nl,1);
-	for (k = 1:nl)
-		t{k} = sprintf('%d\n',sum(array(k,3:end)));
-	end
-	T.text = t;
-	T.data = array(1:nl,1:2);
-	gmt(['pstext -R -J -O -K -p -Gwhite@30 -D-0.25i/0 -F+f30p,Helvetica-Bold,firebrick=thinner+jRM >> ' ps], T)
-	gmt(['psxyz ' d_path 'languages.txt -R-180/180/-90/90/0/2500 -J -JZ2.5i -So0.3i -Gpurple -Wthinner' ...
+	L = gmt('read -Td @languages_10.txt');
+	% Sum up the 5 columns per row for total # of languages
+	rec = record (L.data(:,1:2), cellstr(int2str(sum(L.data(:,3:7),2))));
+	cpt = gmt('makecpt -Cpurple,blue,darkgreen,yellow,red -T0,1,2,3,4,5');
+	gmt(['pscoast -Rd -JQ0/37.5/8i -Dc -Sazure2 -Gwheat -Wfaint -A5000 -p200/40 -K > ' ps])
+	gmt(['pstext -R -J -O -K -p -Gwhite@30 -D-0.25i/0 -F+f30p,Helvetica-Bold,firebrick=thinner+jRM >> ' ps], rec)
+	gmt(['psxyz @languages_10.txt -R-180/180/-90/90/0/2500 -J -JZ2.5i -So0.3i+Z5 -Ct.cpt -Wthinner' ...
 		' --FONT_TITLE=30p,Times-Bold --MAP_TITLE_OFFSET=-0.7i -O -K -p --FORMAT_GEO_MAP=dddF' ...
-		' -Bx60 -By30 -Bza500+lLanguages -BWSneZ+t"World Languages By Continent" >> ' ps])
-	gmt(['psxyz -R -J -JZ -So0.3ib -Gblue -Wthinner -O -K -p >> ' ps], [array(:,1:2) sum(array(:,3:4),2) array(:,3)])
-	gmt(['psxyz -R -J -JZ -So0.3ib -Gdarkgreen -Wthinner -O -K -p >> ' ps], [array(:,1:2) sum(array(:,3:5),2) sum(array(:,3:4),2)])
-	gmt(['psxyz -R -J -JZ -So0.3ib -Gyellow -Wthinner -O -K -p >> ' ps], [array(:,1:2) sum(array(:,3:6),2) sum(array(:,3:5),2)])
-	gmt(['psxyz -R -J -JZ -So0.3ib -Gred -Wthinner -O -K -p >> ' ps], [array(:,1:2) sum(array(:,3:7),2) sum(array(:,3:6),2)])
+		' -Baf -Bza500+lLanguages -BWSneZ+t"World Languages By Continent" >> ' ps])
 	gmt(['pslegend -R -J -JZ -DjLB+o0.2i+w1.35i/0+jBL -O --FONT=Helvetica-Bold' ...
-		' -F+glightgrey+pthinner+s-4p/-6p/grey20@40 -p ' d_path 'legend.txt >> ' ps])
+		' -F+glightgrey+pthinner+s-4p/-6p/grey20@40 -p @legend_10.txt >> ' ps])
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
@@ -476,22 +454,12 @@ function [ps, d_path] = ex11(g_root_dir, out_path, verbose)
 	gmt(['psxy -Wthinner,white,- @rays_11.txt -J -R -K -O >> ' ps])
 	T = record([128 128 -45; 102  26 -90; 204  26 -90; 10  140 180], {'12p 60\217'; '12p 0.4'; '12p 0.8'; '16p G'});
 	gmt(['pstext --FONT=white -J -R -K -O -F+a+f >> ' ps], T)
-% 		{'128 128 -45 12p 60\217'
-% 		 '102  26 -90 12p 0.4'
-% 		 '204  26 -90 12p 0.8'
-% 		 '10  140 180 16p G'})
 	gmt(['psxy -N -Sv0.15i+s+e -Gwhite -W2p,white -J -R -K -O >> ' ps], [0 0 0 128])
 
 	gmt(['grdimage -JX2.5i/2.5i -R -K -O -Y2.5i >> ' ps], x_nc, c_nc, y_nc)
 	gmt(['psxy -Wthinner,white,- @rays_11.txt -J -R -K -O >> ' ps])
 	T = record([128 128  45; 26  102   0; 26  204   0; 140  10 -90; 100 100 -45], {'12p 300\217'; '12p 0.4'; '12p 0.8'; '16p R'; '16p V'});
 	gmt(['pstext --FONT=white -J -R -K -O -F+a+f >> ' ps], T)
-% 		{'128 128  45 12p 300\217'
-% 		 '26  102   0 12p 0.4'
-% 		 '26  204   0 12p 0.8'
-% 		 '140  10 -90 16p R'
-% 		 '100 100 -45 16p V'})
-
 	gmt(['psxy -N -Sv0.15i+s+e -Gwhite -W2p,white -J -R -K -O >> ' ps], [0 0 128 0])
 	gmt(['psxy -N -Sv0.15i+s+e -Gwhite -W2p,white -J -R -K -O >> ' ps], [0 0 90 90])
 
@@ -499,11 +467,6 @@ function [ps, d_path] = ex11(g_root_dir, out_path, verbose)
 	gmt(['psxy -Wthinner,white,- @rays_11.txt -J -R -K -O >> ' ps])
 	T = record([128 128 135; 102  26 90; 204  26 90; 10  140  0], {'12p 180\217'; '12p 0.4'; '12p 0.8'; '16p B'});
 	gmt(['pstext --FONT=white -J -R -K -O -F+a+f >> ' ps], T)
-% 		{'128 128 135 12p 180\217'
-% 		 '102  26 90 12p 0.4'
-% 		 '204  26 90 12p 0.8'
-% 		 '10  140  0 16p B'})
-
 	gmt(['psxy -N -Sv0.15i+s+e -Gwhite -W2p,white -J -R -K -O >> ' ps], [0 0 0 128])
 	gmt(['psxy -N -Sv0.15i+s+e -Gwhite -W2p,white -J -R -K -O >> ' ps], [0 0 128 0])
 
@@ -518,31 +481,19 @@ function [ps, d_path] = ex11(g_root_dir, out_path, verbose)
 	gmt(['psxy -Wthinner,black,- @rays_11.txt -J -R -K -O >> ' ps])
 	T = record([128 128 225; 102  26 270; 204  26 270], {'12p 240\217'; '12p 0.4'; '12p 0.8'});
 	gmt(['pstext -J -R -K -O -F+a+f >> ' ps], T)
-% 		{'128 128 225 12p 240\217'
-% 		 '102  26 270 12p 0.4'
-% 		 '204  26 270 12p 0.8'})
 
 	gmt(['grdimage -JX2.5i/-2.5i -R -K -O -X2.5i >> ' ps], c_nc, y_nc, x_nc)
 	gmt(['psxy -Wthinner,black,- @rays_11.txt -J -R -K -O >> ' ps])
 	T = record([128 128 -45; 26 102 0; 26 204 0; 100 100  45; 204 66 90], {'12p 0\217'; '12p 0.4'; '12p 0.8'; '16p S'; '16p H'});
 	gmt(['pstext -J -R -K -O -F+a+f >> ' ps], T)
-% 		{'128 128 -45 12p 0\217'
-% 		 '26  102   0 12p 0.4'
-% 		 '26  204   0 12p 0.8'
-% 		 '100 100  45 16p S'
-% 		 '204  66  90 16p H'})
 
 	gmt(['psxy -N -Sv0.15i+s+e -Gblack -W2p -J -R -K -O >> ' ps], [0 0 90 90])
 	gmt(['psxy -N -Sv0.15i+s+e -Gblack -W2p -J -R -K -O >> ' ps], [204 204 204 76])
 
 	gmt(['grdimage -JX-2.5i/2.5i -R -K -O -X-2.5i -Y2.5i >> ' ps], x_nc, c_nc, y_nc)
 	gmt(['psxy -Wthinner,black,- @rays_11.txt -J -R -K -O >> ' ps])
-	T = record([128 128 135; 26  102 180; 26  204 180; 200 200 225], {'12p 120\217'; '12p 0.4'; '12p 0.8'; '16p GMT 5'});
+	T = record([128 128 135; 26  102 180; 26  204 180; 200 200 225], {'12p 120\217'; '12p 0.4'; '12p 0.8'; '16p GMT 6'});
 	gmt(['pstext -J -R -O -F+a+f >> ' ps], T)
-% 		{'128 128 135 12p 120\217'
-% 		 '26  102 180 12p 0.4'
-% 		 '26  204 180 12p 0.8'
-% 		 '200 200 225 16p GMT 6'})
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
@@ -840,7 +791,7 @@ function [ps, d_path] = ex20(g_root_dir, out_path, verbose)
 
 	gmt('set -Du')
 	gmt('destroy')
-	gmt(['pscoast -Rg -JR9i -Bx60 -By30 -B+t"Hotspot Islands and Hot Cities" -Gdarkgreen -Slightblue -Dc -A5000 -K > ' ps])
+	gmt(['pscoast -Rg -JR9i -Baf -B+t"Hotspot Islands and Hot Cities" -Gdarkgreen -Slightblue -Dc -A5000 -K > ' ps])
 	gmt(['psxy -R -J -Skvolcano -O -K -Wthinnest -Gred @hotspots.txt >> ' ps])
 
 	% Overlay a few bullseyes at NY, Cairo, and Perth
@@ -882,32 +833,20 @@ function [ps, d_path] = ex21(g_root_dir, out_path, verbose)
 
 	% Draw P Wessel's purchase price as line and label it.  Note we temporary switch
 	% back to default yyyy-mm-dd format since that is what gmt info gave us.
-	fid = fopen('RHAT.pw','w');
-	fprintf(fid, '05-May-00 0\n');
-	fprintf(fid, '05-May-00 300\n');
-	fclose(fid);
+	gmt ('write RHAT.pw', {'05-May-00 0', '05-May-00 300'})
 	gmt(['psxy -R -J RHAT.pw -Wthinner,- -O -K >> ' ps])
-	fid = fopen('RHAT.pw','w');
-	fprintf(fid, '01-Jan-99 25\n');
-	fprintf(fid, '01-Jan-02 25\n');
-	fclose(fid);
+	gmt ('write RHAT.pw', {'01-Jan-99 25', '01-Jan-02 25'})
 	gmt(['psxy -R -J RHAT.pw -Wthick,- -O -K >> ' ps])
-	gmt(['pstext -R -J -O -K -D1.5i/0.05i -N -F+f12p,Bookman-Demi+jLB --FORMAT_DATE_IN=yyyy-mm-dd >> ' ps], ...
-		struct('text',[wT ' 25 PW buy']))
+	gmt ('write tmp.txt', [wT ' 25 PW buy'])
+	gmt(['pstext -R -J -O -K -D1.5i/0.05i -N -F+f12p,Bookman-Demi+jLB --FORMAT_DATE_IN=yyyy-mm-dd tmp.txt >> ' ps])
 
 	% Draw P Wessel's sales price as line and label it.
-	fid = fopen('RHAT.pw','w');
-	fprintf(fid, '25-Jun-07 0\n');
-	fprintf(fid, '25-Jun-07 300\n');
-	fclose(fid);
+	gmt ('write RHAT.pw', {'25-Jun-07 0', '25-Jun-07 300'})
 	gmt(['psxy -R -J RHAT.pw -Wthinner,- -O -K >> ' ps])
-	fid = fopen('RHAT.pw','w');
-	fprintf(fid, '01-Aug-06 23.8852\n');
-	fprintf(fid, '01-Jan-08 23.8852\n');
-	fclose(fid);
+	gmt ('write RHAT.pw', {'01-Aug-06 23.8852', '01-Jan-08 23.8852'})
 	gmt(['psxy -R -J RHAT.pw -Wthick,- -O -K >> ' ps])
-	gmt(['pstext -R -J -O -K -Dj0.8i/0.05i -N -F+f12p,Bookman-Demi+jRB --FORMAT_DATE_IN=yyyy-mm-dd >> ' ps], ...
-		struct('text', [eT ' 23.8852 PW sell']))
+	gmt ('write tmp.txt', [eT ' 23.8852 PW sell'])
+	gmt(['pstext -R -J -O -K -Dj0.8i/0.05i -N -F+f12p,Bookman-Demi+jRB --FORMAT_DATE_IN=yyyy-mm-dd tmp.txt >> ' ps])
 
 	% Get smaller region for insert for trend since 2004
 	R = sprintf('-R2004T/%s/%s/40', eT, sF);
@@ -923,12 +862,8 @@ function [ps, d_path] = ex21(g_root_dir, out_path, verbose)
 
 	% Draw P Wessel's sales price as dashed line
 	gmt(['psxy -R -J RHAT.pw -Wthick,- -O -K >> ' ps])
-
 	% Mark sales date
-	fid = fopen('RHAT.pw','w');
-	fprintf(fid, '25-Jun-07	0\n');
-	fprintf(fid, '25-Jun-07	300\n');
-	fclose(fid);
+	gmt ('write RHAT.pw', {'25-Jun-07 0', '25-Jun-07 300'})
 	gmt(['psxy -R -J RHAT.pw -Wthinner,- -O >> ' ps])
 
 	builtin('delete','RHAT.pw');
@@ -957,12 +892,12 @@ function [ps, d_path] = ex22(g_root_dir, out_path, verbose)
 	n = gmt ('info @usgs_quakes_22.txt -h1 -Fi -o2');
 	n = n.data;
 	
-	% Pull out the first and last timestamp to use in legend title
+	% Pull out the first and last timestamp to use in legend title. Must handle as strings
 
-	% first=`sed -n 2p usgs_quakes_22.txt | awk -F, '{printf "%s %s\n", $1, $2}'`
-	% last=`sed -n '$p' usgs_quakes_22.txt | awk -F, '{printf "%s %s\n", $1, $2}'`
-	first = '10/01/2017';
-	last  = '10/31/2017';
+	gmt ('info -h1 -f0T -i0 @usgs_quakes_22.txt -C --TIME_UNIT=d -I1 -o0 --FORMAT_CLOCK_OUT=- > F.txt')
+	gmt ('info -h1 -f0T -i0 @usgs_quakes_22.txt -C --TIME_UNIT=d -I1 -o1 --FORMAT_CLOCK_OUT=- > L.txt')
+	first = fileread('F.txt');	first(11) = [];	% Chop off \n
+	last  = fileread('L.txt');	last(11)  = [];	% Chop off \n
 
 	% Assign a string that contains the current user @ the current computer node.
 	% Note that two @@ is needed to print a single @ in gmt pstext:
@@ -1041,16 +976,16 @@ function [ps, d_path] = ex23(g_root_dir, out_path, verbose)
 		' -Wcthinnest,white,- >> ' ps], Gdist)
 	
 	% Location info for 5 other cities + label justification
-	cities = [105.87 21.02; 282.95  -12.1; 178.42 -18.13; 237.67 47.58; 28.20 -25.75];
-	just_names = {'LM HANOI', 'LM LIMA', 'LM SUVA', 'RM SEATTLE', 'LM PRETORIA'};
-	D = record([105.87 21.02; 282.95 -12.1; 178.42 -18.13; 237.67 47.58; 28.20 -25.75], just_names);
+	city_coord = [105.87 21.02; 282.95 -12.1; 178.42 -18.13; 237.67 47.58; 28.20 -25.75];
+	city_names = {'LM HANOI', 'LM LIMA', 'LM SUVA', 'RM SEATTLE', 'LM PRETORIA'};
+	cities = record(city_coord, city_names);
 
 	% For each of the cities, plot great circle arc to Rome with gmt psxy
-	gmt([sprintf('psxy -R -J -O -K -Wthickest,red -Fr%f/%f', lon, lat) ' >> ' ps], cities);
+	gmt([sprintf('psxy -R -J -O -K -Wthickest,red -Fr%f/%f', lon, lat) ' >> ' ps], city_coord);
 
 	% Plot red squares at cities and plot names:
-	gmt(['psxy -R -J -O -K -Ss0.2 -Gred -Wthinnest >> ' ps], cities)
-	gmt(['pstext -R -J -O -K -Dj0.15/0 -F+f12p,Courier-Bold,red+j -N >> ' ps], D)
+	gmt(['psxy -R -J -O -K -Ss0.2 -Gred -Wthinnest >> ' ps], city_coord)
+	gmt(['pstext -R -J -O -K -Dj0.15/0 -F+f12p,Courier-Bold,red+j -N >> ' ps], cities)
 
 	% Place a yellow star at Rome
 	gmt(['psxy -R -J -O -K -Sa0.2i -Gyellow -Wthin >> ' ps], [lon lat])
@@ -1066,23 +1001,19 @@ function [ps, d_path] = ex24(g_root_dir, out_path, verbose)
 	ps = [out_path 'example_24.ps'];
 	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
 
-	% Currently there is no way of avoiding creating files for this
-	fid = fopen('dateline.txt', 'w');
-	fprintf(fid, '> Our proxy for the dateline\n');
-	fprintf(fid, '180 0\n180 -90\n');
-	fclose(fid);
-
 	gmt('set -Du')
 	gmt('destroy')
+	dateline = [180 0; 180 -90];
+	hobart = [147.216666666667 -42.8];
 	R = gmt('info -I10 @oz_quakes_24.txt');
 	gmt(['pscoast ' R.text{1} ' -JM9i -K -Gtan -Sdarkblue -Wthin,white -Dl -A500 -Ba20f10g10 -BWeSn > ' ps])
 	gmt(['psxy -R -J -O -K @oz_quakes_24.txt -Sc0.05i -Gred >> ' ps])
-	t = gmt('gmtselect @oz_quakes_24.txt -Ldateline.txt+d1000k -Nk/s -C+d3000k -fg -R -Il', [147.216666666667 -42.8]);
+	t = gmt('gmtselect @oz_quakes_24.txt -L+d1000k -Nk/s -C+d3000k -fg -R -Il', dateline, hobart);
 	gmt(['psxy -R -JM -O -K -Sc0.05i -Ggreen >> ' ps], t)
-	gmt(['psxy -R -J -O -K -SE- -Wfat,white >> ' ps], [147.216666666667 -42.8 6000])
-	gmt(['pstext -R -J -O -K -F+f14p,Helvetica-Bold,white+jLT -D0.1i/-0.1i >> ' ps], record([147.216666666667 -42.8], 'Hobart'))
-	gmt(['psxy -R -J -O -K -Wfat,white -S+0.2i >> ' ps], [147.216666666667 -42.8 6000])
-	gmt(['psxy dateline.txt -R -J -O -Wfat,white -A >> ' ps])
+	gmt(['psxy -R -J -O -K -SE- -Wfat,white >> ' ps], [hobart 6000])
+	gmt(['pstext -R -J -O -K -F+f14p,Helvetica-Bold,white+jLT -D0.1i/-0.1i >> ' ps], record(hobart, 'Hobart'))
+	gmt(['psxy -R -J -O -K -Wfat,white -S+0.2i >> ' ps], [hobart 6000])
+	gmt(['psxy -R -J -O -Wfat,white -A >> ' ps], dateline)
 	builtin('delete','dateline.txt');
 	builtin('delete','gmt.conf');
 
@@ -1335,11 +1266,12 @@ function [ps, d_path] = ex32(g_root_dir, out_path, verbose)
 
 	% Finally, we add dots and names for three cities.
 	% Again, gmt grdtrack is used to put the dots "at elevation".
-	T.data = [5.69083333333333 50.8513888888889; 4.35 50.85; 7.11722222222222 50.7191666666667];
-	T.text = {'Maastricht'; 'Bruxelles'; 'Bonn'};
-	d = gmt('grdtrack -G@topo_32.nc', T); 
+	city_coord = [5.69083333333333 50.8513888888889; 4.35 50.85; 7.11722222222222 50.7191666666667];
+	city_name = {'Maastricht'; 'Bruxelles'; 'Bonn'};
+	cities = record (city_coord, city_name);
+	d = gmt('grdtrack -G@topo_32.nc', city_coord); 
 	gmt(['psxyz ' Rplot ' -J -JZ -p -Sc7p -W1p,white -Gred -K -O >> ' ps], d)
-	gmt(['pstext ' Rplot ' -J -JZ -p -F+f12p,Helvetica-Bold,red+jRM -Dj0.1i/0.0i -O >> ' ps], T)
+	gmt(['pstext ' Rplot ' -J -JZ -p -F+f12p,Helvetica-Bold,red+jRM -Dj0.1i/0.0i -O >> ' ps], cities)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
@@ -1366,7 +1298,7 @@ function [ps, d_path] = ex33(g_root_dir, out_path, verbose)
 	gmt(['psxy -R -J -O -K -W0.5p >> ' ps], table)
 	% Show upper/lower values encountered as an envelope
 	env1 = gmt('gmtconvert stack.txt -o0,5');
-	env2 = gmt('gmtconvert stack.txt -o0,6 -I -T');		% Concat the two matrices
+	env2 = gmt('gmtconvert stack.txt -o0,6 -I -T');
 	env  = [env1.data; env2.data];		% Concat the two matrices
 	gmt(['psxy -R-200/200/-3500/-2000 -Bxafg1000+l"Distance from ridge (km)" -Byaf+l"Depth (m)" -BWSne' ...
 		' -JX6i/3i -O -K -Glightgray -Y6.5i >> ' ps], env)
@@ -1713,10 +1645,10 @@ function [ps, d_path] = ex46(g_root_dir, out_path, verbose)
 	gmt('set -Du')
 	gmt('destroy')
 	gmt(['pscoast -Rd -JKs0/10i -Dl -A5000 -W0.5p -N1/0.5p,gray -S175/210/255 -Bafg --MAP_FRAME_TYPE=plain -K -Xc > ' ps])
-	gmt(['pssolar -R  -J -Td+d2016-02-09T16:00:00 -Gnavy@95 -K -O >> ' ps])
-	gmt(['pssolar -R  -J -Tc+d2016-02-09T16:00:00 -Gnavy@85 -K -O >> ' ps])
-	gmt(['pssolar -R  -J -Tn+d2016-02-09T16:00:00 -Gnavy@80 -K -O >> ' ps])
-	gmt(['pssolar -R  -J -Ta+d2016-02-09T16:00:00 -Gnavy@80 -K -O >> ' ps])
+	gmt(['pssolar -R -J -Td+d2016-02-09T16:00:00 -Gnavy@95 -K -O >> ' ps])
+	gmt(['pssolar -R -J -Tc+d2016-02-09T16:00:00 -Gnavy@85 -K -O >> ' ps])
+	gmt(['pssolar -R -J -Tn+d2016-02-09T16:00:00 -Gnavy@80 -K -O >> ' ps])
+	gmt(['pssolar -R -J -Ta+d2016-02-09T16:00:00 -Gnavy@80 -K -O >> ' ps])
 	t = gmt('pssolar -I+d2016-02-09T16:00:00 -C -o0,1');
 	gmt(['psxy -R -J -Sk@sunglasses/1.5c -Gyellow -O >> ' ps], t)
 	builtin('delete','gmt.conf');
@@ -1734,4 +1666,3 @@ function R = record (data, text)
 			R.text = text;
 		end
 	end
-

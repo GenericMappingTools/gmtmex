@@ -1274,8 +1274,8 @@ void GMTMEX_objecttype (char *type, const mxArray *ptr) {
 		mexErrMsgTxt ("GMTMEX_objecttype: Could not recognize the structure\n");
 	}
 	else if (mxIsCell (ptr))
-		type[3] = 't';
-	else
+		type[3] = 'd';
+	else	/* We have to assume it is a numerical matrix */
 		type[3] = 'd';
 }
 
