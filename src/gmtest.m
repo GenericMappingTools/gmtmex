@@ -1,7 +1,7 @@
 function out = gmtest(test, test_dir, family)
 % Run a  test from the GALLERY, tests or doc/scripts
 %
-% gmtest(test) run an example from the gmt_gallery were TEST is is either 'ex01' ... 'ex45'
+% gmtest(test) run an example from the gallery were TEST is is either 'ex01' ... 'ex45'
 %
 % gmtest(test, test_dir) runs a test from the tests suit. TEST_DIR is the directory name where TEST lieve
 %		example: gmtest('poldecimate','gmtspatial')
@@ -22,7 +22,7 @@ function out = gmtest(test, test_dir, family)
 
 	if (nargin < 3),	family = '';	end
 
-	if ((nargin == 1) && (numel(test) == 4) && strncmp(test, 'ex', 2))	% Run example from gmt_gallery
+	if ((nargin == 1) && (numel(test) == 4) && strncmp(test, 'ex', 2))	% Run example from gallery
 		[ps, orig_path] = gmt_gallery(test, GMT_ROOT_DIR, GMT_PLOT_DIR);
 	else
 		[ps, orig_path] = call_test(test, test_dir, GMT_ROOT_DIR, GMT_PLOT_DIR, family);
@@ -46,7 +46,7 @@ function out = gmtest(test, test_dir, family)
 	cmd = [GMT_GM_EXE ' compare -density 200 -maximum-error 0.005 -highlight-color magenta -highlight-style' ...
 		' assign -metric rmse -file ' png_name ' ' ps_orig ' ' ps];
 	[status, cmdout] = system(cmd);
-	
+
 	n_lines = find(cmdout == sprintf('\n'));
  	if (status == 1)		% GM returned an error status
 		if (numel(n_lines) == 8)
