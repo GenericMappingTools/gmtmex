@@ -9,9 +9,10 @@ include ../config.mk
 FLAGS		= $(GMT_INC) $(MEX_INC)
 ALLLIB     	= $(GMT_LIB) $(MEX_LIB)
 
-PROGS_C		= gmtmex.c
+#PROGS_C		= gmtmex.c
+PROGS_C		= gmtmex_once.c
 PROGS_O         = $(PROGS_C:.c=.o)
-PROGS           = $(PROGS_C:.c=.$(MEX_EXT))
+PROGS           = gmtmex.$(MEX_EXT)
 PROGS_H		= gmtmex.h
 SCRIPTS         = gmt.m
 LIB_C		= gmtmex_parser.c
@@ -39,7 +40,7 @@ clean:
 #	program rules
 #-------------------------------------------------------------------------------
 
-gmtmex.$(MEX_EXT):	$(PROGS_O) $(LIB_O)
+$(PROGS):	$(PROGS_O) $(LIB_O)
 		$(MEX_BLD) $(FLAGS) $(PROGS_O) $(LIB_O) $(ALLLIB) -o gmtmex.$(MEX_EXT)
 
 .SUFFIXES:	.o .c
