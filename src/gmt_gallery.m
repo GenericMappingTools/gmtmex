@@ -424,9 +424,9 @@ function [ps, d_path] = ex10(g_root_dir, out_path, verbose)
 	cpt = gmt('makecpt -Cpurple,blue,darkgreen,yellow,red -T0,1,2,3,4,5');
 	gmt(['pscoast -Rd -JQ0/37.5/8i -Dc -Sazure2 -Gwheat -Wfaint -A5000 -p200/40 -K > ' ps])
 	gmt(['pstext -R -J -O -K -p -Gwhite@30 -D-0.25i/0 -F+f30p,Helvetica-Bold,firebrick=thinner+jRM >> ' ps], rec)
-	gmt(['psxyz @languages_10.txt -R-180/180/-90/90/0/2500 -J -JZ2.5i -So0.3i+Z5 -Ct.cpt -Wthinner' ...
+	gmt(['psxyz @languages_10.txt -R-180/180/-90/90/0/2500 -J -JZ2.5i -So0.3i+Z5 -C -Wthinner' ...
 		' --FONT_TITLE=30p,Times-Bold --MAP_TITLE_OFFSET=-0.7i -O -K -p --FORMAT_GEO_MAP=dddF' ...
-		' -Baf -Bza500+lLanguages -BWSneZ+t"World Languages By Continent" >> ' ps])
+		' -Baf -Bza500+lLanguages -BWSneZ+t"World Languages By Continent" >> ' ps], cpt)
 	gmt(['pslegend -R -J -JZ -DjLB+o0.2i+w1.35i/0+jBL -O --FONT=Helvetica-Bold' ...
 		' -F+glightgrey+pthinner+s-4p/-6p/grey20@40 -p @legend_10.txt >> ' ps])
 	builtin('delete','gmt.conf');
@@ -492,7 +492,7 @@ function [ps, d_path] = ex11(g_root_dir, out_path, verbose)
 
 	gmt(['grdimage -JX-2.5i/2.5i -R -K -O -X-2.5i -Y2.5i >> ' ps], x_nc, c_nc, y_nc)
 	gmt(['psxy -Wthinner,black,- @rays_11.txt -J -R -K -O >> ' ps])
-	T = record([128 128 135; 26  102 180; 26  204 180; 200 200 225], {'12p 120\217'; '12p 0.4'; '12p 0.8'; '16p GMT 6'});
+	T = record([128 128 135; 26  102 180; 26  204 180; 200 200 225], {'12p 120\217'; '12p 0.4'; '12p 0.8'; '16p GMT 5'});
 	gmt(['pstext -J -R -O -F+a+f >> ' ps], T)
 	builtin('delete','gmt.conf');
 
@@ -991,7 +991,7 @@ function [ps, d_path] = ex23(g_root_dir, out_path, verbose)
 	gmt(['psxy -R -J -O -K -Sa0.2i -Gyellow -Wthin >> ' ps], [lon lat])
 
 	% Sample the distance grid at the cities and use the distance in km for labels
-	dist = gmt('grdtrack -G', D, Gdist);
+	dist = gmt('grdtrack -G', record(city_coord, city_names), Gdist);
 	gmt(['pstext -R -J -O -D0/-0.2i -N -Gwhite -W -C0.02i -F+f12p,Helvetica-Bold+jCT+z%.0f >> ' ps], dist)
 	builtin('delete','gmt.conf');
 
@@ -1014,7 +1014,6 @@ function [ps, d_path] = ex24(g_root_dir, out_path, verbose)
 	gmt(['pstext -R -J -O -K -F+f14p,Helvetica-Bold,white+jLT -D0.1i/-0.1i >> ' ps], record(hobart, 'Hobart'))
 	gmt(['psxy -R -J -O -K -Wfat,white -S+0.2i >> ' ps], [hobart 6000])
 	gmt(['psxy -R -J -O -Wfat,white -A >> ' ps], dateline)
-	builtin('delete','dateline.txt');
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
