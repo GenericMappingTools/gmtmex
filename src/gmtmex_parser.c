@@ -915,7 +915,7 @@ static void *gmtmex_dataset_init (void *API, unsigned int direction, unsigned in
 			mxClassID type = mxGetClassID (ptr);	/* Storage type for this matrix */
 			dim[DIM_ROW] = mxGetM (ptr);		/* Number of rows */
 			dim[DIM_COL] = mxGetN (ptr);		/* Number of columns */
-			if ((M = GMT_Create_Data (API, GMT_IS_DATASET|flag, GMT_IS_PLP, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
+			if ((M = GMT_Create_Data (API, GMT_IS_DATASET|flag, GMT_IS_PLP, GMT_CONTAINER_ONLY, dim, NULL, NULL, 0, 0, NULL)) == NULL)
 				mexErrMsgTxt ("gmtmex_dataset_init: Failure to alloc GMT source matrix\n");
 			GMT_Report (API, GMT_MSG_DEBUG, "gmtmex_dataset_init: Allocated GMT Matrix %lx\n", (long)M);
 			switch (type) {	/* Assign ML type pointer to the corresponding GMT matrix union pointer */

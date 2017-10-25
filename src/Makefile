@@ -9,8 +9,8 @@ include ../config.mk
 FLAGS		= $(GMT_INC) $(MEX_INC)
 ALLLIB     	= $(GMT_LIB) $(MEX_LIB)
 
-#PROGS_C		= gmtmex.c
-PROGS_C		= gmtmex_once.c
+PROGS_C		= gmtmex.c
+#PROGS_C		= gmtmex_once.c
 PROGS_O         = $(PROGS_C:.c=.o)
 PROGS           = gmtmex.$(MEX_EXT)
 PROGS_H		= gmtmex.h
