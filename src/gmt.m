@@ -3,7 +3,7 @@ function varargout = gmt(cmd, varargin)
 %	$Id$
 
 	if (nargin == 0)
-		fprintf(sprintf('\n\t\tGMT - The Generic Mapping Tools, Version 5.3 API\n'))
+		fprintf(sprintf('\n\t\tGMT - The Generic Mapping Tools, Version 6.0 API\n'))
 		fprintf(sprintf('Copyright 1991-2017 Paul Wessel, Walter H. F. Smith, R. Scharroo, J. Luis, and F. Wobbe\n\n'))
 	
 		fprintf(sprintf('Usage:\tTo call a GMT module:\n\t    output = gmt (''module_name'', ''options'', numeric_input)\n\n'))
