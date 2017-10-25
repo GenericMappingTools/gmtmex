@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------
  *	$Id$
  *
- *	Copyright (c) 1991-2017 by P. Wessel and J. Luis
+ *	Copyright (c) 2015-2017 by P. Wessel and J. Luis
  *	See LICENSE.TXT file for copying and redistribution conditions.
  *
  *	This program is free software; you can redistribute it and/or modify
@@ -29,8 +29,8 @@
  * Finally, there are optional comma-separated MATLAB array entities required by the command.
  * Information about the options of each program is provided via GMT_Encode_Options.
  *
- * Version:	5.3.x
- * Created:	20-JUN-2016
+ * Version:	6.x
+ * Created:	20-OCT-2017
  *
  */
 
@@ -261,12 +261,12 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 				mexPrintf ("%s\n", t);
 		}
 		else
-			mexPrintf ("Warning: called the 'gmt' program with unknow option.\n");
+			mexPrintf ("Warning: called the 'gmt' program with unknown option.\n");
 		return;
 	}
 
 	/* Make sure this is a valid module */
-	if ((status = GMT_Call_Module (API, module, GMT_MODULE_EXIST, NULL)) != 0) 	/* No, not found */
+	if ((status = GMT_Call_Module (API, module, GMT_MODULE_EXIST, NULL)) != GMT_NOERROR) 	/* No, not found */
 		mexErrMsgTxt ("GMT: No module by that name was found.\n"); 
 	
 	/* 2+ Add -F to psconvert if user requested a return image but did not explicitly give -F */
@@ -284,7 +284,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		strcat (opt_args, targ);
 	}
 
-	/* 2+++ If gmtread -Ti than temporarily set pad to 0 since we don't want padding in image arrays */
+	/* 2+++ If gmtread -Ti then temporarily set pad to 0 since we don't want padding in image arrays */
 	if (strstr(module, "read") && opt_args && strstr(opt_args, "-Ti"))
 		GMT_Set_Default(API, "API_PAD", "0");
 
@@ -350,15 +350,15 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		plhs[pos] = GMTMEX_Get_Object (API, &X[k]);	/* Hook mex object onto rhs list */
 	}
 
-	/* 2++- If gmtread -Ti than reset the sessions pad value that was temporarily changed above (2+++) */
+	/* 2++- If gmtread -Ti then reset the sessions pad value that was temporarily changed above (2+++) */
 	if (strstr(module, "read") && opt_args && strstr(opt_args, "-Ti"))
-		GMT_Set_Default(API, "API_PAD", "2");
+		GMT_Set_Default (API, "API_PAD", "2");
 
 	/* 8. Free all GMT containers involved in this module call */
 	
 	for (k = 0; k < n_items; k++) {
 		void *ppp = X[k].object;
-		if (GMT_Close_VirtualFile (API, X[k].name))
+		if (GMT_Close_VirtualFile (API, X[k].name) != GMT_NOERROR)
 			mexErrMsgTxt ("GMT: Failed to close virtual file\n");
 		if (GMT_Destroy_Data (API, &X[k].object) != GMT_NOERROR)
 			mexErrMsgTxt ("GMT: Failed to destroy object used in the interface between GMT and MATLAB\n");
@@ -370,6 +370,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 
 	/* 9. Destroy linked option list */
 	
-	if (GMT_Destroy_Options (API, &options)) mexErrMsgTxt ("GMT: Failure to destroy GMT5 options\n");
+	if (GMT_Destroy_Options (API, &options) != GMT_NOERROR)
+		mexErrMsgTxt ("GMT: Failure to destroy GMT5 options\n");
 	return;
 }
