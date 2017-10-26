@@ -38,6 +38,7 @@
 
 extern int GMT_get_V (char arg);	/* Temporary here to allow full debug messaging */
 
+#ifndef SINGLE_SESSION
 /* Being declared external we can access it between MEX calls */
 static uintptr_t *pPersistent;    /* To store API address back and forth within a single MATLAB session */
 
@@ -51,6 +52,7 @@ static void force_Destroy_Session (void) {
 		*pPersistent = 0;	/* Wipe the persistent memory */
 	}
 }
+#endif
 
 static void usage (int nlhs, int nrhs) {
 	/* Basic usage message */
@@ -80,10 +82,11 @@ static void *Initiate_Session (unsigned int verbose) {
 	                               GMT_SESSION_COLMAJOR, GMTMEX_print_func)) == NULL)
 		mexErrMsgTxt ("GMT: Failure to create new GMT session\n");
 
+#ifndef SINGLE_SESSION
 	if (!pPersistent) pPersistent = mxMalloc(sizeof(uintptr_t));
 	pPersistent[0] = (uintptr_t)(API);
 	mexMakeMemoryPersistent (pPersistent);
-
+#endif
 	return (API);
 }
 
@@ -129,9 +132,11 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	char *gtxt = NULL;              /* For debug printing of revised command */
 	char *opt_args = NULL;          /* Pointer to the user's module options */
 	char module[MODULE_LEN] = {""}; /* Name of GMT module to call */
+	char opt_buffer[BUFSIZ] = {""}; /* Local copy of command line options */
 	void *ptr = NULL;
+#ifndef SINGLE_SESSION
 	uintptr_t *pti = NULL;          /* To locally store the API address */
-
+#endif
 	/* 0. No arguments at all results in the GMT banner message */
 	if (nrhs == 0) {
 		usage (nlhs, nrhs);
@@ -147,6 +152,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 			usage (nlhs, 1);
 			return;
 		}
+#ifndef SINGLE_SESSION
 		if (!strncmp (cmd, "create", 6U)) {	/* Asked to create a new GMT session */
 			if (nlhs > 1)	/* Asked for too much output, only 1 or 0 is allowed */
 				mexErrMsgTxt ("GMT: Usage: gmt ('create') or API = gmt ('create');\n");
@@ -191,7 +197,13 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		if (!pPersistent || (API = (void *)pPersistent[0]) == NULL)
 			API = Initiate_Session (verbose);	/* Initializing new GMT session */
 			mexAtExit(force_Destroy_Session);	/* Register an exit function. */
+#endif
 	}
+
+#ifdef SINGLE_SESSION
+	/* Initiate a new session */
+	API = Initiate_Session (verbose);	/* Initializing new GMT session */
+#endif
 
 	if (!cmd) {	/* First argument is the command string, e.g., 'blockmean -R0/5/0/5 -I1' or just 'destroy' */
 		cmd = mxArrayToString(prhs[first]);
@@ -199,12 +211,14 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	}
 
 	if (!strncmp (cmd, "destroy", 7U)) {	/* Destroy the session */
+#ifndef SINGLE_SESSION
 		if (nlhs != 0)
 			mexErrMsgTxt ("GMT: Usage is gmt ('destroy');\n");
 
 		if (GMT_Destroy_Options (API, &options)) mexErrMsgTxt ("GMT: Failure to destroy GMT5 options\n");
 		if (GMT_Destroy_Session (API)) mexErrMsgTxt ("GMT: Failure to destroy GMT5 session\n");
 		*pPersistent = 0;	/* Wipe the persistent memory */
+#endif
 		return;
 	}
 
@@ -269,27 +283,30 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	if ((status = GMT_Call_Module (API, module, GMT_MODULE_EXIST, NULL)) != GMT_NOERROR) 	/* No, not found */
 		mexErrMsgTxt ("GMT: No module by that name was found.\n"); 
 	
+	/* Below here we may actually wish to add options to the opt_args, but it is a pointer.  So we duplicate to
+	 * another string with enough space. */
+	
+	if (opt_args) strcpy (opt_buffer, opt_args);	/* opt_buffer has lots of space for additions */
 	/* 2+ Add -F to psconvert if user requested a return image but did not explicitly give -F */
 	if (!strncmp (module, "psconvert", 9U) && nlhs == 1 && (!opt_args || !strstr ("-F", opt_args))) {	/* OK, add -F */
 		if (opt_args)
-			strcat (opt_args, " -F");
+			strcat (opt_buffer, " -F");
 		else
-			opt_args = "-F";
+			strcpy (opt_buffer, "-F");
 	}
 	
 	/* 2++ If gmtwrite then add -T? with correct object type */
 	if (strstr(module, "write") && opt_args && !strstr(opt_args, "-T") && n_in_objects == 1) {	/* Add type for writing to disk */
 		char targ[5] = {" -T?"};
-		GMTMEX_objecttype (targ, prhs[nrhs-1]);
-		strcat (opt_args, targ);
+		targ[3] = GMTMEX_objecttype (prhs[nrhs-1]);
+		strcat (opt_buffer, targ);
 	}
-
 	/* 2+++ If gmtread -Ti then temporarily set pad to 0 since we don't want padding in image arrays */
-	if (strstr(module, "read") && opt_args && strstr(opt_args, "-Ti"))
+	else if (strstr(module, "read") && opt_args && strstr(opt_args, "-Ti"))
 		GMT_Set_Default(API, "API_PAD", "0");
 
 	/* 3. Convert mex command line arguments to a linked GMT option list */
-	if (opt_args && (options = GMT_Create_Options (API, 0, opt_args)) == NULL)
+	if (opt_buffer[0] && (options = GMT_Create_Options (API, 0, opt_buffer)) == NULL)
 		mexErrMsgTxt ("GMT: Failure to parse GMT5 command options\n");
 
 	if (!options && nlhs == 0 && nrhs == 1) 	/* Just requesting usage message, so add -? to options */
@@ -372,5 +389,9 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	
 	if (GMT_Destroy_Options (API, &options) != GMT_NOERROR)
 		mexErrMsgTxt ("GMT: Failure to destroy GMT5 options\n");
+#ifdef SINGLE_SESSION
+	if (GMT_Destroy_Session (API))
+		mexErrMsgTxt ("GMT: Failure to destroy GMT5 session\n");
+#endif
 	return;
 }

@@ -1241,28 +1241,29 @@ static struct GMT_POSTSCRIPT *gmtmex_ps_init (void *API, unsigned int direction,
 	return (P);
 }
 
-void GMTMEX_objecttype (char *type, const mxArray *ptr) {
+char GMTMEX_objecttype (const mxArray *ptr) {
 	/* Determine what we are returning so gmt write can pass the correct -T? flag */
 	mxArray *mx_ptr = NULL;
 	if (mxIsEmpty (ptr))
 		mexErrMsgTxt ("GMTMEX_objecttype: Pointer is empty\n");
 	if (mxIsStruct (ptr)) {	/* This means either a dataset, grid, image, cpt, or PS, so must check for fields */
 		mx_ptr = mxGetField (ptr, 0, "data");
-		if (mx_ptr) { type[3] = 'd'; return;}
+		if (mx_ptr) return 'd';
 		mx_ptr = mxGetField (ptr, 0, "postscript");
-		if (mx_ptr) { type[3] = 'p'; return;}
+		if (mx_ptr) return 'p';
 		mx_ptr = mxGetField (ptr, 0, "hinge");
-		if (mx_ptr) {type[3] = 'c'; return;}
+		if (mx_ptr) return 'c';
 		mx_ptr = mxGetField (ptr, 0, "image");
-		if (mx_ptr) {type[3] = 'i'; return;}
+		if (mx_ptr) return 'i';
 		mx_ptr = mxGetField (ptr, 0, "z");
-		if (mx_ptr) {type[3] = 'g'; return;}
+		if (mx_ptr) return 'g';
 		mexErrMsgTxt ("GMTMEX_objecttype: Could not recognize the structure\n");
 	}
 	else if (mxIsCell (ptr))	/* This is a dataset with text only */
-		type[3] = 'd';
+		return 'd';
 	else	/* We have to assume it is a numerical matrix */
-		type[3] = 'd';
+		return 'd';
+	return '-';	/* Can never get here you would think */
 }
 
 void GMTMEX_Set_Object (void *API, struct GMT_RESOURCE *X, const mxArray *ptr) {

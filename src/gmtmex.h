@@ -169,7 +169,7 @@ static const char *GMTMEX_fieldname_ps[N_MEX_FIELDNAMES_PS] =
 #define MODULE_LEN 	32	/* Max length of a GMT module name */
 
 /* These 4 functions are used by gmtmex.c: */
-EXTERN_MSC void   GMTMEX_objecttype (char *type, const mxArray *ptr);
+EXTERN_MSC char   GMTMEX_objecttype (const mxArray *ptr);
 EXTERN_MSC int    GMTMEX_print_func (FILE *fp, const char *message);
 EXTERN_MSC void   GMTMEX_Set_Object (void *API, struct GMT_RESOURCE *X, const mxArray *ptr);
 EXTERN_MSC void * GMTMEX_Get_Object (void *API, struct GMT_RESOURCE *X);

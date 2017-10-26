@@ -375,7 +375,7 @@ function [ps, d_path] = ex07(g_root_dir, out_path, verbose)
 	gmt(['psxy -R -J -O -K @ridge_07.txt -Wthicker,orange >> ' ps])
 	gmt(['pslegend -R -J -O -K -DjTR+w2.2i+o0.2i -F+pthick+ithinner+gwhite --FONT_ANNOT_PRIMARY=18p,Times-Italic >> ' ps], ...
 		'S 0.1i c 0.08i red thinnest 0.3i ISC Earthquakes')
-	T = record ([-43 -5; -43 -8; -7 11], {'SOUTH' 'AMERICA' 'AFRICA'});
+	T = gmt ('record', [-43 -5; -43 -8; -7 11], {'SOUTH' 'AMERICA' 'AFRICA'});
 	gmt(['pstext -R -J -O -F+f30,Helvetica-Bold,white=thin >> ' ps], T);
 	builtin('delete','gmt.conf');
 
@@ -422,7 +422,7 @@ function [ps, d_path] = ex10(g_root_dir, out_path, verbose)
 	gmt('destroy')
 	L = gmt('read -Td @languages_10.txt');
 	% Sum up the 5 columns per row for total # of languages
-	rec = record (L.data(:,1:2), cellstr(int2str(sum(L.data(:,3:7),2))));
+	rec = gmt ('record', L.data(:,1:2), cellstr(int2str(sum(L.data(:,3:7),2))));
 	cpt = gmt('makecpt -Cpurple,blue,darkgreen,yellow,red -T0,1,2,3,4,5');
 	gmt(['pscoast -Rd -JQ0/37.5/8i -Dc -Sazure2 -Gwheat -Wfaint -A5000 -p200/40 -K > ' ps])
 	gmt(['pstext -R -J -O -K -p -Gwhite@30 -D-0.25i/0 -F+f30p,Helvetica-Bold,firebrick=thinner+jRM >> ' ps], rec)
@@ -1269,7 +1269,7 @@ function [ps, d_path] = ex32(g_root_dir, out_path, verbose)
 	% Again, gmt grdtrack is used to put the dots "at elevation".
 	city_coord = [5.69083333333333 50.8513888888889; 4.35 50.85; 7.11722222222222 50.7191666666667];
 	city_name = {'Maastricht'; 'Bruxelles'; 'Bonn'};
-	cities = record (city_coord, city_name);
+	cities = gmt ('record', city_coord, city_name);
 	d = gmt('grdtrack -G@topo_32.nc', city_coord); 
 	gmt(['psxyz ' Rplot ' -J -JZ -p -Sc7p -W1p,white -Gred -K -O >> ' ps], d)
 	gmt(['pstext ' Rplot ' -J -JZ -p -F+f12p,Helvetica-Bold,red+jRM -Dj0.1i/0.0i -O >> ' ps], cities)
