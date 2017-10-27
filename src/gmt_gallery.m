@@ -495,7 +495,7 @@ function [ps, d_path] = ex11(g_root_dir, out_path, verbose)
 
 	gmt(['grdimage -JX-2.5i/2.5i -R -K -O -X-2.5i -Y2.5i >> ' ps], x_nc, c_nc, y_nc)
 	gmt(['psxy -Wthinner,black,- @rays_11.txt -J -R -K -O >> ' ps])
-	T = gmt ('record', [128 128 135; 26  102 180; 26  204 180; 200 200 225], {'12p 120\217'; '12p 0.4'; '12p 0.8'; '16p GMT 5'});
+	T = gmt ('record', [128 128 135; 26  102 180; 26  204 180; 200 200 225], {'12p 120\217'; '12p 0.4'; '12p 0.8'; '16p GMT'});
 	gmt(['pstext -J -R -O -F+a+f >> ' ps], T)
 	builtin('delete','gmt.conf');
 
@@ -793,7 +793,7 @@ function [ps, d_path] = ex20(g_root_dir, out_path, verbose)
 
 	gmt('set -Du')
 	gmt('destroy')
-	gmt(['pscoast -Rg -JR9i -Bx60 -By30 -B+t"Hotspot Islands and Hot Cities" -Gdarkgreen -Slightblue -Dc -A5000 -K > ' ps])
+	gmt(['pscoast -Rg -JR9i -Baf -B+t"Hotspot Islands and Hot Cities" -Gdarkgreen -Slightblue -Dc -A5000 -K > ' ps])
 	gmt(['psxy -R -J -Skvolcano -O -K -Wthinnest -Gred @hotspots.txt >> ' ps])
 
 	% Overlay a few bullseyes at NY, Cairo, and Perth
@@ -913,7 +913,7 @@ function [ps, d_path] = ex22(g_root_dir, out_path, verbose)
 	neis = gmt('makecpt -Cred,green,blue -T0,100,300,10000 -N');
 
 	% Start plotting. First lay down map, then plot quakes with size = magintude/50":
-	gmt(['pscoast -Rg -JK180/9i -B45g30 -B+t"World-wide earthquake activity" -Gbrown -Slightblue -Dc -A1000 -K -Y2.75i > ' ps])
+	gmt(['pscoast -Rg -JK180/9i -B45g30 -B+t"World-wide earthquake activity" -Gburlywood -Slightblue -Dc -A1000 -K -Y2.75i > ' ps])
 	gmt(['psxy -R -JK -O -K -C -Sci -Wfaint -hi1 -i2,1,3,4+s0.015 @usgs_quakes_22.txt >> ' ps], neis)
 
 	% Create legend input file for NEIS quake plot
@@ -941,11 +941,11 @@ function [ps, d_path] = ex22(g_root_dir, out_path, verbose)
 	 'N 1'
 	 'G 0.25l'
 	 'P'
-	 'T USGS/NEIS most recent earthquakes for the last seven days. The data were'
+	 'T USGS/NEIS most recent earthquakes for the last month.  The data were'
 	 'T obtained automatically from the USGS Earthquake Hazards Program page at'
-	 'T @_http://neic/usgs.gov @_. Interested users may also receive email alerts'
+	 'T @_https://earthquake.usgs.gov@_. Interested users may also receive email alerts'
 	 'T from the USGS.'
-	 'T This script can be called daily to update the latest information.'
+	 'T This script could be called monthly to update the latest information.'
 	 'G 0.4i'
 	 % Add USGS logo
 	 'I @USGS.png 1i RT'
@@ -1207,7 +1207,7 @@ function [ps, d_path] = ex30(g_root_dir, out_path, verbose)
 	T.data = [-0.16666 0 0; -0.3333 0.2888675 0; 0.22 0.27 -30; -0.33333 0.6 30];
 	T.text = {'12p,Times-Roman CT x', '12p,Times-Roman RM y', '12p,Symbol CB a', '12p,Times-Roman LB 120\312'};
 	gmt(['pstext -R-1/1/-1/1 -J -O -K -Dj0.05i -F+a+f+j >> ' ps], T)
-	gmt(['psxy -R -J -O -Sm0.15i+e -W1p -Gblack --PROJ_LENGTH_UNIT=cm >> ' ps], [0 0 1.26 0 120])
+	gmt(['psxy -R -J -O -Sm0.15i+e -W1p -Gblack --PROJ_LENGTH_UNIT=cm >> ' ps], [0 0 1.25 0 120])
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
@@ -1277,6 +1277,7 @@ function [ps, d_path] = ex32(g_root_dir, out_path, verbose)
 
 % -------------------------------------------------------------------------------------------------
 function [ps, d_path] = ex33(g_root_dir, out_path, verbose)
+	%% STACKED PROFILE IS MIRROR IMAGE, I.E., -200 is +200
 	d_path = [g_root_dir 'doc/examples/ex33/'];
 	ps = [out_path 'example_33.ps'];
 	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
@@ -1323,7 +1324,7 @@ function [ps, d_path] = ex34(g_root_dir, out_path, verbose)
 	% gmt grdcut etopo2m_grd.nc -R -GFR+IT.nc=ns
 	z_cpt = gmt('makecpt -Cglobe -T-5000/5000');
 	gmt(['grdimage @FR+IT.nc -I+a15+ne0.75 -C -J -O -K -Y4.5i' ...
-		' -Baf -BWsnE+t"Franco-Italian Union, 2042-45" >> ' ps], z_cpt)
+		' -Baf -BWsne+t"Franco-Italian Union, 2042-45" >> ' ps], z_cpt)
 	gmt(['pscoast -J -R -EFR,IT+gred@60 -O >> ' ps])
 	builtin('delete','gmt.conf');
 
@@ -1375,7 +1376,7 @@ function [ps, d_path] = ex36(g_root_dir, out_path, verbose)
 % -------------------------------------------------------------------------------------------------
 function [ps, d_path] = ex37(g_root_dir, out_path, verbose)
 % This example has secondary file writing that cannot be catched in a variable -- grdfft -N 
-
+	%% Draing of cross fails but data is there as symbols indicate...
 	d_path = [g_root_dir 'doc/examples/ex37/'];
 	ps = [out_path 'example_37.ps'];
 	if (verbose),	disp(['Running example ' ps(end-4:end-3)]),	end
@@ -1430,7 +1431,7 @@ function [ps, d_path] = ex38(g_root_dir, out_path, verbose)
 	t_cpt = gmt('makecpt -Crainbow -T0/1700');
 	c_cpt = gmt('makecpt -Crainbow -T0/15/1');
 	Gout  = gmt('grdhisteq @topo_38.nc -G -C16');
-	gmt(['grdimage @topo_38.nc -I+a45+nt1 -C -JM3i -Y5i -K -P -B5 -BWSne > ' ps], t_cpt)
+	gmt(['grdimage @topo_38.nc -I+a45+nt1 -C -JM3i -Y6i -K -P -B5 -BWSne > ' ps], t_cpt)
 	gmt(['pstext -R@topo_38.nc -J -O -K -F+jTR+f14p -T -Gwhite -W1p -Dj0.1i >> ' ps], gmt ('record', [315 -10], 'Original'))
 	gmt(['grdimage -C -J -X3.5i -K -O -B5 -BWSne >> ' ps], Gout, c_cpt)
 	gmt(['pstext -R -J -O -K -F+jTR+f14p -T -Gwhite -W1p -Dj0.1i >> ' ps], gmt ('record', [315 -10], 'Equalized'))
@@ -1438,11 +1439,13 @@ function [ps, d_path] = ex38(g_root_dir, out_path, verbose)
 	Gout = gmt('grdhisteq @topo_38.nc -G -N');
 	c_cpt = gmt('makecpt -Crainbow -T-3/3');
 	gmt(['grdimage -C -J -X-3.5i -Y-3.3i -K -O -B5 -BWSne >> ' ps], Gout, c_cpt)
-	gmt(['pstext -R -J -O -K -F+jTR+f14p -T -Gwhite -W1p -Dj0.1i >> ' ps], {'315 -10 Normalized'})
-	Gout = gmt('grdhisteq @topo_38.nc -G -N');
-	gmt(['grdimage -C -J -X3.5i -K -O -B5 -BWSne >> ' ps], Gout, c_cpt)
+	gmt(['pstext -R -J -O -K -F+jTR+f14p -T -Gwhite -W1p -Dj0.1i >> ' ps], gmt ('record', [315 -10], 'Normalized'))
+	Gout = gmt('grdhisteq @topo_38.nc -G -Q');
+	q_cpt = gmt('makecpt -Crainbow -T0/15');
+	gmt(['grdimage -C -J -X3.5i -K -O -B5 -BWSne >> ' ps], Gout, q_cpt)
 	gmt(['pstext -R -J -O -K -F+jTR+f14p -T -Gwhite -W1p -Dj0.1i >> ' ps], gmt ('record', [315 -10], 'Quadratic'))
-	gmt(['psscale -Dx0i/-0.4i+w5i/0.15i+h+jTC+e+n -O -C -Bx1 -By+lz >> ' ps], c_cpt)
+	gmt(['psscale -Dx0i/-0.4i+w5i/0.15i+h+jTC+e+n -O -K -C -Bx1 -By+l"z@-n@-" >> ' ps], c_cpt)
+	gmt(['psscale -Dx0i/-1.0i+w5i/0.15i+h+jTC+e+n -O -C -Bx1 -By+l"z@-q@-" >> ' ps], q_cpt)
 	builtin('delete','gmt.conf');
 
 % -------------------------------------------------------------------------------------------------
