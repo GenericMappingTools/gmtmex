@@ -100,7 +100,7 @@ typedef int mwSize;
 	/* This one operates on GMT_MATRIX */
 #	define MEXM_IJ(M,row,col) ((row)*M->n_columns + (col))
 	/* And this on GMT_GRID */
-#	define MEXG_IJ(M,row,col) ((row)*M->header->nx + (col))
+#	define MEXG_IJ(M,row,col) ((row)*M->header->n_columns + (col))
 #else	/* Here we go for Matlab or Octave(mex) */
 #	ifdef GMT_MATLAB
 #		define MEX_PROG "Matlab"
@@ -112,7 +112,7 @@ typedef int mwSize;
 	/* This one operates on GMT_MATRIX */
 #	define MEXM_IJ(M,row,col) ((col)*M->n_rows + (row))
 	/* And this on GMT_GRID */
-#	define MEXG_IJ(M,row,col) ((col)*M->header->ny + M->header->ny - (row) - 1)
+#	define MEXG_IJ(M,row,col) ((col)*M->header->n_rows + M->header->n_rows - (row) - 1)
 #endif
 
 /* Definitions of MEX structures used to hold GMT objects.

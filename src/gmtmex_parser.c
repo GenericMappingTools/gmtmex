@@ -759,7 +759,8 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 			mexErrMsgTxt ("gmtmex_image_init: Failure to alloc GMT source image for input\n");
 
 		I->data = (unsigned char *)mxGetData (mx_ptr);				/* Send in the Matlab owned memory. */
-		I->alloc_mode = GMT_ALLOC_EXTERNALLY;
+		GMT_Set_AllocMode (API, GMT_IS_IMAGE, I);
+		//I->alloc_mode = GMT_ALLOC_EXTERNALLY;
 
 /*
 		memcpy (I->data, (unsigned char *)mxGetData (mx_ptr), I->header->nm * I->header->n_bands * sizeof (char));
@@ -927,7 +928,8 @@ static void *gmtmex_dataset_init (void *API, unsigned int direction, unsigned in
 #else
 			M->dim = M->n_rows;
 #endif
-			M->alloc_mode = GMT_ALLOC_EXTERNALLY;	/* Since matrix was allocated by MATLAB/Octave we cannot free it in GMT */
+			//M->alloc_mode = GMT_ALLOC_EXTERNALLY;	/* Since matrix was allocated by MATLAB/Octave we cannot free it in GMT */
+			GMT_Set_AllocMode (API, GMT_IS_MATRIX, M);
 			M->shape = MEX_COL_ORDER;		/* Either col or row order, depending on MATLAB/Octave setting in gmtmex.h */
 			return (M);
 		}
@@ -1218,9 +1220,10 @@ static struct GMT_POSTSCRIPT *gmtmex_ps_init (void *API, unsigned int direction,
 		if ((P = GMT_Create_Data (API, GMT_IS_POSTSCRIPT|flag, GMT_IS_NONE, 0, dim, NULL, NULL, 0, 0, NULL)) == NULL)
 			mexErrMsgTxt ("gmtmex_ps_init: Failure to alloc GMT POSTSCRIPT source for input\n");
 		P->data = PS;	/* PostScript string instead is coming from MATLAB */
-		P->alloc_mode = GMT_ALLOC_EXTERNALLY;	/* Hence we are not allowed to free it */
+		GMT_Set_AllocMode (API, GMT_IS_POSTSCRIPT, P);
+		//P->alloc_mode = GMT_ALLOC_EXTERNALLY;	/* Hence we are not allowed to free it */
 		P->n_bytes = length[0];	/* Length of the actual PS string */
-		P->n_alloc = 0;		/* But nothing was actually allocated here - just passing pointer from MATLAB */
+		//P->n_alloc = 0;		/* But nothing was actually allocated here - just passing pointer from MATLAB */
 		P->mode = mode[0];	/* Inherit the mode */
 		if ((n_headers = (unsigned int)mxGetM (mx_ptr[3])) != 0) {	/* Number of headers found */
 			char *txt = NULL;
