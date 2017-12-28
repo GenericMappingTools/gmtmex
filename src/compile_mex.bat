@@ -50,7 +50,7 @@ IF %R13%=="yes" SET BITS=32
 
 REM
 REM Set to "yes" if you want to build a debug version
-SET DEBUG="yes"
+SET DEBUG="no"
 REM
 SET LDEBUG=
 IF %DEBUG%=="yes" SET LDEBUG=/debug
@@ -82,16 +82,16 @@ SET MEX_EXT="mexw32"
 REM -------------- Set GMT & NetCDF lib and include ----------------------------
 IF %BITS%==64 (
 
-SET  GMT_LIB=c:\progs_cygw\GMTdev\gmt5\trunk\WIN%BITS%\lib\gmt.lib
+SET  GMT_LIB=c:\progs_cygw\GMTdev\gmt5\5.4\WIN%BITS%\lib\gmt.lib
 call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" amd64
 
 ) ELSE (
 
-SET  GMT_LIB=c:\progs_cygw\GMTdev\gmt5\trunk\WIN%BITS%\lib\gmt.lib
+SET  GMT_LIB=c:\progs_cygw\GMTdev\gmt5\5.4\WIN%BITS%\lib\gmt.lib
 call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" x86
 )
 
-SET  GMT_INC=c:\progs_cygw\GMTdev\gmt5\trunk\WIN%BITS%\include\gmt
+SET  GMT_INC=c:\progs_cygw\GMTdev\gmt5\5.4\WIN%BITS%\include\gmt
 REM ----------------------------------------------------------------------------
 
 REM ____________________________________________________________________________
