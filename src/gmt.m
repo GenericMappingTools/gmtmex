@@ -3,8 +3,8 @@ function varargout = gmt(cmd, varargin)
 %	$Id$
 
 	if (nargin == 0)
-		fprintf(sprintf('\n\t\tGMT - The Generic Mapping Tools, Version 5.3 API\n'))
-		fprintf(sprintf('Copyright 1991-2016 Paul Wessel, Walter H. F. Smith, R. Scharroo, J. Luis, and F. Wobbe\n\n'))
+		fprintf(sprintf('\n\t\tGMT - The Generic Mapping Tools, Version 5.4 API\n'))
+		fprintf(sprintf('Copyright 1991-2018 Paul Wessel, Walter H. F. Smith, R. Scharroo, J. Luis, and F. Wobbe\n\n'))
 	
 		fprintf(sprintf('Usage:\tTo call a GMT module:\n\t    output = gmt (''module_name'', ''options'', numeric_input)\n\n'))
 		fprintf(sprintf(['\tTo create a Grid structure from a 2-D Z array and a 1x9 header vector:\n\t' ...

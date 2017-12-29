@@ -1,7 +1,7 @@
 /*
  *	$Id$
  *
- *	Copyright (c) 1991-2016 by P. Wessel and J. Luis
+ *	Copyright (c) 1991-2018 by P. Wessel and J. Luis
  *      See LICENSE.TXT file for copying and redistribution conditions.
  *
  *      This program is free software; you can redistribute it and/or modify
