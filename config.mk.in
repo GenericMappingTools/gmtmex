@@ -85,6 +85,7 @@ MEX_BLD		= @MEX_BLD@
 MEX_LIB		= @MEX_LIB@
 MEX_INC		= @MEX_INC@
 MEX_EXT		= @MEX_EXT@
+MEX_OUT		= @MEX_OUT@
 MEX_XDIR	= $(DESTDIR)@MEX_XDIR@
 MEX_MDIR	= $(DESTDIR)@MEX_MDIR@
 #-------------------------------------------------------------------------------

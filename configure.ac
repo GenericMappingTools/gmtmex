@@ -65,6 +65,7 @@ AC_SUBST(MEX_BLD)
 AC_SUBST(MEX_LIB)
 AC_SUBST(MEX_INC)
 AC_SUBST(MEX_EXT)
+AC_SUBST(MEX_OUT)
 AC_SUBST(MEX_XDIR)
 AC_SUBST(MEX_MDIR)
 AC_SUBST(GS_PATH)
@@ -350,6 +351,7 @@ if test "X$MATLAB" = "XNONE" ; then
 elif test ! "X$enable_matlab" = "X"; then
 	AC_MSG_CHECKING(Compiler options for MATLAB)
 	MEX_BLD="$MATLAB/bin/mex -DGMT_MATLAB $MFLAGS"
+	MEX_OUT='-output'
 	CFLAGS="$CFLAGS -DGMT_MATLAB"
 	if test "$os" = "Linux" ; then		# Linux systems
 		if test "$ac_cv_sizeof_long" = "8" ; then
@@ -383,6 +385,7 @@ elif test ! "X$enable_matlab" = "X"; then
 			MATLAB=/Applications/$dir
 		fi
 		MEX_BLD="xcrun clang -undefined error -arch x86_64 -bundle -DGMT_MATLAB $MFLAGS"
+		MEX_OUT='-o'
 		if test "$chip" = "i386" ; then		#Intel Mac
 			if test "$ac_cv_sizeof_long" = "8" ; then
 				MEX_EXT='mexmaci64'
