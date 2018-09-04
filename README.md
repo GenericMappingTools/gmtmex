@@ -1,5 +1,9 @@
 # GMTMex - GMT API for MATLAB
 
+# Extended Docs
+
+http://gmt.soest.hawaii.edu/projects/gmt-MATLAB-octave-api/wiki
+
 # Introduction
 
 The GMT MATLAB interface makes it possible to access all GMT modules from MATLAB. Users of MATLAB can write MATLAB scripts
