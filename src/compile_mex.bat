@@ -1,9 +1,6 @@
 @echo off
 REM ----------------------------------------------------
 REM
-REM	$Id: compile_mex.bat 113 2013-04-15 21:18:29Z pwessel $
-REM
-REM
 REM	Copyright (c) 1991-2015 by P. Wessel, W. H. F. Smith, R. Scharroo, and J. Luis
 REM	See LICENSE.TXT file for copying and redistribution conditions.
 REM
@@ -20,40 +17,43 @@ REM	Contact info: gmt.soest.hawaii.edu
 REM --------------------------------------------------------------------
 REM --------------------------------------------------------------------------------------
 REM
-REM This is a compile batch that builds all GMT MEXs. Contrary to the 'mex' command it doesn't
+REM This is a compile batch that builds the GMTMEX. Contrary to the 'mex' command it doesn't
 REM need you to setup a compiler within MATLAB, which means you can use any of the MS or
 REM Intel compilers (a luxury that you don't have with the 'mex' command).
 REM
 REM If a WIN64 version is targeted than both GMT & netCDF Libs must have been build in 64-bits as well.
 REM
 REM
-REM Usage: open the command window set up by the compiler of interest (were all vars are already set)
-REM	   and run this batch from there.
+REM Usage: open the command window and run this batch from there.
 REM 	   NOTE: you must make some edits to the setup below.
 REM
 REM --------------------------------------------------------------------------------------
 
 REM ------------- Set the compiler (set to 'icl' to use the Intel compiler) --------------
 SET CC=cl
-REM --------------------------------------------------------------------------------------
-
-REM Set to 5 or 6 depending on the GMT version
-SET MAJOR_VER=5 
-
-REM Set it to 32 or 64 to build under 64-bits or 32-bits respectively.
+REM ------------- Set the Visual Studio version (VC12 (VS2013), VC14 (VS2015) or VC15 (VS2017))
+SET VC="VC12"
+REM ------------- Set it to 32 or 64 to build under 64-bits or 32-bits respectively.
 SET BITS=64
-
-REM If set to "yes", linkage is done against ML6.5 Libs
+REM ------------- Set to 5 or 6 depending on the GMT version
+SET MAJOR_VER="6"
+REM ------------- Set to "yes" if you want to build a debug version
+SET DEBUG="no"
+REM ------------- If set to "yes", linkage is done against ML6.5 Libs
 SET R13="no"
+REM --------------------------------------------------------------------------------------
 
 IF %R13%=="yes" SET BITS=32
 
-REM
-REM Set to "yes" if you want to build a debug version
-SET DEBUG="yes"
-REM
-SET LDEBUG=
-IF %DEBUG%=="yes" SET LDEBUG=/debug
+REM -------------- Set GMT & NetCDF lib and include ----------------------------
+IF %VC% == "VC12" (
+SET  GMT_LIB=c:\progs_cygw\GMTdev\gmt5\compileds\gmt%MAJOR_VER%\VC12_%BITS%\lib\gmt.lib
+SET  GMT_INC=c:\progs_cygw\GMTdev\gmt5\compileds\gmt%MAJOR_VER%\VC12_%BITS%\include\gmt
+) ELSE (
+SET  GMT_LIB=c:\progs_cygw\GMTdev\gmt5\compileds\gmt%MAJOR_VER%\VC14_%BITS%\lib\gmt.lib
+SET  GMT_INC=c:\progs_cygw\GMTdev\gmt5\compileds\gmt%MAJOR_VER%\VC14_%BITS%\include\gmt
+)
+REM ----------------------------------------------------------------------------
 
 REM ------------------ Sets the MATLAB libs and include path ----------------------------
 IF %R13%=="yes" (
@@ -79,24 +79,27 @@ SET _MX_COMPAT=-DMX_COMPAT_32
 SET MEX_EXT="mexw32"
 ) )
 
-REM -------------- Set GMT & NetCDF lib and include ----------------------------
+REM -------------- Pick up the right compiler ----------------------------------
 IF %BITS%==64 (
 
-SET  GMT_LIB=c:\progs_cygw\GMTdev\gmt5\trunk\WIN%BITS%\lib\gmt.lib
-call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" amd64
+IF %VC%=="VC12" call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" amd64
+IF %VC%=="VC14" call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64
+IF %VC%=="VC15" call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat" amd64
 
 ) ELSE (
 
-SET  GMT_LIB=c:\progs_cygw\GMTdev\gmt5\trunk\WIN%BITS%\lib\gmt.lib
-call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" x86
-)
+IF %VC%=="VC12" call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" x86
+IF %VC%=="VC14" call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
+IF %VC%=="VC15" call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars32.bat" x86
 
-SET  GMT_INC=c:\progs_cygw\GMTdev\gmt5\trunk\WIN%BITS%\include\gmt
-REM ----------------------------------------------------------------------------
+)
 
 REM ____________________________________________________________________________
 REM ___________________ STOP EDITING HERE ______________________________________
 
+
+SET LDEBUG=
+IF %DEBUG%=="yes" SET LDEBUG=/debug
 
 SET COMPFLAGS=/Zp8 /GR /EHs /D_CRT_SECURE_NO_DEPRECATE /D_SCL_SECURE_NO_DEPRECATE /D_SECURE_SCL=0 /DMATLAB_MEX_FILE -DGMT_MAJOR_VERSION=%MAJOR_VER% /nologo /MD
 SET OPTIMFLAGS=/Ox /Oy- /DNDEBUG
