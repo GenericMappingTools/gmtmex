@@ -99,14 +99,14 @@ int GMTMEX_print_func (FILE *fp, const char *message) {
 	return 0;
 }
 
-static int gmtmex_getMNK (const mxArray *p, int which) {
+static uint64_t gmtmex_getMNK (const mxArray *p, int which) {
 	/* Get number of columns or number of bands of a mxArray.
 	   which = 0 to inquire n_rows
 	         = 1 to inquire n_columns
 	         = 2 to inquire n_bands
 	         = ? ERROR
 	*/
-	int nx, ny, nBands, nDims;
+	uint64_t nx, ny, nBands, nDims;
 	const mwSize *dim_array = NULL;
 
 	nDims     = mxGetNumberOfDimensions(p);
@@ -125,7 +125,7 @@ static int gmtmex_getMNK (const mxArray *p, int which) {
 		return nBands;
 	else
 		mexErrMsgTxt("gmtmex_getMNK: Bad dimension number!");
-	return -1;
+	return 0;
 }
 
 static void gmtmex_quit_if_missing (const char *function, const char *field) {
