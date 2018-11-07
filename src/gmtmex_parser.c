@@ -220,8 +220,10 @@ static void *gmtmex_get_dataset (void *API, struct GMT_DATASET *D) {
 	struct GMT_DATASEGMENT *S = NULL;
 	mxArray *D_struct = NULL, *mxheader = NULL, *mxdata = NULL, *mxtext = NULL, *mxstring = NULL;
 
-	if (D == NULL)	/* Safety valve */
-		mexErrMsgTxt ("gmtmex_get_dataset: programming error, output DATASET D is empty\n");
+	if (D == NULL) {	/* No output produced (?) - return a null data set */
+		D_struct = mxCreateStructMatrix (0, 0, N_MEX_FIELDNAMES_DATASET, GMTMEX_fieldname_dataset);
+		return (D_struct);
+	}
 	
 	for (tbl = seg_out = 0; tbl < D->n_tables; tbl++)	/* Count non-zero segments */
 		for (seg = 0; seg < D->table[tbl]->n_segments; seg++)
@@ -1308,7 +1310,8 @@ void GMTMEX_Set_Object (void *API, struct GMT_RESOURCE *X, const mxArray *ptr) {
 
 void *GMTMEX_Get_Object (void *API, struct GMT_RESOURCE *X) {
 	mxArray *ptr = NULL;
-	if ((X->object = GMT_Read_VirtualFile (API, X->name)) == NULL)
+	/* In line-by-line modules it is possible no output is produced, hence we make an exception for DATASET: */
+	if ((X->object = GMT_Read_VirtualFile (API, X->name)) == NULL && X->family != GMT_IS_DATASET)
 		mexErrMsgTxt ("GMT: Error reading virtual file from GMT\n");
 	switch (X->family) {	/* Determine what container we got */
 		case GMT_IS_GRID:	/* A GMT grid; make it the pos'th output item */
