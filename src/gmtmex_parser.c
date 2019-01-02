@@ -1103,7 +1103,7 @@ static struct GMT_TEXTSET *gmtmex_textset_init (void *API, unsigned int directio
 			for (seg = 0; seg < dim[GMT_SEG]; seg++) {	/* Each incoming structure is a new segment */
 				mx_ptr = mxGetField (ptr, (mwSize)seg, "header");	/* Segment header */
 				buffer[0] = 0;	/* Reset our temporary buffer */
-				if ((length = mxGetN (mx_ptr)) != 0)
+				if (mx_ptr != NULL && (length = mxGetN (mx_ptr)) != 0)
 					mxGetString (mx_ptr, buffer, (mwSize)(length+1));
 				mx_ptr_d = mxGetField (ptr, (mwSize)seg, "data");	/* Data table for this segment */
 				mx_ptr_t = mxGetField (ptr, (mwSize)seg, "text");	/* Text table for this segment */
