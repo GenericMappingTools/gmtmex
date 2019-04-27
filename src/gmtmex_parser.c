@@ -232,7 +232,7 @@ static void *gmtmex_get_dataset (void *API, struct GMT_DATASET *D) {
 	if (seg_out == 0) n_items = 0;
 	D_struct = mxCreateStructMatrix ((mwSize)seg_out, (mwSize)n_items, N_MEX_FIELDNAMES_DATASET, GMTMEX_fieldname_dataset);
 
-	n_headers = D->table[0]->n_headers;	/* Number of header records in first table */
+	n_headers = (D->n_tables) ? D->table[0]->n_headers : 0;	/* Number of header records in first table */
 	for (tbl = seg_out = 0; tbl < D->n_tables; tbl++) {
 		for (seg = 0; seg < D->table[tbl]->n_segments; seg++) {
 			S = D->table[tbl]->segment[seg];	/* Shorthand */
