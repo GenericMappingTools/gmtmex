@@ -79,6 +79,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 			);
 			mainGroup = 3F2ADA4617827DCB00E2675F;
@@ -168,7 +169,7 @@
 				HEADER_SEARCH_PATHS = "$(MATLABROOT)/extern/include";
 				LIBRARY_SEARCH_PATHS = "$(MATLABROOT)/bin/maci64";
 				MACH_O_TYPE = mh_bundle;
-				MATLABROOT = "$(LOCAL_APPS_DIR)/MATLAB_R2015a.app";
+				MATLABROOT = "$(LOCAL_APPS_DIR)/MATLAB_R2018b.app";
 				New_Setting = "";
 				OTHER_CFLAGS = "";
 				"OTHER_CFLAGS[arch=*]" = (
@@ -206,7 +207,7 @@
 				"HEADER_SEARCH_PATHS[arch=*]" = /opt/local/include/gmt;
 				LIBRARY_SEARCH_PATHS = "$(MATLABROOT)/bin/maci64";
 				MACH_O_TYPE = mh_bundle;
-				MATLABROOT = "$(LOCAL_APPS_DIR)/MATLAB_R2015a.app";
+				MATLABROOT = "$(LOCAL_APPS_DIR)/MATLAB_R2018b.app";
 				New_Setting = "";
 				OTHER_CFLAGS = "";
 				"OTHER_CFLAGS[arch=*]" = (
