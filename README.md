@@ -2,7 +2,7 @@
 
 # Extended Docs
 
-http://gmt.soest.hawaii.edu/projects/gmt-MATLAB-octave-api/wiki
+https://github.com/GenericMappingTools/gmtmex/wiki
 
 # Introduction
 
