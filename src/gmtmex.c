@@ -309,7 +309,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	if (opt_buffer[0] && (options = GMT_Create_Options (API, 0, opt_buffer)) == NULL)
 		mexErrMsgTxt ("GMT: Failure to parse GMT5 command options\n");
 
-	if (!options && nlhs == 0 && nrhs == 1) 	/* Just requesting usage message, so add -? to options */
+	if (!options && nlhs == 0 && nrhs == 1 && strcmp (module, "end")) 	/* Just requesting usage message, so add -? to options */
 		options = GMT_Create_Options (API, 0, "-?");
 	
 	/* 4. Preprocess to update GMT option lists and return info array X */
