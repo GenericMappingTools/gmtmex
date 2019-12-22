@@ -1173,9 +1173,10 @@ static struct GMT_PALETTE *gmtmex_palette_init (void *API, unsigned int directio
 		else if (depth[0] == 8)
 			P->is_gray = 1;
 		GMT_Report (API, GMT_MSG_DEBUG, "gmtmex_palette_init: Allocated GMT CPT %lx\n", (long)P);
-		if (mxIsNaN (hinge[0])) {
+		if (!mxIsNaN (hinge[0])) {
 			P->has_hinge = 1;
 			P->mode &= GMT_CPT_HINGED;
+			P->hinge = hinge[0];
 		}
 		mxGetString (mx_ptr[8], model, (mwSize)mxGetN(mx_ptr[8])+1);
 		if (!strncmp (model, "hsv", 3U))
