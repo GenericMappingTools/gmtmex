@@ -1,5 +1,4 @@
-src/xcode/build
-src/xcode/gmtmex.xcodeproj
+src/gmtmex_debug.xcworkspace
 autom4te.cache
 config.log
 config.mk
@@ -7,4 +6,4 @@ config.status
 configure
 src/*.o
 src/gmtmex.mexmaci64
-
+.DS_Store
