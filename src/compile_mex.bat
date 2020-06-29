@@ -1,7 +1,7 @@
 @echo off
 REM ----------------------------------------------------
 REM
-REM	Copyright (c) 1991-2015 by P. Wessel, W. H. F. Smith, R. Scharroo, and J. Luis
+REM	Copyright (c) 1991-2020 The GMT Team (https://www.generic-mapping-tools.org/team.html)
 REM	See LICENSE.TXT file for copying and redistribution conditions.
 REM
 REM	This program is free software; you can redistribute it and/or modify
@@ -35,7 +35,7 @@ REM ------------- Set the Visual Studio version (VC12 (VS2013), VC14 (VS2015) or
 SET VC="VC12"
 REM ------------- Set it to 32 or 64 to build under 64-bits or 32-bits respectively.
 SET BITS=64
-REM ------------- Set to 5 or 6 depending on the GMT version
+REM ------------- Set to the GMT version
 SET MAJOR_VER="6"
 REM ------------- Set to "yes" if you want to build a debug version
 SET DEBUG="no"

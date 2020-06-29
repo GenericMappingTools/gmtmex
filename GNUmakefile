@@ -9,7 +9,7 @@
 #
 #	Author:	Paul Wessel, SOEST, University of Hawaii
 #
-#	Date:		15-NOV-2015
+#	Date:		1-JUL-2020
 #-------------------------------------------------------------------------------
 include Makefile
 
@@ -28,8 +28,8 @@ help::
 #!
 
 opt:
-		@echo "[Running `ls /Applications/GMT-5.?.?.app/Contents/Resources/share/tools/gmt_prepmex.sh | tail -1`]"; echo ""
-		@`/Applications/GMT-5.?.?.app/Contents/Resources/share/tools/gmt_prepmex.sh | tail -1`
+		@echo "[Running `ls /Applications/GMT-6.1.?.app/Contents/Resources/share/tools/gmt_prepmex.sh | tail -1`]"; echo ""
+		@`/Applications/GMT-6.1.?.app/Contents/Resources/share/tools/gmt_prepmex.sh | tail -1`
 
 latest-config:
 		curl "http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD" -s -R -o config.sub
