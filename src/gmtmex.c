@@ -145,7 +145,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		char message[128] = {""};
 		sprintf (message, "Warning: Your GMT version (%d.%d.%d) may be too new to work with GMTMEX %d.%d.%d.\n",
 			GMT_MAJOR_VERSION, GMT_MINOR_VERSION, GMT_RELEASE_VERSION, GMTMEX_GMT_MAJOR_VERSION, GMTMEX_GMT_MINOR_VERSION, GMTMEX_GMT_PATCH_VERSION);
-		mexErrMsgTxt (message); 
+		mexPrintf (message); 
 	}
 	else if (GMT_MAJOR_VERSION < GMTMEX_GMT_MAJOR_VERSION || GMT_MINOR_VERSION < GMTMEX_GMT_MINOR_VERSION || (GMT_MINOR_VERSION == GMTMEX_GMT_MINOR_VERSION && GMT_RELEASE_VERSION < GMTMEX_GMT_PATCH_VERSION)) {
 		char message[128] = {""};
