@@ -1,4 +1,3 @@
-#	$Id$
 #
 #	makefile for gmtmex/src directory
 

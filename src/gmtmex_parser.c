@@ -1,7 +1,7 @@
 /*
  *	$Id$
  *
- *	Copyright (c) 2015-2018 by P. Wessel and J. Luis
+ *	Copyright (c) 2015-2020 by P. Wessel and J. Luis
  *      See LICENSE.TXT file for copying and redistribution conditions.
  *
  *      This program is free software; you can redistribute it and/or modify
@@ -1303,7 +1303,7 @@ void GMTMEX_Set_Object (void *API, struct GMT_RESOURCE *X, const mxArray *ptr) {
 	}
 	if (X->object == NULL)
 		mexErrMsgTxt("GMT: Failure to register the resource\n");
-	if (GMT_Open_VirtualFile (API, actual_family, X->geometry, X->direction, X->object, X->name) != GMT_NOERROR) 	/* Make filename with embedded object ID */
+	if (GMT_Open_VirtualFile (API, actual_family, X->geometry, X->direction|GMT_IS_REFERENCE, X->object, X->name) != GMT_NOERROR) 	/* Make filename with embedded object ID */
 		mexErrMsgTxt ("GMT: Failure to open virtual file\n");
 	if (GMT_Expand_Option (API, X->option, X->name) != GMT_NOERROR)	/* Replace ? in argument with name */
 		mexErrMsgTxt ("GMT: Failure to expand filename marker (?)\n");

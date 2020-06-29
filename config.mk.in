@@ -1,7 +1,6 @@
 #-------------------------------------------------------------------------------
-#	$Id$
 #
-#	Standard Makefile Macro Setup for gmtmex
+#	Standard Makefile Macro Setup for gmtmex 2.0.0
 #
 # Edit this file only, NOT the makefile itself.
 #-------------------------------------------------------------------------------
@@ -88,6 +87,4 @@ MEX_EXT		= @MEX_EXT@
 MEX_OUT		= @MEX_OUT@
 MEX_XDIR	= $(DESTDIR)@MEX_XDIR@
 MEX_MDIR	= $(DESTDIR)@MEX_MDIR@
-#-------------------------------------------------------------------------------
-#	GMT minor release number X in 5.X.y
 #-------------------------------------------------------------------------------

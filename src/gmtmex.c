@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------
  *	$Id$
  *
- *	Copyright (c) 2015-2018 by P. Wessel and J. Luis
+ *	Copyright (c) 2015-2020 by P. Wessel and J. Luis
  *	See LICENSE.TXT file for copying and redistribution conditions.
  *
  *	This program is free software; you can redistribute it and/or modify
@@ -29,8 +29,9 @@
  * Finally, there are optional comma-separated MATLAB array entities required by the command.
  * Information about the options of each program is provided via GMT_Encode_Options.
  *
- * Version:	6.x
+ * GMT Version:	6.x
  * Created:	20-OCT-2017
+ * Updated:	1-JUL-2020 requires GMT 6.1.x
  *
  */
 
@@ -137,6 +138,23 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 #ifndef SINGLE_SESSION
 	uintptr_t *pti = NULL;          /* To locally store the API address */
 #endif
+
+	/* -1. Check that the GMT library is of a suitable version for this GMTMEX version */
+
+	if (GMT_MAJOR_VERSION > GMTMEX_GMT_MAJOR_VERSION) {	/* This may not work if, for instance, we want >= 6.1.x but is using GMT 7.0.0 */
+		char message[128] = {""};
+		sprintf (message, "Warning: Your GMT version (%d.%d.%d) may be too new to work with GMTMEX %d.%d.%d.\n",
+			GMT_MAJOR_VERSION, GMT_MINOR_VERSION, GMT_RELEASE_VERSION, GMTMEX_GMT_MAJOR_VERSION, GMTMEX_GMT_MINOR_VERSION, GMTMEX_GMT_PATCH_VERSION);
+		mexPrintf (message); 
+	}
+	else if (GMT_MAJOR_VERSION < GMTMEX_GMT_MAJOR_VERSION || GMT_MINOR_VERSION < GMTMEX_GMT_MINOR_VERSION || (GMT_MINOR_VERSION == GMTMEX_GMT_MINOR_VERSION && GMT_RELEASE_VERSION < GMTMEX_GMT_PATCH_VERSION)) {
+		char message[128] = {""};
+		sprintf (message, "Error: The GMT shared library must be at least version %d.%d.%d but you have %d.%d.%d.\n",
+			GMTMEX_GMT_MAJOR_VERSION, GMTMEX_GMT_MINOR_VERSION, GMTMEX_GMT_PATCH_VERSION,
+			GMT_MAJOR_VERSION, GMT_MINOR_VERSION, GMT_RELEASE_VERSION);
+		mexErrMsgTxt (message); 
+	}
+
 	/* 0. No arguments at all results in the GMT banner message */
 	if (nrhs == 0) {
 		usage (nlhs, nrhs);
