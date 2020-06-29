@@ -149,7 +149,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	}
 	else if (GMT_MAJOR_VERSION < GMTMEX_GMT_MAJOR_VERSION || GMT_MINOR_VERSION < GMTMEX_GMT_MINOR_VERSION || (GMT_MINOR_VERSION == GMTMEX_GMT_MINOR_VERSION && GMT_RELEASE_VERSION < GMTMEX_GMT_PATCH_VERSION)) {
 		char message[128] = {""};
-		sprintf (message, "GMT: The GMT shared library must be at least version %d.%d.%d but you have %d.%d.%d.\n",
+		sprintf (message, "Error: The GMT shared library must be at least version %d.%d.%d but you have %d.%d.%d.\n",
 			GMTMEX_GMT_MAJOR_VERSION, GMTMEX_GMT_MINOR_VERSION, GMTMEX_GMT_PATCH_VERSION,
 			GMT_MAJOR_VERSION, GMT_MINOR_VERSION, GMT_RELEASE_VERSION);
 		mexErrMsgTxt (message); 
