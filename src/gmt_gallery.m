@@ -7,7 +7,7 @@ function  [ps_, t_path_] = gmt_gallery(varargin)
 %
 % If R_DIR and O_PATH are not transmitted, the defaul value in this function is used (JL paths)
 % R_DIR is a string with the path to the root of your GMT installation. E.g.
-%	R_DIR = 'C:/progs_cygw/GMTdev/gmt5/trunk/'
+%	R_DIR = 'C:/progs_cygw/GMTdev/gmt6/'
 %
 % O_PATH is a string with the output path where the new PS files will be writen
 %
@@ -404,7 +404,7 @@ function [ps, d_path] = ex09(g_root_dir, out_path, verbose)
 	gmt('set -Du')
 	gmt('destroy')
 	gmt(['pswiggle @tracks_09.txt -R185/250/-68/-42 -K -Jm0.13i -Ba10f5 -BWSne+g240/255/240 -G+red' ...
-		' -G-blue -Z2000 -Wthinnest -DjBR+l500+u@~m@~rad+o0.2i --FORMAT_GEO_MAP=dddF > ' ps])
+		' -G-blue -Z2000 -Wthinnest -DjBR+w500+u@~m@~rad+o0.2i --FORMAT_GEO_MAP=dddF > ' ps])
 	gmt(['psxy -R -J -O -K @ridge_09.txt -Wthicker >> ' ps])
 	gmt(['psxy -R -J -O -K @fz_09.txt  -Wthinner,- >> ' ps])
 	% Take label from segment header and plot near coordinates of last record of each track
@@ -1069,7 +1069,7 @@ function [ps, d_path] = ex26(g_root_dir, out_path, verbose)
 	PROJ = sprintf('-JG%g/%g/%g/%g/%g/%g/%g/%g/4i', lon, lat, alt, azim, tilt, twist, width, height);
 	gmt('set -Du')
 	gmt('destroy')
-	gmt(['pscoast -Rg ' PROJ ' -X1i -B5g5 -Glightbrown -Slightblue -W -Dl -N1/1p,red -N2,0.5p -P -K -Y5i > ' ps])
+	gmt(['pscoast -Rg ' PROJ ' -X1i -B5g5 -Glightbrown -Slightblue -W -Dl -N1/1p,red -N2/0.5p -P -K -Y5i > ' ps])
 
 	% Now point from an altitude of 160 km with a specific tilt and azimuth and with a wider restricted
 	% view and a boresight twist of 45 degrees
