@@ -1,6 +1,4 @@
 /*
- *	$Id$
- *
  *	Copyright (c) 2015-2020 by P. Wessel and J. Luis
  *      See LICENSE.TXT file for copying and redistribution conditions.
  *
@@ -13,7 +11,7 @@
  *      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *      GNU Lesser General Public License for more details.
  *
- *      Contact info: www.soest.hawaii.edu/gmt
+ *	Contact info: www.generic-mapping-tools.org
  *--------------------------------------------------------------------*/
 /* This layer of code handles the interface between GMT objects and how
  * we represent them in Matlab/Octave.
@@ -798,14 +796,14 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 			I->header->nan_value = *(float *)mxGetData (mx_ptr);
 
 		mx_ptr = mxGetField (ptr, 0, "proj4");
-		if (mx_ptr != NULL && mxGetN(mx_ptr) > 6) {		/* A true proj4 string will have at least this lenght */
+		if (mx_ptr != NULL && mxGetN(mx_ptr) > 6) {		/* A true proj4 string will have at least this length */
 			char *str = malloc(mxGetN(mx_ptr) + 1);
 			mxGetString(mx_ptr, str, (mwSize)mxGetN(mx_ptr) + 1);
 			I->header->ProjRefPROJ4 = GMT_Duplicate_String (API, str);
 			free (str);
 		}
 		mx_ptr = mxGetField (ptr, 0, "wkt");
-		if (mx_ptr != NULL && mxGetN(mx_ptr) > 20) {	/* A true WTT string will have more thna this lenght */ 
+		if (mx_ptr != NULL && mxGetN(mx_ptr) > 20) {	/* A true WTT string will have more than this length */ 
 			char *str = malloc(mxGetN(mx_ptr) + 1);
 			mxGetString(mx_ptr, str, (mwSize)mxGetN(mx_ptr) + 1);
 			I->header->ProjRefWKT = GMT_Duplicate_String (API, str);
@@ -1060,7 +1058,7 @@ static void *gmtmex_dataset_init (void *API, unsigned int direction, unsigned in
 				/* Now we have the length of this segment */
 				S = GMT_Alloc_Segment (API, GMT_WITH_STRINGS, dim[GMT_ROW], 0, buffer, D->table[0]->segment[seg]);
 				for (row = 0; row < S->n_rows; row++) {	/* Hook up the string records */
-					mx_ptr = mxGetCell (ptr, (mwSize)(k+row));	/* k is the offset to 1st record of current segment in inpu cell array */
+					mx_ptr = mxGetCell (ptr, (mwSize)(k+row));	/* k is the offset to 1st record of current segment in input cell array */
 					txt = mxArrayToString (mx_ptr);
 					S->text[row] = GMT_Duplicate_String (API, txt);
 				}
@@ -1154,7 +1152,7 @@ static struct GMT_PALETTE *gmtmex_palette_init (void *API, unsigned int directio
 			for (k = 0; k < 3; k++)
 				P->bfn[j].rgb[k] = bfn[j+k*3];
 		}
-		for (j = 0; j < P->n_colors; j++) {	/* OK to access j+1'th elemenent since length of colormap is P->n_colors+1 */
+		for (j = 0; j < P->n_colors; j++) {	/* OK to access j+1'th element since length of colormap is P->n_colors+1 */
 			for (k = 0; k < 3; k++) {
 				P->data[j].rgb_low[k]  = cpt[j+k*dim[0]];
 				P->data[j].rgb_high[k] = cpt[j+(k+3)*dim[0]];

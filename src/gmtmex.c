@@ -1,6 +1,4 @@
 /*--------------------------------------------------------------------
- *	$Id$
- *
  *	Copyright (c) 2015-2020 by P. Wessel and J. Luis
  *	See LICENSE.TXT file for copying and redistribution conditions.
  *
@@ -13,7 +11,7 @@
  *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *	GNU Lesser General Public License for more details.
  *
- *	Contact info: gmt.soest.hawaii.edu
+ *	Contact info: www.generic-mapping-tools.org
  *--------------------------------------------------------------------*/
 /*
  * This is the MATLAB/Octave(mex) GMT application, which can do the following:
@@ -25,7 +23,7 @@
  *
  * First argument to the gmt function is the API pointer, but it is optional once created.
  * Next argument is the module name
- * Thrid argument is the option string
+ * Third argument is the option string
  * Finally, there are optional comma-separated MATLAB array entities required by the command.
  * Information about the options of each program is provided via GMT_Encode_Options.
  *
@@ -186,7 +184,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 			if ((gtxt = strstr (cmd, "-V")) != NULL) verbose = GMT_get_V (gtxt[2]);
 			API = Initiate_Session (verbose);	/* Initializing a new GMT session */
 
-			if (nlhs) {	/* Return the API adress as an integer (nlhs == 1 here) )*/
+			if (nlhs) {	/* Return the API address as an integer (nlhs == 1 here) )*/
 				plhs[0] = mxCreateNumericMatrix (1, 1, mxUINT64_CLASS, mxREAL);
 				pti = mxGetData(plhs[0]);
 				*pti = *pPersistent;
@@ -203,7 +201,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		}
 		else
 			API = (void *)pPersistent[0];       /* Get the GMT API pointer */
-		if (API == NULL) mexErrMsgTxt ("GMT: This GMT5 session has is currupted. Better to start from scratch.\n"); 
+		if (API == NULL) mexErrMsgTxt ("GMT: This GMT5 session has is corrupted. Better to start from scratch.\n"); 
 	}
 	else if (mxIsScalar_(prhs[0]) && mxIsUint64(prhs[0])) {
 		/* Here, nrhs > 1 . If first arg is a scalar int, we assume it is the API memory address */
@@ -268,7 +266,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	}
 
 
-	/* See if info about instalation is required */
+	/* See if info about installation is required */
 	if (!strcmp(module, "gmt")) {
 		char t[256] = {""};
 		if (!opt_args) {
@@ -367,10 +365,8 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	/* 6. Run GMT module; give usage message if errors arise during parsing */
 	status = GMT_Call_Module (API, module, GMT_MODULE_OPT, options);
 	if (status != GMT_NOERROR) {
-		if (status == GMT_MODULE_USAGE || status == GMT_MODULE_SYNOPSIS || status == GMT_MODULE_LIST ||
-			status == GMT_MODULE_EXIST || status == GMT_MODULE_PURPOSE) {
+		if (status <= GMT_MODULE_PURPOSE)
 			return;
-		}
 		else {
 			mexPrintf("GMT: Module return with failure while executing the command\n%s\n", cmd);
 			mexErrMsgTxt("GMT: exiting\n");
@@ -397,7 +393,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 			mexErrMsgTxt ("GMT: Failed to close virtual file\n");
 		if (GMT_Destroy_Data (API, &X[k].object) != GMT_NOERROR)
 			mexErrMsgTxt ("GMT: Failed to destroy object used in the interface between GMT and MATLAB\n");
-		else {	/* Success, now make sure we dont destroy the same pointer more than once */
+		else {	/* Success, now make sure we don't destroy the same pointer more than once */
 			for (size_t kk = k+1; kk < n_items; kk++)
 				if (X[kk].object == ppp) X[kk].object = NULL;
 		}
