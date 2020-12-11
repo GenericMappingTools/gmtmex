@@ -1,0 +1,76 @@
+#
+# Compile gmtmex and run tests
+#
+name: Tests
+
+# Only build PRs, the master branch, and scheduled jobs
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+  # schedule daily jobs
+  schedule:
+    - cron: '0 12 * * *'
+
+jobs:
+  tests:
+    name: Tests - ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    env:
+      GMT_INSTALL_DIR: ${{ github.workspace }}/../gmt-install-dir
+
+    steps:
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.6.0
+        with:
+          access_token: ${{ github.token }}
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install Octave
+        run: |
+          if [ "$RUNNER_OS" == "macOS" ]; then
+            brew install octave
+          elif [ "$RUNNER_OS" == "Linux" ]; then
+            sudo apt-get install octave liboctave-dev
+          fi
+
+      - name: Build and install GMT
+        run: |
+          if [ "$RUNNER_OS" == "macOS" ]; then
+            curl https://raw.githubusercontent.com/GenericMappingTools/gmt/master/ci/install-dependencies-macos.sh | bash
+          elif [ "$RUNNER_OS" == "Linux" ]; then
+            curl https://raw.githubusercontent.com/GenericMappingTools/gmt/master/ci/install-dependencies-linux.sh | bash
+          fi
+          curl https://raw.githubusercontent.com/GenericMappingTools/gmt/master/ci/build-gmt.sh | bash
+          echo "${GMT_INSTALL_DIR}/bin" >> $GITHUB_PATH
+
+      - name: Build gmtmex
+        run: |
+          autoconf
+          ./configure --enable-octave
+          make all
+          make install
+
+      - name: Run tests
+        run: |
+          export OCTAVE_PATH="$OCTAVE_PATH:$(gmt --show-bindir)"
+          export LD_LIBRARY_PATH="$(gmt-config --libdir):$LD_LIBRARY_PATH"
+          echo "gmt('pscoast -Rg -JA280/30/3.5i -Bg -Dc -A1000 -Gnavy -P > GMT_lambert_az_hemi.ps')" > simple_test.m
+          echo "Running simple_test.m ..."
+          octave simple_test.m
+          #find . -name '*.m' ! -path "./src/gmt.m" -exec octave {} \;
+
+      - name: Upload the results
+        uses: actions/upload-artifact@v2
+        with:
+          name: gmtmex-artifact-${{ matrix.os }}
+          path: .
+        if: always()
