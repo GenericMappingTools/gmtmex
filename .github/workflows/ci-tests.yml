@@ -15,15 +15,17 @@ on:
 
 jobs:
   tests:
-    name: Tests - ${{ matrix.os }}
+    name: Tests - ${{ matrix.os }} + GMT ${{ matrix.gmt_version }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
+        gmt_version: [6.1.1, master]
 
     env:
       GMT_INSTALL_DIR: ${{ github.workspace }}/../gmt-install-dir
+      GMT_GIT_REF: ${{ matrix.gmt_version }}
 
     steps:
       - name: Cancel Previous Runs
@@ -71,6 +73,6 @@ jobs:
       - name: Upload the results
         uses: actions/upload-artifact@v2
         with:
-          name: gmtmex-artifact-${{ matrix.os }}
+          name: gmtmex-artifact-${{ matrix.os }}-GMT${{ matrix.gmt_version }}
           path: .
         if: always()
