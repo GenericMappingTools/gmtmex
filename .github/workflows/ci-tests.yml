@@ -41,6 +41,7 @@ jobs:
           if [ "$RUNNER_OS" == "macOS" ]; then
             brew install octave
           elif [ "$RUNNER_OS" == "Linux" ]; then
+            sudo apt-get update
             sudo apt-get install octave liboctave-dev
           fi
 

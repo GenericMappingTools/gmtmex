@@ -91,7 +91,7 @@ static void *Initiate_Session (unsigned int verbose) {
 
 static void *alloc_default_plhs (void *API, struct GMT_RESOURCE *X) {
 	/* Allocate a default plhs when it was not stated in command line. That is, mimic the Matlab behavior
-	   when we do for example (i.e. no lhs):  sqrt([4 9])  
+	   when we do for example (i.e. no lhs):  sqrt([4 9])
 	*/
 	void *ptr = NULL;
 	switch (X->family) {
@@ -143,14 +143,14 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		char message[128] = {""};
 		sprintf (message, "Warning: Your GMT version (%d.%d.%d) may be too new to work with GMTMEX %d.%d.%d.\n",
 			GMT_MAJOR_VERSION, GMT_MINOR_VERSION, GMT_RELEASE_VERSION, GMTMEX_GMT_MAJOR_VERSION, GMTMEX_GMT_MINOR_VERSION, GMTMEX_GMT_PATCH_VERSION);
-		mexPrintf (message); 
+		mexPrintf (message);
 	}
 	else if (GMT_MAJOR_VERSION < GMTMEX_GMT_MAJOR_VERSION || GMT_MINOR_VERSION < GMTMEX_GMT_MINOR_VERSION || (GMT_MINOR_VERSION == GMTMEX_GMT_MINOR_VERSION && GMT_RELEASE_VERSION < GMTMEX_GMT_PATCH_VERSION)) {
 		char message[128] = {""};
 		sprintf (message, "Error: The GMT shared library must be at least version %d.%d.%d but you have %d.%d.%d.\n",
 			GMTMEX_GMT_MAJOR_VERSION, GMTMEX_GMT_MINOR_VERSION, GMTMEX_GMT_PATCH_VERSION,
 			GMT_MAJOR_VERSION, GMT_MINOR_VERSION, GMT_RELEASE_VERSION);
-		mexErrMsgTxt (message); 
+		mexErrMsgTxt (message);
 	}
 
 	/* 0. No arguments at all results in the GMT banner message */
@@ -160,7 +160,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	}
 
 	/* 1. Check for the special commands create and help */
-	
+
 	if (nrhs == 1) {	/* This may be create or help */
 		cmd = mxArrayToString (prhs[0]);
 		if (!cmd) mexErrMsgTxt("GMT: First input argument must be a string. Maybe a composition of a string and a cell array?\n");
@@ -201,7 +201,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		}
 		else
 			API = (void *)pPersistent[0];       /* Get the GMT API pointer */
-		if (API == NULL) mexErrMsgTxt ("GMT: This GMT5 session has is corrupted. Better to start from scratch.\n"); 
+		if (API == NULL) mexErrMsgTxt ("GMT: This GMT5 session has is corrupted. Better to start from scratch.\n");
 	}
 	else if (mxIsScalar_(prhs[0]) && mxIsUint64(prhs[0])) {
 		/* Here, nrhs > 1 . If first arg is a scalar int, we assume it is the API memory address */
@@ -210,9 +210,10 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		first = 1;		/* Commandline args start at prhs[1] since prhs[0] had the API id argument */
 	}
 	else {		/* We still don't have the API, so we must get it from the past or initiate a new session */
-		if (!pPersistent || (API = (void *)pPersistent[0]) == NULL)
+		if (!pPersistent || (API = (void *)pPersistent[0]) == NULL) {
 			API = Initiate_Session (verbose);	/* Initializing new GMT session */
 			mexAtExit(force_Destroy_Session);	/* Register an exit function. */
+		}
 #endif
 	}
 
@@ -239,14 +240,14 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	}
 
 	/* 2. Get module name and separate out args */
-	
+
 	/* Here we have a GMT module call. The documented use is to give the module name separately from
 	 * the module options, but users may forget and combine the two.  So we check both cases. */
-	
+
 	n_in_objects = nrhs - 1;
 	str_length = strlen (cmd);				/* Length of module (or command) argument */
 	for (k = 0; k < str_length && cmd[k] != ' '; k++);	/* Determine first space in command */
-	
+
 	if (k == str_length) {	/* Case 2a): No spaces found: User gave 'module' separately from 'options' */
 		strcpy (module, cmd);				/* Isolate the module name in this string */
 		if (nrhs > 1 && mxIsChar (prhs[first+1])) {	/* Got option string */
@@ -297,11 +298,11 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 
 	/* Make sure this is a valid module */
 	if ((status = GMT_Call_Module (API, module, GMT_MODULE_EXIST, NULL)) != GMT_NOERROR) 	/* No, not found */
-		mexErrMsgTxt ("GMT: No module by that name was found.\n"); 
-	
+		mexErrMsgTxt ("GMT: No module by that name was found.\n");
+
 	/* Below here we may actually wish to add options to the opt_args, but it is a pointer.  So we duplicate to
 	 * another string with enough space. */
-	
+
 	if (opt_args) strcpy (opt_buffer, opt_args);	/* opt_buffer has lots of space for additions */
 	/* 2+ Add -F to psconvert if user requested a return image but did not explicitly give -F */
 	if (!strncmp (module, "psconvert", 9U) && nlhs == 1 && (!opt_args || !strstr ("-F", opt_args))) {	/* OK, add -F */
@@ -310,7 +311,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		else
 			strcpy (opt_buffer, "-F");
 	}
-	
+
 	/* 2++ If gmtwrite then add -T? with correct object type */
 	if (strstr(module, "write") && opt_args && !strstr(opt_args, "-T") && n_in_objects == 1) {	/* Add type for writing to disk */
 		char targ[5] = {" -T?"};
@@ -327,7 +328,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 
 	if (!options && nlhs == 0 && nrhs == 1 && strcmp (module, "end")) 	/* Just requesting usage message, so add -? to options */
 		options = GMT_Create_Options (API, 0, "-?");
-	
+
 	/* 4. Preprocess to update GMT option lists and return info array X */
 	if ((X = GMT_Encode_Options (API, module, n_in_objects, &options, &n_items)) == NULL) {
 		if (n_items == UINT_MAX)	/* Just got usage/synopsis option */
@@ -335,15 +336,15 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		else
 			mexErrMsgTxt ("GMT: Failure to encode mex command options\n");
 	}
-	
+
 	if (options) {	/* Only for debugging - remove this section when stable */
 		gtxt = GMT_Create_Cmd (API, options);
 		GMT_Report (API, GMT_MSG_DEBUG, "GMT_Encode_Options: Revised command after memory-substitution: %s\n", gtxt);
 		GMT_Destroy_Cmd (API, &gtxt);	/* Only needed it for the above verbose */
 	}
-	
+
 	/* 5. Assign input sources (from MATLAB to GMT) and output destinations (from GMT to MATLAB) */
-	
+
 	for (k = 0; k < n_items; k++) {	/* Number of GMT containers involved in this module call */
 		if (X[k].direction == GMT_IN) {
 			if ((X[k].pos+first+1) < (unsigned int)nrhs)
@@ -361,7 +362,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		}
 		GMTMEX_Set_Object (API, &X[k], ptr);	/* Set object pointer */
 	}
-	
+
 	/* 6. Run GMT module; give usage message if errors arise during parsing */
 	status = GMT_Call_Module (API, module, GMT_MODULE_OPT, options);
 	if (status != GMT_NOERROR) {
@@ -374,7 +375,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	}
 
 	/* 7. Hook up any GMT outputs to MATLAB plhs array */
-	
+
 	for (k = 0; k < n_items; k++) {	/* Get results from GMT into MATLAB arrays */
 		if (X[k].direction == GMT_IN) continue;	/* Only looking for stuff coming OUT of GMT here */
 		pos = X[k].pos;		/* Short-hand for index into the plhs[] array being returned to MATLAB */
@@ -386,7 +387,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		GMT_Set_Default (API, "API_PAD", "2");
 
 	/* 8. Free all GMT containers involved in this module call */
-	
+
 	for (k = 0; k < n_items; k++) {
 		void *ppp = X[k].object;
 		if (GMT_Close_VirtualFile (API, X[k].name) != GMT_NOERROR)
@@ -400,7 +401,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	}
 
 	/* 9. Destroy linked option list */
-	
+
 	if (GMT_Destroy_Options (API, &options) != GMT_NOERROR)
 		mexErrMsgTxt ("GMT: Failure to destroy GMT5 options\n");
 #ifdef SINGLE_SESSION
