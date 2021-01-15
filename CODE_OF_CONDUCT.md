@@ -60,8 +60,7 @@ representative at an online or offline event.
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported to the community leaders responsible for enforcement by contacting
-[Paul Wessel](http://www.soest.hawaii.edu/wessel) or
-[Meghan Jones](http://www.soest.hawaii.edu/earthsciences/people/gg_postdocs.html). 
+[Paul Wessel](http://www.soest.hawaii.edu/wessel). 
 All complaints will be reviewed and investigated promptly and fairly.
 
 All community leaders are obligated to respect the privacy and security of the
