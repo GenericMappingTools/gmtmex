@@ -35,7 +35,12 @@
 
 #include "gmtmex.h"
 
+#if GMT_MAJOR_VERSION == 6 && GMT_MINOR_VERSION > 1
+extern int gmt_get_V (char arg);	/* Temporary here to allow full debug messaging */
+#else
 extern int GMT_get_V (char arg);	/* Temporary here to allow full debug messaging */
+#define gmt_get_V GMT_get_V	/* Old name */
+#endif
 
 #ifndef SINGLE_SESSION
 /* Being declared external we can access it between MEX calls */
@@ -181,7 +186,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 					plhs[0] = mxCreateNumericMatrix (1, 0, mxUINT64_CLASS, mxREAL);
 				return;
 			}
-			if ((gtxt = strstr (cmd, "-V")) != NULL) verbose = GMT_get_V (gtxt[2]);
+			if ((gtxt = strstr (cmd, "-V")) != NULL) verbose = gmt_get_V (gtxt[2]);
 			API = Initiate_Session (verbose);	/* Initializing a new GMT session */
 
 			if (nlhs) {	/* Return the API address as an integer (nlhs == 1 here) )*/

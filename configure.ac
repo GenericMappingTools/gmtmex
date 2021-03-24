@@ -25,7 +25,7 @@ dnl We also need to gather the following information
 dnl 1. Location of GMT5 include and library files
 dnl -----------------------------------------------------------------
 dnl
-AC_INIT(gmt-mex, 6, pwessel@hawaii.edu)
+AC_INIT([gmt-mex],[6],[pwessel@hawaii.edu])
 dnl
 dnl -----------------------------------------------------------------
 dnl The remainder should need no editing
@@ -34,9 +34,17 @@ dnl
 AC_CONFIG_SRCDIR(src/gmtmex.h)
 AC_CONFIG_AUX_DIR(`pwd`)
 AC_PREFIX_PROGRAM(gmt)	
-AC_CYGWIN
-AC_CANONICAL_SYSTEM
-AC_LANG_C
+m4_warn([obsolete],
+[AC_CYGWIN is obsolete: use AC_CANONICAL_HOST and check if $host_os
+matches *cygwin*])dnl
+AC_CANONICAL_HOST
+case $host_os in
+  *cygwin* ) CYGWIN=yes;;
+	 * ) CYGWIN=no;;
+esac
+
+AC_CANONICAL_TARGET
+AC_LANG([C])
 AC_PROG_CC
 AC_PROG_CPP
 AC_PREFIX_DEFAULT(`pwd`)
@@ -465,5 +473,6 @@ dnl -----------------------------------------------------------------
 dnl Update the Make macros
 dnl -----------------------------------------------------------------
 dnl
-AC_OUTPUT(config.mk)
+AC_CONFIG_FILES([config.mk])
+AC_OUTPUT
 dnl
