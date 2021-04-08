@@ -16,7 +16,7 @@ Examples below will give you the general idea.
 ## Windows
 
 The Windows installers come already with the gmtmex.mexw64|32 and gmt.m files necessary run the MEX. Only make sure that the
-GMT5.4 binary dir is either in the Windows path (the installer does that for you) and in the MATLAB path (you have to do it
+GMT6.2 binary dir is either in the Windows path (the installer does that for you) and in the MATLAB path (you have to do it
 yourself). If you want to (re)build the MEX file yourself, see the compile_mex.bat in the source SVN repository.
 
 ## OS X
@@ -27,7 +27,7 @@ The following works:
 
  * Install the GMT OS X Bundle
  * Run the gmt_prepmex.sh script in the bundle's share/tools directory.  This will duplicate
-   the GMT 5.4 installation into /opt/gmt and re-baptize all the shared libraries.
+   the GMT 6.2 installation into /opt/gmt and re-baptize all the shared libraries.
  * Use gmtswitch to make /opt/gmt the current active GMT version
  * Checkout the gmt-mex project via subversion into some directory, i.e.,
    svn checkout svn://gmtserver.soest.hawaii.edu/gmt-mex gmt-mex
@@ -41,10 +41,8 @@ You can also build your own bundle (see CMakeLists.txt in main GMT directory).  
 with UNIX installations from fink or HomeBrew but fails for us if under MacPorts (then, MATLAB
 will complain about wrong shared HDF5 library and we crash).
 If you wish to help debug in XCode then see the gmt-mex wiki for more details.  While the latest
-2016a MATLAB version works with XCode 7, earlier versions may require 6.4 and you will have
-to install the older Xcode version.
-We used the 2016b MATLAB version to build the interface but 2015a,b should also work.  Older
-versions may also work but we have not attempted this since we only have access to these three.
+2021a MATLAB version works with XCode 12, earlier versions may require an older Xcode version.
+We used the 2021a MATLAB version to build the interface.
 
 ## Unix/Linux
 
