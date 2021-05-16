@@ -106,6 +106,7 @@ typedef int mwSize;
 #	define MEXM_IJ(M,row,col) ((row)*M->n_columns + (col))
 	/* And this on GMT_GRID */
 #	define MEXG_IJ(M,row,col) ((row)*M->header->n_columns + (col))
+#	define MEXU_IJK(M,layer,row,col) ((layer)*M->header->nm + (row)*M->header->n_columns + (col))
 #else	/* Here we go for Matlab or Octave(mex) */
 #	ifdef GMT_MATLAB
 #		define MEX_PROG "Matlab"
@@ -118,6 +119,7 @@ typedef int mwSize;
 #	define MEXM_IJ(M,row,col) ((col)*M->n_rows + (row))
 	/* And this on GMT_GRID */
 #	define MEXG_IJ(M,row,col) ((col)*M->header->n_rows + M->header->n_rows - (row) - 1)
+#	define MEXU_IJK(M,layer,row,col) ((layer)*M->header->nm + (col)*M->header->n_rows + M->header->n_rows - (row) - 1)
 #endif
 
 /* Definitions of MEX structures used to hold GMT objects.
@@ -133,6 +135,15 @@ typedef int mwSize;
 #define N_MEX_FIELDNAMES_DATASET	6
 static const char *GMTMEX_fieldname_dataset[N_MEX_FIELDNAMES_DATASET] =
 	{"data", "text", "header", "comment", "proj4", "wkt"};
+
+/* GMT_IS_CUBE:
+ * Returned by GMT via the parser as a MEX structure with the
+ * fields listed below. */
+
+#define N_MEX_FIELDNAMES_CUBE	19
+static const char *GMTMEX_fieldname_cube[N_MEX_FIELDNAMES_CUBE] =
+	{"w", "x", "y", "z", "range", "inc", "registration", "nodata", "title", "comment",
+	 "command", "datatype", "x_unit", "y_unit", "z_unit", "w_unit", "layout", "proj4", "wkt"};
 
 /* GMT_IS_GRID:
  * Returned by GMT via the parser as a MEX structure with the
