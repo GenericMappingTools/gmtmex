@@ -63,7 +63,7 @@ static void usage (int nlhs, int nrhs) {
 	if (nrhs == 0) {	/* No arguments at all results in the GMT banner message */
 		mexPrintf("\nGMT - The Generic Mapping Tools, %s API, Version %d.%d.%d\n",
 		          MEX_PROG, GMTMEX_MAJOR_VERSION, GMTMEX_MINOR_VERSION, GMTMEX_PATCH_VERSION);
-		mexPrintf("Copyright 1991-2018 Paul Wessel, Walter H. F. Smith, R. Scharroo, J. Luis, and F. Wobbe\n\n");
+		mexPrintf("Copyright 1991-2021 Paul Wessel, Walter H. F. Smith, R. Scharroo, J. Luis, and F. Wobbe\n\n");
 		mexPrintf("This program comes with NO WARRANTY, to the extent permitted by law.\n");
 		mexPrintf("You may redistribute copies of this program under the terms of the\n");
 		mexPrintf("GNU Lesser General Public License.\n");
@@ -100,6 +100,9 @@ static void *alloc_default_plhs (void *API, struct GMT_RESOURCE *X) {
 	*/
 	void *ptr = NULL;
 	switch (X->family) {
+		case GMT_IS_CUBE:
+			ptr = (void *)mxCreateStructMatrix (0, 0, N_MEX_FIELDNAMES_CUBE, GMTMEX_fieldname_cube);
+			break;
 		case GMT_IS_GRID:
 			ptr = (void *)mxCreateStructMatrix (0, 0, N_MEX_FIELDNAMES_GRID, GMTMEX_fieldname_grid);
 			break;
@@ -122,7 +125,7 @@ static void *alloc_default_plhs (void *API, struct GMT_RESOURCE *X) {
 }
 
 /* This is the function that is called when we type gmt in MATLAB/Octave */
-void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
+void GMT_mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	int status = 0;                 /* Status code from GMT API */
 	int n_in_objects = 0;           /* Number of input objects passed to module */
 	unsigned int first = 0;         /* Array ID of first command argument (not 0 when API-ID is first) */
@@ -418,4 +421,8 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		mexErrMsgTxt ("GMT: Failure to destroy GMT5 session\n");
 #endif
 	return;
+}
+
+void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
+	GMT_mexFunction (nlhs, plhs, nrhs, prhs);
 }
