@@ -221,8 +221,9 @@ static void *gmtmex_get_cube (void *API, struct GMT_CUBE *U) {
 		if ((G = GMT_Create_Data (API, GMT_IS_GRID, GMT_IS_SURFACE, GMT_CONTAINER_ONLY,
 		        NULL, U->header->wesn, U->header->inc, U->header->registration, 2, NULL)) == NULL)
 			mexErrMsgTxt ("gmtmex_get_cube: Failure to alloc GMT source grid for input\n");
-		G->data = U->data;
+		G->data = U->data;	/* Temporarily read from the single cube layer */
 		ptr = gmtmex_get_grid (API, G);
+		G->data = NULL;		/* Undo this since nothing was allocated for G above */
 		if (GMT_Destroy_Data (API, &G))
 			mexPrintf("Warning: Failure to delete G (grid layer in gmtmex_get_cube)\n");
 
