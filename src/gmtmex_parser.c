@@ -51,7 +51,14 @@ enum MEX_dim {
  * The packing up of GMT structures into MATLAB structures and vice versa happens after getting the
  * results out of the GMT API and before passing them back to MATLAB.
  *
- * All 5 GMT Resources are supported in this API, according to these rules:
+ * All 6 GMT Resources are supported in this API, according to these rules:
+ *  GMT_CUBE:	Handled with a MATLAB cube structure and we use GMT's GMT_CUBE for the passing
+ *		  + Basic header array of length 12 [xmin, xmax, ymin, ymax, zmin, zmax, xmin, wmax, reg, xinc, yinc, zinc]
+ *		  + The 3-D grid array w (single precision)
+ *		  + An x-array of coordinates
+ *		  + An y-array of coordinates
+ *		  + An z-array of coordinates
+ *		  + Various Proj4 strings
  *  GMT_GRID:	Handled with a MATLAB grid structure and we use GMT's GMT_GRID for the passing
  *		  + Basic header array of length 9 [xmin, xmax, ymin, ymax, zmin, zmax, reg, xinc, yinc]
  *		  + The 2-D grid array z (single precision)
@@ -626,8 +633,9 @@ static struct GMT_CUBE *gmtmex_cube_init (void *API, unsigned int direction, uns
 			mexErrMsgTxt ("gmtmex_cube_init: The input that was supposed to contain the Cube, is empty\n");
 
 		if (mxIsStruct(ptr)) {	/* Passed a regular MEX Cube structure */
-			double *inc = NULL, *range = NULL, *reg = NULL;
+			double *inc = NULL, *range = NULL, *z = NULL, *reg = NULL;
 			unsigned int pad = (unsigned int)GMT_NOTSET;
+			uint64_t *this_dim = NULL, dims[3] = {0, 0, 0};
 			char x_unit[GMT_GRID_VARNAME_LEN80] = { "" }, y_unit[GMT_GRID_VARNAME_LEN80] = { "" },
 			     z_unit[GMT_GRID_VARNAME_LEN80] = { "" }, w_unit[GMT_GRID_VARNAME_LEN80] = { "" }, layout[3];
 			mx_ptr = mxGetField (ptr, 0, "inc");
@@ -661,9 +669,22 @@ static struct GMT_CUBE *gmtmex_cube_init (void *API, unsigned int direction, uns
 					mexPrintf("gmtmex_cube_init:  This pad value (%d) is very probably wrong.\n");
 			}
 
-			if ((U = GMT_Create_Data (API, GMT_IS_CUBE|flag, GMT_IS_VOLUME, GMT_GRID_ALL,
-			                          NULL, range, inc, registration, pad, NULL)) == NULL)
+			if (inc[2] == 0.0) {	/* Non-equidistant cube layering, must allocate based on dimensions */
+				mexPrintf("gmtmex_cube_init:  Detected non-equidistant z-spacing.\n");
+				if ((mx_ptr = mxGetField (ptr, 0, "z")) == NULL)
+					mexErrMsgTxt ("gmtmex_cube_init: Could not find z array for Cube z-nodes\n");
+				dims[2] = mxGetN(mx_ptr);	/* Number of output levels */
+				this_dim = dims;	/* Pointer to the dims instead of NULL */
+				z = mxGetData (mx_ptr);	/* Get the non-equidistant z nodes */
+			}
+			if ((U = GMT_Create_Data (API, GMT_IS_CUBE|flag, GMT_IS_VOLUME, GMT_CONTAINER_AND_DATA,
+			                          this_dim, range, inc, registration, pad, NULL)) == NULL)
 				mexErrMsgTxt ("gmtmex_cube_init: Failure to alloc GMT source Cube for input\n");
+
+			if (this_dim) {	/* If not equidistant we must duplicate the level array into the Cube manually */
+				if (U->z == NULL && GMT_Put_Levels (API, U, z, dim[2]))
+					mexErrMsgTxt ("gmtmex_cube_init: Failure to put non-equidistant z-nodes into the cube structure\n");
+			}
 
 			U->z_range[0] = range[4];
 			U->z_range[1] = range[5];
@@ -850,7 +871,7 @@ static struct GMT_GRID *gmtmex_grid_init (void *API, unsigned int direction, uns
 					mexPrintf("gmtmex_grid_init:  This pad value (%d) is very probably wrong.\n");
 			}
 
-			if ((G = GMT_Create_Data (API, GMT_IS_GRID|flag, GMT_IS_SURFACE, GMT_GRID_ALL,
+			if ((G = GMT_Create_Data (API, GMT_IS_GRID|flag, GMT_IS_SURFACE, GMT_CONTAINER_AND_DATA,
 			                          NULL, range, inc, registration, pad, NULL)) == NULL)
 				mexErrMsgTxt ("gmtmex_grid_init: Failure to alloc GMT source matrix for input\n");
 
@@ -924,7 +945,7 @@ static struct GMT_GRID *gmtmex_grid_init (void *API, unsigned int direction, uns
 		else {	/* Passed header and grid separately */
 			double *h = mxGetData(mxHdr);
 			registration = (unsigned int)lrint(h[6]);
-			if ((G = GMT_Create_Data (API, GMT_IS_GRID|flag, GMT_IS_SURFACE, GMT_GRID_ALL,
+			if ((G = GMT_Create_Data (API, GMT_IS_GRID|flag, GMT_IS_SURFACE, GMT_CONTAINER_AND_DATA,
 			                          NULL, h, &h[7], registration, GMT_NOTSET, NULL)) == NULL)
 				mexErrMsgTxt ("gmtmex_grid_init: Failure to alloc GMT source matrix for input\n");
 			G->header->z_min = h[4];
@@ -1016,7 +1037,7 @@ static struct GMT_IMAGE *gmtmex_image_init (void *API, unsigned int direction, u
 			mexErrMsgTxt("gmtmex_image_init: The only data type supported by now is UInt8, and this image is not.\n");
 
 		dim[0] = gmtmex_getMNK (mx_ptr, 1);	dim[1] = gmtmex_getMNK (mx_ptr, 0);	dim[2] = gmtmex_getMNK (mx_ptr, 2);
-		if ((I = GMT_Create_Data (API, GMT_IS_IMAGE|flag, GMT_IS_SURFACE, GMT_GRID_HEADER_ONLY, dim,
+		if ((I = GMT_Create_Data (API, GMT_IS_IMAGE|flag, GMT_IS_SURFACE, GMT_CONTAINER_ONLY, dim,
 			                      range, inc, (unsigned int)reg[0], pad, NULL)) == NULL)
 			mexErrMsgTxt ("gmtmex_image_init: Failure to alloc GMT source image for input\n");
 

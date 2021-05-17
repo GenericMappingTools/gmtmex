@@ -21,7 +21,7 @@
 #define GMTMEX_H
 
 #define GMTMEX_MAJOR_VERSION 2
-#define GMTMEX_MINOR_VERSION 0
+#define GMTMEX_MINOR_VERSION 1
 #define GMTMEX_PATCH_VERSION 0
 
 /* Define the minimum GMT version suitable for this GMTMEX version */
@@ -106,6 +106,7 @@ typedef int mwSize;
 #	define MEXM_IJ(M,row,col) ((row)*M->n_columns + (col))
 	/* And this on GMT_GRID */
 #	define MEXG_IJ(M,row,col) ((row)*M->header->n_columns + (col))
+	/* And this on GMT_CUBE */
 #	define MEXU_IJK(M,layer,row,col) ((layer)*M->header->nm + (row)*M->header->n_columns + (col))
 #else	/* Here we go for Matlab or Octave(mex) */
 #	ifdef GMT_MATLAB
@@ -119,6 +120,7 @@ typedef int mwSize;
 #	define MEXM_IJ(M,row,col) ((col)*M->n_rows + (row))
 	/* And this on GMT_GRID */
 #	define MEXG_IJ(M,row,col) ((col)*M->header->n_rows + M->header->n_rows - (row) - 1)
+	/* And this on GMT_CUBE */
 #	define MEXU_IJK(M,layer,row,col) ((layer)*M->header->nm + (col)*M->header->n_rows + M->header->n_rows - (row) - 1)
 #endif
 
@@ -128,9 +130,9 @@ typedef int mwSize;
 /* GMT_IS_DATASET:
  * Returned by GMT via the parser as a MEX structure with the
  * fields listed below.  Pure datasets will only set the data
- * matrix and leave the text cell array empty, while textsets
- * will fill out both.  Only the first segment will have any
- * information in the info and projection_ref_* items.  */
+ * matrix and leave the text cell array empty, while datasets
+ * with trailing text will fill out both.  Only the first segment
+ * will have any information in the info and projection_ref_* items.  */
 
 #define N_MEX_FIELDNAMES_DATASET	6
 static const char *GMTMEX_fieldname_dataset[N_MEX_FIELDNAMES_DATASET] =
@@ -179,7 +181,7 @@ static const char *GMTMEX_fieldname_cpt[N_MEX_FIELDNAMES_CPT] =
 static const char *GMTMEX_fieldname_ps[N_MEX_FIELDNAMES_PS] =
 	{"postscript", "length", "mode", "comment"};
 
-/* Macro for indexing into a GMT grid [with pad] */
+/* Macro for indexing into an internal GMT grid [with pad] */
 #define GMT_IJP(h,row,col) ((uint64_t)(((int64_t)(row)+(int64_t)h->pad[GMT_YHI])*((int64_t)h->mx)+(int64_t)(col)+(int64_t)h->pad[GMT_XLO]))
 
 #define MODULE_LEN 	32	/* Max length of a GMT module name */
