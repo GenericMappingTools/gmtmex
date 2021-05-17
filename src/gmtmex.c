@@ -100,6 +100,9 @@ static void *alloc_default_plhs (void *API, struct GMT_RESOURCE *X) {
 	*/
 	void *ptr = NULL;
 	switch (X->family) {
+		case GMT_IS_CUBE:
+			ptr = (void *)mxCreateStructMatrix (0, 0, N_MEX_FIELDNAMES_CUBE, GMTMEX_fieldname_cube);
+			break;
 		case GMT_IS_GRID:
 			ptr = (void *)mxCreateStructMatrix (0, 0, N_MEX_FIELDNAMES_GRID, GMTMEX_fieldname_grid);
 			break;
