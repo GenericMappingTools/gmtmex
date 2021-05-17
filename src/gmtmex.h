@@ -144,8 +144,8 @@ static const char *GMTMEX_fieldname_dataset[N_MEX_FIELDNAMES_DATASET] =
 
 #define N_MEX_FIELDNAMES_CUBE	19
 static const char *GMTMEX_fieldname_cube[N_MEX_FIELDNAMES_CUBE] =
-	{"w", "x", "y", "z", "range", "inc", "registration", "nodata", "title", "comment",
-	 "command", "datatype", "x_unit", "y_unit", "z_unit", "w_unit", "layout", "proj4", "wkt"};
+	{"v", "x", "y", "z", "range", "inc", "registration", "nodata", "title", "comment",
+	 "command", "datatype", "x_unit", "y_unit", "z_unit", "v_unit", "layout", "proj4", "wkt"};
 
 /* GMT_IS_GRID:
  * Returned by GMT via the parser as a MEX structure with the

@@ -637,7 +637,7 @@ static struct GMT_CUBE *gmtmex_cube_init (void *API, unsigned int direction, uns
 			unsigned int pad = (unsigned int)GMT_NOTSET;
 			uint64_t *this_dim = NULL, dims[3] = {0, 0, 0};
 			char x_unit[GMT_GRID_VARNAME_LEN80] = { "" }, y_unit[GMT_GRID_VARNAME_LEN80] = { "" },
-			     z_unit[GMT_GRID_VARNAME_LEN80] = { "" }, w_unit[GMT_GRID_VARNAME_LEN80] = { "" }, layout[3];
+			     z_unit[GMT_GRID_VARNAME_LEN80] = { "" }, v_unit[GMT_GRID_VARNAME_LEN80] = { "" }, layout[3];
 			mx_ptr = mxGetField (ptr, 0, "inc");
 			if (mx_ptr == NULL)
 				mexErrMsgTxt ("gmtmex_cube_init: Could not find inc array with Cube increments\n");
@@ -648,7 +648,7 @@ static struct GMT_CUBE *gmtmex_cube_init (void *API, unsigned int direction, uns
 				mexErrMsgTxt ("gmtmex_cube_init: Could not find range array for Cube range\n");
 			range = mxGetData (mx_ptr);
 
-			mxCube = mxGetField(ptr, 0, "w");
+			mxCube = mxGetField(ptr, 0, "v");
 			if (mxCube == NULL)
 				mexErrMsgTxt ("gmtmex_cube_init: Could not find data array for Cube\n");
 			if (!mxIsSingle(mxCube) && !mxIsDouble(mxCube))
@@ -682,7 +682,7 @@ static struct GMT_CUBE *gmtmex_cube_init (void *API, unsigned int direction, uns
 				mexErrMsgTxt ("gmtmex_cube_init: Failure to alloc GMT source Cube for input\n");
 
 			if (this_dim) {	/* If not equidistant we must duplicate the level array into the Cube manually */
-				if (U->z == NULL && GMT_Put_Levels (API, U, z, dim[2]))
+				if (U->z == NULL && GMT_Put_Levels (API, U, z, dims[2]))
 					mexErrMsgTxt ("gmtmex_cube_init: Failure to put non-equidistant z-nodes into the cube structure\n");
 			}
 
@@ -747,9 +747,9 @@ static struct GMT_CUBE *gmtmex_cube_init (void *API, unsigned int direction, uns
 				mxGetString(mx_ptr, z_unit, (mwSize)mxGetN(mx_ptr) + 1);
 				strncpy(U->units, z_unit, GMT_GRID_VARNAME_LEN80 - 1);
 			}
-			mx_ptr = mxGetField (ptr, 0, "w_unit");
+			mx_ptr = mxGetField (ptr, 0, "v_unit");
 			if (mx_ptr != NULL) {
-				mxGetString(mx_ptr, w_unit, (mwSize)mxGetN(mx_ptr) + 1);
+				mxGetString(mx_ptr, v_unit, (mwSize)mxGetN(mx_ptr) + 1);
 				strncpy(U->header->z_units, z_unit, GMT_GRID_VARNAME_LEN80 - 1);
 			}
 			mx_ptr = mxGetField (ptr, 0, "layout");
@@ -1538,7 +1538,7 @@ char GMTMEX_objecttype (const mxArray *ptr) {
 	if (mxIsEmpty (ptr))
 		mexErrMsgTxt ("GMTMEX_objecttype: Pointer is empty\n");
 	if (mxIsStruct (ptr)) {	/* This means either a cube, dataset, grid, image, cpt, or PS, so must check for fields */
-		mx_ptr = mxGetField (ptr, 0, "w_unit");
+		mx_ptr = mxGetField (ptr, 0, "v_unit");
 		if (mx_ptr) return 'u';
 		mx_ptr = mxGetField (ptr, 0, "data");
 		if (mx_ptr) return 'd';
