@@ -125,7 +125,7 @@ static void *alloc_default_plhs (void *API, struct GMT_RESOURCE *X) {
 }
 
 /* This is the function that is called when we type gmt in MATLAB/Octave */
-void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
+void GMT_mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	int status = 0;                 /* Status code from GMT API */
 	int n_in_objects = 0;           /* Number of input objects passed to module */
 	unsigned int first = 0;         /* Array ID of first command argument (not 0 when API-ID is first) */
@@ -421,4 +421,8 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 		mexErrMsgTxt ("GMT: Failure to destroy GMT5 session\n");
 #endif
 	return;
+}
+
+void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
+	GMT_mexFunction (nlhs, plhs, nrhs, prhs);
 }
