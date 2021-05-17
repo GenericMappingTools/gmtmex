@@ -53,7 +53,7 @@ enum MEX_dim {
  *
  * All 6 GMT Resources are supported in this API, according to these rules:
  *  GMT_CUBE:	Handled with a MATLAB cube structure and we use GMT's GMT_CUBE for the passing
- *		  + Basic header array of length 12 [xmin, xmax, ymin, ymax, zmin, zmax, xmin, wmax, reg, xinc, yinc, zinc]
+ *		  + Basic header array of length 12 [xmin, xmax, ymin, ymax, zmin, zmax, vmin, vmax, reg, xinc, yinc, zinc]
  *		  + The 3-D grid array w (single precision)
  *		  + An x-array of coordinates
  *		  + An y-array of coordinates
