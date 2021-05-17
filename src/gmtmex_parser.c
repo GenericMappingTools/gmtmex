@@ -170,7 +170,7 @@ static void *gmtmex_get_grid (void *API, struct GMT_GRID *G) {
 	mxptr[11] = mxCreateString (G->header->x_units);
 	mxptr[12] = mxCreateString (G->header->y_units);
 	mxptr[13] = mxCreateString (G->header->z_units);
-	mxptr[14] = (G->header->mem_layout[0]) ? mxCreateString(G->header->mem_layout) : mxCreateString ("TCF");
+	mxptr[14] = (G->header->mem_layout[0]) ? mxCreateString(G->header->mem_layout) : mxCreateString ("TCB");
 	mxptr[15] = mxCreateString (G->header->ProjRefPROJ4);
 	mxptr[16] = mxCreateString (G->header->ProjRefWKT);
 
@@ -258,7 +258,7 @@ static void *gmtmex_get_cube (void *API, struct GMT_CUBE *U) {
 	mxptr[13] = mxCreateString (U->header->y_units);
 	mxptr[14] = mxCreateString (U->units);
 	mxptr[15] = mxCreateString (U->header->z_units);
-	mxptr[16] = (U->header->mem_layout[0]) ? mxCreateString(U->header->mem_layout) : mxCreateString ("TCF");
+	mxptr[16] = (U->header->mem_layout[0]) ? mxCreateString(U->header->mem_layout) : mxCreateString ("TCB");
 	mxptr[17] = mxCreateString (U->header->ProjRefPROJ4);
 	mxptr[18] = mxCreateString (U->header->ProjRefWKT);
 
