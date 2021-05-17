@@ -661,7 +661,7 @@ static struct GMT_CUBE *gmtmex_cube_init (void *API, unsigned int direction, uns
 					mexPrintf("gmtmex_cube_init:  This pad value (%d) is very probably wrong.\n");
 			}
 
-			if ((U = GMT_Create_Data (API, GMT_IS_CUBE|flag, GMT_IS_SURFACE, GMT_GRID_ALL,
+			if ((U = GMT_Create_Data (API, GMT_IS_CUBE|flag, GMT_IS_VOLUME, GMT_GRID_ALL,
 			                          NULL, range, inc, registration, pad, NULL)) == NULL)
 				mexErrMsgTxt ("gmtmex_cube_init: Failure to alloc GMT source Cube for input\n");
 
