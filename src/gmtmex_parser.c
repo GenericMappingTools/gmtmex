@@ -232,7 +232,7 @@ static void *gmtmex_get_cube (void *API, struct GMT_CUBE *U) {
 
 	/* Create a MATLAB struct to hold this cube [matrix will be a float (mxSINGLE_CLASS)]. */
 	U_struct = mxCreateStructMatrix (1, 1, N_MEX_FIELDNAMES_CUBE, GMTMEX_fieldname_cube);
-	dim[0] = U->header->n_bands;	dim[1] = U->header->n_columns;	dim[2] = U->header->n_rows;
+	dim[0] = U->header->n_rows;	dim[1] = U->header->n_columns;	dim[2] = U->header->n_bands;
 
 	/* Get pointers and populate structure from the information in U */
 	mxptr[0]  = mxCreateNumericArray (ndim, dim, mxSINGLE_CLASS, mxREAL);
