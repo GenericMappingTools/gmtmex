@@ -9,7 +9,7 @@
 #
 #	Author:	Paul Wessel, SOEST, University of Hawaii
 #
-#	Date:		1-JUL-2020
+#	Date:		1-NOV-2021
 #-------------------------------------------------------------------------------
 include Makefile
 
@@ -22,14 +22,14 @@ help::
 #!opt     : Duplicate active GMT distro to /opt/gmt and re-baptize
 #!build   : Configure, build and install the gmt mex files into /opt/gmt/bin
 #!tar     : Create a tar ball of the mex/gmt biinary distro
-#!update  : Call svn update
+#!update  : Call git pull
 #!wipe    : Remove mex-* tarballs
 #!latest-config : Update the configure include files
 #!
 
 opt:
-		@echo "[Running `ls /Applications/GMT-6.1.?.app/Contents/Resources/share/tools/gmt_prepmex.sh | tail -1`]"; echo ""
-		@`/Applications/GMT-6.1.?.app/Contents/Resources/share/tools/gmt_prepmex.sh | tail -1`
+		@echo "[Running `ls /Applications/GMT-6.3.?.app/Contents/Resources/share/tools/gmt_prepmex.sh | tail -1`]"; echo ""
+		@`/Applications/GMT-6.3.?.app/Contents/Resources/share/tools/gmt_prepmex.sh | tail -1`
 
 latest-config:
 		curl "http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD" -s -R -o config.sub
@@ -47,7 +47,7 @@ tar:
 			-cvjf mex-gmt-`gmt --version`-darwin-x84_64.tbz /opt/gmt
 
 update:
-		svn update
+		git pull
 
 wipe:
 		rm -f mex-gmt-*-darwin-x84_64.tbz
