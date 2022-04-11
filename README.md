@@ -29,9 +29,11 @@ The following works:
  * Run the gmt_prepmex.sh script in the bundle's share/tools directory.  This will duplicate
    the GMT 6.3 installation into /opt/gmt and re-baptize all the shared libraries.
  * Use gmtswitch to make /opt/gmt the current active GMT version
- * Checkout the gmt-mex project via subversion into some directory, i.e.,
-   svn checkout svn://gmtserver.soest.hawaii.edu/gmt-mex gmt-mex
- * In gmt-mex/trunk, run autoconf then configure --enable-matlab (and maybe --enable-debug) is you
+ * Checkout the gmtmex project via git into some directory, i.e.,
+   ```
+   git clone https://github.com/GenericMappingTools/gmtmex.git
+   ```
+ * In `gmtmex/`, run autoconf then configure --enable-matlab (and maybe --enable-debug) is you
    can help debug things.
  * Run make which builds the gmtmex.mexmaci64.  This executable is accessed by the gmt.m script.
  * Set your MATLAB path so these two can be found (or copy them to a suitable directory).
@@ -40,7 +42,7 @@ The following works:
 You can also build your own bundle (see CMakeLists.txt in main GMT directory).  The above works
 with UNIX installations from fink or HomeBrew but fails for us if under MacPorts (then, MATLAB
 will complain about wrong shared HDF5 library and we crash).
-If you wish to help debug in XCode then see the gmt-mex wiki for more details.  While the latest
+If you wish to help debug in XCode then see the gmtmex wiki for more details.  While the latest
 2021a MATLAB version works with XCode 12, earlier versions may require an older Xcode version.
 We used the 2021a MATLAB version to build the interface.
 
