@@ -398,9 +398,12 @@ elif test ! "X$enable_matlab" = "X"; then
 				MEX_EXT='mexmaci64'
 				MATLAB_MEX='maci64'
 			else
-				MEX_EXT='mexmaci'
+				MEX_EXT='maci64'
 				MATLAB_MEX='maci'
 			fi
+		elif test "$chip" = "arm" ; then		#Apple Silicon Mac 64-bit
+			MEX_EXT='mexmaci64'
+			MATLAB_MEX='maci64'
 		else	#Legacy PPC
 			MEX_EXT='mexmac'
 			MATLAB_MEX='mac'
