@@ -28,8 +28,8 @@ help::
 #!
 
 opt:
-		@echo "[Running `ls /Applications/GMT-6.3.?.app/Contents/Resources/share/tools/gmt_prepmex.sh | tail -1`]"; echo ""
-		@`/Applications/GMT-6.3.?.app/Contents/Resources/share/tools/gmt_prepmex.sh | tail -1`
+		@echo "[Running `ls /Applications/GMT-6.4.?.app/Contents/Resources/share/tools/gmt_prepmex.sh | tail -1`]"; echo ""
+		@`/Applications/GMT-6.4.?.app/Contents/Resources/share/tools/gmt_prepmex.sh | tail -1`
 
 latest-config:
 		curl "http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD" -s -R -o config.sub
