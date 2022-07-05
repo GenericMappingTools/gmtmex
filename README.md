@@ -1,4 +1,4 @@
-# GMTMex - GMT API for MATLAB
+# GMT/MEX - GMT API for MATLAB
 
 # Extended Docs
 
@@ -16,18 +16,18 @@ Examples below will give you the general idea.
 ## Windows
 
 The Windows installers come already with the gmtmex.mexw64|32 and gmt.m files necessary run the MEX. Only make sure that the
-GMT6.3 binary dir is either in the Windows path (the installer does that for you) and in the MATLAB path (you have to do it
+GMT6.4 binary dir is either in the Windows path (the installer does that for you) and in the MATLAB path (you have to do it
 yourself). If you want to (re)build the MEX file yourself, see the compile_mex.bat in the source SVN repository.
 
-## OS X
+## macOS
 
-We have successfully built the MATLAB interface under OS X. However, due to the way MATLAB handles shared libraries it is a
+We have successfully built the MATLAB interface under macOS. However, due to the way MATLAB handles shared libraries it is a
 delicate process, with several caveats. This may change over time as we work with MathWorks to straighten out the kinks.
 The following works:
 
- * Install the GMT OS X Bundle
+ * Install the GMT macOS Bundle
  * Run the gmt_prepmex.sh script in the bundle's share/tools directory.  This will duplicate
-   the GMT 6.3 installation into /opt/gmt and re-baptize all the shared libraries.
+   the GMT 6.4 installation into /opt/gmt and re-baptize all the shared libraries.
  * Use gmtswitch to make /opt/gmt the current active GMT version
  * Checkout the gmtmex project via git into some directory, i.e.,
    ```
