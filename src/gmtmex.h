@@ -1,5 +1,5 @@
 /*
- *	Copyright (c) 2015-2021 by P. Wessel and J. Luis
+ *	Copyright (c) 2015-2023 by P. Wessel and J. Luis
  *      See LICENSE.TXT file for copying and redistribution conditions.
  *
  *      This program is free software; you can redistribute it and/or modify
@@ -21,14 +21,14 @@
 #define GMTMEX_H
 
 #define GMTMEX_MAJOR_VERSION 2
-#define GMTMEX_MINOR_VERSION 1
+#define GMTMEX_MINOR_VERSION 2
 #define GMTMEX_PATCH_VERSION 0
 
 /* Define the minimum GMT version suitable for this GMTMEX version */
 
 #define GMTMEX_GMT_MAJOR_VERSION	6
-#define GMTMEX_GMT_MINOR_VERSION	1
-#define GMTMEX_GMT_PATCH_VERSION	1
+#define GMTMEX_GMT_MINOR_VERSION	5
+#define GMTMEX_GMT_PATCH_VERSION	0
 
 #include "gmt.h"
 #include "gmt_version.h"
