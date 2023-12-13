@@ -141,6 +141,7 @@ if test "X$os" = "XDarwin" ; then
 	osr=`uname -r | cut -d. -f1`
 fi
 chip=`uname -p`
+mchip=`uname -m`
 Sun_rev=`uname -r | grep '^5.'`
 rootdir=`pwd`
 dnl
@@ -391,7 +392,7 @@ elif test ! "X$enable_matlab" = "X"; then
 		else
 			MATLAB=/Applications/$dir
 		fi
-		MEX_BLD="xcrun clang -undefined error -arch x86_64 -bundle -DGMT_MATLAB $MFLAGS"
+		MEX_BLD="xcrun clang -undefined error -arch ${mchip} -bundle -DGMT_MATLAB $MFLAGS"
 		MEX_OUT='-o'
 		if test "$chip" = "i386" ; then		#Intel Mac
 			if test "$ac_cv_sizeof_long" = "8" ; then
@@ -402,8 +403,8 @@ elif test ! "X$enable_matlab" = "X"; then
 				MATLAB_MEX='maci'
 			fi
 		elif test "$chip" = "arm" ; then		#Apple Silicon Mac 64-bit
-			MEX_EXT='mexmaci64'
-			MATLAB_MEX='maci64'
+			MEX_EXT='mexmaca64'
+			MATLAB_MEX='maca64'
 		else	#Legacy PPC
 			MEX_EXT='mexmac'
 			MATLAB_MEX='mac'

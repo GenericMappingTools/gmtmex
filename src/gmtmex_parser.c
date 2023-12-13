@@ -216,7 +216,7 @@ static void *gmtmex_get_cube (void *API, struct GMT_CUBE *U) {
 	uint64_t row, col, layer, gmt_ij, offset = 0;
 	mwSize ndim = 3, dim[3];
 	float  *f = NULL;
-	double *d = NULL, *U_x = NULL, *U_y = NULL, *x = NULL, *y = NULL, *z = NULL;
+	double *d = NULL, *x = NULL, *y = NULL, *z = NULL;
 	mxArray *U_struct = NULL, *mxptr[N_MEX_FIELDNAMES_CUBE];
 
 	if (!U->data)	/* Safety valve */
@@ -285,8 +285,6 @@ static void *gmtmex_get_cube (void *API, struct GMT_CUBE *U) {
 	}
 
 	/* Also return the convenient x and y arrays */
-	U_x = GMT_Get_Coord (API, GMT_IS_GRID, GMT_X, U);	/* Get array of x coordinates */
-	U_y = GMT_Get_Coord (API, GMT_IS_GRID, GMT_Y, U);	/* Get array of y coordinates */
 	x = mxGetData (mxptr[1]);
 	y = mxGetData (mxptr[2]);
 	z = mxGetData (mxptr[3]);
