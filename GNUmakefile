@@ -1,6 +1,4 @@
 #-------------------------------------------------------------------------------
-#  $Id: GNUmakefile 389 2015-11-14 06:15:38Z pwessel $
-#
 #	Guru Makefile for gmt-mex directory
 #	
 #	!!! THIS MAKEFILE IS FOR GMT-MEX DEVELOPERS ONLY !!!
@@ -9,7 +7,7 @@
 #
 #	Author:	Paul Wessel, SOEST, University of Hawaii
 #
-#	Date:		1-DEC-2023
+#	Date:		1-JAN-2024
 #-------------------------------------------------------------------------------
 include Makefile
 

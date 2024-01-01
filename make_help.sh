@@ -2,7 +2,7 @@
 #	$Id$
 # Build the gmt.m help script from gmt source codes
 #
-SRC=$GMTHOME5/branches/5.2.0/src
+SRC=$GMTHOME5/branches/6.5.0/src
 cat << EOF > trim.sed
 s/{//g
 s/}//g

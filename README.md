@@ -43,8 +43,8 @@ You can also build your own bundle (see CMakeLists.txt in main GMT directory).  
 with UNIX installations from fink or HomeBrew but fails for us if under MacPorts (then, MATLAB
 will complain about wrong shared HDF5 library and we crash).
 If you wish to help debug in XCode then see the gmtmex wiki for more details.  While the latest
-2021a MATLAB version works with XCode 12, earlier versions may require an older Xcode version.
-We used the 2021a MATLAB version to build the interface.
+2023b MATLAB version works with XCode 14, earlier versions may require an older Xcode version.
+We used the 2023b MATLAB version to build the interface.
 
 ## Unix/Linux
 

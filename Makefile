@@ -1,5 +1,3 @@
-#       $Id$
-#
 #       makefile for top gmtmex directory
 
 sinclude config.mk
