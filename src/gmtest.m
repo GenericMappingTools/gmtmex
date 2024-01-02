@@ -85,7 +85,7 @@ function [ps, orig_path] = call_test(test, test_dir, g_root_dir, out_path, famil
 	try
 		[ps, orig_path] = feval(str2func(test), out_path);
 		if (strcmp(family, 'scripts'))
-			orig_path = orig_path(1:end-3);		% Because original PS lieve in a subdir below
+			orig_path = orig_path(1:end-3);		% Because original PS live in a subdir below
 		end
 	catch
 		disp(lasterr)

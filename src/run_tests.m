@@ -32,10 +32,10 @@ function do_tests()
 		'trimvector','psxy'
 		'decoratedlines','psxy'
 		'sph_5','sph'
-		%'flexure_e','potential'	% See test. We dont' have syntax to run it
+		%'flexure_e','potential'	% See test. We don't have syntax to run it
 		'spheres','potential'
 		'clipping6','psxy'
-		%'clipping5','psxy'			% See test. We dont' have syntax to run it
+		%'clipping5','psxy'			% See test. We don't have syntax to run it
 		'clipping4','psxy'
 		'geosegmentize','psxy'
 		};

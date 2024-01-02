@@ -26,8 +26,8 @@ help::
 #!
 
 opt:
-		@echo "[Running `ls /Applications/GMT-6.4.?.app/Contents/Resources/share/tools/gmt_prepmex.sh | tail -1`]"; echo ""
-		@`/Applications/GMT-6.4.?.app/Contents/Resources/share/tools/gmt_prepmex.sh | tail -1`
+		@echo "[Running `ls /Applications/GMT-6.5.0.app/Contents/Resources/share/tools/gmt_prepmex.sh | tail -1`]"; echo ""
+		@`/Applications/GMT-6.5.0.app/Contents/Resources/share/tools/gmt_prepmex.sh | tail -1`
 
 latest-config:
 		curl "http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD" -s -R -o config.sub
@@ -42,10 +42,10 @@ build:
 
 tar:
 		COPYFILE_DISABLE=true $(GNUTAR) --owner 0 --group 0 --mode a=rX,u=rwX --absolute-names \
-			-cvjf mex-gmt-`gmt --version`-darwin-x84_64.tbz /opt/gmt
+			-cvjf mex-gmt-`gmt --version`-darwin-arm64.tbz /opt/gmt
 
 update:
 		git pull
 
 wipe:
-		rm -f mex-gmt-*-darwin-x84_64.tbz
+		rm -f mex-gmt-*-darwin-arm64.tbz
