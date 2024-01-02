@@ -8,3 +8,4 @@ src/*.o
 src/gmtmex.mexmaci64
 src/build_mex_pw.m
 .DS_Store
+*.tbz
