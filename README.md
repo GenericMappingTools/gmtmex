@@ -35,7 +35,8 @@ The following works:
    ```
  * In `gmtmex/`, run autoconf then configure --enable-matlab (and maybe --enable-debug) is you
    can help debug things.
- * Run make which builds the gmtmex.mexmaci64.  This executable is accessed by the gmt.m script.
+ * Run make which builds the gmtmex.mexmaci64 (x86_64) or gmtmex.mexmaca64 (arm64).  This executable
+   is accessed by the gmt.m script.
  * Set your MATLAB path so these two can be found (or copy them to a suitable directory).
  * Make sure your gmt.conf file has the entry GMT_CUSTOM_LIBS=/opt/gmt/lib/gmt/plugins/supplements.so.
 
