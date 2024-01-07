@@ -12,6 +12,7 @@
 include Makefile
 
 GNUTAR		= $(shell which gnutar || which gtar || which tar)
+CHIP		= $(uname -m)
 
 help::
 		@grep '^#!' GNUmakefile | cut -c3-
@@ -42,10 +43,10 @@ build:
 
 tar:
 		COPYFILE_DISABLE=true $(GNUTAR) --owner 0 --group 0 --mode a=rX,u=rwX --absolute-names \
-			-cvjf mex-gmt-`gmt --version`-darwin-arm64.tbz /opt/gmt
+			-cvjf mex-gmt-`gmt --version`-darwin-$(CHIP).tbz /opt/gmt
 
 update:
 		git pull
 
 wipe:
-		rm -f mex-gmt-*-darwin-arm64.tbz
+		rm -f mex-gmt-*-darwin-$(CHIP).tbz
